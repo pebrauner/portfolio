@@ -1,0 +1,5 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home1/hbpklkte/public_html/
+    - /bin/cp -r $TRAVIS_BUILD_DIR/. $DEPLOYPATH
