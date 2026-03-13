@@ -1491,20 +1491,20 @@
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">Name</label>
-        <input class="form-input" type="text" placeholder="Your name" required>
+        <input class="form-input" type="text" name="name" placeholder="Your name" required>
       </div>
       <div class="form-group">
         <label class="form-label">Email</label>
-        <input class="form-input" type="email" placeholder="your@email.com" required>
+        <input class="form-input" type="email" name="email" placeholder="your@email.com" required>
       </div>
     </div>
     <div class="form-group">
       <label class="form-label">Subject</label>
-      <input class="form-input" type="text" placeholder="What's this about?">
+      <input class="form-input" type="text" name="subject" placeholder="What's this about?">
     </div>
     <div class="form-group">
       <label class="form-label">Message</label>
-      <textarea class="form-textarea" placeholder="Say hello..." required></textarea>
+      <textarea class="form-textarea" name="message" placeholder="Say hello..." required></textarea>
     </div>
     <button type="submit" class="form-submit">Send Message</button>
   </form>
@@ -1520,7 +1520,7 @@
   <div class="resume-content" id="resume-content">
     <div class="resume-name">Pedro Brauner</div>
     <div class="resume-title-line">Journalist &amp; Content Strategist · PT / EN / ES</div>
-    <div class="resume-contact-line">hello@pedrobrauner.com · Lima, Peru · +51 972 086 752</div>
+    <div class="resume-contact-line">hello@pedrobrauner.com · Lima, Peru</div>
 
     <div class="resume-block">
       <div class="resume-block-title">Experience</div>
@@ -1717,16 +1717,37 @@
   }, { passive: true });
 
   /* ─── FORM SUBMIT ─── */
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    const btn = e.target.querySelector('.form-submit');
-    btn.textContent = 'Sent ✓';
-    btn.style.background = '#2a6e3c';
-    setTimeout(() => {
-      btn.textContent = 'Send Message';
-      btn.style.background = '';
-      e.target.reset();
-    }, 3000);
+    const form = e.target;
+    const btn = form.querySelector('.form-submit');
+    btn.textContent = 'Sending...';
+    btn.disabled = true;
+    try {
+      const res = await fetch('https://formspree.io/f/xaqpbqde', {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) {
+        btn.textContent = 'Sent ✓';
+        btn.style.background = '#2a6e3c';
+        form.reset();
+        setTimeout(() => {
+          btn.textContent = 'Send Message';
+          btn.style.background = '';
+          btn.disabled = false;
+        }, 3000);
+      } else {
+        btn.textContent = 'Error — try again';
+        btn.style.background = '#8b1a1a';
+        btn.disabled = false;
+      }
+    } catch {
+      btn.textContent = 'Error — try again';
+      btn.style.background = '#8b1a1a';
+      btn.disabled = false;
+    }
   }
 </script>
 
