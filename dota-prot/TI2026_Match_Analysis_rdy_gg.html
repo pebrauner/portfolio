@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NAVI vs Heroic — Grand Final Game 5 | Match Analysis | rdy.gg</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;600;700;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#00D161;--gold:#C9A84C;--gold-bright:#F0C840;--gold-dim:#C9A84C20;
+  --radiant:#3DA664;--radiant-dim:#3DA66420;--radiant-light:#5fd98a;
+  --dire:#C24040;--dire-dim:#C2404020;--dire-light:#e06060;
+  --midnight:#080a0e;--card:#0f1117;--card-alt:#141720;--surface:#1e2230;
+  --border:#ffffff0d;--border-solid:#1e2230;--text:#e8eaf0;--muted:#7a8099;
+  --font-display:'Roboto Condensed',sans-serif;--font-body:'Source Sans 3',sans-serif;
+}
+html{background:var(--midnight);color:var(--text);font-family:var(--font-body);font-size:14px;}
+a{color:inherit;text-decoration:none;}
+img{display:block;}
+
+/* ── HEADER ── */
+.site-header{position:sticky;top:0;z-index:100;background:#0a0c12ee;backdrop-filter:blur(12px);border-bottom:1px solid var(--border);height:52px;display:flex;align-items:center;padding:0 20px;gap:20px;}
+.logo{font-family:var(--font-display);font-size:22px;font-weight:900;letter-spacing:-1px;}
+.logo span{color:var(--green);}
+.sport-switcher{display:flex;gap:2px;background:#ffffff08;border-radius:6px;padding:3px;}
+.sport-btn{font-family:var(--font-display);font-size:12px;font-weight:700;padding:4px 10px;border-radius:4px;color:var(--muted);cursor:pointer;letter-spacing:.5px;}
+.sport-btn.active{background:var(--green);color:#000;}
+.site-nav{display:flex;gap:2px;margin-left:8px;}
+.site-nav a{font-family:var(--font-display);font-size:13px;font-weight:600;padding:5px 12px;border-radius:4px;color:var(--muted);letter-spacing:.3px;transition:color .15s;}
+.site-nav a:hover{color:var(--text);}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.live-pill{display:flex;align-items:center;gap:6px;background:#ffffff0a;border:1px solid #ffffff15;border-radius:20px;padding:4px 12px;font-family:var(--font-display);font-size:12px;font-weight:700;letter-spacing:.5px;cursor:pointer;}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#ff4444;animation:blink 1.2s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.btn-signin{background:transparent;border:1px solid var(--border-solid);color:var(--muted);padding:6px 14px;border-radius:5px;font-family:var(--font-display);font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.4px;}
+.btn-discord{background:var(--green);color:#000;padding:6px 14px;border-radius:5px;font-family:var(--font-display);font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.4px;}
+
+/* ── BREADCRUMB ── */
+.breadcrumb-bar{background:var(--card);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);}
+.breadcrumb-bar a{color:var(--muted);}
+.breadcrumb-bar a:hover{color:var(--text);}
+.breadcrumb-sep{opacity:.4;}
+.breadcrumb-bar span{color:var(--text);}
+
+/* ── MATCH HERO BANNER ── */
+.match-banner{background:linear-gradient(135deg,#0a1a10 0%,#0a0c12 40%,#1a0a0a 100%);border-bottom:1px solid var(--border);padding:28px 20px 22px;position:relative;overflow:hidden;}
+.match-banner::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C9A84C' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");}
+.match-banner-inner{position:relative;max-width:1240px;margin:0 auto;}
+.match-label{font-family:var(--font-display);font-size:11px;font-weight:700;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.match-label::before{content:'';width:20px;height:1px;background:var(--gold);}
+.match-label::after{content:'';width:20px;height:1px;background:var(--gold);}
+.match-teams-row{display:flex;align-items:center;gap:0;justify-content:center;margin-bottom:18px;}
+.banner-team{display:flex;flex-direction:column;align-items:center;gap:10px;width:220px;}
+.banner-logo{width:72px;height:72px;object-fit:contain;filter:drop-shadow(0 4px 16px rgba(0,0,0,.6));}
+.banner-logo-placeholder{width:72px;height:72px;display:flex;align-items:center;justify-content:center;font-size:28px;background:var(--surface);border-radius:8px;}
+.banner-team-name{font-family:var(--font-display);font-size:26px;font-weight:900;letter-spacing:-.5px;}
+.banner-team-name.radiant{color:var(--radiant-light);}
+.banner-team-name.dire{color:var(--dire-light);}
+.banner-score-col{display:flex;flex-direction:column;align-items:center;gap:6px;width:160px;}
+.banner-score{font-family:var(--font-display);font-size:52px;font-weight:900;letter-spacing:-2px;line-height:1;}
+.banner-score .s-radiant{color:var(--radiant-light);}
+.banner-score .s-sep{color:var(--muted);margin:0 4px;}
+.banner-score .s-dire{color:var(--dire-light);}
+.banner-series{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.5px;}
+.banner-game-badge{background:var(--dire);color:#fff;font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:1px;padding:3px 9px;border-radius:10px;text-transform:uppercase;}
+.match-meta-pills{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;}
+.meta-pill{display:flex;align-items:center;gap:5px;background:#ffffff08;border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.3px;}
+.meta-pill .pi{color:var(--gold);}
+.meta-pill.radiant-pill{border-color:var(--radiant-dim);color:var(--radiant-light);}
+.meta-pill.dire-pill{border-color:var(--dire-dim);color:var(--dire-light);}
+.analysis-link{background:var(--gold);color:#000;font-family:var(--font-display);font-size:12px;font-weight:700;letter-spacing:.5px;padding:6px 16px;border-radius:5px;cursor:pointer;text-decoration:none;}
+
+/* ── PAGE LAYOUT ── */
+.page-wrap{max-width:1240px;margin:0 auto;padding:20px;display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start;}
+.main-col{display:flex;flex-direction:column;gap:20px;}
+.side-col{display:flex;flex-direction:column;gap:16px;position:sticky;top:72px;}
+
+/* ── SECTION CARD ── */
+.section-card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.section-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);}
+.section-title{font-family:var(--font-display);font-size:15px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;display:flex;align-items:center;gap:8px;}
+.section-title .accent{color:var(--gold);}
+.section-subtitle{font-size:12px;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;margin-left:8px;}
+.section-action{font-size:12px;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:4px;}
+.section-action:hover{color:var(--text);}
+
+/* ── DRAFT DEEP DIVE ── */
+.draft-deepdive{padding:18px;}
+.draft-game-tabs{display:flex;gap:4px;margin-bottom:16px;}
+.draft-game-tab{font-family:var(--font-display);font-size:12px;font-weight:700;padding:5px 14px;border-radius:4px;cursor:pointer;background:#ffffff08;color:var(--muted);border:1px solid var(--border);letter-spacing:.3px;}
+.draft-game-tab.active{background:var(--gold-dim);color:var(--gold);border-color:var(--gold);}
+.draft-teams-header{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+.draft-team-head{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:6px;}
+.draft-team-head.radiant{background:var(--radiant-dim);border:1px solid #3DA66430;}
+.draft-team-head.dire{background:var(--dire-dim);border:1px solid #C2404030;}
+.dth-logo{width:28px;height:28px;object-fit:contain;}
+.dth-name{font-family:var(--font-display);font-size:14px;font-weight:700;}
+.dth-faction{font-size:10px;color:var(--muted);letter-spacing:.5px;}
+.draft-timeline{display:flex;flex-direction:column;gap:2px;}
+.draft-phase-label{font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;padding:8px 0 4px;border-top:1px solid var(--border);margin-top:6px;}
+.draft-phase-label:first-child{border-top:none;margin-top:0;}
+.draft-row{display:grid;grid-template-columns:24px 1fr 80px 1fr 24px;gap:6px;align-items:center;padding:5px 0;}
+.draft-row-num{font-family:var(--font-display);font-size:10px;font-weight:700;color:var(--muted);text-align:center;}
+.draft-pick-cell{display:flex;align-items:center;gap:8px;}
+.draft-pick-cell.dire-side{flex-direction:row-reverse;}
+.draft-hero-img{width:40px;height:28px;object-fit:cover;border-radius:4px;border:1px solid var(--border);}
+.draft-hero-img.ban-img{filter:grayscale(.7) brightness(.5);border-color:#ff444430;}
+.draft-pick-info{}
+.draft-hero-name{font-family:var(--font-display);font-size:13px;font-weight:700;}
+.draft-pick-meta{font-size:10px;color:var(--muted);}
+.draft-action-center{text-align:center;}
+.draft-action-badge{display:inline-block;font-family:var(--font-display);font-size:9px;font-weight:700;letter-spacing:.8px;padding:2px 8px;border-radius:8px;text-transform:uppercase;}
+.draft-action-badge.pick-radiant{background:var(--radiant-dim);color:var(--radiant-light);border:1px solid #3DA66440;}
+.draft-action-badge.pick-dire{background:var(--dire-dim);color:var(--dire-light);border:1px solid #C2404040;}
+.draft-action-badge.ban-radiant{background:#ffffff08;color:#ff9999;border:1px solid #ff444420;}
+.draft-action-badge.ban-dire{background:#ffffff08;color:#ff9999;border:1px solid #ff444420;}
+.draft-commentary{margin-top:16px;background:var(--card-alt);border-radius:8px;padding:14px;border-left:3px solid var(--gold);}
+.draft-commentary p{font-size:13px;color:var(--muted);line-height:1.7;}
+.draft-commentary strong{color:var(--text);}
+.draft-commentary .key-moment{display:inline-block;background:var(--gold-dim);color:var(--gold);font-size:10px;font-weight:700;padding:1px 7px;border-radius:8px;margin-right:4px;letter-spacing:.5px;}
+
+/* ── PLAYER STATS TABLE ── */
+.stats-table-wrap{overflow-x:auto;}
+.stats-table{width:100%;border-collapse:collapse;font-size:12px;}
+.stats-table th{font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:.8px;color:var(--muted);text-transform:uppercase;padding:8px 10px;border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;}
+.stats-table th:hover{color:var(--text);}
+.stats-table th.sorted{color:var(--gold);}
+.stats-table th .sort-arrow{margin-left:3px;opacity:.6;}
+.stats-table td{padding:8px 10px;border-bottom:1px solid #ffffff06;white-space:nowrap;vertical-align:middle;}
+.stats-table tr:last-child td{border-bottom:none;}
+.stats-table tr.radiant-row{background:#3DA66406;}
+.stats-table tr.dire-row{background:#C2404006;}
+.stats-table tr:hover td{background:#ffffff05;}
+.st-hero-cell{display:flex;align-items:center;gap:8px;}
+.st-hero-img{width:36px;height:25px;object-fit:cover;border-radius:3px;}
+.st-hero-name{font-family:var(--font-display);font-size:12px;font-weight:700;}
+.st-player-name{font-size:11px;color:var(--muted);}
+.st-kda{font-family:var(--font-display);font-weight:700;}
+.st-kda .k{color:var(--radiant-light);}
+.st-kda .d{color:var(--dire-light);}
+.st-kda .a{color:var(--gold);}
+.st-kda .sep{color:var(--muted);margin:0 1px;}
+.st-gpm{color:var(--gold-bright);}
+.st-dmg-bar{display:flex;align-items:center;gap:6px;}
+.dmg-bar-bg{width:60px;height:4px;background:#ffffff10;border-radius:2px;flex-shrink:0;}
+.dmg-bar-fill{height:100%;border-radius:2px;}
+.dmg-bar-fill.hero{background:var(--dire);}
+.dmg-bar-fill.tower{background:var(--gold);}
+.dmg-bar-fill.heal{background:var(--radiant);}
+.divider-row td{background:var(--border-solid);height:2px;padding:0;}
+.team-label-row td{padding:4px 10px;font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+.team-label-row.radiant td{color:var(--radiant-light);background:var(--radiant-dim);}
+.team-label-row.dire td{color:var(--dire-light);background:var(--dire-dim);}
+
+/* ── NET WORTH GRAPH ── */
+.nw-graph-wrap{padding:18px;}
+.nw-graph-controls{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+.nw-ctrl-btn{font-family:var(--font-display);font-size:11px;font-weight:700;padding:4px 12px;border-radius:4px;cursor:pointer;background:#ffffff08;color:var(--muted);border:1px solid var(--border);}
+.nw-ctrl-btn.active{background:var(--card-alt);color:var(--text);border-color:var(--border-solid);}
+.nw-legend{display:flex;align-items:center;gap:16px;margin-left:auto;}
+.nw-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);}
+.nw-legend-dot{width:10px;height:3px;border-radius:2px;}
+.nw-legend-dot.radiant{background:var(--radiant);}
+.nw-legend-dot.dire{background:var(--dire);}
+.nw-legend-dot.gold{background:var(--gold);}
+.nw-svg-container{position:relative;width:100%;}
+
+/* ── RADAR CHART ── */
+.radar-wrap{padding:18px;}
+.radar-player-selectors{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.radar-team-group{display:flex;flex-direction:column;gap:4px;}
+.radar-team-label{font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:2px 0;}
+.radar-team-label.radiant{color:var(--radiant-light);}
+.radar-team-label.dire{color:var(--dire-light);}
+.radar-players{display:flex;gap:4px;flex-wrap:wrap;}
+.radar-player-btn{font-family:var(--font-display);font-size:11px;font-weight:600;padding:4px 10px;border-radius:4px;cursor:pointer;background:#ffffff08;color:var(--muted);border:1px solid var(--border);letter-spacing:.2px;}
+.radar-player-btn.active-radiant{background:var(--radiant-dim);color:var(--radiant-light);border-color:#3DA66450;}
+.radar-player-btn.active-dire{background:var(--dire-dim);color:var(--dire-light);border-color:#C2404050;}
+.radar-chart-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
+.radar-svg-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;}
+.radar-chart-title{font-family:var(--font-display);font-size:12px;font-weight:700;color:var(--muted);}
+.radar-stat-table{width:100%;}
+.radar-stat-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);}
+.radar-stat-row:last-child{border-bottom:none;}
+.radar-stat-name{font-size:11px;color:var(--muted);font-weight:600;}
+.radar-stat-bars{display:flex;align-items:center;gap:6px;flex:1;margin:0 10px;}
+.radar-stat-bar-bg{flex:1;height:4px;background:#ffffff0a;border-radius:2px;overflow:hidden;}
+.radar-stat-bar-fill{height:100%;border-radius:2px;}
+.radar-stat-bar-fill.r{background:var(--radiant);}
+.radar-stat-bar-fill.d{background:var(--dire);}
+.radar-stat-val{font-family:var(--font-display);font-size:11px;font-weight:700;min-width:36px;text-align:right;}
+.radar-stat-val.r{color:var(--radiant-light);}
+.radar-stat-val.d{color:var(--dire-light);}
+
+/* ── TEAM STATS BARS ── */
+.team-stats-wrap{padding:18px;}
+.stat-bar-row{display:grid;grid-template-columns:100px 1fr 100px;align-items:center;gap:10px;margin-bottom:12px;}
+.stat-bar-label{font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);text-align:center;grid-column:1/-1;margin-bottom:2px;}
+.stat-val-left{font-family:var(--font-display);font-size:14px;font-weight:900;text-align:right;color:var(--radiant-light);}
+.stat-val-right{font-family:var(--font-display);font-size:14px;font-weight:900;text-align:left;color:var(--dire-light);}
+.stat-bar-center{position:relative;height:8px;background:#ffffff0a;border-radius:4px;overflow:hidden;display:flex;}
+.stat-bar-radiant{height:100%;background:var(--radiant);border-radius:4px 0 0 4px;transition:width .6s;}
+.stat-bar-dire{height:100%;background:var(--dire);border-radius:0 4px 4px 0;margin-left:auto;transition:width .6s;}
+.stat-bar-sep{position:absolute;left:50%;top:0;bottom:0;width:1px;background:#ffffff20;}
+.stat-group-title{font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);padding:10px 0 6px;border-top:1px solid var(--border);margin-top:4px;}
+.stat-group-title:first-child{border-top:none;padding-top:0;}
+
+/* ── HERO POOL ── */
+.hero-pool-wrap{padding:18px;}
+.hero-pool-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.hero-pool-team{display:flex;flex-direction:column;gap:10px;}
+.hero-pool-team-header{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+.hero-pool-logo{width:24px;height:24px;object-fit:contain;}
+.hero-pool-team-name{font-family:var(--font-display);font-size:13px;font-weight:700;}
+.hero-pool-player{margin-bottom:8px;}
+.hp-player-name{font-family:var(--font-display);font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.3px;margin-bottom:4px;}
+.hp-heroes{display:flex;gap:4px;flex-wrap:wrap;}
+.hp-hero-thumb{position:relative;width:36px;height:26px;border-radius:3px;overflow:hidden;border:1px solid var(--border);}
+.hp-hero-thumb img{width:100%;height:100%;object-fit:cover;}
+.hp-hero-thumb .hp-wr{position:absolute;bottom:0;left:0;right:0;background:#000000aa;font-size:8px;font-weight:700;text-align:center;padding:1px 0;color:var(--gold);}
+
+/* ── SIDEBAR CARDS ── */
+.sidebar-card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.sidebar-card-header{padding:12px 14px;border-bottom:1px solid var(--border);font-family:var(--font-display);font-size:12px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);}
+.sidebar-card-body{padding:12px 14px;}
+
+/* match summary sidebar */
+.match-summary-hero{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--card-alt);border-bottom:1px solid var(--border);}
+.ms-team{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.ms-logo{width:36px;height:36px;object-fit:contain;}
+.ms-name{font-family:var(--font-display);font-size:12px;font-weight:700;}
+.ms-score{font-family:var(--font-display);font-size:32px;font-weight:900;display:flex;align-items:center;gap:6px;}
+.ms-score .rs{color:var(--radiant-light);}
+.ms-score .ds{color:var(--dire-light);}
+.ms-score .sep{color:var(--muted);}
+.ms-stat-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #ffffff06;font-size:12px;}
+.ms-stat-row:last-child{border-bottom:none;}
+.ms-stat-label{color:var(--muted);}
+.ms-stat-val{font-weight:600;}
+.ms-stat-val.gold{color:var(--gold);}
+.ms-stat-val.radiant{color:var(--radiant-light);}
+.ms-stat-val.dire{color:var(--dire-light);}
+.ms-stat-val.green{color:var(--green);}
+
+/* key moments */
+.key-moment-item{padding:8px 0;border-bottom:1px solid #ffffff06;display:flex;gap:8px;}
+.key-moment-item:last-child{border-bottom:none;}
+.km-time{font-family:var(--font-display);font-size:10px;font-weight:700;color:var(--gold);min-width:36px;}
+.km-text{font-size:11px;color:var(--muted);line-height:1.5;}
+.km-text strong{color:var(--text);}
+
+/* ── FOOTER ── */
+footer{background:var(--card);border-top:1px solid var(--border);padding:20px;display:flex;align-items:center;justify-content:space-between;margin-top:40px;}
+footer .footer-logo{font-family:var(--font-display);font-size:18px;font-weight:900;}
+footer .footer-logo span{color:var(--green);}
+footer .footer-copy{font-size:11px;color:var(--muted);}
+footer .footer-links{display:flex;gap:16px;}
+footer .footer-links a{font-size:11px;color:var(--muted);}
+footer .footer-links a:hover{color:var(--text);}
+
+/* ── BACK BUTTON ── */
+.back-btn{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-display);font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;letter-spacing:.3px;}
+.back-btn:hover{color:var(--text);}
+.back-btn svg{width:14px;height:14px;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <a href="TI2026_Hub_Prototype_rdy_gg.html" class="logo">rdy<span>.gg</span></a>
+  <div class="sport-switcher">
+    <div class="sport-btn">CS2</div>
+    <div class="sport-btn active">DOTA 2</div>
+    <div class="sport-btn">VALORANT</div>
+  </div>
+  <nav class="site-nav">
+    <a href="#">Matches</a>
+    <a href="#">Teams</a>
+    <a href="#">Players</a>
+    <a href="#">Rankings</a>
+    <a href="#">Editorial</a>
+  </nav>
+  <div class="header-right">
+    <div class="live-pill"><span class="live-dot"></span> TI 2026 · LIVE</div>
+    <button class="btn-signin">SIGN IN</button>
+    <button class="btn-discord">DISCORD</button>
+  </div>
+</header>
+
+<!-- BREADCRUMB -->
+<div class="breadcrumb-bar">
+  <a href="TI2026_Hub_Prototype_rdy_gg.html">
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-right:2px"><path d="M10 6H2M2 6L5 3M2 6L5 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    TI 2026
+  </a>
+  <span class="breadcrumb-sep">›</span>
+  <a href="#">Grand Final</a>
+  <span class="breadcrumb-sep">›</span>
+  <span>NAVI vs Heroic — Game 5 Analysis</span>
+</div>
+
+<!-- MATCH BANNER -->
+<div class="match-banner">
+  <div class="match-banner-inner">
+    <div class="match-label">Grand Final · Best of 5 · Game 5 · Aug 23, 2026</div>
+    <div class="match-teams-row">
+      <div class="banner-team">
+        <img src="assets/teams/navi.webp" class="banner-logo" onerror="this.style.display='none'" alt="NAVI">
+        <div class="banner-team-name radiant">NAVI</div>
+        <div style="font-size:11px;color:var(--muted);">Radiant</div>
+      </div>
+      <div class="banner-score-col">
+        <div class="banner-score">
+          <span class="s-radiant">2</span><span class="s-sep">:</span><span class="s-dire">2</span>
+        </div>
+        <div class="banner-series">BO5 SERIES</div>
+        <div class="banner-game-badge">● LIVE 42:18</div>
+      </div>
+      <div class="banner-team">
+        <img src="assets/teams/heroic.webp" class="banner-logo" onerror="this.style.display='none'" alt="Heroic">
+        <div class="banner-team-name dire">Heroic</div>
+        <div style="font-size:11px;color:var(--muted);">Dire</div>
+      </div>
+    </div>
+    <div class="match-meta-pills">
+      <div class="meta-pill"><span class="pi">🏆</span> The International 2026</div>
+      <div class="meta-pill"><span class="pi">📍</span> Oriental Sports Center, Shanghai</div>
+      <div class="meta-pill"><span class="pi">⏱</span> 42:18</div>
+      <div class="meta-pill radiant-pill">NAVI K 32</div>
+      <div class="meta-pill dire-pill">Heroic K 24</div>
+      <div class="meta-pill"><span class="pi">$</span> $6,000,000 on the line</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN PAGE -->
+<div class="page-wrap">
+  <main class="main-col">
+
+    <!-- DRAFT DEEP DIVE -->
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-title"><span class="accent">◆</span> Draft Analysis <span class="section-subtitle">Captain's Mode · Game 5</span></div>
+        <div class="section-action">Full Draft History ›</div>
+      </div>
+      <div class="draft-deepdive">
+        <div class="draft-game-tabs">
+          <div class="draft-game-tab">G1</div>
+          <div class="draft-game-tab">G2</div>
+          <div class="draft-game-tab">G3</div>
+          <div class="draft-game-tab">G4</div>
+          <div class="draft-game-tab active">G5</div>
+        </div>
+        <div class="draft-teams-header">
+          <div class="draft-team-head radiant">
+            <img src="assets/teams/navi.webp" class="dth-logo" onerror="this.style.display='none'">
+            <div><div class="dth-name">NAVI</div><div class="dth-faction">RADIANT</div></div>
+          </div>
+          <div class="draft-team-head dire">
+            <img src="assets/teams/heroic.webp" class="dth-logo" onerror="this.style.display='none'">
+            <div><div class="dth-name">Heroic</div><div class="dth-faction">DIRE</div></div>
+          </div>
+        </div>
+        <div class="draft-timeline">
+
+          <div class="draft-phase-label">Phase 1 — Bans</div>
+
+          <div class="draft-row">
+            <div class="draft-row-num">1</div>
+            <div class="draft-pick-cell">
+              <img src="assets/dota2_portraits/morphling.png" class="draft-hero-img ban-img" onerror="this.style.background='#1e2230'">
+              <div class="draft-pick-info"><div class="draft-hero-name">Morphling</div><div class="draft-pick-meta">Safety ban — flex threat</div></div>
+            </div>
+            <div class="draft-action-center"><span class="draft-action-badge ban-radiant">NAVI BAN</span></div>
+            <div class="draft-pick-cell dire-side"></div>
+            <div class="draft-row-num"></div>
+          </div>
+
+          <div class="draft-row">
+            <div class="draft-row-num">2</div>
+            <div class="draft-pick-cell"></div>
+            <div class="draft-action-center"><span class="draft-action-badge ban-dire">HEROIC BAN</span></div>
+            <div class="draft-pick-cell dire-side">
+              <img src="assets/dota2_portraits/faceless_void.png" class="draft-hero-img ban-img" onerror="this.style.background='#1e2230'">
+              <div class="draft-pick-info"><div class="draft-hero-name">Faceless Void</div><div class="draft-pick-meta">Chrono counters NAVI's style</div></div>
+            </div>
+            <div class="draft-row-num">2</div>
+          </div>
+
+          <div class="draft-row">
+            <div class="draft-row-num">3</div>
+            <div class="draft-pick-cell">
+              <img src="assets/dota2_portraits/luna.png" class="draft-hero-img ban-img" onerror="this.style.background='#1e2230'">
+              <div class="draft-pick-info"><div class="draft-hero-name">Luna</div><div class="draft-pick-meta">Removes Yuma's signature</div></div>
+            </div>
+            <div class="draft-action-center"><span class="draft-action-badge ban-radiant">NAVI BAN</span></div>
+            <div class="draft-pick-cell dire-side"></div>
+            <div class="draft-row-num"></div>
+          </div>
+
+          <div class="draft-row">
+            <div class="draft-row-num">4</div>
+            <div class="draft-pick-cell"></div>
+            <div class="draft-action-center"><span class="draft-action-badge ban-dire">HEROIC BAN</span></div>
+            <div class="draft-pick-cell dire-side">
+              <img src="assets/dota2_portraits/spectre.png" class="draft-hero-img ban-img" onerror="this.style.background='#1e2230'">
+              <div class="draft-pick-info"><div class="draft-hero-name">Spectre</div><div class="draft-pick-meta">RIDDYS's most played hero</div></div>
+            </div>
+            <div class="draft-row-num">4</div>
+          </div>
+
+          <div class="draft-row">
+            <div class="draft-row-num">5</div>
+            <div class="draft-pick-cell">
+              <img src="assets/dota2_portraits/ogre_magi.png" class="draft-hero-img ban-img" onerror="this.style.background='#1e2230'">
+              <div class="draft-pick-info"><div class="draft-hero-name">Ogre Magi</div><div class="draft-pick-meta">Denies Heroic's support pool</div></div>
+            </div>
+            <div class="draft-action-center"><span class="draft-action-badge ban-radiant">NAVI BAN</span></div>
+            <div class="draft-pick-cell dire-side"></div>
+            <div class="draft-row-num"></div>
+          </div>
+
+          <div class="draft-row">
+            <div class="draft-row-num">6</div>
+            <div class="draft-pick-cell"></div>
+            <div class="draft-action-center"><span class="draft-action-badge ban-dire">HEROIC BAN</span></div>
+            <div class="draft-pick-cell dire-side">
+              <img src="assets/dota2_portraits/dark_seer.png" class="draft-hero-img ban-img" onerror="this.style.background='#1e2230'">
+              <div class="draft-pick-info"><div class="draft-hero-name">Dark Seer</div><div class="draft-pick-meta">Prevents push synergy</div></div>
+            </div>
+            <div class="draft-row-num">6</div>
+          </div>
+
+          <div class="draft-phase-label">Phase 1 — Picks</div>
+
+          <div class="draft-row">
+            <div class="draft-row-num">7</div>
+            <div class="draft-pick-cell">
+              <img src="assets/dota2_portraits/anti_mage.png" class="draft-hero-img" onerror="this.style.background='#1e2230'">
+              <div class="draft-pick-info"><div class="draft-hero-name">Anti-Mage</div><div class="draft-pick-meta">RIDDYS — Carry</div></div>
+            </div>
+            <div class="draft-action-center"><span class="draft-action-badge pick-radiant">NAVI PICK</span></div>
+            <div class="draft-pick-cell dire-side"></div>
+            <div class="draft-row-num"></div>
+          </div>
+
+          <div class="draft-row">
+            <div class="draft-row-num">8</div>
+            <div class="draft-pick-cell"></div>
+            <div class="draft-action-center"><span class="draft-action-badge pick-dire">HEROIC PICK</span></div>
+            <div class="draft-pick-cell dire-side">
+              <img src="assets/dota2_portraits/phantom_assassin.png" class="draft-hero-img" onerror="this.style.background='#1e2230'">
+              <div class="draft-pick-info"><div class="draft-hero-name">Phantom Assassin</div><div class="draft-pick-meta">Yuma — Carry</div></div>
+            </div>
+            <div class="draft-row-num">8</div>
+          </div>
+
+          <div class="draft-row">
+            <div class="draft-row-num">9</div>
+            <div class="draft-pick-cell">
+              <img src="assets/dota2_portraits/axe.png" class="draft-hero-img" onerror="this.style.background='#1e2230'">
+              <div class="draft-pick-info"><div class="draft-hero-name">Axe</div><div class="draft-pick-meta">PMA — Offlane</div></div>
+            </div>
+            <div class="draft-action-center"><span class="draft-action-badge pick-radiant">NAVI PICK</span></div>
+            <div class="draft-pick-cell dire-side"></div>
+            <div class="draft-row-num"></div>
+          </div>
+
+          <div class="draft-row">
+            <div class="draft-row-num">10</div>
+            <div class="draft-pick-cell"></div>
+            <div class="draft-action-center"><span class="draft-action-badge pick-dire">HEROIC PICK</span></div>
+            <div class="draft-pick-cell dire-side">
+              <img src="assets/dota2_portraits/earthshaker.png" class="draft-hero-img" onerror="this.style.background='#1e2230'">
+              <div class="draft-pick-info"><div class="draft-hero-name">Earthshaker</div><div class="draft-pick-meta">KJ — Offlane</div></div>
+            </div>
+            <div class="draft-row-num">10</div>
+          </div>
+
+          <div class="draft-phase-label">Phase 2 — Bans</div>
+
+          <div class="draft-row">
+            <div class="draft-row-num">11</div>
+            <div class="draft-pick-cell">
+              <img src="assets/dota2_portraits/tiny.png" class="draft-hero-img ban-img" onerror="this.style.background='#1e2230'">
+              <div class="draft-pick-info"><div class="draft-hero-name">Tiny</div><div class="draft-pick-meta">Counters AM teamfight</div></div>
+            </div>
+            <div class="draft-action-center"><span class="draft-action-badge ban-radiant">NAVI BAN</span></div>
+            <div class="draft-pick-cell dire-side"></div>
+            <div class="draft-row-num"></div>
+          </div>
+
+          <div class="draft-row">
+            <div class="draft-row-num">12</div>
+            <div class="draft-pick-cell"></div>
+            <div class="draft-action-center"><span class="draft-action-badge ban-dire">HEROIC BAN</span></div>
+            <div class="draft-pick-cell dire-side">
+              <img src="assets/dota2_portraits/shadow_demon.png" class="draft-hero-img ban-img" onerror="this.style.background='#1e2230'">
+              <div class="draft-pick-info"><div class="draft-hero-name">Shadow Demon</div><div class="draft-pick-meta">Would counter PA's crits</div></div>
+            </div>
+            <div class="draft-row-num">12</div>
+          </div>
+
+          <div class="draft-row">
+            <div class="draft-row-num">13</div>
+            <div class="draft-pick-cell">
+              <img src="assets/dota2_portraits/puck.png" class="draft-hero-img ban-img" onerror="this.style.background='#1e2230'">
+              <div class="draft-pick-info"><div class="draft-hero-name">Puck</div><div class="draft-pick-meta">GOTTHEJUICE's alt mid</div></div>
+            </div>
+            <div class="draft-action-center"><span class="draft-action-badge ban-dire">HEROIC BAN</span></div>
+            <div class="draft-pick-cell dire-side"></div>
+            <div class="draft-row-num"></div>
+          </div>
+
+          <div class="draft-row">
+            <div class="draft-row-num">14</div>
+            <div class="draft-pick-cell"></div>
+            <div class="draft-action-center"><span class="draft-action-badge ban-radiant">NAVI BAN</span></div>
+            <div class="draft-pick-cell dire-side">
+              <img src="assets/dota2_portraits/bane.png" class="draft-hero-img ban-img" onerror="this.style.background='#1e2230'">
+              <div class="draft-pick-info"><div class="draft-hero-name">Bane</div><div class="draft-pick-meta">Nightmare + Fiend's Grip vs AM</div></div>
+            </div>
+            <div class="draft-row-num">14</div>
+          </div>
+
+          <div class="draft-phase-label">Phase 2 — Picks</div>
+
+          <div class="draft-row">
+            <div class="draft-row-num">15</div>
+            <div class="draft-pick-cell">
+              <img src="assets/dota2_portraits/rubick.png" class="draft-hero-img" onerror="this.style.background='#1e2230'">
+              <div class="draft-pick-info"><div class="draft-hero-name">Rubick</div><div class="draft-pick-meta">ZAYAC — Hard Support</div></div>
+            </div>
+            <div class="draft-action-center"><span class="draft-action-badge pick-radiant">NAVI PICK</span></div>
+            <div class="draft-pick-cell dire-side"></div>
+            <div class="draft-row-num"></div>
+          </div>
+
+          <div class="draft-row">
+            <div class="draft-row-num">16</div>
+            <div class="draft-pick-cell"></div>
+            <div class="draft-action-center"><span class="draft-action-badge pick-dire">HEROIC PICK</span></div>
+            <div class="draft-pick-cell dire-side">
+              <img src="assets/dota2_portraits/invoker.png" class="draft-hero-img" onerror="this.style.background='#1e2230'">
+              <div class="draft-pick-info"><div class="draft-hero-name">Invoker</div><div class="draft-pick-meta">Tailung — Mid</div></div>
+            </div>
+            <div class="draft-row-num">16</div>
+          </div>
+
+          <div class="draft-row">
+            <div class="draft-row-num">17</div>
+            <div class="draft-pick-cell">
+              <img src="assets/dota2_portraits/crystal_maiden.png" class="draft-hero-img" onerror="this.style.background='#1e2230'">
+              <div class="draft-pick-info"><div class="draft-hero-name">Crystal Maiden</div><div class="draft-pick-meta">NIKU — Support</div></div>
+            </div>
+            <div class="draft-action-center"><span class="draft-action-badge pick-radiant">NAVI PICK</span></div>
+            <div class="draft-pick-cell dire-side"></div>
+            <div class="draft-row-num"></div>
+          </div>
+
+          <div class="draft-row">
+            <div class="draft-row-num">18</div>
+            <div class="draft-pick-cell"></div>
+            <div class="draft-action-center"><span class="draft-action-badge pick-dire">HEROIC PICK</span></div>
+            <div class="draft-pick-cell dire-side">
+              <img src="assets/dota2_portraits/dark_willow.png" class="draft-hero-img" onerror="this.style.background='#1e2230'">
+              <div class="draft-pick-info"><div class="draft-hero-name">Dark Willow</div><div class="draft-pick-meta">Thiolicor — Support</div></div>
+            </div>
+            <div class="draft-row-num">18</div>
+          </div>
+
+          <div class="draft-row">
+            <div class="draft-row-num">19</div>
+            <div class="draft-pick-cell">
+              <img src="assets/dota2_portraits/invoker.png" class="draft-hero-img" onerror="this.style.background='#1e2230'">
+              <div class="draft-pick-info"><div class="draft-hero-name">Invoker</div><div class="draft-pick-meta">GOTTHEJUICE — Mid</div></div>
+            </div>
+            <div class="draft-action-center"><span class="draft-action-badge pick-radiant">NAVI PICK</span></div>
+            <div class="draft-pick-cell dire-side"></div>
+            <div class="draft-row-num"></div>
+          </div>
+
+          <div class="draft-row">
+            <div class="draft-row-num">20</div>
+            <div class="draft-pick-cell"></div>
+            <div class="draft-action-center"><span class="draft-action-badge pick-dire">HEROIC PICK</span></div>
+            <div class="draft-pick-cell dire-side">
+              <img src="assets/dota2_portraits/lion.png" class="draft-hero-img" onerror="this.style.background='#1e2230'">
+              <div class="draft-pick-info"><div class="draft-hero-name">Lion</div><div class="draft-pick-meta">Wisper — Hard Support</div></div>
+            </div>
+            <div class="draft-row-num">20</div>
+          </div>
+
+        </div><!-- /draft-timeline -->
+
+        <div class="draft-commentary">
+          <p><span class="key-moment">KEY INSIGHT</span> NAVI's <strong>Anti-Mage + Axe</strong> core pairing is a deliberate counter-composition. AM's mana burn pairs perfectly with Axe's Berserker's Call — forcing Heroic's mana-heavy Invoker into impossible situations. <strong>GOTTHEJUICE's Invoker mirror</strong> was the surprise last-pick that Heroic had no ban left to answer.</p>
+          <p style="margin-top:10px;"><span class="key-moment">PIVOTAL</span> Heroic's decision to pick <strong>Phantom Assassin</strong> after NAVI first-picked AM was a calculated gamble. PA's Blur evasion naturally sidesteps AM's Mana Break, creating a genuine carry matchup. However, NAVI's draft around PA's weaknesses — Crystal Maiden's Freezing Field, Axe's Culling Blade — ultimately proved decisive.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLAYER STATS TABLE -->
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-title"><span class="accent">◆</span> Player Statistics <span class="section-subtitle">Full match stats · Game 5</span></div>
+        <div class="section-action">Export CSV ›</div>
+      </div>
+      <div class="stats-table-wrap">
+        <table class="stats-table">
+          <thead>
+            <tr>
+              <th style="min-width:140px;">Hero / Player</th>
+              <th>LVL</th>
+              <th class="sorted">K/D/A <span class="sort-arrow">↓</span></th>
+              <th>GPM <span class="sort-arrow">↕</span></th>
+              <th>XPM <span class="sort-arrow">↕</span></th>
+              <th>Net Worth</th>
+              <th>Hero Dmg</th>
+              <th>Tower Dmg</th>
+              <th>Healing</th>
+              <th>Last Hits</th>
+              <th>Denies</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="team-label-row radiant">
+              <td colspan="11">▲ NAVI — Radiant</td>
+            </tr>
+            <tr class="radiant-row">
+              <td>
+                <div class="st-hero-cell">
+                  <img src="assets/dota2_portraits/anti_mage.png" class="st-hero-img" onerror="this.style.background='#1e2230'">
+                  <div><div class="st-hero-name">Anti-Mage</div><div class="st-player-name">RIDDYS</div></div>
+                </div>
+              </td>
+              <td style="color:var(--gold);font-weight:700;">25</td>
+              <td><span class="st-kda"><span class="k">14</span><span class="sep">/</span><span class="d">3</span><span class="sep">/</span><span class="a">7</span></span></td>
+              <td class="st-gpm">712</td>
+              <td>780</td>
+              <td style="font-weight:700;">34,200</td>
+              <td>
+                <div class="st-dmg-bar">
+                  <div class="dmg-bar-bg"><div class="dmg-bar-fill hero" style="width:80%"></div></div>
+                  <span>28,450</span>
+                </div>
+              </td>
+              <td>
+                <div class="st-dmg-bar">
+                  <div class="dmg-bar-bg"><div class="dmg-bar-fill tower" style="width:70%"></div></div>
+                  <span>4,100</span>
+                </div>
+              </td>
+              <td style="color:var(--radiant-light);">0</td>
+              <td>420</td>
+              <td>22</td>
+            </tr>
+            <tr class="radiant-row">
+              <td>
+                <div class="st-hero-cell">
+                  <img src="assets/dota2_portraits/invoker.png" class="st-hero-img" onerror="this.style.background='#1e2230'">
+                  <div><div class="st-hero-name">Invoker</div><div class="st-player-name">GOTTHEJUICE</div></div>
+                </div>
+              </td>
+              <td style="color:var(--gold);font-weight:700;">24</td>
+              <td><span class="st-kda"><span class="k">8</span><span class="sep">/</span><span class="d">4</span><span class="sep">/</span><span class="a">12</span></span></td>
+              <td class="st-gpm">558</td>
+              <td>640</td>
+              <td style="font-weight:700;">24,800</td>
+              <td>
+                <div class="st-dmg-bar">
+                  <div class="dmg-bar-bg"><div class="dmg-bar-fill hero" style="width:100%"></div></div>
+                  <span>36,200</span>
+                </div>
+              </td>
+              <td>
+                <div class="st-dmg-bar">
+                  <div class="dmg-bar-bg"><div class="dmg-bar-fill tower" style="width:55%"></div></div>
+                  <span>3,200</span>
+                </div>
+              </td>
+              <td style="color:var(--radiant-light);">0</td>
+              <td>265</td>
+              <td>14</td>
+            </tr>
+            <tr class="radiant-row">
+              <td>
+                <div class="st-hero-cell">
+                  <img src="assets/dota2_portraits/axe.png" class="st-hero-img" onerror="this.style.background='#1e2230'">
+                  <div><div class="st-hero-name">Axe</div><div class="st-player-name">PMA</div></div>
+                </div>
+              </td>
+              <td style="color:var(--gold);font-weight:700;">22</td>
+              <td><span class="st-kda"><span class="k">6</span><span class="sep">/</span><span class="d">5</span><span class="sep">/</span><span class="a">14</span></span></td>
+              <td class="st-gpm">420</td>
+              <td>510</td>
+              <td style="font-weight:700;">18,400</td>
+              <td>
+                <div class="st-dmg-bar">
+                  <div class="dmg-bar-bg"><div class="dmg-bar-fill hero" style="width:50%"></div></div>
+                  <span>18,100</span>
+                </div>
+              </td>
+              <td>
+                <div class="st-dmg-bar">
+                  <div class="dmg-bar-bg"><div class="dmg-bar-fill tower" style="width:45%"></div></div>
+                  <span>2,600</span>
+                </div>
+              </td>
+              <td style="color:var(--radiant-light);">0</td>
+              <td>180</td>
+              <td>8</td>
+            </tr>
+            <tr class="radiant-row">
+              <td>
+                <div class="st-hero-cell">
+                  <img src="assets/dota2_portraits/crystal_maiden.png" class="st-hero-img" onerror="this.style.background='#1e2230'">
+                  <div><div class="st-hero-name">Crystal Maiden</div><div class="st-player-name">NIKU</div></div>
+                </div>
+              </td>
+              <td style="color:var(--gold);font-weight:700;">19</td>
+              <td><span class="st-kda"><span class="k">2</span><span class="sep">/</span><span class="d">6</span><span class="sep">/</span><span class="a">18</span></span></td>
+              <td class="st-gpm">298</td>
+              <td>380</td>
+              <td style="font-weight:700;">11,200</td>
+              <td>
+                <div class="st-dmg-bar">
+                  <div class="dmg-bar-bg"><div class="dmg-bar-fill hero" style="width:28%"></div></div>
+                  <span>10,400</span>
+                </div>
+              </td>
+              <td>
+                <div class="st-dmg-bar">
+                  <div class="dmg-bar-bg"><div class="dmg-bar-fill tower" style="width:15%"></div></div>
+                  <span>900</span>
+                </div>
+              </td>
+              <td style="color:var(--radiant-light);">1,200</td>
+              <td>62</td>
+              <td>4</td>
+            </tr>
+            <tr class="radiant-row">
+              <td>
+                <div class="st-hero-cell">
+                  <img src="assets/dota2_portraits/rubick.png" class="st-hero-img" onerror="this.style.background='#1e2230'">
+                  <div><div class="st-hero-name">Rubick</div><div class="st-player-name">ZAYAC</div></div>
+                </div>
+              </td>
+              <td style="color:var(--gold);font-weight:700;">18</td>
+              <td><span class="st-kda"><span class="k">2</span><span class="sep">/</span><span class="d">7</span><span class="sep">/</span><span class="a">20</span></span></td>
+              <td class="st-gpm">260</td>
+              <td>330</td>
+              <td style="font-weight:700;">9,600</td>
+              <td>
+                <div class="st-dmg-bar">
+                  <div class="dmg-bar-bg"><div class="dmg-bar-fill hero" style="width:20%"></div></div>
+                  <span>7,200</span>
+                </div>
+              </td>
+              <td>
+                <div class="st-dmg-bar">
+                  <div class="dmg-bar-bg"><div class="dmg-bar-fill tower" style="width:10%"></div></div>
+                  <span>600</span>
+                </div>
+              </td>
+              <td style="color:var(--radiant-light);">800</td>
+              <td>38</td>
+              <td>2</td>
+            </tr>
+
+            <tr class="team-label-row dire">
+              <td colspan="11">▼ Heroic — Dire</td>
+            </tr>
+
+            <tr class="dire-row">
+              <td>
+                <div class="st-hero-cell">
+                  <img src="assets/dota2_portraits/phantom_assassin.png" class="st-hero-img" onerror="this.style.background='#1e2230'">
+                  <div><div class="st-hero-name">Phantom Assassin</div><div class="st-player-name">Yuma</div></div>
+                </div>
+              </td>
+              <td style="color:var(--gold);font-weight:700;">24</td>
+              <td><span class="st-kda"><span class="k">13</span><span class="sep">/</span><span class="d">5</span><span class="sep">/</span><span class="a">3</span></span></td>
+              <td class="st-gpm">660</td>
+              <td>710</td>
+              <td style="font-weight:700;">26,400</td>
+              <td>
+                <div class="st-dmg-bar">
+                  <div class="dmg-bar-bg"><div class="dmg-bar-fill hero" style="width:72%"></div></div>
+                  <span>26,100</span>
+                </div>
+              </td>
+              <td>
+                <div class="st-dmg-bar">
+                  <div class="dmg-bar-bg"><div class="dmg-bar-fill tower" style="width:50%"></div></div>
+                  <span>2,900</span>
+                </div>
+              </td>
+              <td>0</td>
+              <td>385</td>
+              <td>18</td>
+            </tr>
+            <tr class="dire-row">
+              <td>
+                <div class="st-hero-cell">
+                  <img src="assets/dota2_portraits/lina.png" class="st-hero-img" onerror="this.style.background='#1e2230'">
+                  <div><div class="st-hero-name">Lina</div><div class="st-player-name">Tailung</div></div>
+                </div>
+              </td>
+              <td style="color:var(--gold);font-weight:700;">23</td>
+              <td><span class="st-kda"><span class="k">8</span><span class="sep">/</span><span class="d">5</span><span class="sep">/</span><span class="a">10</span></span></td>
+              <td class="st-gpm">530</td>
+              <td>600</td>
+              <td style="font-weight:700;">20,600</td>
+              <td>
+                <div class="st-dmg-bar">
+                  <div class="dmg-bar-bg"><div class="dmg-bar-fill hero" style="width:88%"></div></div>
+                  <span>32,100</span>
+                </div>
+              </td>
+              <td>
+                <div class="st-dmg-bar">
+                  <div class="dmg-bar-bg"><div class="dmg-bar-fill tower" style="width:60%"></div></div>
+                  <span>3,500</span>
+                </div>
+              </td>
+              <td>0</td>
+              <td>245</td>
+              <td>12</td>
+            </tr>
+            <tr class="dire-row">
+              <td>
+                <div class="st-hero-cell">
+                  <img src="assets/dota2_portraits/earthshaker.png" class="st-hero-img" onerror="this.style.background='#1e2230'">
+                  <div><div class="st-hero-name">Earthshaker</div><div class="st-player-name">KJ</div></div>
+                </div>
+              </td>
+              <td style="color:var(--gold);font-weight:700;">21</td>
+              <td><span class="st-kda"><span class="k">3</span><span class="sep">/</span><span class="d">6</span><span class="sep">/</span><span class="a">17</span></span></td>
+              <td class="st-gpm">400</td>
+              <td>455</td>
+              <td style="font-weight:700;">16,800</td>
+              <td>
+                <div class="st-dmg-bar">
+                  <div class="dmg-bar-bg"><div class="dmg-bar-fill hero" style="width:42%"></div></div>
+                  <span>15,200</span>
+                </div>
+              </td>
+              <td>
+                <div class="st-dmg-bar">
+                  <div class="dmg-bar-bg"><div class="dmg-bar-fill tower" style="width:35%"></div></div>
+                  <span>2,050</span>
+                </div>
+              </td>
+              <td>0</td>
+              <td>155</td>
+              <td>6</td>
+            </tr>
+            <tr class="dire-row">
+              <td>
+                <div class="st-hero-cell">
+                  <img src="assets/dota2_portraits/dark_willow.png" class="st-hero-img" onerror="this.style.background='#1e2230'">
+                  <div><div class="st-hero-name">Dark Willow</div><div class="st-player-name">Thiolicor</div></div>
+                </div>
+              </td>
+              <td style="color:var(--gold);font-weight:700;">19</td>
+              <td><span class="st-kda"><span class="k">1</span><span class="sep">/</span><span class="d">5</span><span class="sep">/</span><span class="a">19</span></span></td>
+              <td class="st-gpm">285</td>
+              <td>320</td>
+              <td style="font-weight:700;">11,200</td>
+              <td>
+                <div class="st-dmg-bar">
+                  <div class="dmg-bar-bg"><div class="dmg-bar-fill hero" style="width:32%"></div></div>
+                  <span>11,800</span>
+                </div>
+              </td>
+              <td>
+                <div class="st-dmg-bar">
+                  <div class="dmg-bar-bg"><div class="dmg-bar-fill tower" style="width:18%"></div></div>
+                  <span>1,050</span>
+                </div>
+              </td>
+              <td style="color:var(--radiant-light);">1,800</td>
+              <td>55</td>
+              <td>3</td>
+            </tr>
+            <tr class="dire-row">
+              <td>
+                <div class="st-hero-cell">
+                  <img src="assets/dota2_portraits/lion.png" class="st-hero-img" onerror="this.style.background='#1e2230'">
+                  <div><div class="st-hero-name">Lion</div><div class="st-player-name">Wisper</div></div>
+                </div>
+              </td>
+              <td style="color:var(--gold);font-weight:700;">18</td>
+              <td><span class="st-kda"><span class="k">0</span><span class="sep">/</span><span class="d">4</span><span class="sep">/</span><span class="a">17</span></span></td>
+              <td class="st-gpm">258</td>
+              <td>300</td>
+              <td style="font-weight:700;">9,200</td>
+              <td>
+                <div class="st-dmg-bar">
+                  <div class="dmg-bar-bg"><div class="dmg-bar-fill hero" style="width:22%"></div></div>
+                  <span>8,100</span>
+                </div>
+              </td>
+              <td>
+                <div class="st-dmg-bar">
+                  <div class="dmg-bar-bg"><div class="dmg-bar-fill tower" style="width:8%"></div></div>
+                  <span>480</span>
+                </div>
+              </td>
+              <td style="color:var(--radiant-light);">600</td>
+              <td>30</td>
+              <td>1</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- NET WORTH GRAPH -->
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-title"><span class="accent">◆</span> Economy Graph <span class="section-subtitle">Net worth over time</span></div>
+      </div>
+      <div class="nw-graph-wrap">
+        <div class="nw-graph-controls">
+          <button class="nw-ctrl-btn active">Net Worth</button>
+          <button class="nw-ctrl-btn">Gold Adv.</button>
+          <button class="nw-ctrl-btn">XP Adv.</button>
+          <div class="nw-legend">
+            <div class="nw-legend-item"><div class="nw-legend-dot radiant"></div>NAVI</div>
+            <div class="nw-legend-item"><div class="nw-legend-dot dire"></div>Heroic</div>
+            <div class="nw-legend-item"><div class="nw-legend-dot gold"></div>Roshan</div>
+          </div>
+        </div>
+        <div class="nw-svg-container">
+<svg viewBox="0 0 720 200" width="100%" preserveAspectRatio="none" style="height:200px;display:block;">
+  <defs>
+    <linearGradient id="radiantFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3DA664" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#3DA664" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="direFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#C24040" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#C24040" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <!-- Grid lines -->
+  <line x1="0" y1="170" x2="720" y2="170" stroke="#ffffff0a" stroke-width="1"/>
+  <line x1="0" y1="130" x2="720" y2="130" stroke="#ffffff0a" stroke-width="1"/>
+  <line x1="0" y1="90"  x2="720" y2="90"  stroke="#ffffff0a" stroke-width="1"/>
+  <line x1="0" y1="50"  x2="720" y2="50"  stroke="#ffffff0a" stroke-width="1"/>
+  <!-- Vertical time lines -->
+  <line x1="180" y1="10" x2="180" y2="180" stroke="#ffffff06" stroke-width="1" stroke-dasharray="3,4"/>
+  <line x1="360" y1="10" x2="360" y2="180" stroke="#ffffff06" stroke-width="1" stroke-dasharray="3,4"/>
+  <line x1="540" y1="10" x2="540" y2="180" stroke="#ffffff06" stroke-width="1" stroke-dasharray="3,4"/>
+  <!-- NAVI net worth line (values in thousands, scaled) -->
+  <!-- 0m=5k, 5m=10k, 10m=22k, 15m=32k, 20m=42k, 25m=56k (roshan), 26m=60k, 30m=72k, 35m=85k (roshan), 38m=95k, 42m=110k -->
+  <polyline points="0,175 90,165 180,140 270,118 360,94 450,72 474,64 540,42 630,22 684,12 720,10" fill="none" stroke="#3DA664" stroke-width="2.5" stroke-linejoin="round"/>
+  <polygon points="0,175 90,165 180,140 270,118 360,94 450,72 474,64 540,42 630,22 684,12 720,10 720,180 0,180" fill="url(#radiantFill)"/>
+  <!-- Heroic net worth line -->
+  <!-- 0m=5k, 5m=10k, 10m=21k, 15m=30k, 20m=39k, 25m=52k, 26m=54k, 30m=64k, 35m=70k, 38m=74k, 42m=76k -->
+  <polyline points="0,175 90,165 180,142 270,122 360,100 450,80 474,76 540,62 630,55 684,52 720,50" fill="none" stroke="#C24040" stroke-width="2.5" stroke-linejoin="round"/>
+  <polygon points="0,175 90,165 180,142 270,122 360,100 450,80 474,76 540,62 630,55 684,52 720,50 720,180 0,180" fill="url(#direFill)"/>
+  <!-- Roshan event markers -->
+  <circle cx="450" cy="72" r="5" fill="#C9A84C" stroke="#000" stroke-width="1"/>
+  <text x="450" y="68" text-anchor="middle" font-size="8" fill="#C9A84C" font-family="monospace">♟ R1</text>
+  <circle cx="630" cy="22" r="5" fill="#C9A84C" stroke="#000" stroke-width="1"/>
+  <text x="630" y="18" text-anchor="middle" font-size="8" fill="#C9A84C" font-family="monospace">♟ R2</text>
+  <!-- First Blood marker -->
+  <circle cx="36" cy="172" r="4" fill="#ff4444" stroke="#000" stroke-width="1"/>
+  <text x="36" y="168" text-anchor="middle" font-size="7" fill="#ff4444" font-family="monospace">FB</text>
+  <!-- Time labels -->
+  <text x="0"   y="193" font-size="10" fill="#7a8099" font-family="monospace">0</text>
+  <text x="175" y="193" font-size="10" fill="#7a8099" font-family="monospace">10m</text>
+  <text x="355" y="193" font-size="10" fill="#7a8099" font-family="monospace">20m</text>
+  <text x="535" y="193" font-size="10" fill="#7a8099" font-family="monospace">30m</text>
+  <text x="698" y="193" font-size="10" fill="#7a8099" font-family="monospace">42m</text>
+  <!-- Y labels (net worth in k) -->
+  <text x="724" y="174" font-size="9" fill="#7a8099" font-family="monospace">5k</text>
+  <text x="724" y="134" font-size="9" fill="#7a8099" font-family="monospace">40k</text>
+  <text x="724" y="94"  font-size="9" fill="#7a8099" font-family="monospace">75k</text>
+  <text x="724" y="54"  font-size="9" fill="#7a8099" font-family="monospace">110k</text>
+</svg>
+        </div>
+        <div style="display:flex;gap:20px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
+          <div style="font-size:12px;color:var(--muted);">Peak NAVI advantage: <strong style="color:var(--radiant-light);">+34,000</strong> at 42m</div>
+          <div style="font-size:12px;color:var(--muted);">Largest Heroic lead: <strong style="color:var(--dire-light);">+2,100</strong> at 14m</div>
+          <div style="font-size:12px;color:var(--muted);">Crossover: <strong style="color:var(--gold);">~17:30</strong> after First Tower</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLAYER COMPARISON RADAR -->
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-title"><span class="accent">◆</span> Player Comparison <span class="section-subtitle">Carry matchup · RIDDYS vs Yuma</span></div>
+      </div>
+      <div class="radar-wrap">
+        <div class="radar-chart-row">
+          <div>
+            <div style="font-family:var(--font-display);font-size:13px;font-weight:700;margin-bottom:12px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;">Carry vs Carry — Stat Breakdown</div>
+            <div class="radar-stat-table">
+              <div class="radar-stat-row">
+                <div class="radar-stat-name">KDA Ratio</div>
+                <div class="radar-stat-bars">
+                  <div class="radar-stat-bar-bg"><div class="radar-stat-bar-fill r" style="width:90%"></div></div>
+                  <div style="width:8px;"></div>
+                  <div class="radar-stat-bar-bg"><div class="radar-stat-bar-fill d" style="width:76%"></div></div>
+                </div>
+                <div class="radar-stat-val r">7.0</div>
+                <div style="width:4px;"></div>
+                <div class="radar-stat-val d">3.2</div>
+              </div>
+              <div class="radar-stat-row">
+                <div class="radar-stat-name">GPM</div>
+                <div class="radar-stat-bars">
+                  <div class="radar-stat-bar-bg"><div class="radar-stat-bar-fill r" style="width:100%"></div></div>
+                  <div style="width:8px;"></div>
+                  <div class="radar-stat-bar-bg"><div class="radar-stat-bar-fill d" style="width:93%"></div></div>
+                </div>
+                <div class="radar-stat-val r">712</div>
+                <div style="width:4px;"></div>
+                <div class="radar-stat-val d">660</div>
+              </div>
+              <div class="radar-stat-row">
+                <div class="radar-stat-name">Hero Damage</div>
+                <div class="radar-stat-bars">
+                  <div class="radar-stat-bar-bg"><div class="radar-stat-bar-fill r" style="width:100%"></div></div>
+                  <div style="width:8px;"></div>
+                  <div class="radar-stat-bar-bg"><div class="radar-stat-bar-fill d" style="width:92%"></div></div>
+                </div>
+                <div class="radar-stat-val r">28.4k</div>
+                <div style="width:4px;"></div>
+                <div class="radar-stat-val d">26.1k</div>
+              </div>
+              <div class="radar-stat-row">
+                <div class="radar-stat-name">Net Worth</div>
+                <div class="radar-stat-bars">
+                  <div class="radar-stat-bar-bg"><div class="radar-stat-bar-fill r" style="width:100%"></div></div>
+                  <div style="width:8px;"></div>
+                  <div class="radar-stat-bar-bg"><div class="radar-stat-bar-fill d" style="width:77%"></div></div>
+                </div>
+                <div class="radar-stat-val r">34.2k</div>
+                <div style="width:4px;"></div>
+                <div class="radar-stat-val d">26.4k</div>
+              </div>
+              <div class="radar-stat-row">
+                <div class="radar-stat-name">Last Hits</div>
+                <div class="radar-stat-bars">
+                  <div class="radar-stat-bar-bg"><div class="radar-stat-bar-fill r" style="width:100%"></div></div>
+                  <div style="width:8px;"></div>
+                  <div class="radar-stat-bar-bg"><div class="radar-stat-bar-fill d" style="width:92%"></div></div>
+                </div>
+                <div class="radar-stat-val r">420</div>
+                <div style="width:4px;"></div>
+                <div class="radar-stat-val d">385</div>
+              </div>
+              <div class="radar-stat-row">
+                <div class="radar-stat-name">Tower Dmg</div>
+                <div class="radar-stat-bars">
+                  <div class="radar-stat-bar-bg"><div class="radar-stat-bar-fill r" style="width:100%"></div></div>
+                  <div style="width:8px;"></div>
+                  <div class="radar-stat-bar-bg"><div class="radar-stat-bar-fill d" style="width:71%"></div></div>
+                </div>
+                <div class="radar-stat-val r">4.1k</div>
+                <div style="width:4px;"></div>
+                <div class="radar-stat-val d">2.9k</div>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
+            <div style="font-family:var(--font-display);font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;">Radar Chart</div>
+<svg viewBox="-110 -110 220 220" width="200" height="200">
+  <defs>
+    <polygon id="hex6" points="0,-80 69,-40 69,40 0,80 -69,40 -69,-40"/>
+  </defs>
+  <!-- Background hexagons -->
+  <polygon points="0,-80 69,-40 69,40 0,80 -69,40 -69,-40" fill="none" stroke="#ffffff0a" stroke-width="1"/>
+  <polygon points="0,-60 52,-30 52,30 0,60 -52,30 -52,-30" fill="none" stroke="#ffffff0a" stroke-width="1"/>
+  <polygon points="0,-40 35,-20 35,20 0,40 -35,20 -35,-20" fill="none" stroke="#ffffff0a" stroke-width="1"/>
+  <polygon points="0,-20 17,-10 17,10 0,20 -17,10 -17,-10" fill="none" stroke="#ffffff08" stroke-width="1"/>
+  <!-- Axis lines -->
+  <line x1="0" y1="-80" x2="0" y2="80" stroke="#ffffff08" stroke-width="1"/>
+  <line x1="-69" y1="-40" x2="69" y2="40" stroke="#ffffff08" stroke-width="1"/>
+  <line x1="-69" y1="40" x2="69" y2="-40" stroke="#ffffff08" stroke-width="1"/>
+  <!-- RIDDYS (NAVI) radar — KDA:90%, GPM:100%, Dmg:90%, NW:100%, LH:100%, TwrDmg:100% -->
+  <polygon points="0,-72 69,-40 62,36 0,80 -69,40 -69,-40" fill="#3DA66430" stroke="#3DA664" stroke-width="2"/>
+  <!-- Yuma (Heroic) radar — KDA:76%, GPM:93%, Dmg:92%, NW:77%, LH:92%, TwrDmg:71% -->
+  <polygon points="0,-61 64,-37 64,37 0,62 -64,37 -57,-33" fill="#C2404025" stroke="#C24040" stroke-width="2" stroke-dasharray="4,2"/>
+  <!-- Axis labels -->
+  <text x="0" y="-88" text-anchor="middle" font-size="9" fill="#7a8099" font-family="sans-serif">KDA</text>
+  <text x="78" y="-46" text-anchor="start" font-size="9" fill="#7a8099" font-family="sans-serif">GPM</text>
+  <text x="78" y="50" text-anchor="start" font-size="9" fill="#7a8099" font-family="sans-serif">Dmg</text>
+  <text x="0" y="100" text-anchor="middle" font-size="9" fill="#7a8099" font-family="sans-serif">Net Worth</text>
+  <text x="-78" y="50" text-anchor="end" font-size="9" fill="#7a8099" font-family="sans-serif">LH</text>
+  <text x="-78" y="-46" text-anchor="end" font-size="9" fill="#7a8099" font-family="sans-serif">Twr</text>
+</svg>
+            <div style="display:flex;gap:12px;">
+              <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--radiant-light);">
+                <div style="width:16px;height:2px;background:var(--radiant);border-radius:1px;"></div>RIDDYS
+              </div>
+              <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--dire-light);">
+                <div style="width:16px;height:2px;background:var(--dire);border-radius:1px;border-top:2px dashed var(--dire);"></div>Yuma
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TEAM STAT BARS -->
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-title"><span class="accent">◆</span> Team Stats <span class="section-subtitle">Head-to-head comparison</span></div>
+      </div>
+      <div class="team-stats-wrap">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;margin-bottom:16px;">
+          <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);">
+            <img src="assets/teams/navi.webp" style="width:24px;height:24px;object-fit:contain;" onerror="this.style.display='none'">
+            <span style="font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--radiant-light);">NAVI (Radiant)</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);justify-content:flex-end;">
+            <span style="font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--dire-light);">Heroic (Dire)</span>
+            <img src="assets/teams/heroic.webp" style="width:24px;height:24px;object-fit:contain;" onerror="this.style.display='none'">
+          </div>
+        </div>
+
+        <!-- Kills -->
+        <div style="margin-bottom:14px;">
+          <div style="font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:.8px;color:var(--muted);text-align:center;margin-bottom:6px;text-transform:uppercase;">Kills</div>
+          <div style="display:grid;grid-template-columns:60px 1fr 60px;align-items:center;gap:8px;">
+            <div style="font-family:var(--font-display);font-size:18px;font-weight:900;color:var(--radiant-light);text-align:right;">32</div>
+            <div style="height:8px;background:#ffffff0a;border-radius:4px;display:flex;overflow:hidden;position:relative;">
+              <div style="width:57%;background:var(--radiant);border-radius:4px 0 0 4px;"></div>
+              <div style="width:43%;background:var(--dire);border-radius:0 4px 4px 0;"></div>
+              <div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:#ffffff30;"></div>
+            </div>
+            <div style="font-family:var(--font-display);font-size:18px;font-weight:900;color:var(--dire-light);text-align:left;">24</div>
+          </div>
+        </div>
+
+        <!-- Towers -->
+        <div style="margin-bottom:14px;">
+          <div style="font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:.8px;color:var(--muted);text-align:center;margin-bottom:6px;text-transform:uppercase;">Towers Taken</div>
+          <div style="display:grid;grid-template-columns:60px 1fr 60px;align-items:center;gap:8px;">
+            <div style="font-family:var(--font-display);font-size:18px;font-weight:900;color:var(--radiant-light);text-align:right;">9</div>
+            <div style="height:8px;background:#ffffff0a;border-radius:4px;display:flex;overflow:hidden;position:relative;">
+              <div style="width:75%;background:var(--radiant);border-radius:4px 0 0 4px;"></div>
+              <div style="width:25%;background:var(--dire);border-radius:0 4px 4px 0;"></div>
+              <div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:#ffffff30;"></div>
+            </div>
+            <div style="font-family:var(--font-display);font-size:18px;font-weight:900;color:var(--dire-light);text-align:left;">3</div>
+          </div>
+        </div>
+
+        <!-- Hero Damage -->
+        <div style="margin-bottom:14px;">
+          <div style="font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:.8px;color:var(--muted);text-align:center;margin-bottom:6px;text-transform:uppercase;">Total Hero Damage</div>
+          <div style="display:grid;grid-template-columns:60px 1fr 60px;align-items:center;gap:8px;">
+            <div style="font-family:var(--font-display);font-size:14px;font-weight:900;color:var(--radiant-light);text-align:right;">100k</div>
+            <div style="height:8px;background:#ffffff0a;border-radius:4px;display:flex;overflow:hidden;position:relative;">
+              <div style="width:53%;background:var(--radiant);border-radius:4px 0 0 4px;"></div>
+              <div style="width:47%;background:var(--dire);border-radius:0 4px 4px 0;"></div>
+              <div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:#ffffff30;"></div>
+            </div>
+            <div style="font-family:var(--font-display);font-size:14px;font-weight:900;color:var(--dire-light);text-align:left;">93k</div>
+          </div>
+        </div>
+
+        <!-- Roshans -->
+        <div style="margin-bottom:14px;">
+          <div style="font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:.8px;color:var(--muted);text-align:center;margin-bottom:6px;text-transform:uppercase;">Roshans Killed</div>
+          <div style="display:grid;grid-template-columns:60px 1fr 60px;align-items:center;gap:8px;">
+            <div style="font-family:var(--font-display);font-size:18px;font-weight:900;color:var(--radiant-light);text-align:right;">2</div>
+            <div style="height:8px;background:#ffffff0a;border-radius:4px;display:flex;overflow:hidden;position:relative;">
+              <div style="width:100%;background:var(--radiant);border-radius:4px;"></div>
+              <div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:#ffffff30;"></div>
+            </div>
+            <div style="font-family:var(--font-display);font-size:18px;font-weight:900;color:var(--dire-light);text-align:left;">0</div>
+          </div>
+        </div>
+
+        <!-- Net Worth -->
+        <div style="margin-bottom:14px;">
+          <div style="font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:.8px;color:var(--muted);text-align:center;margin-bottom:6px;text-transform:uppercase;">Total Net Worth</div>
+          <div style="display:grid;grid-template-columns:60px 1fr 60px;align-items:center;gap:8px;">
+            <div style="font-family:var(--font-display);font-size:14px;font-weight:900;color:var(--radiant-light);text-align:right;">98.2k</div>
+            <div style="height:8px;background:#ffffff0a;border-radius:4px;display:flex;overflow:hidden;position:relative;">
+              <div style="width:59%;background:var(--radiant);border-radius:4px 0 0 4px;"></div>
+              <div style="width:41%;background:var(--dire);border-radius:0 4px 4px 0;"></div>
+              <div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:#ffffff30;"></div>
+            </div>
+            <div style="font-family:var(--font-display);font-size:14px;font-weight:900;color:var(--dire-light);text-align:left;">84.2k</div>
+          </div>
+        </div>
+
+        <!-- Scan / Ward Control -->
+        <div style="margin-bottom:0;">
+          <div style="font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:.8px;color:var(--muted);text-align:center;margin-bottom:6px;text-transform:uppercase;">Observer Wards Placed</div>
+          <div style="display:grid;grid-template-columns:60px 1fr 60px;align-items:center;gap:8px;">
+            <div style="font-family:var(--font-display);font-size:18px;font-weight:900;color:var(--radiant-light);text-align:right;">18</div>
+            <div style="height:8px;background:#ffffff0a;border-radius:4px;display:flex;overflow:hidden;position:relative;">
+              <div style="width:56%;background:var(--radiant);border-radius:4px 0 0 4px;"></div>
+              <div style="width:44%;background:var(--dire);border-radius:0 4px 4px 0;"></div>
+              <div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:#ffffff30;"></div>
+            </div>
+            <div style="font-family:var(--font-display);font-size:18px;font-weight:900;color:var(--dire-light);text-align:left;">14</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main><!-- /main-col -->
+
+  <!-- SIDEBAR -->
+  <aside class="side-col">
+
+    <!-- Match Summary -->
+    <div class="sidebar-card">
+      <div class="match-summary-hero">
+        <div class="ms-team">
+          <img src="assets/teams/navi.webp" class="ms-logo" onerror="this.style.display='none'">
+          <div class="ms-name" style="color:var(--radiant-light);">NAVI</div>
+        </div>
+        <div class="ms-score">
+          <span class="rs">2</span><span class="sep">:</span><span class="ds">2</span>
+        </div>
+        <div class="ms-team">
+          <img src="assets/teams/heroic.webp" class="ms-logo" onerror="this.style.display='none'">
+          <div class="ms-name" style="color:var(--dire-light);">Heroic</div>
+        </div>
+      </div>
+      <div class="sidebar-card-body">
+        <div class="ms-stat-row">
+          <span class="ms-stat-label">Duration</span>
+          <span class="ms-stat-val gold">42:18 ● LIVE</span>
+        </div>
+        <div class="ms-stat-row">
+          <span class="ms-stat-label">Kills</span>
+          <span class="ms-stat-val"><span style="color:var(--radiant-light);">32</span> — <span style="color:var(--dire-light);">24</span></span>
+        </div>
+        <div class="ms-stat-row">
+          <span class="ms-stat-label">Towers</span>
+          <span class="ms-stat-val"><span style="color:var(--radiant-light);">9</span> — <span style="color:var(--dire-light);">3</span></span>
+        </div>
+        <div class="ms-stat-row">
+          <span class="ms-stat-label">Roshans</span>
+          <span class="ms-stat-val"><span style="color:var(--radiant-light);">2</span> — <span style="color:var(--dire-light);">0</span></span>
+        </div>
+        <div class="ms-stat-row">
+          <span class="ms-stat-label">Gold Adv.</span>
+          <span class="ms-stat-val radiant">+14,000 NAVI</span>
+        </div>
+        <div class="ms-stat-row">
+          <span class="ms-stat-label">Patch</span>
+          <span class="ms-stat-val">7.37b</span>
+        </div>
+        <div class="ms-stat-row">
+          <span class="ms-stat-label">First Blood</span>
+          <span class="ms-stat-val radiant">NAVI (2:14)</span>
+        </div>
+        <div class="ms-stat-row">
+          <span class="ms-stat-label">First Tower</span>
+          <span class="ms-stat-val radiant">NAVI (17:32)</span>
+        </div>
+        <div class="ms-stat-row">
+          <span class="ms-stat-label">First Roshan</span>
+          <span class="ms-stat-val radiant">NAVI (25:08)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key Moments -->
+    <div class="sidebar-card">
+      <div class="sidebar-card-header">Key Moments</div>
+      <div class="sidebar-card-body">
+        <div class="key-moment-item">
+          <div class="km-time">2:14</div>
+          <div class="km-text"><strong>First Blood</strong> — RIDDYS kills Yuma in the safe lane, early farm advantage established</div>
+        </div>
+        <div class="key-moment-item">
+          <div class="km-time">7:44</div>
+          <div class="km-text"><strong>PMA Triple Kill</strong> — Axe's Berserker's Call traps three Heroic heroes under T2, netting 3 kills and a bounty rune</div>
+        </div>
+        <div class="key-moment-item">
+          <div class="km-time">14:22</div>
+          <div class="km-text"><strong>Heroic briefly ahead</strong> — Tailung's Invoker goes 3-0 mid, Heroic claims +2k gold lead</div>
+        </div>
+        <div class="key-moment-item">
+          <div class="km-time">17:32</div>
+          <div class="km-text"><strong>First Tower</strong> — NAVI takes mid T1, converts GOTTHEJUICE's lead into structure pressure</div>
+        </div>
+        <div class="key-moment-item">
+          <div class="km-time">25:08</div>
+          <div class="km-text"><strong>Roshan #1</strong> — RIDDYS gets Aegis, solo NAVI Roshan in under 40s. Heroic responds with 5-man smoke</div>
+        </div>
+        <div class="key-moment-item">
+          <div class="km-time">28:15</div>
+          <div class="km-text"><strong>Smoke fight</strong> — NAVI trades 0-2 under high ground. Heroic attempt high ground push but repelled by CM Ult</div>
+        </div>
+        <div class="key-moment-item">
+          <div class="km-time">35:04</div>
+          <div class="km-text"><strong>Roshan #2 + Cheese</strong> — NAVI secures Aegis + Cheese with a 4-man teamfight around the pit. Effectively ends the game</div>
+        </div>
+        <div class="key-moment-item">
+          <div class="km-time">37:58</div>
+          <div class="km-text"><strong>RIDDYS Rampage</strong> — Full wipe on Heroic's final defense, AM deletes 5 heroes in 18 seconds</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Back to Hub -->
+    <a href="TI2026_Hub_Prototype_rdy_gg.html" style="display:flex;align-items:center;justify-content:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.4px;">
+      ← Back to TI 2026 Hub
+    </a>
+
+  </aside>
+
+</div><!-- /page-wrap -->
+
+<footer>
+  <div class="footer-logo">rdy<span>.gg</span></div>
+  <div class="footer-copy">© 2026 rdy.gg — The esports intelligence platform. All match data is simulated for prototype purposes.</div>
+  <div class="footer-links">
+    <a href="#">About</a><a href="#">Privacy</a><a href="#">Terms</a><a href="#">API</a><a href="#">Discord</a>
+  </div>
+</footer>
+
+<script>
+// Live timer
+(function() {
+  let mins = 42, secs = 18;
+  const badge = document.querySelector('.banner-game-badge');
+  setInterval(() => {
+    secs++;
+    if (secs >= 60) { secs = 0; mins++; }
+    badge.textContent = '● LIVE ' + String(mins).padStart(2,'0') + ':' + String(secs).padStart(2,'0');
+  }, 1000);
+})();
+
+// Draft game tabs
+document.querySelectorAll('.draft-game-tab').forEach(tab => {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.draft-game-tab').forEach(t => t.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+// Net worth graph buttons
+document.querySelectorAll('.nw-ctrl-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.nw-ctrl-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lab — Pedro Brauner</title>
+  <title>Dota 2 Prototype — Lab</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet">
@@ -12,7 +12,6 @@
 
     :root {
       --bg: #080808;
-      --surface: #111;
       --border: rgba(255,255,255,0.06);
       --text: #f0ede8;
       --text-muted: rgba(240,237,232,0.45);
@@ -72,21 +71,42 @@
       max-width: 1000px;
     }
 
-    .label {
+    .breadcrumb {
       font-family: 'Space Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 5px;
+      font-size: 9px;
+      letter-spacing: 3px;
       text-transform: uppercase;
-      color: var(--accent);
+      color: var(--text-muted);
       margin-bottom: 24px;
     }
+
+    .breadcrumb a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .breadcrumb a:hover { color: var(--accent); }
+    .breadcrumb span { margin: 0 8px; }
 
     h1 {
       font-family: 'Bebas Neue', sans-serif;
       font-size: clamp(64px, 10vw, 120px);
       line-height: 0.9;
       letter-spacing: -1px;
-      margin-bottom: 24px;
+      margin-bottom: 16px;
+    }
+
+    .tag {
+      display: inline-block;
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid rgba(224,52,24,0.3);
+      padding: 4px 10px;
+      margin-bottom: 48px;
     }
 
     .description {
@@ -98,26 +118,21 @@
       margin-bottom: 80px;
     }
 
-    .projects-label {
+    .views-label {
       font-family: 'Space Mono', monospace;
       font-size: 9px;
       letter-spacing: 4px;
       text-transform: uppercase;
       color: var(--text-muted);
-      margin-bottom: 2px;
       padding-bottom: 16px;
       border-bottom: 1px solid var(--border);
     }
 
-    .project-list {
-      list-style: none;
-    }
+    .view-list { list-style: none; }
 
-    .project-list li {
-      border-bottom: 1px solid var(--border);
-    }
+    .view-list li { border-bottom: 1px solid var(--border); }
 
-    .project-list a {
+    .view-list a {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -128,18 +143,17 @@
       gap: 24px;
     }
 
-    .project-list a:hover { color: var(--accent); }
+    .view-list a:hover { color: var(--accent); }
+    .view-list a:hover .arrow { transform: translateX(4px); color: var(--accent); }
 
-    .project-list a:hover .arrow { transform: translateX(4px); color: var(--accent); }
-
-    .project-name {
+    .view-name {
       font-family: 'Bebas Neue', sans-serif;
       font-size: 36px;
       letter-spacing: 1px;
       line-height: 1;
     }
 
-    .project-meta {
+    .view-meta {
       font-family: 'Space Mono', monospace;
       font-size: 9px;
       letter-spacing: 2px;
@@ -165,32 +179,37 @@
 
 <nav>
   <a href="/" class="nav-logo">PB<span>.</span></a>
-  <a href="/" class="nav-back">← Back to Portfolio</a>
+  <a href="/lab/" class="nav-back">← Back to Lab</a>
 </nav>
 
 <main>
-  <div class="label">Pedro Brauner</div>
-  <h1>THE<br>LAB</h1>
+  <div class="breadcrumb">
+    <a href="/lab/">Lab</a>
+    <span>/</span>
+    Dota 2
+  </div>
+  <h1>DOTA 2<br>PROTOTYPE</h1>
+  <div class="tag">Prototype · In Progress</div>
   <p class="description">
-    Work in progress. Prototypes, experiments, and concepts tested before they ship.
+    TI 2026 coverage prototype. Tournament hub and match analysis views for Dota 2.
   </p>
 
-  <div class="projects-label">Projects</div>
-  <ul class="project-list">
+  <div class="views-label">Views</div>
+  <ul class="view-list">
     <li>
-      <a href="/lab/rdy/p1/">
+      <a href="/dota-prot/TI2026_Hub_Prototype_rdy_gg.html">
         <div>
-          <div class="project-name">RDY Prototype 1</div>
-          <div class="project-meta">Esports hub · In progress</div>
+          <div class="view-name">TI 2026 Hub</div>
+          <div class="view-meta">Tournament overview · Live scores · Bracket</div>
         </div>
         <span class="arrow">→</span>
       </a>
     </li>
     <li>
-      <a href="/dota-prot/">
+      <a href="/dota-prot/TI2026_Match_Analysis_rdy_gg.html">
         <div>
-          <div class="project-name">Dota 2 Prototype</div>
-          <div class="project-meta">TI 2026 · Hub & Match Analysis · In progress</div>
+          <div class="view-name">Match Analysis</div>
+          <div class="view-meta">Post-match breakdown · Stats · Draft</div>
         </div>
         <span class="arrow">→</span>
       </a>
