@@ -1,6 +1,228 @@
-<h1>RDY Prototype 1</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RDY Prototype 1 — Lab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-<ul>
-  <li><a href="/lab/rdy/p1/hub.html">Hub</a></li>
-  <li><a href="/lab/rdy/p1/role_analysis.html">Role Analysis</a></li>
-</ul>
+    :root {
+      --bg: #080808;
+      --surface: #111;
+      --border: rgba(255,255,255,0.06);
+      --text: #f0ede8;
+      --text-muted: rgba(240,237,232,0.45);
+      --accent: #e03418;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 60px;
+      height: 60px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(8,8,8,0.9);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+    }
+
+    .nav-logo {
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .nav-logo span { color: var(--accent); }
+
+    .nav-back {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .nav-back:hover { color: var(--text); }
+
+    main {
+      padding: 140px 60px 100px;
+      max-width: 1000px;
+    }
+
+    .breadcrumb {
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    .breadcrumb a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .breadcrumb a:hover { color: var(--accent); }
+
+    .breadcrumb span { margin: 0 8px; }
+
+    h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(64px, 10vw, 120px);
+      line-height: 0.9;
+      letter-spacing: -1px;
+      margin-bottom: 16px;
+    }
+
+    .tag {
+      display: inline-block;
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid rgba(224,52,24,0.3);
+      padding: 4px 10px;
+      margin-bottom: 48px;
+    }
+
+    .description {
+      color: var(--text-muted);
+      font-size: 16px;
+      font-weight: 300;
+      line-height: 1.7;
+      max-width: 480px;
+      margin-bottom: 80px;
+    }
+
+    .views-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 0;
+    }
+
+    .view-list {
+      list-style: none;
+    }
+
+    .view-list li {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .view-list a {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 28px 0;
+      text-decoration: none;
+      color: var(--text);
+      transition: color 0.2s;
+      gap: 24px;
+    }
+
+    .view-list a:hover { color: var(--accent); }
+    .view-list a:hover .arrow { transform: translateX(4px); color: var(--accent); }
+
+    .view-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 36px;
+      letter-spacing: 1px;
+      line-height: 1;
+    }
+
+    .view-meta {
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    .arrow {
+      font-size: 20px;
+      color: var(--text-muted);
+      transition: transform 0.2s, color 0.2s;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 768px) {
+      nav { padding: 0 24px; }
+      main { padding: 120px 24px 80px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">PB<span>.</span></a>
+  <a href="/lab/" class="nav-back">← Back to Lab</a>
+</nav>
+
+<main>
+  <div class="breadcrumb">
+    <a href="/lab/">Lab</a>
+    <span>/</span>
+    RDY
+  </div>
+  <h1>RDY<br>P1</h1>
+  <div class="tag">Prototype · In Progress</div>
+  <p class="description">
+    Esports hub prototype. Live scores, bracket views, and role analysis.
+  </p>
+
+  <div class="views-label">Views</div>
+  <ul class="view-list">
+    <li>
+      <a href="/lab/rdy/p1/hub.html">
+        <div>
+          <div class="view-name">Hub</div>
+          <div class="view-meta">Live scores · Bracket · Match feed</div>
+        </div>
+        <span class="arrow">→</span>
+      </a>
+    </li>
+    <li>
+      <a href="/lab/rdy/p1/role_analysis.html">
+        <div>
+          <div class="view-name">Role Analysis</div>
+          <div class="view-meta">Player stats · Role breakdown</div>
+        </div>
+        <span class="arrow">→</span>
+      </a>
+    </li>
+  </ul>
+</main>
+
+</body>
+</html>
