@@ -1,0 +1,4464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roles & System Analysis — FURIA vs Team Spirit | rdy.gg</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,300;0,400;0,600;0,700;0,800;1,300;1,400;1,600;1,700&family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600;1,700&display=swap" rel="stylesheet">
+<style>
+
+/* ============================================
+   CSS VARIABLES — rdy.gg Brand System
+   ============================================ */
+:root {
+  --green: #00D161;
+  --green-dim: #00D16133;
+  --green-glow: #00D16166;
+  --midnight: #0b0c10;
+  --card: #111318;
+  --card-alt: #191c23;
+  --surface: #252830;
+  --border: #25283066;
+  --border-solid: #252830;
+  --text-primary: #FFFFFF;
+  --text-secondary: #CECFD1;
+  --text-muted: #828A99;
+  --text-dim: #4E5666;
+  --cs2-blue: #0059C0;
+  --red: #F33939;
+  --yellow: #FFD700;
+  --font-display: 'Roboto Condensed', sans-serif;
+  --font-body: 'Source Sans 3', sans-serif;
+  --radius: 6px;
+  --radius-lg: 10px;
+}
+
+/* ============================================
+   RESET & BASE
+   ============================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface) var(--midnight);
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--midnight);
+  color: var(--text-secondary);
+  line-height: 1.5;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, #00D16106 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+a { color: var(--green); text-decoration: none; transition: opacity 0.2s; }
+a:hover { opacity: 0.8; }
+img { max-width: 100%; display: block; }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--midnight); }
+::-webkit-scrollbar-thumb { background: var(--surface); border-radius: 3px; }
+
+/* ============================================
+   HEADER
+   ============================================ */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--midnight);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+}
+
+.header-inner {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  height: 52px;
+  gap: 20px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.logo img {
+  height: 40px;
+  width: auto;
+  display: block;
+}
+
+/* Sport switcher */
+.sport-switcher {
+  display: flex;
+  gap: 2px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 3px;
+  flex-shrink: 0;
+}
+.sport-pill {
+  padding: 3px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.15s;
+}
+.sport-pill:hover { color: var(--text-secondary); opacity: 1; }
+.sport-pill.active {
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+/* Main nav links */
+.nav-links {
+  display: flex;
+  gap: 4px;
+  list-style: none;
+  flex-shrink: 0;
+}
+.nav-links a {
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  transition: all 0.15s;
+  display: block;
+}
+.nav-links a:hover { color: var(--text-primary); background: var(--card); opacity: 1; }
+.nav-links a.active {
+  color: var(--text-primary);
+  background: var(--card);
+  border-bottom: 2px solid var(--green);
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+/* Header right side */
+.header-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.lang-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 5px 8px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s;
+}
+.lang-btn:hover { color: var(--text-primary); background: var(--card); }
+.btn-signin {
+  padding: 5px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  transition: all 0.15s;
+}
+.btn-signin:hover { border-color: var(--text-muted); color: var(--text-primary); opacity: 1; }
+.btn-discord {
+  padding: 5px 14px;
+  background: #5865F2;
+  border-radius: var(--radius);
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  transition: opacity 0.15s;
+}
+.btn-discord:hover { opacity: 0.85; }
+
+/* Active tournament pill in nav */
+.nav-event-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--card);
+  border: 1px solid var(--green-dim);
+  border-radius: 5px;
+  padding: 4px 11px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  transition: border-color 0.15s;
+  flex-shrink: 0;
+}
+.nav-event-pill:hover { border-color: var(--green); opacity: 1; }
+.nav-event-pill .pill-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: dot-blink 1.5s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes dot-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ============================================
+   MATCHUP HERO
+   ============================================ */
+.matchup-hero {
+  background: linear-gradient(180deg, #0d1525 0%, #111520 100%);
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+  padding: 28px 24px 24px;
+}
+
+.matchup-hero::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, var(--green) 40%, var(--green) 60%, transparent 100%);
+  opacity: 0.7;
+}
+
+.matchup-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 18% 60%, rgba(255, 185, 0, 0.05) 0%, transparent 50%),
+    radial-gradient(ellipse at 82% 60%, rgba(30, 80, 180, 0.06) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.matchup-hero-inner {
+  max-width: 1440px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.matchup-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.meta-tag {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-dim);
+  background: var(--card);
+  border: 1px solid var(--border-solid);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.meta-tag.live {
+  color: var(--green);
+  border-color: var(--green-dim);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.meta-dot {
+  width: 5px;
+  height: 5px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: blink 1.5s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.matchup-display {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.team-identity {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+}
+
+.team-identity.right {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.team-logo-hero {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 14px rgba(0,0,0,0.6));
+  flex-shrink: 0;
+}
+
+.team-name-hero {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  line-height: 1;
+}
+
+.team-subtext {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 5px;
+  font-weight: 400;
+}
+
+.vs-block {
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.vs-text {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  line-height: 1;
+}
+
+.vs-subtext {
+  font-size: 10px;
+  color: var(--text-dim);
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  margin-top: 4px;
+}
+
+/* ============================================
+   TAB NAV
+   ============================================ */
+.tab-nav-wrap {
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 52px;
+  z-index: 90;
+}
+
+.tab-nav {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+}
+
+.tab-btn {
+  padding: 11px 16px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: none;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.tab-btn:hover { color: var(--text-primary); }
+.tab-btn.active { color: var(--green); border-bottom-color: var(--green); }
+
+/* ============================================
+   MAIN CONTENT
+   ============================================ */
+.main-content {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 28px 24px 48px;
+}
+
+/* ============================================
+   SECTION HEADER
+   ============================================ */
+.section-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.section-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--green);
+  margin-bottom: 4px;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.section-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 3px;
+  line-height: 1.5;
+}
+
+.section-note {
+  font-size: 11px;
+  color: var(--text-dim);
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ============================================
+   TABLE
+   ============================================ */
+.table-wrap {
+  background: var(--card);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  overflow-x: auto;
+}
+
+.roles-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 1020px;
+}
+
+/* ── Group header row ── */
+.roles-table thead tr.grp th {
+  padding: 7px 14px;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-dim);
+  text-align: center;
+  background: var(--card-alt);
+  border-bottom: 1px solid var(--border-solid);
+  white-space: nowrap;
+}
+
+.roles-table thead tr.grp th.grp-player { text-align: left; }
+
+.roles-table thead tr.grp th.grp-ct {
+  color: #60A5FA;
+  background: rgba(96, 165, 250, 0.04);
+  border-bottom-color: rgba(96, 165, 250, 0.2);
+}
+
+.roles-table thead tr.grp th.grp-t {
+  color: #FB923C;
+  background: rgba(251, 146, 60, 0.04);
+  border-bottom-color: rgba(251, 146, 60, 0.2);
+}
+
+.roles-table thead tr.grp th.grp-sys {
+  color: var(--text-muted);
+}
+
+/* ── Column header row ── */
+.roles-table thead tr.cols th {
+  padding: 8px 14px;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-dim);
+  background: var(--card);
+  border-bottom: 2px solid var(--border-solid);
+  white-space: nowrap;
+}
+
+.roles-table thead tr.cols th.ct-col {
+  background: rgba(96, 165, 250, 0.03);
+  color: rgba(96, 165, 250, 0.5);
+}
+
+.roles-table thead tr.cols th.t-col {
+  background: rgba(251, 146, 60, 0.03);
+  color: rgba(251, 146, 60, 0.5);
+}
+
+.ta-left  { text-align: left; }
+.ta-center{ text-align: center; }
+.ta-right { text-align: right; }
+
+/* ── Team header row ── */
+tr.team-header td {
+  padding: 8px 14px;
+  background: var(--card-alt);
+  border-top: 1px solid var(--border-solid);
+  border-bottom: 1px solid var(--border-solid);
+}
+
+.team-hdr-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.team-hdr-logo {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.team-hdr-name {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.team-hdr-meta {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+/* ── Player rows ── */
+tr.player-row {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.12s;
+}
+
+tr.player-row:hover { background: rgba(255,255,255,0.03); }
+tr.player-row:last-child { border-bottom: none; }
+
+.roles-table td {
+  padding: 10px 14px;
+  vertical-align: middle;
+}
+
+/* ── Player cell ── */
+.player-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 170px;
+}
+
+.player-rank-num {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-dim);
+  width: 12px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.player-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  object-fit: cover;
+  object-position: top center;
+  background: var(--surface);
+  flex-shrink: 0;
+  border: 1px solid var(--border-solid);
+}
+
+.player-name {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: none;
+  letter-spacing: 0.3px;
+  line-height: 1;
+}
+
+/* ── Role pill ── */
+.role-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 4px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+  cursor: default;
+  position: relative;
+}
+
+.role-pill.awper {
+  background: rgba(0, 89, 192, 0.18);
+  color: #60A5FA;
+  border: 1px solid rgba(96, 165, 250, 0.28);
+}
+
+.role-pill.star-rifler {
+  background: rgba(255, 215, 0, 0.1);
+  color: #FFD700;
+  border: 1px solid rgba(255, 215, 0, 0.22);
+}
+
+.role-pill.second-star {
+  background: rgba(192, 200, 216, 0.08);
+  color: #A8B4C8;
+  border: 1px solid rgba(192, 200, 216, 0.18);
+}
+
+.role-pill.support {
+  background: rgba(107, 114, 128, 0.12);
+  color: #6B7A8D;
+  border: 1px solid rgba(107, 114, 128, 0.2);
+}
+
+.role-pill.igl {
+  background: rgba(0, 209, 97, 0.08);
+  color: #00D161;
+  border: 1px solid rgba(0, 209, 97, 0.18);
+}
+
+/* Positional CT role pills */
+.role-pill.ct-short     { background: rgba(251,146,60,0.1);  color: #FB923C; border: 1px solid rgba(251,146,60,0.22); }
+.role-pill.ct-connector { background: rgba(45,212,191,0.1);  color: #2DD4BF; border: 1px solid rgba(45,212,191,0.2); }
+.role-pill.ct-anchor-a  { background: rgba(148,163,184,0.1); color: #94A3B8; border: 1px solid rgba(148,163,184,0.2); }
+.role-pill.ct-anchor-b  { background: rgba(100,116,139,0.1); color: #6B7A8D; border: 1px solid rgba(100,116,139,0.2); }
+
+/* Positional T role pills */
+.role-pill.t-spacetaker { background: rgba(249,115,22,0.1);  color: #F97316; border: 1px solid rgba(249,115,22,0.22); }
+.role-pill.t-trade      { background: rgba(245,158,11,0.1);  color: #F59E0B; border: 1px solid rgba(245,158,11,0.22); }
+.role-pill.t-lurker     { background: rgba(139,92,246,0.12); color: #8B5CF6; border: 1px solid rgba(139,92,246,0.22); }
+
+/* ── Star Points cell ── */
+.sp-cell { min-width: 76px; }
+
+.sp-num {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.sp-bar-track {
+  width: 100%;
+  max-width: 64px;
+  height: 3px;
+  background: var(--surface);
+  border-radius: 2px;
+  margin-top: 5px;
+  overflow: hidden;
+}
+
+.sp-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  width: 0%; /* animated in via JS */
+  transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+}
+
+.sp-bar-fill.ct { background: linear-gradient(90deg, rgba(96,165,250,0.4), #60A5FA); }
+.sp-bar-fill.t  { background: linear-gradient(90deg, rgba(251,146,60,0.4), #FB923C); }
+.sp-bar-fill.total { background: linear-gradient(90deg, var(--green-dim), var(--green)); }
+
+/* ── Star Ranking badge ── */
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 800;
+  background: var(--surface);
+  color: var(--text-muted);
+}
+
+.rank-badge.r1 { background: rgba(255,215,0,0.14); color: #FFD700;  border: 1px solid rgba(255,215,0,0.28); }
+.rank-badge.r2 { background: rgba(192,192,192,0.1); color: #B0B8C8; border: 1px solid rgba(192,192,192,0.22); }
+.rank-badge.r3 { background: rgba(180,130,70,0.1);  color: #C89050; border: 1px solid rgba(180,130,70,0.22); }
+
+/* ── Resources Δ ── */
+.res-val {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.res-pos { color: var(--green); }
+.res-neg { color: var(--red); }
+
+/* ── Utility Share ── */
+.util-val {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* ── Metric (Aggression / Lurking) ── */
+.metric-num {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.metric-high  { color: #FB923C; }
+.metric-mid   { color: var(--text-secondary); }
+.metric-low   { color: var(--text-muted); }
+
+.metric-lurk-high { color: #A78BFA; }
+.metric-lurk-mid  { color: var(--text-secondary); }
+.metric-lurk-low  { color: var(--text-muted); }
+
+/* ── CT/T column tint ── */
+td.ct-col { background: rgba(96,165,250,0.02); }
+td.t-col  { background: rgba(251,146,60,0.02); }
+
+/* ============================================
+   LEGEND
+   ============================================ */
+.legend {
+  margin-top: 16px;
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding: 14px 18px;
+  background: var(--card);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius-lg);
+  align-items: flex-start;
+}
+
+.legend-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.legend-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-dim);
+}
+
+.legend-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.legend-sep {
+  width: 1px;
+  background: var(--border-solid);
+  align-self: stretch;
+  flex-shrink: 0;
+}
+
+.legend-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.legend-metric-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.legend-metric-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* ============================================
+   TOOLTIP
+   ============================================ */
+[data-tip] {
+  position: relative;
+}
+
+[data-tip]:hover::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 7px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--card-alt);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius);
+  padding: 5px 10px;
+  font-size: 11px;
+  font-family: var(--font-body);
+  font-weight: 400;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  z-index: 999;
+  pointer-events: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* ============================================
+   SYSTEM EXPLAINER
+   ============================================ */
+.explainer {
+  margin-bottom: 16px;
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.explainer summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 16px;
+  background: var(--card);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  transition: background 0.12s;
+}
+
+.explainer summary::-webkit-details-marker { display: none; }
+.explainer summary:hover { background: var(--card-alt); }
+
+.explainer-title {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-muted);
+}
+
+.explainer-chevron {
+  margin-left: auto;
+  color: var(--text-dim);
+  font-size: 11px;
+  transition: transform 0.2s;
+}
+
+details.explainer[open] .explainer-chevron { transform: rotate(180deg); }
+
+.explainer-body {
+  background: var(--card-alt);
+  border-top: 1px solid var(--border-solid);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.explainer-intro {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  max-width: 780px;
+}
+
+.explainer-intro strong {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+/* Role hierarchy */
+.expl-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.9px;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+}
+
+.role-hierarchy {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.role-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+}
+
+.role-row:last-child { border-bottom: none; }
+.role-row:hover { background: rgba(255,255,255,0.02); }
+
+.role-row-rank {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-dim);
+  width: 18px;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.role-row-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.role-row-desc strong {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.role-row-res {
+  margin-left: auto;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.res-highest { color: var(--green); }
+.res-high    { color: #86EFAC; }
+.res-mid     { color: var(--text-muted); }
+.res-low     { color: #6B7A8D; }
+.res-lowest  { color: var(--text-dim); }
+
+/* Metric tags */
+.metric-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.metric-tag-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: var(--card);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  flex: 1 1 200px;
+  min-width: 180px;
+  max-width: 320px;
+}
+
+.metric-tag-label {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  white-space: nowrap;
+  padding: 2px 7px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.mtl-sp    { background: rgba(0,209,97,0.1);   color: var(--green);  border: 1px solid rgba(0,209,97,0.2); }
+.mtl-res   { background: rgba(251,146,60,0.1); color: #FB923C; border: 1px solid rgba(251,146,60,0.2); }
+.mtl-util  { background: rgba(167,139,250,0.1);color: #A78BFA; border: 1px solid rgba(167,139,250,0.2); }
+.mtl-agg   { background: rgba(251,146,60,0.1); color: #FB923C; border: 1px solid rgba(251,146,60,0.2); }
+.mtl-lurk  { background: rgba(167,139,250,0.1);color: #A78BFA; border: 1px solid rgba(167,139,250,0.2); }
+
+.metric-tag-text {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ============================================
+   TAB PANELS
+   ============================================ */
+.tab-panel { display: none; }
+.tab-panel.tab-panel--active { display: block; }
+
+/* ── Overview panel ── */
+.overview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 700px) { .overview-grid { grid-template-columns: 1fr; } }
+
+.ov-card {
+  background: var(--card);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+}
+
+.ov-card-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-dim);
+  margin-bottom: 14px;
+}
+
+.ov-team-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.ov-team-row:last-child { border-bottom: none; }
+
+.ov-team-side {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.ov-team-side.right {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.ov-logo {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.ov-team-name {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.ov-stat-val {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  min-width: 40px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.ov-stat-label {
+  font-size: 10px;
+  color: var(--text-dim);
+  text-align: center;
+  margin-top: 1px;
+}
+
+.ov-stat-center {
+  text-align: center;
+  flex: 0 0 90px;
+}
+
+.ov-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.ov-bar-row:last-child { border-bottom: none; }
+
+.ov-bar-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  width: 110px;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.ov-bar-label.right {
+  text-align: left;
+}
+
+.ov-bar-track {
+  flex: 1;
+  height: 5px;
+  background: var(--surface);
+  border-radius: 3px;
+  overflow: hidden;
+  display: flex;
+}
+
+.ov-bar-a {
+  height: 100%;
+  background: #FFB800;
+  border-radius: 3px 0 0 3px;
+  transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+}
+
+.ov-bar-b {
+  height: 100%;
+  background: #3B82F6;
+  border-radius: 0 3px 3px 0;
+  transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+}
+
+.ov-val-left {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  color: #FFB800;
+  width: 36px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.ov-val-right {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  color: #3B82F6;
+  width: 36px;
+  text-align: left;
+  flex-shrink: 0;
+}
+
+/* Form pills */
+.form-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.form-row:last-child { border-bottom: none; }
+
+.form-team {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 110px;
+  flex-shrink: 0;
+}
+
+.form-team-name {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: uppercase;
+}
+
+.form-pills {
+  display: flex;
+  gap: 4px;
+}
+
+.form-pill {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.form-pill.w { background: rgba(0,209,97,0.15); color: var(--green); border: 1px solid rgba(0,209,97,0.25); }
+.form-pill.l { background: rgba(243,57,57,0.12); color: var(--red); border: 1px solid rgba(243,57,57,0.22); }
+
+.form-record {
+  margin-left: auto;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+/* Placeholder panel */
+.placeholder-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  text-align: center;
+  gap: 10px;
+}
+
+.placeholder-icon {
+  font-size: 28px;
+  opacity: 0.3;
+  margin-bottom: 4px;
+}
+
+.placeholder-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.placeholder-sub {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+/* ── Map Pool ── */
+.map-pool-card {
+  background: var(--card);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  margin-bottom: 12px;
+  overflow-x: auto;
+}
+
+.map-pool-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+.mp-hdr-team {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 0 8px 10px;
+  border-bottom: 2px solid var(--border-solid);
+}
+
+.mp-hdr-team.furia { color: #FFB800; text-align: left; }
+.mp-hdr-team.spirit { color: #3B82F6; text-align: right; }
+.mp-hdr-team.center { text-align: center; color: var(--text-dim); }
+
+.mp-col-hdr {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  padding: 6px 8px 8px;
+  text-align: right;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border);
+}
+
+.mp-col-hdr.left { text-align: left; }
+.mp-col-hdr.center { text-align: center; }
+
+.mp-row { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+.mp-row:last-child { border-bottom: none; }
+.mp-row:hover { background: rgba(255,255,255,0.02); }
+
+.mp-stat {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 8px;
+  text-align: right;
+  white-space: nowrap;
+  color: var(--text-muted);
+}
+
+.mp-stat.left { text-align: left; }
+.mp-stat.hi { color: var(--text-primary); font-weight: 700; }
+.mp-stat.lo { color: var(--text-dim); }
+
+.mp-map-cell { padding: 8px 12px; text-align: center; }
+
+.mp-map-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.mp-map-thumb {
+  width: 58px;
+  height: 36px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.mp-map-thumb::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.mp-map-name {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  min-width: 76px;
+  text-align: left;
+}
+
+/* Map thumb accent colors */
+.mp-map-thumb.inferno  { background: linear-gradient(135deg, #3d1a00 0%, #7a2f0a 50%, #c44a00 100%); }
+.mp-map-thumb.nuke     { background: linear-gradient(135deg, #0d1f14 0%, #1a3a25 50%, #0f2e1c 100%); }
+.mp-map-thumb.ancient  { background: linear-gradient(135deg, #1a1208 0%, #2e2008 50%, #3d3010 100%); }
+.mp-map-thumb.mirage   { background: linear-gradient(135deg, #2c1f08 0%, #4a3510 50%, #5c440f 100%); }
+.mp-map-thumb.anubis   { background: linear-gradient(135deg, #1a1408 0%, #302510 50%, #4a3a18 100%); }
+.mp-map-thumb.dust2    { background: linear-gradient(135deg, #2a1a0a 0%, #4a2e12 50%, #5c3a18 100%); }
+.mp-map-thumb.vertigo  { background: linear-gradient(135deg, #0a0f1a 0%, #141f2e 50%, #1a2535 100%); }
+
+/* ── H2H Match History ── */
+.h2h-history-card {
+  background: var(--card);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  margin-bottom: 12px;
+}
+
+.h2h-match-row {
+  display: grid;
+  grid-template-columns: 1fr auto 120px;
+  align-items: center;
+  gap: 20px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.h2h-match-row:last-child { border-bottom: none; }
+
+.h2h-match-row:hover { background: rgba(255,255,255,0.01); border-radius: var(--radius); }
+
+.h2h-event-name {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.2px;
+}
+
+.h2h-event-meta {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 2px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.h2h-event-meta .dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  flex-shrink: 0;
+}
+
+.h2h-score-block {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.h2h-mini-logo {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.h2h-mini-name {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.h2h-score {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: 0.5px;
+  padding: 0 6px;
+}
+
+.h2h-score.furia-won { color: #FFB800; }
+.h2h-score.spirit-won { color: #3B82F6; }
+
+.h2h-result-col {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.h2h-map-tag {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-dim);
+  background: var(--surface);
+  padding: 3px 7px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.h2h-pill {
+  width: 26px;
+  height: 26px;
+  border-radius: 5px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.h2h-pill.w { background: rgba(0,209,97,0.14); color: var(--green); border: 1px solid rgba(0,209,97,0.25); }
+.h2h-pill.l { background: rgba(243,57,57,0.11); color: var(--red); border: 1px solid rgba(243,57,57,0.22); }
+
+/* ── Rating column (0–100 rdy Score) ── */
+.rating-val {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.rating-val.rate-hi  { color: var(--green); }   /* ≥ 85 */
+.rating-val.rate-mid { color: #FFB800; }         /* 70–84 */
+.rating-val.rate-lo  { color: var(--text-dim); } /* < 70 */
+
+/* ── Map Selector ── */
+.map-selector {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 8px 0 4px;
+}
+
+.map-selector-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+.map-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: var(--card);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 28px 6px 12px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23828A99' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  min-width: 148px;
+}
+
+.map-select:hover { border-color: var(--text-muted); }
+.map-select:focus { border-color: var(--green); box-shadow: 0 0 0 2px var(--green-dim); }
+.map-select option { background: var(--card-alt); color: var(--text-primary); }
+
+.map-select-note {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+#map-selected-label {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--green);
+  letter-spacing: 0.3px;
+  display: none;
+}
+
+/* ── Legend: full-width divider + map note ── */
+.legend-full-sep {
+  width: 100%;
+  height: 1px;
+  background: var(--border-solid);
+  margin: 4px 0;
+}
+
+.legend-map-note {
+  width: 100%;
+  font-size: 11px;
+  color: var(--text-dim);
+  font-style: italic;
+  padding-top: 2px;
+}
+
+/* ── Performance formula ── */
+.perf-formula {
+  background: var(--card);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  margin-top: 16px;
+}
+
+.perf-formula-title {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.perf-formula-badge {
+  background: rgba(255,215,0,0.1);
+  color: #FFD700;
+  border: 1px solid rgba(255,215,0,0.22);
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.perf-formula-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  max-width: 780px;
+  margin-bottom: 14px;
+}
+
+.perf-formula-box {
+  background: var(--card-alt);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+}
+
+.perf-formula-box-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: var(--text-dim);
+  margin-bottom: 9px;
+}
+
+.perf-formula-code {
+  display: block;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: var(--green);
+  line-height: 1.6;
+  margin-bottom: 10px;
+  word-break: break-word;
+}
+
+.perf-formula-footnote {
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* ============================================
+   PERFORMANCE TAB — PLAYER CARDS
+   ============================================ */
+.perf-team-block { margin-bottom: 20px; }
+
+.perf-team-hdr {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--border-solid);
+}
+
+.perf-team-logo { width: 22px; height: 22px; object-fit: contain; }
+
+.perf-team-label {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.perf-team-label.furia  { color: #FFB800; }
+.perf-team-label.spirit { color: #3B82F6; }
+
+.player-cards-row {
+  display: flex;
+  overflow-x: auto;
+  border: 1px solid var(--border-solid);
+  border-top: none;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  background: var(--card);
+  -webkit-overflow-scrolling: touch;
+}
+
+.player-cards-row::-webkit-scrollbar { height: 3px; }
+.player-cards-row::-webkit-scrollbar-thumb { background: var(--surface); border-radius: 3px; }
+
+.player-card {
+  min-width: 230px;
+  flex: 1 0 230px;
+  padding: 16px 16px;
+  border-right: 1px solid var(--border);
+}
+
+.player-card:last-child { border-right: none; }
+
+.player-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  margin-bottom: 12px;
+}
+
+.player-avatar-wrap {
+  width: 52px;
+  height: 52px;
+  background: var(--surface);
+  border-radius: 7px;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.player-avatar-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  border-radius: 7px;
+}
+
+.player-avatar-wrap .p-flag {
+  position: absolute;
+  bottom: -2px;
+  left: -2px;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.p-identity { flex: 1; min-width: 0; }
+
+.p-nick {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--text-primary);
+  text-transform: none;
+  line-height: 1.1;
+}
+
+.p-real {
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.p-role-badge {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.p-role-badge.awp-b  { background: rgba(96,165,250,0.15); color: #60A5FA; border: 1px solid rgba(96,165,250,0.2); }
+.p-role-badge.star-b { background: rgba(255,215,0,0.1);   color: #FFD700; border: 1px solid rgba(255,215,0,0.2); }
+.p-role-badge.sec-b  { background: rgba(192,200,216,0.08); color: #A8B4C8; border: 1px solid rgba(192,200,216,0.15); }
+.p-role-badge.sup-b  { background: rgba(107,114,128,0.1);  color: #6B7A8D; border: 1px solid rgba(107,114,128,0.18); }
+.p-role-badge.igl-b  { background: rgba(0,209,97,0.08);    color: #00D161; border: 1px solid rgba(0,209,97,0.15); }
+
+.p-power { text-align: right; flex-shrink: 0; }
+
+.p-power-val {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 20px;
+  color: #fff;
+  line-height: 1;
+  border-radius: 5px;
+  padding: 3px 7px;
+  display: inline-block;
+  background: var(--surface);
+}
+
+.p-power-val.pr-green  { background: #1a5c35; }
+.p-power-val.pr-gray   { background: #3c4352; }
+.p-power-val.pr-purple { background: #5b21b6; }
+
+.p-power-label {
+  font-size: 8px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 3px;
+  text-align: center;
+}
+
+.p-radar {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.p-radar canvas { width: 160px; height: 160px; }
+
+.p-stats { display: flex; flex-direction: column; }
+
+.p-stat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+}
+
+.p-stat-row:last-child { border-bottom: none; }
+.p-stat-label { color: var(--text-muted); font-weight: 600; }
+
+.p-stat-val {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.p-trend { font-size: 9px; font-family: var(--font-body); font-weight: 600; }
+.p-trend.up { color: var(--green); }
+.p-trend.dn { color: var(--red); }
+
+.p-playstyle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0 0;
+  margin-top: 2px;
+  border-top: 1px solid var(--border);
+}
+
+.p-playstyle-lbl { font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+.p-playstyle-val { font-size: 10px; color: var(--green); font-weight: 600; }
+
+/* ============================================
+   LIVE MATCH MODULE
+   ============================================ */
+/* Live badge (reusable) */
+.live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--red);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  animation: live-pulse 2s ease-in-out infinite;
+}
+@keyframes live-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 #F3393966; }
+  50% { box-shadow: 0 0 0 6px #F3393900; }
+}
+.live-badge .dot {
+  width: 6px;
+  height: 6px;
+  background: white;
+  border-radius: 50%;
+  animation: dot-blink 1.5s ease-in-out infinite;
+}
+
+.live-match-section { margin-bottom: 24px; }
+.live-match-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.live-match-section-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.live-match-section-title .accent {
+  width: 3px;
+  height: 16px;
+  background: var(--green);
+  border-radius: 2px;
+}
+
+.match-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.match-card.live-match { border-color: var(--green-dim); }
+
+.match-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.match-teams {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+}
+.match-team {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+.match-team.away { flex-direction: row-reverse; text-align: right; }
+.team-logo-md {
+  width: 48px;
+  height: 48px;
+  background: var(--surface);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.team-logo-md img {
+  width: 75%;
+  height: 75%;
+  object-fit: contain;
+  display: block;
+  margin: auto;
+}
+.match-team-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--text-primary);
+  text-transform: uppercase;
+}
+.match-team-tag { font-size: 11px; color: var(--text-muted); }
+
+.match-score-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 80px;
+}
+.match-series-score {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 28px;
+  color: var(--text-primary);
+  letter-spacing: 4px;
+}
+.match-status-live { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; color: var(--red); }
+
+.map-scores {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px 12px;
+}
+.map-score-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--card-alt);
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.map-score-pill .score {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+.map-score-pill.won { border-left: 2px solid var(--green); }
+.map-score-pill.lost { border-left: 2px solid var(--red); }
+
+/* Map Veto */
+.map-veto {
+  padding: 13px 16px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.map-veto-title {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  font-weight: 700;
+  color: var(--text-dim);
+  margin-bottom: 9px;
+}
+.veto-list {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+.veto-step {
+  background: var(--midnight);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 4px 5px;
+  text-align: center;
+  position: relative;
+}
+.veto-step.ban { opacity: 0.5; }
+.veto-step.pick-a { border-top: 2px solid var(--green); }
+.veto-step.pick-b { border-top: 2px solid #4d9fff; }
+.veto-step.decider { border-top: 2px solid var(--surface); }
+.veto-step.veto-live { border-top: 2px solid var(--yellow); }
+.veto-number {
+  position: absolute; top: 3px; left: 5px;
+  font-size: 8px; color: var(--text-dim); font-weight: 600; line-height: 1; opacity: 0.7;
+}
+.veto-action-row {
+  display: flex; align-items: center; justify-content: center; gap: 3px; margin-bottom: 3px;
+}
+.veto-team-icon { width: 11px; height: 11px; object-fit: contain; flex-shrink: 0; }
+.veto-action {
+  font-size: 8px; text-transform: uppercase; letter-spacing: 0.3px; font-weight: 700; line-height: 1;
+}
+.veto-step.ban     .veto-action { color: #e05252; }
+.veto-step.pick-a  .veto-action { color: var(--green); }
+.veto-step.pick-b  .veto-action { color: #4d9fff; }
+.veto-step.decider .veto-action { color: var(--text-dim); }
+.veto-step.veto-live .veto-action { color: var(--yellow); }
+.veto-map-name {
+  font-size: 10px; font-weight: 700; color: var(--text-primary);
+  line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.veto-step.ban .veto-map-name { text-decoration: line-through; color: var(--text-dim); }
+.veto-result {
+  font-size: 8px; font-family: var(--font-display); font-weight: 700; margin-top: 3px; line-height: 1;
+}
+.veto-result.won  { color: var(--green); }
+.veto-result.live { color: var(--yellow); }
+.veto-result.tbd  { color: var(--text-dim); }
+
+/* Activity Feed */
+.activity-feed {
+  margin: 16px 16px 18px;
+  background: var(--midnight);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.activity-feed-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px 6px;
+  border-bottom: 1px solid var(--border);
+}
+.activity-feed-title {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-muted);
+}
+.activity-feed-label {
+  font-size: 10px;
+  color: var(--text-dim);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.activity-scroll {
+  max-height: 280px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface) transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 4px 8px 8px;
+}
+.activity-scroll::-webkit-scrollbar { width: 3px; }
+.activity-scroll::-webkit-scrollbar-thumb { background: var(--surface); border-radius: 2px; }
+
+.feed-round-sep {
+  display: flex; align-items: center; gap: 8px; padding: 5px 0 3px;
+}
+.feed-round-sep::before, .feed-round-sep::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+.feed-round-label {
+  font-size: 10px; font-weight: 700; color: var(--text-dim);
+  text-transform: uppercase; letter-spacing: 0.6px; white-space: nowrap;
+  background: var(--surface); padding: 2px 8px; border-radius: 10px;
+}
+
+.feed-round-result {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 10px; border-radius: 4px; margin: 3px 0;
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
+}
+.feed-round-result.ct-win { background: #0059C015; border-left: 2px solid var(--cs2-blue); color: #5599ff; }
+.feed-round-result.t-win  { background: #FFD70015; border-left: 2px solid var(--yellow);   color: var(--yellow); }
+.feed-round-result .result-score  { margin-left: auto; font-size: 12px; font-weight: 800; }
+.feed-round-result .result-reason { font-size: 10px; font-weight: 600; opacity: 0.7; text-transform: none; }
+
+.feed-kill {
+  display: flex; align-items: center; gap: 5px;
+  padding: 3px 6px; border-radius: 3px; transition: background 0.1s;
+}
+.feed-kill:hover { background: var(--card-alt); }
+.feed-player {
+  font-family: var(--font-display); font-size: 12px; font-weight: 700; white-space: nowrap;
+}
+.feed-player.t    { color: #ffcc44; }
+.feed-player.ct   { color: #66aaff; }
+.feed-player.dead { color: var(--text-dim); text-decoration: line-through; font-weight: 400; }
+.feed-weapon {
+  font-size: 10px; font-weight: 700; color: var(--text-dim);
+  background: var(--surface); padding: 1px 5px; border-radius: 3px;
+  text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap;
+}
+.feed-hs    { font-size: 10px; color: var(--red); font-weight: 700; }
+.feed-arrow { color: var(--text-dim); font-size: 10px; }
+
+.feed-event {
+  display: flex; align-items: center; gap: 6px;
+  padding: 3px 6px; font-size: 11px; color: var(--text-muted);
+}
+.feed-event-icon { font-size: 12px; }
+.feed-event.bomb   { color: #ff8844; }
+.feed-event.defuse { color: #44ccaa; }
+
+/* Economy panel */
+.economy-panel {
+  background: var(--card-alt);
+  margin: 0 16px 12px;
+  border-radius: var(--radius);
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 12px;
+  font-size: 12px;
+}
+.econ-team { display: flex; flex-direction: column; gap: 4px; }
+.econ-team.away { text-align: right; }
+.econ-label { color: var(--text-dim); font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+.econ-value { color: var(--text-primary); font-family: var(--font-display); font-weight: 700; font-size: 14px; }
+.econ-buy { color: var(--green); }
+.econ-eco { color: var(--yellow); }
+.econ-force { color: #fb923c; }
+.econ-divider { width: 1px; background: var(--border); }
+
+/* Round history dots */
+.round-history {
+  display: flex;
+  gap: 2px;
+  padding: 0 16px 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.round-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  font-size: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: white;
+}
+.round-dot.t-win  { background: var(--green); }
+.round-dot.ct-win { background: var(--cs2-blue); }
+.round-dot.t-loss { background: #1a3a20; }
+.round-dot.ct-loss{ background: #0a2040; }
+.round-dot.current{ border: 1px solid var(--yellow); animation: round-pulse 1s ease-in-out infinite; }
+@keyframes round-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Player scoreboard */
+.player-stats { padding: 0 0 16px; }
+.player-stats-wrap {
+  margin: 0 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.player-stats-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.player-stats-scroll::-webkit-scrollbar { height: 3px; }
+.player-stats-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.player-stats-table {
+  min-width: 560px;
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.player-stats-table .stat-group-row th {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  font-weight: 700;
+  padding: 6px 8px 4px;
+  background: #0d1220;
+}
+.player-stats-table .stat-group-row th:first-child { color: transparent; }
+.player-stats-table thead tr:not(.stat-group-row) { background: #0d1220; }
+.player-stats-table th {
+  text-align: left;
+  color: var(--text-dim);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 4px 8px 6px;
+  border-bottom: 1px solid var(--border);
+}
+.player-stats-table th:not(:first-child) { text-align: center; }
+.player-stats-table .team-header-row td {
+  padding: 7px 10px 6px;
+  background: #111827;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.player-stats-table .team-header-row.team-a-header td strong { color: var(--green); }
+.player-stats-table .team-header-row.team-b-header td strong { color: #4d9fff; }
+.side-badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 3px;
+  margin-left: 8px;
+  letter-spacing: 0.5px;
+  vertical-align: middle;
+}
+.t-badge  { background: rgba(240,168,57,0.14); color: #f0a839; border: 1px solid rgba(240,168,57,0.30); }
+.ct-badge { background: rgba(77,159,255,0.14); color: #4d9fff; border: 1px solid rgba(77,159,255,0.30); }
+.rounds-won {
+  float: right;
+  font-size: 10px;
+  color: var(--text-dim);
+  font-weight: 400;
+  text-transform: none;
+}
+.player-stats-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid #12182a;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.player-stats-table td:not(:first-child) { text-align: center; font-family: var(--font-display); font-weight: 600; }
+.player-stats-table .team-a { background: #00D16110; }
+.player-stats-table .team-b { background: #2264cc12; }
+.player-stats-table .team-a:last-child td,
+.player-stats-table .team-b:last-child td { border-bottom: none; }
+.player-stats-table .player-name { font-weight: 600; color: var(--text-primary); text-transform: none; letter-spacing: 0; }
+.player-stats-table .team-a .player-name { border-left: 3px solid #00D16150; padding-left: 7px; }
+.player-stats-table .team-b .player-name { border-left: 3px solid #4d9fff50; padding-left: 7px; }
+.player-stats-table .top-frag { color: var(--green); font-weight: 700; }
+.player-stats-table .col-sep  { border-left: 1px solid var(--border); }
+.stat-pos  { color: var(--green) !important; }
+.stat-neg  { color: #e05252 !important; }
+.stat-zero { color: var(--text-dim) !important; }
+
+/* Watch Live */
+.watch-live {
+  padding: 0 16px 16px;
+  border-top: 1px solid var(--border);
+}
+.watch-live-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 0 10px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-muted);
+}
+.watch-live-dot {
+  width: 7px;
+  height: 7px;
+  background: #eb0400;
+  border-radius: 50%;
+  animation: dot-blink 1.5s ease-in-out infinite;
+  flex-shrink: 0;
+  box-shadow: 0 0 6px #eb040088;
+}
+.watch-live-link {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: none;
+  font-weight: 400;
+  letter-spacing: 0;
+  transition: color 0.15s;
+}
+.watch-live-link:hover { color: var(--text-secondary); }
+.twitch-container {
+  position: relative;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #000;
+  aspect-ratio: 16 / 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.twitch-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--text-dim);
+  font-size: 13px;
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+  background: #070a0e;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.twitch-placeholder-icon { font-size: 28px; }
+.twitch-placeholder-label {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  color: #9146FF;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.twitch-placeholder-sub { font-size: 11px; color: var(--text-dim); }
+
+/* ============================================
+   RESPONSIVE OVERFLOW HINT
+   ============================================ */
+.table-overflow-hint {
+  display: none;
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+  text-align: right;
+}
+
+@media (max-width: 1100px) {
+  .table-overflow-hint { display: block; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     SITE HEADER
+     ============================================================ -->
+<header class="site-header">
+  <div class="header-inner">
+    <a href="#" class="logo"><img src="../Branding/Logo-Files/svg/rdy.gg_logo-primary.svg" alt="rdy.gg"></a>
+    <div class="sport-switcher">
+      <a href="#" class="sport-pill">Dota 2</a>
+      <a href="#" class="sport-pill active">CS2</a>
+    </div>
+    <nav>
+      <ul class="nav-links">
+        <li><a href="#">Matches</a></li>
+        <li><a href="#">Results</a></li>
+        <li><a href="#" class="active">Tournaments</a></li>
+        <li><a href="#">News</a></li>
+      </ul>
+    </nav>
+    <a href="#" class="nav-event-pill"><span class="pill-dot"></span>IEM Rio 2026</a>
+    <div class="header-right">
+      <button class="lang-btn">&#127482;&#127480; EN</button>
+      <a href="#" class="btn-signin">Sign In</a>
+      <a href="#" class="btn-discord">Join our Discord</a>
+    </div>
+  </div>
+</header>
+
+<!-- ============================================================
+     MATCHUP HERO
+     ============================================================ -->
+<section class="matchup-hero">
+  <div class="matchup-hero-inner">
+
+    <div class="matchup-meta">
+      <span class="meta-tag live"><span class="meta-dot"></span>Live</span>
+      <span class="meta-tag">IEM Rio 2026</span>
+      <span class="meta-tag">Quarterfinals</span>
+      <span class="meta-tag">Bo3 · Map 2</span>
+    </div>
+
+    <div class="matchup-display">
+      <div class="team-identity">
+        <img src="assets/teams/logos/furia.png" class="team-logo-hero" alt="FURIA">
+        <div>
+          <div class="team-name-hero">FURIA</div>
+          <div class="team-subtext">#6 World Ranking</div>
+        </div>
+      </div>
+
+      <div class="vs-block">
+        <div class="vs-text">vs</div>
+        <div class="vs-subtext">Nuke</div>
+      </div>
+
+      <div class="team-identity right">
+        <img src="assets/teams/logos/spirit.png" class="team-logo-hero" alt="Team Spirit">
+        <div>
+          <div class="team-name-hero">Spirit</div>
+          <div class="team-subtext">#1 World Ranking</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================
+     TAB NAVIGATION
+     ============================================================ -->
+<div class="tab-nav-wrap">
+  <div class="tab-nav">
+    <button class="tab-btn active" data-tab="overview">Overview</button>
+    <button class="tab-btn" data-tab="roles">Roles &amp; System</button>
+    <button class="tab-btn" data-tab="performance">Performance</button>
+    <button class="tab-btn" data-tab="economy">Economy</button>
+    <button class="tab-btn" data-tab="h2h">Head-to-Head</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     MAIN CONTENT
+     ============================================================ -->
+<main class="main-content">
+
+  <!-- ══════════════════════════════════════════════════════════
+       OVERVIEW PANEL
+       ══════════════════════════════════════════════════════════ -->
+  <div id="tab-overview" class="tab-panel tab-panel--active">
+
+    <!-- ── LIVE MATCH FEED ── -->
+    <div class="live-match-section">
+      <div class="live-match-section-header">
+        <div class="live-match-section-title">
+          <span class="accent"></span>Live Match
+        </div>
+        <span class="live-badge" style="font-size:10px;padding:3px 10px"><span class="dot"></span>LIVE</span>
+      </div>
+
+      <div class="match-card live-match">
+
+        <!-- Match header -->
+        <div class="match-card-header">
+          <span>Quarterfinals &bull; IEM Rio 2026 &bull; Bo3</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:11px;color:var(--text-dim)">Map 2 of 3</span>
+          </div>
+        </div>
+
+        <!-- Teams + series score -->
+        <div class="match-teams">
+          <div class="match-team">
+            <div class="team-logo-md"><img src="assets/teams/logos/furia.png" alt="FURIA"></div>
+            <div>
+              <div class="match-team-name">FURIA</div>
+              <div class="match-team-tag">#6 World Ranking</div>
+            </div>
+          </div>
+          <div class="match-score-center">
+            <div class="match-series-score">0 : 1</div>
+            <div class="match-status-live">Map 2 Live</div>
+          </div>
+          <div class="match-team away">
+            <div class="team-logo-md"><img src="assets/teams/logos/spirit.png" alt="Spirit"></div>
+            <div style="text-align:right">
+              <div class="match-team-name">Spirit</div>
+              <div class="match-team-tag">#1 World Ranking</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Map score pills -->
+        <div class="map-scores">
+          <div class="map-score-pill lost"><span>Inferno</span> <span class="score" style="color:var(--red)">8:13</span></div>
+          <div class="map-score-pill" style="border-left:2px solid var(--yellow)"><span>Nuke</span> <span class="score" style="color:var(--yellow)">7:9</span></div>
+          <div class="map-score-pill"><span>Dust 2</span> <span class="score" style="color:var(--text-dim)">&mdash;</span></div>
+        </div>
+
+        <!-- Map veto -->
+        <div class="map-veto">
+          <div class="map-veto-title">Map Veto</div>
+          <div class="veto-list">
+            <div class="veto-step ban"><span class="veto-number">1</span>
+              <div class="veto-action-row"><img class="veto-team-icon" src="assets/teams/logos/spirit.png" alt=""><span class="veto-action">Ban</span></div>
+              <div class="veto-map-name">Mirage</div>
+            </div>
+            <div class="veto-step ban"><span class="veto-number">2</span>
+              <div class="veto-action-row"><img class="veto-team-icon" src="assets/teams/logos/furia.png" alt=""><span class="veto-action">Ban</span></div>
+              <div class="veto-map-name">Vertigo</div>
+            </div>
+            <div class="veto-step pick-b"><span class="veto-number">3</span>
+              <div class="veto-action-row"><img class="veto-team-icon" src="assets/teams/logos/spirit.png" alt=""><span class="veto-action">Pick</span></div>
+              <div class="veto-map-name">Inferno</div>
+              <div class="veto-result won">13:8 ✓</div>
+            </div>
+            <div class="veto-step pick-a veto-live"><span class="veto-number">4</span>
+              <div class="veto-action-row"><img class="veto-team-icon" src="assets/teams/logos/furia.png" alt=""><span class="veto-action">Pick</span></div>
+              <div class="veto-map-name">Nuke</div>
+              <div class="veto-result live">9:7 ● Live</div>
+            </div>
+            <div class="veto-step ban"><span class="veto-number">5</span>
+              <div class="veto-action-row"><img class="veto-team-icon" src="assets/teams/logos/spirit.png" alt=""><span class="veto-action">Ban</span></div>
+              <div class="veto-map-name">Ancient</div>
+            </div>
+            <div class="veto-step ban"><span class="veto-number">6</span>
+              <div class="veto-action-row"><img class="veto-team-icon" src="assets/teams/logos/furia.png" alt=""><span class="veto-action">Ban</span></div>
+              <div class="veto-map-name">Anubis</div>
+            </div>
+            <div class="veto-step decider"><span class="veto-number">7</span>
+              <div class="veto-action-row"><span class="veto-action">Decider</span></div>
+              <div class="veto-map-name">Dust 2</div>
+              <div class="veto-result tbd">TBD</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Activity feed -->
+        <!-- 2nd half: FURIA = CT-side (blue) · Spirit = T-side (yellow) · Spirit leads 9–7 -->
+        <div class="activity-feed">
+          <div class="activity-feed-header">
+            <span class="activity-feed-title">&#9679; Round Activity</span>
+            <span class="activity-feed-label">Nuke &bull; Round 17 of 30</span>
+          </div>
+          <div class="activity-scroll">
+
+            <!-- Round 17 — In Progress -->
+            <div class="feed-round-sep"><span class="feed-round-label">Round 17 &mdash; In Progress</span></div>
+            <div class="feed-kill">
+              <span class="feed-player t">donk</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-weapon">AK-47</span>
+              <span class="feed-hs">⬤</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-player dead">YEKINDAR</span>
+            </div>
+            <div class="feed-event bomb"><span class="feed-event-icon">&#128163;</span> <span><span class="feed-player t">zont1x</span> planted the bomb on B <span style="color:var(--text-dim);font-size:10px">(3v4)</span></span></div>
+            <div class="feed-kill">
+              <span class="feed-player ct">KSCERATO</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-weapon">M4A1-S</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-player dead">magixx</span>
+            </div>
+            <div class="feed-kill">
+              <span class="feed-player ct">molodoy</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-weapon">AWP</span>
+              <span class="feed-hs">⬤</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-player dead">tN1R</span>
+            </div>
+
+            <!-- Round 16 — T-win · Elimination · 9–7 -->
+            <div class="feed-round-sep"><span class="feed-round-label">Round 16</span></div>
+            <div class="feed-round-result t-win">
+              <span>Round Over &mdash; T-Side wins</span>
+              <span class="result-reason">&bull; Elimination</span>
+              <span class="result-score">9&ndash;7</span>
+            </div>
+            <div class="feed-kill">
+              <span class="feed-player t">sh1ro</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-weapon">AWP</span>
+              <span class="feed-hs">⬤</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-player dead">FalleN</span>
+            </div>
+            <div class="feed-kill">
+              <span class="feed-player t">donk</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-weapon">AK-47</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-player dead">yuurih</span>
+            </div>
+            <div class="feed-kill">
+              <span class="feed-player t">zont1x</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-weapon">AK-47</span>
+              <span class="feed-hs">⬤</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-player dead">KSCERATO</span>
+            </div>
+
+            <!-- Round 15 — CT-win · Defuse · 8–7 -->
+            <div class="feed-round-sep"><span class="feed-round-label">Round 15</span></div>
+            <div class="feed-round-result ct-win">
+              <span>Round Over &mdash; CT-Side wins</span>
+              <span class="result-reason">&bull; Defuse</span>
+              <span class="result-score">8&ndash;7</span>
+            </div>
+            <div class="feed-kill">
+              <span class="feed-player t">donk</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-weapon">M4A4</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-player dead">molodoy</span>
+            </div>
+            <div class="feed-event bomb"><span class="feed-event-icon">&#128163;</span> <span><span class="feed-player t">zont1x</span> planted the bomb on A <span style="color:var(--text-dim);font-size:10px">(3v2)</span></span></div>
+            <div class="feed-kill">
+              <span class="feed-player ct">YEKINDAR</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-weapon">AK-47</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-player dead">zont1x</span>
+            </div>
+            <div class="feed-kill">
+              <span class="feed-player ct">KSCERATO</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-weapon">M4A1-S</span>
+              <span class="feed-hs">⬤</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-player dead">sh1ro</span>
+            </div>
+            <div class="feed-event defuse"><span class="feed-event-icon">&#128737;</span> <span><span class="feed-player ct">YEKINDAR</span> defused the bomb on A</span></div>
+
+            <!-- Round 14 — T-win · Bomb Exploded · 8–6 -->
+            <div class="feed-round-sep"><span class="feed-round-label">Round 14</span></div>
+            <div class="feed-round-result t-win">
+              <span>Round Over &mdash; T-Side wins</span>
+              <span class="result-reason">&bull; Bomb Exploded</span>
+              <span class="result-score">8&ndash;6</span>
+            </div>
+            <div class="feed-kill">
+              <span class="feed-player ct">yuurih</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-weapon">M4A4</span>
+              <span class="feed-hs">⬤</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-player dead">tN1R</span>
+            </div>
+            <div class="feed-kill">
+              <span class="feed-player t">sh1ro</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-weapon">AWP</span>
+              <span class="feed-hs">⬤</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-player dead">FalleN</span>
+            </div>
+            <div class="feed-event bomb"><span class="feed-event-icon">&#128163;</span> <span><span class="feed-player t">donk</span> planted the bomb on B <span style="color:var(--text-dim);font-size:10px">(2v1)</span></span></div>
+            <div class="feed-kill">
+              <span class="feed-player ct">KSCERATO</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-weapon">M4A1-S</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-player dead">donk</span>
+            </div>
+
+            <!-- Round 13 — CT-win · Elimination · 7–6 -->
+            <div class="feed-round-sep"><span class="feed-round-label">Round 13</span></div>
+            <div class="feed-round-result ct-win">
+              <span>Round Over &mdash; CT-Side wins</span>
+              <span class="result-reason">&bull; Elimination</span>
+              <span class="result-score">7&ndash;6</span>
+            </div>
+            <div class="feed-kill">
+              <span class="feed-player t">sh1ro</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-weapon">AWP</span>
+              <span class="feed-hs">⬤</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-player dead">YEKINDAR</span>
+            </div>
+            <div class="feed-kill">
+              <span class="feed-player ct">molodoy</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-weapon">AWP</span>
+              <span class="feed-hs">⬤</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-player dead">sh1ro</span>
+            </div>
+            <div class="feed-kill">
+              <span class="feed-player ct">KSCERATO</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-weapon">M4A1-S</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-player dead">zont1x</span>
+            </div>
+            <div class="feed-kill">
+              <span class="feed-player ct">yuurih</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-weapon">AK-47</span>
+              <span class="feed-hs">⬤</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-player dead">magixx</span>
+            </div>
+
+            <!-- Round 12 — T-win · Elimination · 7–5 -->
+            <div class="feed-round-sep"><span class="feed-round-label">Round 12</span></div>
+            <div class="feed-round-result t-win">
+              <span>Round Over &mdash; T-Side wins</span>
+              <span class="result-reason">&bull; Elimination</span>
+              <span class="result-score">7&ndash;5</span>
+            </div>
+            <div class="feed-kill">
+              <span class="feed-player t">donk</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-weapon">AK-47</span>
+              <span class="feed-hs">⬤</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-player dead">KSCERATO</span>
+            </div>
+            <div class="feed-kill">
+              <span class="feed-player t">donk</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-weapon">AK-47</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-player dead">FalleN</span>
+            </div>
+            <div class="feed-kill">
+              <span class="feed-player ct">molodoy</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-weapon">AWP</span>
+              <span class="feed-hs">⬤</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-player dead">donk</span>
+            </div>
+            <div class="feed-kill">
+              <span class="feed-player t">sh1ro</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-weapon">AWP</span>
+              <span class="feed-arrow">›</span>
+              <span class="feed-player dead">molodoy</span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ECONOMY + ROUND HISTORY -->
+        <!-- Round 17: FURIA CT full buy vs Spirit T full buy -->
+        <div class="economy-panel">
+          <div class="econ-team">
+            <div class="econ-label">Equipment — FURIA</div>
+            <div class="econ-value econ-buy">$21,750</div>
+            <div class="econ-label" style="margin-top:4px">Buy type</div>
+            <div style="font-size:11px;color:var(--green);font-weight:700">FULL BUY</div>
+          </div>
+          <div class="econ-divider"></div>
+          <div class="econ-team away">
+            <div class="econ-label">Equipment — Spirit</div>
+            <div class="econ-value econ-buy">$24,200</div>
+            <div class="econ-label" style="margin-top:4px">Buy type</div>
+            <div style="font-size:11px;color:var(--green);font-weight:700;text-align:right">FULL BUY</div>
+          </div>
+        </div>
+
+        <!-- Round history — FURIA perspective (R1-R16 completed, R17 current) -->
+        <!-- R1-R15 = 1st half: FURIA T · R16+ = 2nd half: FURIA CT -->
+        <div class="round-history">
+          <div class="round-dot t-loss" title="R1"></div>
+          <div class="round-dot t-win"  title="R2">T</div>
+          <div class="round-dot t-win"  title="R3">T</div>
+          <div class="round-dot t-loss" title="R4"></div>
+          <div class="round-dot t-win"  title="R5">T</div>
+          <div class="round-dot t-win"  title="R6">T</div>
+          <div class="round-dot t-loss" title="R7"></div>
+          <div class="round-dot t-win"  title="R8">T</div>
+          <div class="round-dot t-loss" title="R9"></div>
+          <div class="round-dot t-win"  title="R10">T</div>
+          <div class="round-dot t-loss" title="R11"></div>
+          <div class="round-dot t-win"  title="R12">T</div>
+          <div class="round-dot t-loss" title="R13"></div>
+          <div class="round-dot t-loss" title="R14"></div>
+          <div class="round-dot t-win"  title="R15">T</div>
+          <div class="round-dot ct-loss" title="R16"></div>
+          <div class="round-dot current" title="R17 — Live"></div>
+        </div>
+
+        <!-- PLAYER SCOREBOARD -->
+        <div class="player-stats">
+          <div class="player-stats-wrap">
+            <div class="player-stats-scroll">
+              <table class="player-stats-table">
+                <thead>
+                  <tr class="stat-group-row">
+                    <th></th>
+                    <th colspan="4">KDA</th>
+                    <th colspan="3" class="col-sep">Efficiency</th>
+                    <th colspan="2" class="col-sep">Impact</th>
+                  </tr>
+                  <tr>
+                    <th>Player</th>
+                    <th>K</th><th>A</th><th>D</th><th>+/−</th>
+                    <th class="col-sep">ADR</th><th>HS%</th><th>KAST</th>
+                    <th class="col-sep">FK</th><th>AWP</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="team-header-row team-b-header">
+                    <td colspan="10"><strong>Spirit</strong><span class="side-badge t-badge">T</span><span class="rounds-won">9 rounds won</span></td>
+                  </tr>
+                  <tr class="team-b"><td class="player-name">donk</td><td class="top-frag">19</td><td>3</td><td>10</td><td class="stat-pos">+9</td><td class="col-sep">96.8</td><td>63%</td><td>88.2%</td><td class="col-sep">3</td><td>0</td></tr>
+                  <tr class="team-b"><td class="player-name">sh1ro</td><td>16</td><td>5</td><td>11</td><td class="stat-pos">+5</td><td class="col-sep">84.4</td><td>44%</td><td>76.5%</td><td class="col-sep">2</td><td>9</td></tr>
+                  <tr class="team-b"><td class="player-name">zont1x</td><td>14</td><td>7</td><td>12</td><td class="stat-pos">+2</td><td class="col-sep">79.1</td><td>50%</td><td>70.6%</td><td class="col-sep">4</td><td>0</td></tr>
+                  <tr class="team-b"><td class="player-name">tN1R</td><td>10</td><td>9</td><td>13</td><td class="stat-neg">−3</td><td class="col-sep">62.7</td><td>40%</td><td>58.8%</td><td class="col-sep">1</td><td>0</td></tr>
+                  <tr class="team-b"><td class="player-name">magixx</td><td>8</td><td>11</td><td>14</td><td class="stat-neg">−6</td><td class="col-sep">55.4</td><td>38%</td><td>52.9%</td><td class="col-sep">1</td><td>0</td></tr>
+                  <tr class="team-header-row team-a-header">
+                    <td colspan="10"><strong>FURIA</strong><span class="side-badge ct-badge">CT</span><span class="rounds-won">7 rounds won</span></td>
+                  </tr>
+                  <tr class="team-a"><td class="player-name">YEKINDAR</td><td class="top-frag">15</td><td>6</td><td>11</td><td class="stat-pos">+4</td><td class="col-sep">78.3</td><td>53%</td><td>76.5%</td><td class="col-sep">4</td><td>0</td></tr>
+                  <tr class="team-a"><td class="player-name">KSCERATO</td><td>13</td><td>7</td><td>12</td><td class="stat-pos">+1</td><td class="col-sep">74.6</td><td>46%</td><td>70.6%</td><td class="col-sep">2</td><td>0</td></tr>
+                  <tr class="team-a"><td class="player-name">molodoy</td><td>14</td><td>5</td><td>13</td><td class="stat-pos">+1</td><td class="col-sep">72.1</td><td>39%</td><td>70.6%</td><td class="col-sep">1</td><td>6</td></tr>
+                  <tr class="team-a"><td class="player-name">yuurih</td><td>11</td><td>8</td><td>13</td><td class="stat-neg">−2</td><td class="col-sep">68.9</td><td>55%</td><td>64.7%</td><td class="col-sep">1</td><td>0</td></tr>
+                  <tr class="team-a"><td class="player-name">FalleN</td><td>9</td><td>4</td><td>14</td><td class="stat-neg">−5</td><td class="col-sep">58.2</td><td>33%</td><td>52.9%</td><td class="col-sep">0</td><td>3</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- WATCH LIVE -->
+        <div class="watch-live">
+          <div class="watch-live-header">
+            <span class="watch-live-dot"></span>
+            <span>Watch Live</span>
+            <a href="https://www.twitch.tv/eslcs" target="_blank" class="watch-live-link">twitch.tv/eslcs ↗</a>
+          </div>
+          <div class="twitch-container">
+            <div class="twitch-placeholder">
+              <div class="twitch-placeholder-icon">📺</div>
+              <div class="twitch-placeholder-label">Twitch Embed</div>
+              <div class="twitch-placeholder-sub">Live stream will appear here — twitch.tv/eslcs</div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /match-card -->
+    </div><!-- /live-match-section -->
+
+    <div class="overview-grid">
+
+      <!-- Key stats comparison -->
+      <div class="ov-card">
+        <div class="ov-card-title">Key Stats — Last 90 Days</div>
+
+        <div class="ov-bar-row">
+          <span class="ov-val-left">68.4%</span>
+          <span class="ov-bar-label">Win Rate</span>
+          <div class="ov-bar-track">
+            <div class="ov-bar-a" style="width:52%"></div>
+            <div class="ov-bar-b" style="width:48%"></div>
+          </div>
+          <span class="ov-bar-label right">Win Rate</span>
+          <span class="ov-val-right">74.1%</span>
+        </div>
+
+        <div class="ov-bar-row">
+          <span class="ov-val-left">77.1</span>
+          <span class="ov-bar-label">Avg ADR</span>
+          <div class="ov-bar-track">
+            <div class="ov-bar-a" style="width:49%"></div>
+            <div class="ov-bar-b" style="width:51%"></div>
+          </div>
+          <span class="ov-bar-label right">Avg ADR</span>
+          <span class="ov-val-right">79.4</span>
+        </div>
+
+        <div class="ov-bar-row">
+          <span class="ov-val-left">1.08</span>
+          <span class="ov-bar-label">Avg Rating</span>
+          <div class="ov-bar-track">
+            <div class="ov-bar-a" style="width:47%"></div>
+            <div class="ov-bar-b" style="width:53%"></div>
+          </div>
+          <span class="ov-bar-label right">Avg Rating</span>
+          <span class="ov-val-right">1.14</span>
+        </div>
+
+        <div class="ov-bar-row">
+          <span class="ov-val-left">52.3%</span>
+          <span class="ov-bar-label">CT Win %</span>
+          <div class="ov-bar-track">
+            <div class="ov-bar-a" style="width:48%"></div>
+            <div class="ov-bar-b" style="width:52%"></div>
+          </div>
+          <span class="ov-bar-label right">CT Win %</span>
+          <span class="ov-val-right">55.8%</span>
+        </div>
+
+        <div class="ov-bar-row">
+          <span class="ov-val-left">54.1%</span>
+          <span class="ov-bar-label">T Win %</span>
+          <div class="ov-bar-track">
+            <div class="ov-bar-a" style="width:50%"></div>
+            <div class="ov-bar-b" style="width:50%"></div>
+          </div>
+          <span class="ov-bar-label right">T Win %</span>
+          <span class="ov-val-right">54.7%</span>
+        </div>
+      </div>
+
+      <!-- Recent form -->
+      <div class="ov-card">
+        <div class="ov-card-title">Recent Form — Last 10 Maps</div>
+
+        <div class="form-row">
+          <div class="form-team">
+            <img src="assets/teams/logos/furia.png" class="ov-logo" alt="FURIA">
+            <span class="form-team-name">FURIA</span>
+          </div>
+          <div class="form-pills">
+            <span class="form-pill w">W</span>
+            <span class="form-pill w">W</span>
+            <span class="form-pill l">L</span>
+            <span class="form-pill w">W</span>
+            <span class="form-pill l">L</span>
+            <span class="form-pill w">W</span>
+            <span class="form-pill l">L</span>
+            <span class="form-pill w">W</span>
+            <span class="form-pill w">W</span>
+            <span class="form-pill l">L</span>
+          </div>
+          <span class="form-record">6W – 4L</span>
+        </div>
+
+        <div class="form-row">
+          <div class="form-team">
+            <img src="assets/teams/logos/spirit.png" class="ov-logo" alt="Spirit">
+            <span class="form-team-name">Spirit</span>
+          </div>
+          <div class="form-pills">
+            <span class="form-pill w">W</span>
+            <span class="form-pill w">W</span>
+            <span class="form-pill w">W</span>
+            <span class="form-pill l">L</span>
+            <span class="form-pill w">W</span>
+            <span class="form-pill w">W</span>
+            <span class="form-pill l">L</span>
+            <span class="form-pill w">W</span>
+            <span class="form-pill w">W</span>
+            <span class="form-pill w">W</span>
+          </div>
+          <span class="form-record">8W – 2L</span>
+        </div>
+
+        <div class="ov-card-title" style="margin-top:18px;">Head-to-Head — All Time</div>
+
+        <div class="ov-team-row">
+          <div class="ov-team-side">
+            <img src="assets/teams/logos/furia.png" class="ov-logo" alt="FURIA">
+            <span class="ov-team-name">FURIA</span>
+          </div>
+          <div class="ov-stat-center">
+            <div class="ov-stat-val">8 – 14</div>
+            <div class="ov-stat-label">Map record</div>
+          </div>
+          <div class="ov-team-side right">
+            <img src="assets/teams/logos/spirit.png" class="ov-logo" alt="Spirit">
+            <span class="ov-team-name">Spirit</span>
+          </div>
+        </div>
+
+        <div class="ov-team-row">
+          <div class="ov-team-side">
+            <span style="font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--text-primary);">2</span>
+            <span style="font-size:11px;color:var(--text-muted);">series won</span>
+          </div>
+          <div class="ov-stat-center">
+            <div class="ov-stat-val" style="font-size:13px;color:var(--text-muted);">vs</div>
+          </div>
+          <div class="ov-team-side right">
+            <span style="font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--text-primary);">5</span>
+            <span style="font-size:11px;color:var(--text-muted);">series won</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ══ MAP POOL ══ -->
+    <div class="map-pool-card">
+      <div class="ov-card-title">Map Pool — Pick, Ban &amp; Win Rates</div>
+      <table class="map-pool-table">
+        <thead>
+          <tr>
+            <th class="mp-hdr-team furia" colspan="5">FURIA</th>
+            <th class="mp-hdr-team center"></th>
+            <th class="mp-hdr-team spirit" colspan="5">SPIRIT</th>
+          </tr>
+          <tr>
+            <th class="mp-col-hdr left">Pick%</th>
+            <th class="mp-col-hdr">Ban%</th>
+            <th class="mp-col-hdr">Win%</th>
+            <th class="mp-col-hdr">T-Side</th>
+            <th class="mp-col-hdr">CT-Side</th>
+            <th class="mp-col-hdr center">Map</th>
+            <th class="mp-col-hdr">CT-Side</th>
+            <th class="mp-col-hdr">T-Side</th>
+            <th class="mp-col-hdr">Win%</th>
+            <th class="mp-col-hdr">Ban%</th>
+            <th class="mp-col-hdr">Pick%</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Inferno -->
+          <tr class="mp-row">
+            <td class="mp-stat left hi">42%</td>
+            <td class="mp-stat">8%</td>
+            <td class="mp-stat lo">61%</td>
+            <td class="mp-stat lo">57%</td>
+            <td class="mp-stat lo">65%</td>
+            <td class="mp-map-cell"><div class="mp-map-inner"><div class="mp-map-thumb inferno"></div><span class="mp-map-name">Inferno</span></div></td>
+            <td class="mp-stat hi">67%</td>
+            <td class="mp-stat hi">59%</td>
+            <td class="mp-stat hi">63%</td>
+            <td class="mp-stat">11%</td>
+            <td class="mp-stat lo">38%</td>
+          </tr>
+          <!-- Nuke -->
+          <tr class="mp-row">
+            <td class="mp-stat left lo">31%</td>
+            <td class="mp-stat">12%</td>
+            <td class="mp-stat lo">55%</td>
+            <td class="mp-stat lo">50%</td>
+            <td class="mp-stat lo">60%</td>
+            <td class="mp-map-cell"><div class="mp-map-inner"><div class="mp-map-thumb nuke"></div><span class="mp-map-name">Nuke</span></div></td>
+            <td class="mp-stat hi">73%</td>
+            <td class="mp-stat hi">63%</td>
+            <td class="mp-stat hi">68%</td>
+            <td class="mp-stat">6%</td>
+            <td class="mp-stat hi">44%</td>
+          </tr>
+          <!-- Ancient -->
+          <tr class="mp-row">
+            <td class="mp-stat left lo">28%</td>
+            <td class="mp-stat">18%</td>
+            <td class="mp-stat lo">58%</td>
+            <td class="mp-stat hi">54%</td>
+            <td class="mp-stat lo">62%</td>
+            <td class="mp-map-cell"><div class="mp-map-inner"><div class="mp-map-thumb ancient"></div><span class="mp-map-name">Ancient</span></div></td>
+            <td class="mp-stat hi">63%</td>
+            <td class="mp-stat lo">55%</td>
+            <td class="mp-stat hi">59%</td>
+            <td class="mp-stat">9%</td>
+            <td class="mp-stat hi">35%</td>
+          </tr>
+          <!-- Mirage -->
+          <tr class="mp-row">
+            <td class="mp-stat left lo">25%</td>
+            <td class="mp-stat">22%</td>
+            <td class="mp-stat lo">47%</td>
+            <td class="mp-stat lo">44%</td>
+            <td class="mp-stat lo">50%</td>
+            <td class="mp-map-cell"><div class="mp-map-inner"><div class="mp-map-thumb mirage"></div><span class="mp-map-name">Mirage</span></div></td>
+            <td class="mp-stat hi">58%</td>
+            <td class="mp-stat hi">50%</td>
+            <td class="mp-stat hi">54%</td>
+            <td class="mp-stat">19%</td>
+            <td class="mp-stat hi">29%</td>
+          </tr>
+          <!-- Anubis -->
+          <tr class="mp-row">
+            <td class="mp-stat left lo">18%</td>
+            <td class="mp-stat">31%</td>
+            <td class="mp-stat lo">52%</td>
+            <td class="mp-stat lo">49%</td>
+            <td class="mp-stat lo">55%</td>
+            <td class="mp-map-cell"><div class="mp-map-inner"><div class="mp-map-thumb anubis"></div><span class="mp-map-name">Anubis</span></div></td>
+            <td class="mp-stat hi">60%</td>
+            <td class="mp-stat hi">52%</td>
+            <td class="mp-stat hi">56%</td>
+            <td class="mp-stat">24%</td>
+            <td class="mp-stat hi">22%</td>
+          </tr>
+          <!-- Dust2 -->
+          <tr class="mp-row">
+            <td class="mp-stat left hi">15%</td>
+            <td class="mp-stat">28%</td>
+            <td class="mp-stat hi">44%</td>
+            <td class="mp-stat hi">41%</td>
+            <td class="mp-stat hi">47%</td>
+            <td class="mp-map-cell"><div class="mp-map-inner"><div class="mp-map-thumb dust2"></div><span class="mp-map-name">Dust 2</span></div></td>
+            <td class="mp-stat lo">44%</td>
+            <td class="mp-stat lo">38%</td>
+            <td class="mp-stat lo">41%</td>
+            <td class="mp-stat">33%</td>
+            <td class="mp-stat lo">12%</td>
+          </tr>
+          <!-- Vertigo -->
+          <tr class="mp-row">
+            <td class="mp-stat left hi">8%</td>
+            <td class="mp-stat">42%</td>
+            <td class="mp-stat lo">38%</td>
+            <td class="mp-stat lo">35%</td>
+            <td class="mp-stat lo">41%</td>
+            <td class="mp-map-cell"><div class="mp-map-inner"><div class="mp-map-thumb vertigo"></div><span class="mp-map-name">Vertigo</span></div></td>
+            <td class="mp-stat hi">52%</td>
+            <td class="mp-stat hi">44%</td>
+            <td class="mp-stat hi">48%</td>
+            <td class="mp-stat">47%</td>
+            <td class="mp-stat lo">5%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ══ H2H MATCH HISTORY ══ -->
+    <div class="h2h-history-card">
+      <div class="ov-card-title">Head-to-Head — Match History</div>
+
+      <!-- Match 1: IEM Cologne 2025 — Spirit 2-0 -->
+      <div class="h2h-match-row">
+        <div>
+          <div class="h2h-event-name">IEM Cologne 2025</div>
+          <div class="h2h-event-meta"><span>Quarterfinals</span><span class="dot"></span><span>Aug 2025</span></div>
+        </div>
+        <div class="h2h-score-block">
+          <img src="assets/teams/logos/furia.png" class="h2h-mini-logo" alt="FURIA">
+          <span class="h2h-mini-name">FURIA</span>
+          <span class="h2h-score spirit-won">0 – 2</span>
+          <span class="h2h-mini-name">SPIRIT</span>
+          <img src="assets/teams/logos/spirit.png" class="h2h-mini-logo" alt="Spirit">
+        </div>
+        <div class="h2h-result-col">
+          <span class="h2h-map-tag">BO3</span>
+          <span class="h2h-pill l">L</span>
+        </div>
+      </div>
+
+      <!-- Match 2: BLAST Fall Final 2025 — FURIA 2-1 -->
+      <div class="h2h-match-row">
+        <div>
+          <div class="h2h-event-name">BLAST Premier Fall Final 2025</div>
+          <div class="h2h-event-meta"><span>Group Stage</span><span class="dot"></span><span>Nov 2025</span></div>
+        </div>
+        <div class="h2h-score-block">
+          <img src="assets/teams/logos/furia.png" class="h2h-mini-logo" alt="FURIA">
+          <span class="h2h-mini-name">FURIA</span>
+          <span class="h2h-score furia-won">2 – 1</span>
+          <span class="h2h-mini-name">SPIRIT</span>
+          <img src="assets/teams/logos/spirit.png" class="h2h-mini-logo" alt="Spirit">
+        </div>
+        <div class="h2h-result-col">
+          <span class="h2h-map-tag">BO3</span>
+          <span class="h2h-pill w">W</span>
+        </div>
+      </div>
+
+      <!-- Match 3: ESL Pro League S21 — Spirit 2-0 -->
+      <div class="h2h-match-row">
+        <div>
+          <div class="h2h-event-name">ESL Pro League Season 21</div>
+          <div class="h2h-event-meta"><span>Playoff Quarterfinals</span><span class="dot"></span><span>Oct 2025</span></div>
+        </div>
+        <div class="h2h-score-block">
+          <img src="assets/teams/logos/furia.png" class="h2h-mini-logo" alt="FURIA">
+          <span class="h2h-mini-name">FURIA</span>
+          <span class="h2h-score spirit-won">0 – 2</span>
+          <span class="h2h-mini-name">SPIRIT</span>
+          <img src="assets/teams/logos/spirit.png" class="h2h-mini-logo" alt="Spirit">
+        </div>
+        <div class="h2h-result-col">
+          <span class="h2h-map-tag">BO3</span>
+          <span class="h2h-pill l">L</span>
+        </div>
+      </div>
+
+      <!-- Match 4: BLAST Spring Finals 2025 — Spirit 2-1 -->
+      <div class="h2h-match-row">
+        <div>
+          <div class="h2h-event-name">BLAST Premier Spring Finals 2025</div>
+          <div class="h2h-event-meta"><span>Semifinals</span><span class="dot"></span><span>Jun 2025</span></div>
+        </div>
+        <div class="h2h-score-block">
+          <img src="assets/teams/logos/furia.png" class="h2h-mini-logo" alt="FURIA">
+          <span class="h2h-mini-name">FURIA</span>
+          <span class="h2h-score spirit-won">1 – 2</span>
+          <span class="h2h-mini-name">SPIRIT</span>
+          <img src="assets/teams/logos/spirit.png" class="h2h-mini-logo" alt="Spirit">
+        </div>
+        <div class="h2h-result-col">
+          <span class="h2h-map-tag">BO3</span>
+          <span class="h2h-pill l">L</span>
+        </div>
+      </div>
+
+      <!-- Match 5: IEM Katowice 2025 — FURIA 2-0 -->
+      <div class="h2h-match-row">
+        <div>
+          <div class="h2h-event-name">IEM Katowice 2025</div>
+          <div class="h2h-event-meta"><span>Group Stage</span><span class="dot"></span><span>Feb 2025</span></div>
+        </div>
+        <div class="h2h-score-block">
+          <img src="assets/teams/logos/furia.png" class="h2h-mini-logo" alt="FURIA">
+          <span class="h2h-mini-name">FURIA</span>
+          <span class="h2h-score furia-won">2 – 0</span>
+          <span class="h2h-mini-name">SPIRIT</span>
+          <img src="assets/teams/logos/spirit.png" class="h2h-mini-logo" alt="Spirit">
+        </div>
+        <div class="h2h-result-col">
+          <span class="h2h-map-tag">BO3</span>
+          <span class="h2h-pill w">W</span>
+        </div>
+      </div>
+
+      <!-- Match 6: PGL Major Copenhagen 2025 — Spirit 2-1 -->
+      <div class="h2h-match-row">
+        <div>
+          <div class="h2h-event-name">PGL Major Copenhagen 2025</div>
+          <div class="h2h-event-meta"><span>Quarterfinals</span><span class="dot"></span><span>Mar 2025</span></div>
+        </div>
+        <div class="h2h-score-block">
+          <img src="assets/teams/logos/furia.png" class="h2h-mini-logo" alt="FURIA">
+          <span class="h2h-mini-name">FURIA</span>
+          <span class="h2h-score spirit-won">1 – 2</span>
+          <span class="h2h-mini-name">SPIRIT</span>
+          <img src="assets/teams/logos/spirit.png" class="h2h-mini-logo" alt="Spirit">
+        </div>
+        <div class="h2h-result-col">
+          <span class="h2h-map-tag">BO3</span>
+          <span class="h2h-pill l">L</span>
+        </div>
+      </div>
+
+      <!-- Match 7: IEM Rio 2024 — FURIA 2-1 -->
+      <div class="h2h-match-row">
+        <div>
+          <div class="h2h-event-name">IEM Rio 2024</div>
+          <div class="h2h-event-meta"><span>Group Stage</span><span class="dot"></span><span>Nov 2024</span></div>
+        </div>
+        <div class="h2h-score-block">
+          <img src="assets/teams/logos/furia.png" class="h2h-mini-logo" alt="FURIA">
+          <span class="h2h-mini-name">FURIA</span>
+          <span class="h2h-score furia-won">2 – 1</span>
+          <span class="h2h-mini-name">SPIRIT</span>
+          <img src="assets/teams/logos/spirit.png" class="h2h-mini-logo" alt="Spirit">
+        </div>
+        <div class="h2h-result-col">
+          <span class="h2h-map-tag">BO3</span>
+          <span class="h2h-pill w">W</span>
+        </div>
+      </div>
+
+      <!-- Match 8: PGL Major Copenhagen 2024 — Spirit 2-1 -->
+      <div class="h2h-match-row">
+        <div>
+          <div class="h2h-event-name">PGL Major Copenhagen 2024</div>
+          <div class="h2h-event-meta"><span>Quarterfinals</span><span class="dot"></span><span>Mar 2024</span></div>
+        </div>
+        <div class="h2h-score-block">
+          <img src="assets/teams/logos/furia.png" class="h2h-mini-logo" alt="FURIA">
+          <span class="h2h-mini-name">FURIA</span>
+          <span class="h2h-score spirit-won">1 – 2</span>
+          <span class="h2h-mini-name">SPIRIT</span>
+          <img src="assets/teams/logos/spirit.png" class="h2h-mini-logo" alt="Spirit">
+        </div>
+        <div class="h2h-result-col">
+          <span class="h2h-map-tag">BO3</span>
+          <span class="h2h-pill l">L</span>
+        </div>
+      </div>
+
+    </div><!-- /h2h-history-card -->
+
+  </div><!-- /tab-overview -->
+
+  <!-- ══════════════════════════════════════════════════════════
+       ROLES & SYSTEM PANEL
+       ══════════════════════════════════════════════════════════ -->
+  <div id="tab-roles" class="tab-panel">
+
+  <div class="section-header">
+    <div>
+      <div class="section-eyebrow">Analysis</div>
+      <div class="section-title">Roles &amp; System Analysis</div>
+      <div class="section-desc">How each team structures its system — resource flow, role assignments, and playstyle indicators. Based on the last 90 days of competitive data.</div>
+    </div>
+    <div class="section-note">Star Points scale: 0–5 per side</div>
+  </div>
+
+  <div class="map-selector">
+    <span class="map-selector-label">Map</span>
+    <select class="map-select" id="map-select">
+      <option value="all">All Maps</option>
+      <option value="inferno">Inferno</option>
+      <option value="nuke">Nuke</option>
+      <option value="ancient">Ancient</option>
+      <option value="mirage">Mirage</option>
+      <option value="anubis">Anubis</option>
+      <option value="dust2">Dust 2</option>
+      <option value="vertigo">Vertigo</option>
+    </select>
+    <span id="map-selected-label"></span>
+    <span class="map-select-note">Data updates per map selection</span>
+  </div>
+
+  <p class="table-overflow-hint">← Scroll to see all columns →</p>
+
+  <div class="table-wrap">
+    <table class="roles-table">
+
+      <!-- ── GROUP HEADERS ── -->
+      <thead>
+        <tr class="grp">
+          <th class="grp-player ta-left" colspan="2">Player</th>
+          <th class="grp-ct" colspan="2">— CT Side —</th>
+          <th class="grp-t"  colspan="2">— T Side —</th>
+          <th class="grp-sys ta-center">Star Ranking</th>
+          <th class="grp-sys ta-right">Resources</th>
+          <th class="grp-sys ta-right">Utility</th>
+          <th class="grp-sys ta-center" colspan="2">Playstyle</th>
+          <th class="grp-sys ta-right">Total</th>
+        </tr>
+        <tr class="cols">
+          <th class="ta-left"  style="min-width:155px;">Player</th>
+          <th class="ta-right" style="min-width:52px;max-width:60px;">Rating</th>
+          <th class="ct-col ta-left"  style="min-width:130px;">CT Role</th>
+          <th class="ct-col ta-left"  style="min-width:90px;">CT Star Points</th>
+          <th class="t-col  ta-left"  style="min-width:130px;">T Role</th>
+          <th class="t-col  ta-left"  style="min-width:90px;">T Star Points</th>
+          <th class="ta-center" style="min-width:120px;">Star Ranking</th>
+          <th class="ta-right"  style="min-width:100px;">Resources (Δ)</th>
+          <th class="ta-right"  style="min-width:80px;">Utility Share</th>
+          <th class="ta-center" style="min-width:80px;">Aggression (T)</th>
+          <th class="ta-center" style="min-width:80px;">Lurking (T)</th>
+          <th class="ta-right"  style="min-width:100px;">Star Points</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        <!-- ══════════════════════════════════════
+             FURIA
+             ══════════════════════════════════════ -->
+        <tr class="team-header">
+          <td colspan="12">
+            <div class="team-hdr-cell">
+              <img src="assets/teams/logos/furia.png" class="team-hdr-logo" alt="FURIA">
+              <span class="team-hdr-name">FURIA</span>
+              <span class="team-hdr-meta">5 players · #6 World</span>
+            </div>
+          </td>
+        </tr>
+
+        <!-- molodoy — AWP (rank 1) -->
+        <tr class="player-row">
+          <td>
+            <div class="player-cell">
+              <img src="assets/players/furia/molodoy.png" class="player-avatar" alt="molodoy">
+              <span class="player-name">molodoy</span>
+            </div>
+          </td>
+          <td class="ta-right"><span class="rating-val rate-mid">71</span></td>
+          <td class="ct-col"><span class="role-pill awper" data-tip="Primary AWPer — controls key angles on CT side">AWP</span></td>
+          <td class="ct-col">
+            <div class="sp-cell"><div class="sp-num">4.7</div><div class="sp-bar-track"><div class="sp-bar-fill ct" data-w="94"></div></div></div>
+          </td>
+          <td class="t-col"><span class="role-pill awper" data-tip="Primary AWPer — takes space and creates picks on T side">AWP</span></td>
+          <td class="t-col">
+            <div class="sp-cell"><div class="sp-num">4.7</div><div class="sp-bar-track"><div class="sp-bar-fill t" data-w="94"></div></div></div>
+          </td>
+          <td class="ta-center"><span class="role-pill awper" data-tip="Resource priority #1 — AWP budget + highest resources">AWP</span></td>
+          <td class="ta-right"><span class="res-val res-pos">+1235.0</span></td>
+          <td class="ta-right"><span class="util-val">0.12</span></td>
+          <td class="ta-center"><span class="metric-num metric-mid" data-tip="Aggression: 2.4 / 5">2.4</span></td>
+          <td class="ta-center"><span class="metric-num metric-lurk-high" data-tip="Lurking: 2.7 / 5">2.7</span></td>
+          <td class="ta-right"><div class="sp-cell" style="margin-left:auto;text-align:right;"><div class="sp-num">5.00</div><div class="sp-bar-track" style="margin-left:auto;"><div class="sp-bar-fill total" data-w="100"></div></div></div></td>
+        </tr>
+
+        <!-- YEKINDAR — Star Rifler (rank 2) -->
+        <tr class="player-row">
+          <td>
+            <div class="player-cell">
+              <img src="assets/players/furia/yekindar.png" class="player-avatar" alt="YEKINDAR">
+              <span class="player-name">YEKINDAR</span>
+            </div>
+          </td>
+          <td class="ta-right"><span class="rating-val rate-mid">73</span></td>
+          <td class="ct-col"><span class="role-pill ct-short" data-tip="Short — aggressive early-round duel position on CT side">Short</span></td>
+          <td class="ct-col">
+            <div class="sp-cell"><div class="sp-num">2.7</div><div class="sp-bar-track"><div class="sp-bar-fill ct" data-w="54"></div></div></div>
+          </td>
+          <td class="t-col"><span class="role-pill t-spacetaker" data-tip="Spacetaker — enters first and creates room for teammates">Spacetaker</span></td>
+          <td class="t-col">
+            <div class="sp-cell"><div class="sp-num">2.7</div><div class="sp-bar-track"><div class="sp-bar-fill t" data-w="54"></div></div></div>
+          </td>
+          <td class="ta-center"><span class="role-pill star-rifler" data-tip="Resource priority #2 — primary rifle fragger">★ Star Rifler</span></td>
+          <td class="ta-right"><span class="res-val res-neg">−256.7</span></td>
+          <td class="ta-right"><span class="util-val">0.14</span></td>
+          <td class="ta-center"><span class="metric-num metric-high" data-tip="Aggression: 3.6 / 5">3.6</span></td>
+          <td class="ta-center"><span class="metric-num metric-lurk-high" data-tip="Lurking: 3.2 / 5">3.2</span></td>
+          <td class="ta-right"><div class="sp-cell" style="margin-left:auto;text-align:right;"><div class="sp-num">2.87</div><div class="sp-bar-track" style="margin-left:auto;"><div class="sp-bar-fill total" data-w="57"></div></div></div></td>
+        </tr>
+
+        <!-- KSCERATO — Second Star (rank 3) -->
+        <tr class="player-row">
+          <td>
+            <div class="player-cell">
+              <img src="assets/players/furia/kscerato.png" class="player-avatar" alt="KSCERATO">
+              <span class="player-name">KSCERATO</span>
+            </div>
+          </td>
+          <td class="ta-right"><span class="rating-val rate-mid">76</span></td>
+          <td class="ct-col"><span class="role-pill ct-connector" data-tip="Connector — links sites and cuts rotations on CT side">Connector</span></td>
+          <td class="ct-col">
+            <div class="sp-cell"><div class="sp-num">3.3</div><div class="sp-bar-track"><div class="sp-bar-fill ct" data-w="66"></div></div></div>
+          </td>
+          <td class="t-col"><span class="role-pill t-trade" data-tip="Trade Fragger — second in, ensures the trade after entry deaths">Trade Fragger</span></td>
+          <td class="t-col">
+            <div class="sp-cell"><div class="sp-num">3.0</div><div class="sp-bar-track"><div class="sp-bar-fill t" data-w="60"></div></div></div>
+          </td>
+          <td class="ta-center"><span class="role-pill second-star" data-tip="Resource priority #3 — second fragger">2nd Star</span></td>
+          <td class="ta-right"><span class="res-val res-pos">+31.0</span></td>
+          <td class="ta-right"><span class="util-val">0.17</span></td>
+          <td class="ta-center"><span class="metric-num metric-mid" data-tip="Aggression: 2.7 / 5">2.7</span></td>
+          <td class="ta-center"><span class="metric-num metric-lurk-high" data-tip="Lurking: 3.4 / 5">3.4</span></td>
+          <td class="ta-right"><div class="sp-cell" style="margin-left:auto;text-align:right;"><div class="sp-num">2.51</div><div class="sp-bar-track" style="margin-left:auto;"><div class="sp-bar-fill total" data-w="50"></div></div></div></td>
+        </tr>
+
+        <!-- yuurih — Support (rank 4) -->
+        <tr class="player-row">
+          <td>
+            <div class="player-cell">
+              <img src="assets/players/furia/yuurih.png" class="player-avatar" alt="yuurih">
+              <span class="player-name">yuurih</span>
+            </div>
+          </td>
+          <td class="ta-right"><span class="rating-val rate-mid">78</span></td>
+          <td class="ct-col"><span class="role-pill ct-anchor-a" data-tip="A Anchor — holds down the A position on CT side">A Anchor</span></td>
+          <td class="ct-col">
+            <div class="sp-cell"><div class="sp-num">1.7</div><div class="sp-bar-track"><div class="sp-bar-fill ct" data-w="34"></div></div></div>
+          </td>
+          <td class="t-col"><span class="role-pill t-lurker" data-tip="Lurker — separates from team to apply pressure from behind">Lurker</span></td>
+          <td class="t-col">
+            <div class="sp-cell"><div class="sp-num">2.7</div><div class="sp-bar-track"><div class="sp-bar-fill t" data-w="54"></div></div></div>
+          </td>
+          <td class="ta-center"><span class="role-pill support" data-tip="Resource priority #4 — defers resources to stars">Support</span></td>
+          <td class="ta-right"><span class="res-val res-neg">−246.6</span></td>
+          <td class="ta-right"><span class="util-val">0.16</span></td>
+          <td class="ta-center"><span class="metric-num metric-mid" data-tip="Aggression: 2.8 / 5">2.8</span></td>
+          <td class="ta-center"><span class="metric-num metric-lurk-high" data-tip="Lurking: 3.9 / 5">3.9</span></td>
+          <td class="ta-right"><div class="sp-cell" style="margin-left:auto;text-align:right;"><div class="sp-num">1.79</div><div class="sp-bar-track" style="margin-left:auto;"><div class="sp-bar-fill total" data-w="36"></div></div></div></td>
+        </tr>
+
+        <!-- FalleN — IGL (rank 5) -->
+        <tr class="player-row">
+          <td>
+            <div class="player-cell">
+              <img src="assets/players/furia/fallen.png" class="player-avatar" alt="FalleN">
+              <span class="player-name">FalleN</span>
+            </div>
+          </td>
+          <td class="ta-right"><span class="rating-val rate-lo">65</span></td>
+          <td class="ct-col"><span class="role-pill ct-anchor-b" data-tip="B Anchor — holds down the B position on CT side">B Anchor</span></td>
+          <td class="ct-col">
+            <div class="sp-cell"><div class="sp-num">2.7</div><div class="sp-bar-track"><div class="sp-bar-fill ct" data-w="54"></div></div></div>
+          </td>
+          <td class="t-col"><span class="role-pill support" data-tip="Support — provides utility to enable the team's executes">Support</span></td>
+          <td class="t-col">
+            <div class="sp-cell"><div class="sp-num">2.0</div><div class="sp-bar-track"><div class="sp-bar-fill t" data-w="40"></div></div></div>
+          </td>
+          <td class="ta-center"><span class="role-pill igl" data-tip="Resource priority #5 — lowest economic priority, calls strategy">IGL</span></td>
+          <td class="ta-right"><span class="res-val res-pos">+66.7</span></td>
+          <td class="ta-right"><span class="util-val">0.19</span></td>
+          <td class="ta-center"><span class="metric-num metric-mid" data-tip="Aggression: 2.9 / 5">2.9</span></td>
+          <td class="ta-center"><span class="metric-num metric-lurk-high" data-tip="Lurking: 2.5 / 5">2.5</span></td>
+          <td class="ta-right"><div class="sp-cell" style="margin-left:auto;text-align:right;"><div class="sp-num">1.06</div><div class="sp-bar-track" style="margin-left:auto;"><div class="sp-bar-fill total" data-w="21"></div></div></div></td>
+        </tr>
+
+        <!-- ══════════════════════════════════════
+             TEAM SPIRIT
+             ══════════════════════════════════════ -->
+        <tr class="team-header">
+          <td colspan="12">
+            <div class="team-hdr-cell">
+              <img src="assets/teams/logos/spirit.png" class="team-hdr-logo" alt="Team Spirit">
+              <span class="team-hdr-name">Team Spirit</span>
+              <span class="team-hdr-meta">5 players · #1 World</span>
+            </div>
+          </td>
+        </tr>
+
+        <!-- sh1ro — AWP (rank 1) -->
+        <tr class="player-row">
+          <td>
+            <div class="player-cell">
+              <img src="assets/players/spirit/sh1ro.png" class="player-avatar" alt="sh1ro">
+              <span class="player-name">sh1ro</span>
+            </div>
+          </td>
+          <td class="ta-right"><span class="rating-val rate-mid">82</span></td>
+          <td class="ct-col"><span class="role-pill awper" data-tip="Primary AWPer — controls key angles on CT side">AWP</span></td>
+          <td class="ct-col">
+            <div class="sp-cell"><div class="sp-num">4.7</div><div class="sp-bar-track"><div class="sp-bar-fill ct" data-w="94"></div></div></div>
+          </td>
+          <td class="t-col"><span class="role-pill awper" data-tip="Primary AWPer — takes space and creates picks on T side">AWP</span></td>
+          <td class="t-col">
+            <div class="sp-cell"><div class="sp-num">4.0</div><div class="sp-bar-track"><div class="sp-bar-fill t" data-w="80"></div></div></div>
+          </td>
+          <td class="ta-center"><span class="role-pill awper" data-tip="Resource priority #1 — AWP budget + highest resources">AWP</span></td>
+          <td class="ta-right"><span class="res-val res-pos">+1020.0</span></td>
+          <td class="ta-right"><span class="util-val">0.11</span></td>
+          <td class="ta-center"><span class="metric-num metric-low" data-tip="Aggression: 1.9 / 5">1.9</span></td>
+          <td class="ta-center"><span class="metric-num metric-lurk-high" data-tip="Lurking: 2.5 / 5">2.5</span></td>
+          <td class="ta-right"><div class="sp-cell" style="margin-left:auto;text-align:right;"><div class="sp-num">5.00</div><div class="sp-bar-track" style="margin-left:auto;"><div class="sp-bar-fill total" data-w="100"></div></div></div></td>
+        </tr>
+
+        <!-- donk — Star Rifler (rank 2) -->
+        <tr class="player-row">
+          <td>
+            <div class="player-cell">
+              <img src="assets/players/spirit/donk.png" class="player-avatar" alt="donk">
+              <span class="player-name">donk</span>
+            </div>
+          </td>
+          <td class="ta-right"><span class="rating-val rate-hi">91</span></td>
+          <td class="ct-col"><span class="role-pill ct-connector" data-tip="Connector — links sites and cuts rotations on CT side">Connector</span></td>
+          <td class="ct-col">
+            <div class="sp-cell"><div class="sp-num">3.7</div><div class="sp-bar-track"><div class="sp-bar-fill ct" data-w="74"></div></div></div>
+          </td>
+          <td class="t-col"><span class="role-pill t-spacetaker" data-tip="Spacetaker — enters first and creates room for teammates">Spacetaker</span></td>
+          <td class="t-col">
+            <div class="sp-cell"><div class="sp-num">3.0</div><div class="sp-bar-track"><div class="sp-bar-fill t" data-w="60"></div></div></div>
+          </td>
+          <td class="ta-center"><span class="role-pill star-rifler" data-tip="Resource priority #2 — primary rifle fragger">★ Star Rifler</span></td>
+          <td class="ta-right"><span class="res-val res-pos">+330.0</span></td>
+          <td class="ta-right"><span class="util-val">0.13</span></td>
+          <td class="ta-center"><span class="metric-num metric-mid" data-tip="Aggression: 3.4 / 5">3.4</span></td>
+          <td class="ta-center"><span class="metric-num metric-lurk-mid" data-tip="Lurking: 2.4 / 5">2.4</span></td>
+          <td class="ta-right"><div class="sp-cell" style="margin-left:auto;text-align:right;"><div class="sp-num">3.89</div><div class="sp-bar-track" style="margin-left:auto;"><div class="sp-bar-fill total" data-w="78"></div></div></div></td>
+        </tr>
+
+        <!-- zont1x — Second Star (rank 3) -->
+        <tr class="player-row">
+          <td>
+            <div class="player-cell">
+              <img src="assets/players/spirit/zont1x.png" class="player-avatar" alt="zont1x">
+              <span class="player-name">zont1x</span>
+            </div>
+          </td>
+          <td class="ta-right"><span class="rating-val rate-mid">79</span></td>
+          <td class="ct-col"><span class="role-pill ct-short" data-tip="Short — aggressive early-round duel position on CT side">Short</span></td>
+          <td class="ct-col">
+            <div class="sp-cell"><div class="sp-num">3.0</div><div class="sp-bar-track"><div class="sp-bar-fill ct" data-w="60"></div></div></div>
+          </td>
+          <td class="t-col"><span class="role-pill t-trade" data-tip="Trade Fragger — second in, ensures the trade after entry deaths">Trade Fragger</span></td>
+          <td class="t-col">
+            <div class="sp-cell"><div class="sp-num">3.3</div><div class="sp-bar-track"><div class="sp-bar-fill t" data-w="66"></div></div></div>
+          </td>
+          <td class="ta-center"><span class="role-pill second-star" data-tip="Resource priority #3 — second fragger">2nd Star</span></td>
+          <td class="ta-right"><span class="res-val res-pos">+250.0</span></td>
+          <td class="ta-right"><span class="util-val">0.14</span></td>
+          <td class="ta-center"><span class="metric-num metric-mid" data-tip="Aggression: 2.7 / 5">2.7</span></td>
+          <td class="ta-center"><span class="metric-num metric-lurk-high" data-tip="Lurking: 3.6 / 5">3.6</span></td>
+          <td class="ta-right"><div class="sp-cell" style="margin-left:auto;text-align:right;"><div class="sp-num">3.54</div><div class="sp-bar-track" style="margin-left:auto;"><div class="sp-bar-fill total" data-w="71"></div></div></div></td>
+        </tr>
+
+        <!-- tN1R — Support (rank 4) -->
+        <tr class="player-row">
+          <td>
+            <div class="player-cell">
+              <img src="assets/players/spirit/tn1r.png" class="player-avatar" alt="tN1R">
+              <span class="player-name">tN1R</span>
+            </div>
+          </td>
+          <td class="ta-right"><span class="rating-val rate-mid">74</span></td>
+          <td class="ct-col"><span class="role-pill ct-anchor-a" data-tip="A Anchor — holds down the A position on CT side">A Anchor</span></td>
+          <td class="ct-col">
+            <div class="sp-cell"><div class="sp-num">2.3</div><div class="sp-bar-track"><div class="sp-bar-fill ct" data-w="46"></div></div></div>
+          </td>
+          <td class="t-col"><span class="role-pill t-lurker" data-tip="Lurker — separates from team to apply pressure from behind">Lurker</span></td>
+          <td class="t-col">
+            <div class="sp-cell"><div class="sp-num">3.3</div><div class="sp-bar-track"><div class="sp-bar-fill t" data-w="66"></div></div></div>
+          </td>
+          <td class="ta-center"><span class="role-pill support" data-tip="Resource priority #4 — defers resources to stars">Support</span></td>
+          <td class="ta-right"><span class="res-val res-neg">−75.0</span></td>
+          <td class="ta-right"><span class="util-val">0.13</span></td>
+          <td class="ta-center"><span class="metric-num metric-high" data-tip="Aggression: 3.8 / 5">3.8</span></td>
+          <td class="ta-center"><span class="metric-num metric-lurk-high" data-tip="Lurking: 3.9 / 5">3.9</span></td>
+          <td class="ta-right"><div class="sp-cell" style="margin-left:auto;text-align:right;"><div class="sp-num">3.44</div><div class="sp-bar-track" style="margin-left:auto;"><div class="sp-bar-fill total" data-w="69"></div></div></div></td>
+        </tr>
+
+        <!-- magixx — IGL (rank 5) -->
+        <tr class="player-row">
+          <td>
+            <div class="player-cell">
+              <img src="assets/players/spirit/magixx.png" class="player-avatar" alt="magixx">
+              <span class="player-name">magixx</span>
+            </div>
+          </td>
+          <td class="ta-right"><span class="rating-val rate-lo">68</span></td>
+          <td class="ct-col"><span class="role-pill ct-anchor-b" data-tip="B Anchor — holds down the B position on CT side">B Anchor</span></td>
+          <td class="ct-col">
+            <div class="sp-cell"><div class="sp-num">1.3</div><div class="sp-bar-track"><div class="sp-bar-fill ct" data-w="26"></div></div></div>
+          </td>
+          <td class="t-col"><span class="role-pill support" data-tip="Support — provides utility to enable the team's executes">Support</span></td>
+          <td class="t-col">
+            <div class="sp-cell"><div class="sp-num">1.3</div><div class="sp-bar-track"><div class="sp-bar-fill t" data-w="26"></div></div></div>
+          </td>
+          <td class="ta-center"><span class="role-pill igl" data-tip="Resource priority #5 — lowest economic priority, calls strategy">IGL</span></td>
+          <td class="ta-right"><span class="res-val res-neg">−422.4</span></td>
+          <td class="ta-right"><span class="util-val">0.20</span></td>
+          <td class="ta-center"><span class="metric-num metric-mid" data-tip="Aggression: 2.2 / 5">2.2</span></td>
+          <td class="ta-center"><span class="metric-num metric-lurk-high" data-tip="Lurking: 2.6 / 5">2.6</span></td>
+          <td class="ta-right"><div class="sp-cell" style="margin-left:auto;text-align:right;"><div class="sp-num">1.00</div><div class="sp-bar-track" style="margin-left:auto;"><div class="sp-bar-fill total" data-w="20"></div></div></div></td>
+        </tr>
+
+      </tbody>
+    </table>
+  </div><!-- /table-wrap -->
+
+  <!-- ============================================================
+       LEGEND
+       ============================================================ -->
+  <div class="legend">
+
+    <div class="legend-group">
+      <div class="legend-label">Roles</div>
+      <div class="legend-pills">
+        <span class="role-pill star-rifler" data-tip="Primary fragger — highest resource priority">★ Star Rifler</span>
+        <span class="role-pill awper" data-tip="AWP specialist — second resource priority">AWPer</span>
+        <span class="role-pill second-star" data-tip="Second fragger — third resource priority">2nd Star</span>
+        <span class="role-pill support" data-tip="Utility enabler — defers resources to stars">Support</span>
+        <span class="role-pill igl" data-tip="In-game leader — lowest resource priority, calls strategy">IGL</span>
+      </div>
+    </div>
+
+    <div class="legend-sep"></div>
+
+    <div class="legend-group">
+      <div class="legend-label">Aggression</div>
+      <div class="legend-metrics">
+        <div class="legend-metric-row">
+          <div class="legend-metric-dot" style="background:#FB923C;"></div>
+          <span>3.5 – 5.0 &nbsp;High — actively contests space and pushes</span>
+        </div>
+        <div class="legend-metric-row">
+          <div class="legend-metric-dot" style="background:var(--text-secondary);"></div>
+          <span>2.0 – 3.5 &nbsp;Mid — balanced, reads the round</span>
+        </div>
+        <div class="legend-metric-row">
+          <div class="legend-metric-dot" style="background:var(--text-muted);"></div>
+          <span>0.0 – 2.0 &nbsp;Low — passive, holds and waits</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="legend-sep"></div>
+
+    <div class="legend-group">
+      <div class="legend-label">Lurking</div>
+      <div class="legend-metrics">
+        <div class="legend-metric-row">
+          <div class="legend-metric-dot" style="background:#A78BFA;"></div>
+          <span>2.5 – 5.0 &nbsp;High — frequently separates from team</span>
+        </div>
+        <div class="legend-metric-row">
+          <div class="legend-metric-dot" style="background:var(--text-secondary);"></div>
+          <span>1.5 – 2.5 &nbsp;Occasional lurks</span>
+        </div>
+        <div class="legend-metric-row">
+          <div class="legend-metric-dot" style="background:var(--text-muted);"></div>
+          <span>0.0 – 1.5 &nbsp;Low — plays structured with team</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="legend-sep"></div>
+
+    <div class="legend-group">
+      <div class="legend-label">Star Points</div>
+      <div class="legend-metrics">
+        <div class="legend-metric-row">
+          <div class="legend-metric-dot" style="background:#60A5FA;border-radius:1px;"></div>
+          <span>CT SP &nbsp;— how much the CT system invests in this player</span>
+        </div>
+        <div class="legend-metric-row">
+          <div class="legend-metric-dot" style="background:#FB923C;border-radius:1px;"></div>
+          <span>T SP &nbsp;— how much the T system invests in this player</span>
+        </div>
+        <div class="legend-metric-row">
+          <div class="legend-metric-dot" style="background:var(--green);border-radius:1px;"></div>
+          <span>Total SP &nbsp;= CT + T combined</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="legend-full-sep"></div>
+
+    <div class="legend-group">
+      <div class="legend-label">CT Positions — per map</div>
+      <div class="legend-pills">
+        <span class="role-pill awper">AWP</span>
+        <span class="role-pill ct-short">Short</span>
+        <span class="role-pill ct-connector">Connector</span>
+        <span class="role-pill ct-anchor-a">A Anchor</span>
+        <span class="role-pill ct-anchor-b">B Anchor</span>
+      </div>
+      <div class="legend-metrics">
+        <div class="legend-metric-row"><div class="legend-metric-dot" style="background:#60A5FA;"></div><span>AWP — controls key sightlines and anchors picks independently</span></div>
+        <div class="legend-metric-row"><div class="legend-metric-dot" style="background:#FB923C;"></div><span>Short — aggressive early position; forces duels and denies space</span></div>
+        <div class="legend-metric-row"><div class="legend-metric-dot" style="background:#2DD4BF;"></div><span>Connector — links both sites; cuts rotations and holds mid</span></div>
+        <div class="legend-metric-row"><div class="legend-metric-dot" style="background:#94A3B8;"></div><span>A Anchor — last defender on A site; retakes and stalls entries</span></div>
+        <div class="legend-metric-row"><div class="legend-metric-dot" style="background:#6B7A8D;"></div><span>B Anchor — last defender on B site; retakes and stalls entries</span></div>
+      </div>
+    </div>
+
+    <div class="legend-sep"></div>
+
+    <div class="legend-group">
+      <div class="legend-label">T Positions — per map</div>
+      <div class="legend-pills">
+        <span class="role-pill awper">AWP</span>
+        <span class="role-pill t-spacetaker">Spacetaker</span>
+        <span class="role-pill t-trade">Trade Fragger</span>
+        <span class="role-pill t-lurker">Lurker</span>
+        <span class="role-pill support">Support</span>
+      </div>
+      <div class="legend-metrics">
+        <div class="legend-metric-row"><div class="legend-metric-dot" style="background:#60A5FA;"></div><span>AWP — takes picks; creates round-winning duels before executes</span></div>
+        <div class="legend-metric-row"><div class="legend-metric-dot" style="background:#F97316;"></div><span>Spacetaker — enters first; creates space for the team to follow</span></div>
+        <div class="legend-metric-row"><div class="legend-metric-dot" style="background:#F59E0B;"></div><span>Trade Fragger — second in; guarantees the trade on entry deaths</span></div>
+        <div class="legend-metric-row"><div class="legend-metric-dot" style="background:#8B5CF6;"></div><span>Lurker — separates from team; applies rear pressure and stalls rotations</span></div>
+        <div class="legend-metric-row"><div class="legend-metric-dot" style="background:#6B7A8D;"></div><span>Support — provides utility for executes; enables the team's entry</span></div>
+      </div>
+    </div>
+
+    <div class="legend-map-note">★ Positional roles are map-specific — the same player may occupy a different position on a different map. Use the map selector above to filter.</div>
+
+  </div><!-- /legend -->
+
+  <!-- ============================================================
+       SYSTEM EXPLAINER — collapsed by default
+       ============================================================ -->
+  <details class="explainer" style="margin-top:12px;">
+    <summary>
+      <span style="width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;display:inline-block;"></span>
+      <span class="explainer-title">How the system works</span>
+      <span class="explainer-chevron">▼</span>
+    </summary>
+
+    <div class="explainer-body">
+
+      <p class="explainer-intro">
+        Every CS2 team runs a <strong>resource hierarchy</strong> — a structured way of deciding which players receive money, utility, and favorable positioning each round. The rdy.gg model maps this hierarchy into <strong>Star Points</strong>, a per-player score that reflects how much the team's system invests in setting that player up to perform. The higher the Star Points, the more the system revolves around that player.
+      </p>
+
+      <div>
+        <div class="expl-section-label">Role hierarchy — from highest to lowest priority</div>
+        <div class="role-hierarchy">
+
+          <div class="role-row">
+            <span class="role-row-rank">1</span>
+            <span class="role-pill awper">AWP</span>
+            <span class="role-row-desc">The AWP specialist. Demands the highest priority budget because the AWP is the most resource-expensive weapon in the game. <strong>The AWPer always carries the highest Resources Δ on the team.</strong></span>
+            <span class="role-row-res res-highest">↑↑ Highest resources</span>
+          </div>
+
+          <div class="role-row">
+            <span class="role-row-rank">2</span>
+            <span class="role-pill star-rifler">★ Star Rifler</span>
+            <span class="role-row-desc">The system's primary rifle fragger. Gets the best rifle, the first utility, and the most favorable positions after the AWPer. <strong>Everything is built around getting this player into fights.</strong></span>
+            <span class="role-row-res res-high">↑ High resources</span>
+          </div>
+
+          <div class="role-row">
+            <span class="role-row-rank">3</span>
+            <span class="role-pill second-star">2nd Star</span>
+            <span class="role-row-desc">The second fragger — a player skilled enough to carry rounds when the primary star is neutralized. <strong>Reliable backup who can elevate into a star role situationally.</strong></span>
+            <span class="role-row-res res-mid">→ Mid resources</span>
+          </div>
+
+          <div class="role-row">
+            <span class="role-row-rank">4</span>
+            <span class="role-pill support">Support</span>
+            <span class="role-row-desc">The utility engine of the team. Smokes, flashes, and grenades enable the stars' plays. <strong>Deliberately operates on fewer resources to fund the players above them.</strong></span>
+            <span class="role-row-res res-low">↓ Low resources</span>
+          </div>
+
+          <div class="role-row">
+            <span class="role-row-rank">5</span>
+            <span class="role-pill igl">IGL</span>
+            <span class="role-row-desc">The in-game leader. Calls the strategy and sacrifices personal resource priority for the good of the system. <strong>The largest negative Resources Δ on the team almost always belongs here.</strong></span>
+            <span class="role-row-res res-lowest">↓↓ Lowest resources</span>
+          </div>
+
+        </div>
+      </div>
+
+      <div>
+        <div class="expl-section-label">Metrics explained</div>
+        <div class="metric-tags">
+
+          <div class="metric-tag-item">
+            <span class="metric-tag-label mtl-sp">Star Points</span>
+            <span class="metric-tag-text">Quantifies how much the team system invests in a player. Calculated separately for CT and T sides — a player can hold very different roles on each.</span>
+          </div>
+
+          <div class="metric-tag-item">
+            <span class="metric-tag-label mtl-res">Res Δ</span>
+            <span class="metric-tag-text">Resources Delta — how much more (or less) money and utility a player receives versus the team average. Positive means the system funds them; negative means they fund others.</span>
+          </div>
+
+          <div class="metric-tag-item">
+            <span class="metric-tag-label mtl-util">Util %</span>
+            <span class="metric-tag-text">Share of the team's total utility thrown by this player. High values signal a support-oriented role; low values indicate a player who relies on others to open space.</span>
+          </div>
+
+          <div class="metric-tag-item">
+            <span class="metric-tag-label mtl-agg">Aggression</span>
+            <span class="metric-tag-text">How actively a player contests space. Rated 0–5. High values mean frequent pushes and early duels; low values reflect a passive, reactionary playstyle.</span>
+          </div>
+
+          <div class="metric-tag-item">
+            <span class="metric-tag-label mtl-lurk">Lurking</span>
+            <span class="metric-tag-text">How often a player separates from the team to apply pressure independently. Rated 0–5. IGLs and secondary fraggers often use lurking as a strategic tool.</span>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </details>
+
+  </div><!-- /tab-roles -->
+
+  <!-- ══════════════════════════════════════════════════════════
+       PLACEHOLDER PANELS
+       ══════════════════════════════════════════════════════════ -->
+  <div id="tab-performance" class="tab-panel">
+
+    <!-- FURIA -->
+    <div class="perf-team-block">
+      <div class="perf-team-hdr">
+        <img src="assets/teams/logos/furia.png" class="perf-team-logo" alt="FURIA">
+        <span class="perf-team-label furia">FURIA</span>
+        <span style="font-size:11px;color:var(--text-dim);margin-left:4px;">#6 World · Last 90 days</span>
+      </div>
+      <div class="player-cards-row">
+
+        <!-- molodoy -->
+        <div class="player-card">
+          <div class="player-card-top">
+            <div class="player-avatar-wrap">
+              <img src="assets/players/furia/molodoy.png" alt="molodoy">
+              <span class="p-flag">&#127472;&#127487;</span>
+            </div>
+            <div class="p-identity">
+              <div class="p-nick">molodoy</div>
+              <div class="p-real">Igor Bezrukov</div>
+              <span class="p-role-badge awp-b">AWP</span>
+            </div>
+            <div class="p-power">
+              <div class="p-power-val pr-gray">71</div>
+              <div class="p-power-label">rdy Score</div>
+            </div>
+          </div>
+          <div class="p-radar"><canvas id="radar-p-molodoy" width="160" height="160"></canvas></div>
+          <div class="p-stats">
+            <div class="p-stat-row"><span class="p-stat-label">ADR</span><span class="p-stat-val">71.6 <span class="p-trend dn">↓3.4</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">HS%</span><span class="p-stat-val">32.4% <span class="p-trend dn">↓14.9%</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">Opening K/Rd</span><span class="p-stat-val">0.16 <span class="p-trend up">↑0.03</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">1vX Clutch</span><span class="p-stat-val">44% <span class="p-trend up">↑8%</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">Flash Asst/Rd</span><span class="p-stat-val">0.03 <span class="p-trend dn">↓0.02</span></span></div>
+          </div>
+          <div class="p-playstyle"><span class="p-playstyle-lbl">Playstyle</span><span class="p-playstyle-val">Aggressive AWPer</span></div>
+        </div>
+
+        <!-- YEKINDAR -->
+        <div class="player-card">
+          <div class="player-card-top">
+            <div class="player-avatar-wrap">
+              <img src="assets/players/furia/yekindar.png" alt="YEKINDAR">
+              <span class="p-flag">&#127472;&#127487;</span>
+            </div>
+            <div class="p-identity">
+              <div class="p-nick">YEKINDAR</div>
+              <div class="p-real">Mareks Gaļinskis</div>
+              <span class="p-role-badge star-b">★ Star Rifler</span>
+            </div>
+            <div class="p-power">
+              <div class="p-power-val pr-gray">73</div>
+              <div class="p-power-label">rdy Score</div>
+            </div>
+          </div>
+          <div class="p-radar"><canvas id="radar-p-yekindar" width="160" height="160"></canvas></div>
+          <div class="p-stats">
+            <div class="p-stat-row"><span class="p-stat-label">ADR</span><span class="p-stat-val">74.2 <span class="p-trend dn">↓0.8</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">HS%</span><span class="p-stat-val">51.8% <span class="p-trend up">↑4.5%</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">Opening K/Rd</span><span class="p-stat-val">0.18 <span class="p-trend up">↑0.05</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">1vX Clutch</span><span class="p-stat-val">19% <span class="p-trend dn">↓13%</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">Flash Asst/Rd</span><span class="p-stat-val">0.06 <span class="p-trend dn">↓0.06</span></span></div>
+          </div>
+          <div class="p-playstyle"><span class="p-playstyle-lbl">Playstyle</span><span class="p-playstyle-val">First Contact Fragger</span></div>
+        </div>
+
+        <!-- KSCERATO -->
+        <div class="player-card">
+          <div class="player-card-top">
+            <div class="player-avatar-wrap">
+              <img src="assets/players/furia/kscerato.png" alt="KSCERATO">
+              <span class="p-flag">&#127463;&#127479;</span>
+            </div>
+            <div class="p-identity">
+              <div class="p-nick">KSCERATO</div>
+              <div class="p-real">Kaike Cerato</div>
+              <span class="p-role-badge sec-b">2nd Star</span>
+            </div>
+            <div class="p-power">
+              <div class="p-power-val pr-green">76</div>
+              <div class="p-power-label">rdy Score</div>
+            </div>
+          </div>
+          <div class="p-radar"><canvas id="radar-p-kscerato" width="160" height="160"></canvas></div>
+          <div class="p-stats">
+            <div class="p-stat-row"><span class="p-stat-label">ADR</span><span class="p-stat-val">79.1 <span class="p-trend up">↑4.1</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">HS%</span><span class="p-stat-val">48.7% <span class="p-trend up">↑1.4%</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">Opening K/Rd</span><span class="p-stat-val">0.11 <span class="p-trend dn">↓0.03</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">1vX Clutch</span><span class="p-stat-val">44% <span class="p-trend up">↑12%</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">Flash Asst/Rd</span><span class="p-stat-val">0.12 <span class="p-trend up">↑0.01</span></span></div>
+          </div>
+          <div class="p-playstyle"><span class="p-playstyle-lbl">Playstyle</span><span class="p-playstyle-val">Clutch Specialist</span></div>
+        </div>
+
+        <!-- yuurih -->
+        <div class="player-card">
+          <div class="player-card-top">
+            <div class="player-avatar-wrap">
+              <img src="assets/players/furia/yuurih.png" alt="yuurih">
+              <span class="p-flag">&#127463;&#127479;</span>
+            </div>
+            <div class="p-identity">
+              <div class="p-nick">yuurih</div>
+              <div class="p-real">Yuri Gomes</div>
+              <span class="p-role-badge sup-b">Support</span>
+            </div>
+            <div class="p-power">
+              <div class="p-power-val pr-green">78</div>
+              <div class="p-power-label">rdy Score</div>
+            </div>
+          </div>
+          <div class="p-radar"><canvas id="radar-p-yuurih" width="160" height="160"></canvas></div>
+          <div class="p-stats">
+            <div class="p-stat-row"><span class="p-stat-label">ADR</span><span class="p-stat-val">82.4 <span class="p-trend up">↑7.4</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">HS%</span><span class="p-stat-val">54.2% <span class="p-trend up">↑6.9%</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">Opening K/Rd</span><span class="p-stat-val">0.14 <span class="p-trend up">↑0.01</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">1vX Clutch</span><span class="p-stat-val">38% <span class="p-trend up">↑6%</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">Flash Asst/Rd</span><span class="p-stat-val">0.08 <span class="p-trend dn">↓0.04</span></span></div>
+          </div>
+          <div class="p-playstyle"><span class="p-playstyle-lbl">Playstyle</span><span class="p-playstyle-val">Aggressive Anchor</span></div>
+        </div>
+
+        <!-- FalleN -->
+        <div class="player-card">
+          <div class="player-card-top">
+            <div class="player-avatar-wrap">
+              <img src="assets/players/furia/fallen.png" alt="FalleN">
+              <span class="p-flag">&#127463;&#127479;</span>
+            </div>
+            <div class="p-identity">
+              <div class="p-nick">FalleN</div>
+              <div class="p-real">Gabriel Toledo</div>
+              <span class="p-role-badge igl-b">IGL</span>
+            </div>
+            <div class="p-power">
+              <div class="p-power-val pr-gray">65</div>
+              <div class="p-power-label">rdy Score</div>
+            </div>
+          </div>
+          <div class="p-radar"><canvas id="radar-p-fallen" width="160" height="160"></canvas></div>
+          <div class="p-stats">
+            <div class="p-stat-row"><span class="p-stat-label">ADR</span><span class="p-stat-val">68.9 <span class="p-trend dn">↓6.1</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">HS%</span><span class="p-stat-val">38.1% <span class="p-trend dn">↓9.2%</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">Opening K/Rd</span><span class="p-stat-val">0.09 <span class="p-trend dn">↓0.05</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">1vX Clutch</span><span class="p-stat-val">28% <span class="p-trend dn">↓4%</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">Flash Asst/Rd</span><span class="p-stat-val">0.21 <span class="p-trend up">↑0.10</span></span></div>
+          </div>
+          <div class="p-playstyle"><span class="p-playstyle-lbl">Playstyle</span><span class="p-playstyle-val">Tactical Conductor</span></div>
+        </div>
+
+      </div>
+    </div><!-- /furia block -->
+
+    <!-- SPIRIT -->
+    <div class="perf-team-block">
+      <div class="perf-team-hdr">
+        <img src="assets/teams/logos/spirit.png" class="perf-team-logo" alt="Spirit">
+        <span class="perf-team-label spirit">Team Spirit</span>
+        <span style="font-size:11px;color:var(--text-dim);margin-left:4px;">#1 World · Last 90 days</span>
+      </div>
+      <div class="player-cards-row">
+
+        <!-- sh1ro -->
+        <div class="player-card">
+          <div class="player-card-top">
+            <div class="player-avatar-wrap">
+              <img src="assets/players/spirit/sh1ro.png" alt="sh1ro">
+              <span class="p-flag">&#127479;&#127482;</span>
+            </div>
+            <div class="p-identity">
+              <div class="p-nick">sh1ro</div>
+              <div class="p-real">Dmitry Sokolov</div>
+              <span class="p-role-badge awp-b">AWP</span>
+            </div>
+            <div class="p-power">
+              <div class="p-power-val pr-green">82</div>
+              <div class="p-power-label">rdy Score</div>
+            </div>
+          </div>
+          <div class="p-radar"><canvas id="radar-p-sh1ro" width="160" height="160"></canvas></div>
+          <div class="p-stats">
+            <div class="p-stat-row"><span class="p-stat-label">ADR</span><span class="p-stat-val">71.4 <span class="p-trend dn">↓3.2</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">HS%</span><span class="p-stat-val">28.1% <span class="p-trend up">↑2.4%</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">Opening K/Rd</span><span class="p-stat-val">0.12 <span class="p-trend dn">↓0.02</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">1vX Clutch</span><span class="p-stat-val">52% <span class="p-trend up">↑8%</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">Flash Asst/Rd</span><span class="p-stat-val">0.04 <span class="p-trend dn">↓0.01</span></span></div>
+          </div>
+          <div class="p-playstyle"><span class="p-playstyle-lbl">Playstyle</span><span class="p-playstyle-val">Passive Angle Holder</span></div>
+        </div>
+
+        <!-- donk -->
+        <div class="player-card">
+          <div class="player-card-top">
+            <div class="player-avatar-wrap">
+              <img src="assets/players/spirit/donk.png" alt="donk">
+              <span class="p-flag">&#127479;&#127482;</span>
+            </div>
+            <div class="p-identity">
+              <div class="p-nick">donk</div>
+              <div class="p-real">Danil Kryshkovets</div>
+              <span class="p-role-badge star-b">★ Star Rifler</span>
+            </div>
+            <div class="p-power">
+              <div class="p-power-val pr-purple">91</div>
+              <div class="p-power-label">rdy Score</div>
+            </div>
+          </div>
+          <div class="p-radar"><canvas id="radar-p-donk" width="160" height="160"></canvas></div>
+          <div class="p-stats">
+            <div class="p-stat-row"><span class="p-stat-label">ADR</span><span class="p-stat-val">94.2 <span class="p-trend up">↑8.1</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">HS%</span><span class="p-stat-val">58.3% <span class="p-trend up">↑6.2%</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">Opening K/Rd</span><span class="p-stat-val">0.22 <span class="p-trend up">↑0.04</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">1vX Clutch</span><span class="p-stat-val">61% <span class="p-trend up">↑11%</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">Flash Asst/Rd</span><span class="p-stat-val">0.05 <span class="p-trend up">↑0.02</span></span></div>
+          </div>
+          <div class="p-playstyle"><span class="p-playstyle-lbl">Playstyle</span><span class="p-playstyle-val">Entry Force</span></div>
+        </div>
+
+        <!-- zont1x -->
+        <div class="player-card">
+          <div class="player-card-top">
+            <div class="player-avatar-wrap">
+              <img src="assets/players/spirit/zont1x.png" alt="zont1x">
+              <span class="p-flag">&#127479;&#127482;</span>
+            </div>
+            <div class="p-identity">
+              <div class="p-nick">zont1x</div>
+              <div class="p-real">Zhenya Bogdanov</div>
+              <span class="p-role-badge sec-b">2nd Star</span>
+            </div>
+            <div class="p-power">
+              <div class="p-power-val pr-green">79</div>
+              <div class="p-power-label">rdy Score</div>
+            </div>
+          </div>
+          <div class="p-radar"><canvas id="radar-p-zont1x" width="160" height="160"></canvas></div>
+          <div class="p-stats">
+            <div class="p-stat-row"><span class="p-stat-label">ADR</span><span class="p-stat-val">81.7 <span class="p-trend up">↑4.3</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">HS%</span><span class="p-stat-val">46.8% <span class="p-trend dn">↓2.1%</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">Opening K/Rd</span><span class="p-stat-val">0.16 <span class="p-trend up">↑0.03</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">1vX Clutch</span><span class="p-stat-val">45% <span class="p-trend up">↑7%</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">Flash Asst/Rd</span><span class="p-stat-val">0.07 <span class="p-trend up">↑0.01</span></span></div>
+          </div>
+          <div class="p-playstyle"><span class="p-playstyle-lbl">Playstyle</span><span class="p-playstyle-val">Aggressive Connector</span></div>
+        </div>
+
+        <!-- tN1R -->
+        <div class="player-card">
+          <div class="player-card-top">
+            <div class="player-avatar-wrap">
+              <img src="assets/players/spirit/tn1r.png" alt="tN1R">
+              <span class="p-flag">&#127479;&#127482;</span>
+            </div>
+            <div class="p-identity">
+              <div class="p-nick">tN1R</div>
+              <div class="p-real">Timur Nabilov</div>
+              <span class="p-role-badge sup-b">Support</span>
+            </div>
+            <div class="p-power">
+              <div class="p-power-val pr-gray">74</div>
+              <div class="p-power-label">rdy Score</div>
+            </div>
+          </div>
+          <div class="p-radar"><canvas id="radar-p-tn1r" width="160" height="160"></canvas></div>
+          <div class="p-stats">
+            <div class="p-stat-row"><span class="p-stat-label">ADR</span><span class="p-stat-val">76.4 <span class="p-trend up">↑5.2</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">HS%</span><span class="p-stat-val">51.2% <span class="p-trend up">↑3.7%</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">Opening K/Rd</span><span class="p-stat-val">0.14 <span class="p-trend up">↑0.02</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">1vX Clutch</span><span class="p-stat-val">38% <span class="p-trend dn">↓4%</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">Flash Asst/Rd</span><span class="p-stat-val">0.09 <span class="p-trend up">↑0.03</span></span></div>
+          </div>
+          <div class="p-playstyle"><span class="p-playstyle-lbl">Playstyle</span><span class="p-playstyle-val">Lurk Support</span></div>
+        </div>
+
+        <!-- magixx -->
+        <div class="player-card">
+          <div class="player-card-top">
+            <div class="player-avatar-wrap">
+              <img src="assets/players/spirit/magixx.png" alt="magixx">
+              <span class="p-flag">&#127479;&#127482;</span>
+            </div>
+            <div class="p-identity">
+              <div class="p-nick">magixx</div>
+              <div class="p-real">Boris Vorobiev</div>
+              <span class="p-role-badge igl-b">IGL</span>
+            </div>
+            <div class="p-power">
+              <div class="p-power-val pr-gray">68</div>
+              <div class="p-power-label">rdy Score</div>
+            </div>
+          </div>
+          <div class="p-radar"><canvas id="radar-p-magixx" width="160" height="160"></canvas></div>
+          <div class="p-stats">
+            <div class="p-stat-row"><span class="p-stat-label">ADR</span><span class="p-stat-val">68.1 <span class="p-trend dn">↓4.7</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">HS%</span><span class="p-stat-val">42.3% <span class="p-trend dn">↓1.8%</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">Opening K/Rd</span><span class="p-stat-val">0.09 <span class="p-trend dn">↓0.03</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">1vX Clutch</span><span class="p-stat-val">31% <span class="p-trend up">↑5%</span></span></div>
+            <div class="p-stat-row"><span class="p-stat-label">Flash Asst/Rd</span><span class="p-stat-val">0.24 <span class="p-trend up">↑0.08</span></span></div>
+          </div>
+          <div class="p-playstyle"><span class="p-playstyle-lbl">Playstyle</span><span class="p-playstyle-val">Tactical IGL</span></div>
+        </div>
+
+      </div>
+    </div><!-- /spirit block -->
+
+    <div class="perf-formula">
+      <div class="perf-formula-title">rdy Score — Methodology <span class="perf-formula-badge">Formula Placeholder</span></div>
+      <p class="perf-formula-desc">The rdy Score is a composite player performance index (0–100) that contextualizes raw stats within team system and role demands. Unlike traditional rating systems, it weights each contribution relative to the player's expected function — an IGL's utility impact is evaluated differently than an AWPer's. Scores are benchmarked against the top 50 active players globally.</p>
+      <div class="perf-formula-box">
+        <div class="perf-formula-box-label">Formula</div>
+        <code class="perf-formula-code">rdy Score = w₁ × ADR_norm + w₂ × Impact_norm + w₃ × Role_adj + w₄ × Clutch_norm + w₅ × Utility_norm</code>
+        <p class="perf-formula-footnote">Each component is normalized within the player's role cohort. Weights (w₁–w₅) are adjusted per role archetype. Final output is scaled 0–100. Specific coefficients will be finalized with the full model release.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="tab-economy" class="tab-panel">
+    <div class="placeholder-panel">
+      <div class="placeholder-icon">💰</div>
+      <div class="placeholder-title">Economy</div>
+      <div class="placeholder-sub">Buy patterns, force buy success rates, pistol round conversion and eco efficiency — coming soon.</div>
+    </div>
+  </div>
+
+  <div id="tab-h2h" class="tab-panel">
+    <div class="placeholder-panel">
+      <div class="placeholder-icon">⚔️</div>
+      <div class="placeholder-title">Head-to-Head</div>
+      <div class="placeholder-sub">Full match history, map-by-map breakdown and per-player duel stats — coming soon.</div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  function animateBars() {
+    document.querySelectorAll('.sp-bar-fill[data-w]').forEach(el => {
+      el.style.width = '0%';
+    });
+    requestAnimationFrame(() => {
+      document.querySelectorAll('.sp-bar-fill[data-w]').forEach(el => {
+        const target = el.getAttribute('data-w');
+        setTimeout(() => { el.style.width = target + '%'; }, 80);
+      });
+    });
+  }
+
+  function animateOvBars() {
+    // Overview bars animate in when tab is shown
+    document.querySelectorAll('.ov-bar-a, .ov-bar-b').forEach(el => {
+      const w = el.style.width;
+      el.style.width = '0%';
+      setTimeout(() => { el.style.width = w; }, 80);
+    });
+  }
+
+  // Map selector label update
+  document.getElementById('map-select')?.addEventListener('change', function() {
+    const lbl = document.getElementById('map-selected-label');
+    if (this.value !== 'all') {
+      lbl.textContent = '— ' + this.options[this.selectedIndex].text;
+      lbl.style.display = 'inline';
+    } else {
+      lbl.style.display = 'none';
+    }
+  });
+
+  // Tab switching
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.tab;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('tab-panel--active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + target).classList.add('tab-panel--active');
+      if (target === 'roles') animateBars();
+      if (target === 'overview') animateOvBars();
+      if (target === 'performance') setTimeout(drawAllPerfRadars, 60);
+    });
+  });
+
+  // Animate overview bars on initial load
+  window.addEventListener('load', () => { animateOvBars(); });
+
+  // =============================================
+  // RADAR CHART RENDERER
+  // =============================================
+  const RADAR_AXES  = ['Aim', 'Impact', 'Utility', 'Clutch', 'Duel\nSwing'];
+  const AXIS_COUNT  = RADAR_AXES.length;
+  const ANGLE_STEP  = (2 * Math.PI) / AXIS_COUNT;
+  const START_ANGLE = -Math.PI / 2;
+
+  const perfRadarData = {
+    'radar-p-molodoy':  [82, 68, 22, 72, 68],
+    'radar-p-yekindar': [78, 82, 22, 35, 75],
+    'radar-p-kscerato': [75, 58, 48, 84, 62],
+    'radar-p-yuurih':   [82, 68, 35, 72, 70],
+    'radar-p-fallen':   [52, 40, 88, 50, 45],
+    'radar-p-sh1ro':    [88, 70, 22, 80, 75],
+    'radar-p-donk':     [90, 88, 28, 75, 85],
+    'radar-p-zont1x':   [80, 72, 35, 68, 72],
+    'radar-p-tn1r':     [72, 68, 45, 70, 80],
+    'radar-p-magixx':   [55, 45, 85, 48, 52],
+  };
+
+  const furiaIds  = ['radar-p-molodoy','radar-p-yekindar','radar-p-kscerato','radar-p-yuurih','radar-p-fallen'];
+  const spiritIds = ['radar-p-sh1ro','radar-p-donk','radar-p-zont1x','radar-p-tn1r','radar-p-magixx'];
+
+  function teamAvg(ids) {
+    return Array.from({length: 5}, (_, a) =>
+      ids.reduce((s, id) => s + (perfRadarData[id]?.[a] || 0), 0) / ids.length
+    );
+  }
+
+  const perfTeamAvg = {};
+  furiaIds.forEach(id  => perfTeamAvg[id] = teamAvg(furiaIds));
+  spiritIds.forEach(id => perfTeamAvg[id] = teamAvg(spiritIds));
+
+  const radarTip = document.createElement('div');
+  radarTip.style.cssText = 'position:fixed;z-index:9999;pointer-events:none;background:#1b2030;border:1px solid #2A3142;border-radius:6px;padding:5px 9px;font:600 11px "Source Sans 3",sans-serif;color:#e8eaf0;white-space:nowrap;opacity:0;transition:opacity 0.12s;box-shadow:0 4px 14px #00000060';
+  document.body.appendChild(radarTip);
+
+  function drawRadar(canvasId) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const size = 160;
+    canvas.width  = size * dpr;
+    canvas.height = size * dpr;
+    canvas.style.width  = size + 'px';
+    canvas.style.height = size + 'px';
+    ctx.scale(dpr, dpr);
+
+    const cx = size / 2, cy = size / 2, maxR = 60;
+    const data    = perfRadarData[canvasId] || [50,50,50,50,50];
+    const avgData = perfTeamAvg[canvasId];
+
+    // Grid rings
+    for (let ring = 1; ring <= 4; ring++) {
+      const r = (maxR / 4) * ring;
+      ctx.beginPath();
+      for (let i = 0; i <= AXIS_COUNT; i++) {
+        const angle = START_ANGLE + ANGLE_STEP * (i % AXIS_COUNT);
+        const x = cx + r * Math.cos(angle), y = cy + r * Math.sin(angle);
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = ring === 4 ? '#2A314266' : '#2A314240';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // Axis lines
+    for (let i = 0; i < AXIS_COUNT; i++) {
+      const angle = START_ANGLE + ANGLE_STEP * i;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + maxR * Math.cos(angle), cy + maxR * Math.sin(angle));
+      ctx.strokeStyle = '#2A314240';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // Team average polygon
+    if (avgData) {
+      ctx.beginPath();
+      for (let i = 0; i <= AXIS_COUNT; i++) {
+        const idx = i % AXIS_COUNT;
+        const angle = START_ANGLE + ANGLE_STEP * idx;
+        const r = (avgData[idx] / 100) * maxR;
+        const x = cx + r * Math.cos(angle), y = cy + r * Math.sin(angle);
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.fillStyle   = 'rgba(128,138,153,0.10)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(128,138,153,0.45)';
+      ctx.lineWidth   = 1.5;
+      ctx.setLineDash([3,3]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // Player polygon
+    ctx.beginPath();
+    for (let i = 0; i <= AXIS_COUNT; i++) {
+      const idx = i % AXIS_COUNT;
+      const angle = START_ANGLE + ANGLE_STEP * idx;
+      const r = (data[idx] / 100) * maxR;
+      const x = cx + r * Math.cos(angle), y = cy + r * Math.sin(angle);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fillStyle   = '#00D16125';
+    ctx.fill();
+    ctx.strokeStyle = '#00D161';
+    ctx.lineWidth   = 2;
+    ctx.stroke();
+
+    // Data points
+    for (let i = 0; i < AXIS_COUNT; i++) {
+      const angle = START_ANGLE + ANGLE_STEP * i;
+      const r = (data[i] / 100) * maxR;
+      ctx.beginPath();
+      ctx.arc(cx + r * Math.cos(angle), cy + r * Math.sin(angle), 3, 0, 2 * Math.PI);
+      ctx.fillStyle = '#00D161';
+      ctx.fill();
+    }
+
+    // Axis labels
+    ctx.font = '600 9px "Source Sans 3", sans-serif';
+    ctx.fillStyle = '#828A99';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (let i = 0; i < AXIS_COUNT; i++) {
+      const angle = START_ANGLE + ANGLE_STEP * i;
+      const labelR = maxR + 14;
+      const x = cx + labelR * Math.cos(angle), y = cy + labelR * Math.sin(angle);
+      const lines = RADAR_AXES[i].split('\n');
+      lines.forEach((line, li) => {
+        ctx.fillText(line, x, y + (li - (lines.length - 1) / 2) * 10);
+      });
+    }
+
+    // Hover tooltip
+    if (!canvas._tipBound) {
+      canvas._tipBound = true;
+      canvas.addEventListener('mousemove', e => {
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+        let closest = -1, closestD = Infinity;
+        for (let i = 0; i < AXIS_COUNT; i++) {
+          const angle = START_ANGLE + ANGLE_STEP * i;
+          const r = (data[i] / 100) * maxR;
+          const dist = Math.hypot(mx - (cx + r * Math.cos(angle)), my - (cy + r * Math.sin(angle)));
+          if (dist < closestD) { closestD = dist; closest = i; }
+        }
+        if (closestD < 16) {
+          const avg = avgData ? Math.round(avgData[closest]) : null;
+          const lbl = RADAR_AXES[closest].replace('\n', ' ');
+          radarTip.innerHTML = `<span style="color:#828A99;font-weight:400">${lbl}:</span> <span style="color:#00D161">${data[closest]}</span>` +
+            (avg !== null ? `&ensp;<span style="color:#828A99;font-size:10px">avg ${avg}</span>` : '');
+          radarTip.style.left = (e.clientX + 12) + 'px';
+          radarTip.style.top  = (e.clientY - 22) + 'px';
+          radarTip.style.opacity = '1';
+        } else { radarTip.style.opacity = '0'; }
+      });
+      canvas.addEventListener('mouseleave', () => { radarTip.style.opacity = '0'; });
+    }
+  }
+
+  function drawAllPerfRadars() {
+    document.querySelectorAll('#tab-performance canvas[id^="radar-p-"]').forEach(c => drawRadar(c.id));
+  }
+</script>
+</body>
+</html>
