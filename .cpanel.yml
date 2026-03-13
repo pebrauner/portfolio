@@ -1,4 +1,4 @@
 ---
 deployment:
   tasks:
-    - /bin/cp -r $TRAVIS_BUILD_DIR/. /home1/hbpklkte/public_html/
+    - /bin/cp -r /home1/hbpklkte/repositories/portfolio/. /home1/hbpklkte/public_html/
