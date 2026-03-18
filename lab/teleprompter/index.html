@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Teleprompter — Pedro Brauner</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; font-family: system-ui, sans-serif; }
+  #app { display: flex; flex-direction: column; height: 100vh; background: #000; }
+
+  /* progress bar */
+  #progress-bar-wrap {
+    height: 3px; background: #1a1a1a; flex-shrink: 0; position: relative;
+  }
+  #progress-bar {
+    height: 100%; width: 0%; background: rgba(255,200,0,0.7);
+    transition: width 0.1s linear;
+  }
+
+  #controls {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 16px; background: #111;
+    border-bottom: 1px solid #333; flex-shrink: 0; flex-wrap: wrap;
+  }
+  #scroll-area { flex: 1; overflow: hidden; position: relative; }
+  #text-wrapper { padding: 60px 10%; will-change: transform; }
+  #teletext {
+    font-size: 48px; line-height: 1.5; color: #fff;
+    white-space: pre-wrap; word-break: break-word;
+    letter-spacing: 0.01em; user-select: none;
+  }
+
+  /* current line highlight */
+  #highlight-line {
+    position: absolute; left: 0; right: 0;
+    pointer-events: none; z-index: 1;
+    background: rgba(255,200,0,0.07);
+    border-top: 1px solid rgba(255,200,0,0.2);
+    border-bottom: 1px solid rgba(255,200,0,0.2);
+    transition: height 0.1s;
+  }
+
+  #gradient-top {
+    position: absolute; top: 0; left: 0; right: 0; height: 80px;
+    background: linear-gradient(to bottom, #000, transparent);
+    pointer-events: none; z-index: 2;
+  }
+  #gradient-bottom {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 80px;
+    background: linear-gradient(to top, #000, transparent);
+    pointer-events: none; z-index: 2;
+  }
+  #cursor-line {
+    position: absolute; left: 10%; right: 10%; top: 38%;
+    height: 3px; background: rgba(255,200,0,0.35);
+    pointer-events: none; z-index: 3; border-radius: 2px;
+  }
+
+  .ctrl-btn {
+    background: transparent; border: 1px solid #444; color: #ccc;
+    padding: 6px 14px; border-radius: 6px; font-size: 13px;
+    cursor: pointer; white-space: nowrap;
+    transition: background 0.15s, color 0.15s; user-select: none;
+  }
+  .ctrl-btn:hover { background: #222; color: #fff; }
+  .ctrl-btn.active { background: #fff; color: #000; border-color: #fff; }
+
+  .scroll-btn {
+    background: transparent; border: 1px solid #444; color: #ccc;
+    padding: 6px 16px; border-radius: 6px; font-size: 14px;
+    cursor: pointer; user-select: none; -webkit-user-select: none;
+    touch-action: none; transition: background 0.1s;
+  }
+  .scroll-btn:hover { background: #222; }
+  .scroll-btn.held { background: #333; border-color: #888; color: #fff; }
+
+  .spd-btn {
+    background: transparent; border: 1px solid #444; color: #999;
+    padding: 5px 10px; border-radius: 6px; font-size: 12px;
+    cursor: pointer; min-width: 34px; text-align: center; user-select: none;
+  }
+  .spd-btn:hover { background: #222; color: #fff; }
+  .spd-btn.active-spd { background: #333; color: #fff; border-color: #666; }
+
+  #font-range { width: 80px; accent-color: #999; }
+
+  #edit-panel {
+    display: none; flex-direction: column; gap: 8px;
+    padding: 12px 16px; background: #111;
+    border-bottom: 1px solid #333; flex-shrink: 0;
+  }
+  #edit-panel.open { display: flex; }
+  #script-input {
+    background: #1a1a1a; border: 1px solid #444; color: #eee;
+    font-size: 14px; padding: 10px 12px; border-radius: 6px;
+    resize: vertical; min-height: 140px; font-family: inherit; line-height: 1.6;
+  }
+  #script-input:focus { outline: none; border-color: #666; }
+
+  .panel-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  #status { font-size: 11px; color: #555; margin-left: auto; min-width: 60px; text-align: right; }
+  .divider { width: 1px; height: 20px; background: #333; margin: 0 2px; flex-shrink: 0; }
+  .lbl { font-size: 12px; color: #666; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div id="progress-bar-wrap"><div id="progress-bar"></div></div>
+
+  <div id="controls">
+    <button class="ctrl-btn" id="btn-play" onclick="togglePlay()">▶ Play</button>
+    <button class="ctrl-btn" onclick="resetPos()">↺ Reset</button>
+    <div class="divider"></div>
+    <span class="lbl">Scrub:</span>
+    <button class="scroll-btn" id="btn-back"
+      onmousedown="startHold(-1)" onmouseup="stopHold()" onmouseleave="stopHold()"
+      ontouchstart="ev(event,startHold,-1)" ontouchend="stopHold()">◀◀ Back</button>
+    <button class="scroll-btn" id="btn-fwd"
+      onmousedown="startHold(1)" onmouseup="stopHold()" onmouseleave="stopHold()"
+      ontouchstart="ev(event,startHold,1)" ontouchend="stopHold()">Fwd ▶▶</button>
+    <div class="divider"></div>
+    <span class="lbl">Speed:</span>
+    <div style="display:flex;gap:4px;">
+      <button class="spd-btn" onclick="setSpeed(0.5)">0.5×</button>
+      <button class="spd-btn active-spd" onclick="setSpeed(1)">1×</button>
+      <button class="spd-btn" onclick="setSpeed(1.5)">1.5×</button>
+      <button class="spd-btn" onclick="setSpeed(2)">2×</button>
+      <button class="spd-btn" onclick="setSpeed(3)">3×</button>
+    </div>
+    <div class="divider"></div>
+    <span class="lbl">Size:</span>
+    <input type="range" id="font-range" min="24" max="96" value="48" oninput="setFontSize(this.value)" />
+    <span class="lbl" id="font-label">48px</span>
+    <div class="divider"></div>
+    <button class="ctrl-btn" id="btn-edit" onclick="toggleEdit()">✎ Script</button>
+    <button class="ctrl-btn" onclick="saveScript()" title="Save script as .txt">↓ Save</button>
+    <span id="status">ready</span>
+  </div>
+
+  <div id="edit-panel">
+    <textarea id="script-input" placeholder="Paste your script here...">Welcome to your teleprompter.
+
+Paste your script in this box and click Apply.
+
+Press Play to auto-scroll. Hold Back or Fwd to scrub at any time.
+
+Shortcuts: Space play/pause · J back · L forward · 1–5 speed · ↑↓ nudge.
+
+Good luck on camera.</textarea>
+    <div class="panel-row">
+      <button class="ctrl-btn" onclick="applyScript()" style="color:#fff;border-color:#666;">Apply script</button>
+      <button class="ctrl-btn" onclick="loadScript()">↑ Load .txt file</button>
+      <input type="file" id="file-input" accept=".txt" style="display:none" onchange="onFileLoad(event)" />
+      <button class="ctrl-btn" onclick="toggleEdit()">Close</button>
+    </div>
+  </div>
+
+  <div id="scroll-area">
+    <div id="gradient-top"></div>
+    <div id="highlight-line"></div>
+    <div id="cursor-line"></div>
+    <div id="text-wrapper">
+      <div id="teletext">Welcome to your teleprompter.
+
+Paste your script in this box and click Apply.
+
+Press Play to auto-scroll. Hold Back or Fwd to scrub at any time.
+
+Shortcuts: Space play/pause · J back · L forward · 1–5 speed · ↑↓ nudge.
+
+Good luck on camera.</div>
+    </div>
+    <div id="gradient-bottom"></div>
+  </div>
+</div>
+
+<script>
+  const wrapper     = document.getElementById('text-wrapper');
+  const scrollArea  = document.getElementById('scroll-area');
+  const teletext    = document.getElementById('teletext');
+  const statusEl    = document.getElementById('status');
+  const fontLabel   = document.getElementById('font-label');
+  const progressBar = document.getElementById('progress-bar');
+  const highlight   = document.getElementById('highlight-line');
+  const cursorLine  = document.getElementById('cursor-line');
+
+  let offset   = 0;
+  let speed    = 1;
+  let playing  = false;
+  let holdDir  = 0;
+  let lastTime = null;
+  const BASE   = 60;
+
+  function maxOffset() {
+    return Math.max(0, wrapper.offsetHeight - scrollArea.offsetHeight);
+  }
+
+  function applyOffset() {
+    offset = Math.max(0, Math.min(offset, maxOffset()));
+    wrapper.style.transform = 'translateY(' + (-offset) + 'px)';
+    updateProgress();
+    updateHighlight();
+  }
+
+  /* ── progress bar ─────────────────────────────────── */
+  function updateProgress() {
+    const max = maxOffset();
+    progressBar.style.width = (max > 0 ? (offset / max) * 100 : 0).toFixed(1) + '%';
+  }
+
+  /* ── current line highlight ───────────────────────── */
+  function updateHighlight() {
+    // cursor line sits at 38% of scroll area height
+    const cursorY = scrollArea.offsetHeight * 0.38;
+    // position in the text wrapper coordinate space
+    const textY = offset + cursorY;
+
+    // walk through line boxes to find which line we're on
+    const range = document.createRange();
+    const nodes = teletext.childNodes;
+    let found = false;
+
+    // use getClientRects on text nodes to find the line at cursorY
+    const areaTop = scrollArea.getBoundingClientRect().top;
+    const targetAbsolute = areaTop + cursorY;
+
+    // iterate through all text node rects
+    let lineTop = null, lineBottom = null;
+    function walkNode(node) {
+      if (found) return;
+      if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
+        range.selectNode(node);
+        const rects = range.getClientRects();
+        for (let r of rects) {
+          if (targetAbsolute >= r.top - 2 && targetAbsolute <= r.bottom + 2) {
+            lineTop    = r.top - areaTop;
+            lineBottom = r.bottom - areaTop;
+            found = true;
+            return;
+          }
+          // track nearest line above cursor as fallback
+          if (r.bottom <= targetAbsolute) {
+            lineTop    = r.top - areaTop;
+            lineBottom = r.bottom - areaTop;
+          }
+        }
+      } else {
+        node.childNodes.forEach(walkNode);
+      }
+    }
+    walkNode(teletext);
+
+    if (lineTop !== null) {
+      const pad = 4;
+      highlight.style.top    = (lineTop - pad) + 'px';
+      highlight.style.height = (lineBottom - lineTop + pad * 2) + 'px';
+      highlight.style.display = 'block';
+    } else {
+      highlight.style.display = 'none';
+    }
+  }
+
+  /* ── animation loop ───────────────────────────────── */
+  function loop(ts) {
+    requestAnimationFrame(loop);
+    if (lastTime === null) { lastTime = ts; return; }
+    const dt = Math.min((ts - lastTime) / 1000, 0.1);
+    lastTime = ts;
+
+    if (playing) offset += speed * BASE * dt;
+    if (holdDir)  offset += holdDir * speed * BASE * 2.5 * dt;
+
+    applyOffset();
+
+    if (playing && offset >= maxOffset()) {
+      offset = maxOffset();
+      applyOffset();
+      setPlaying(false);
+      statusEl.textContent = 'end';
+    }
+  }
+  requestAnimationFrame(loop);
+
+  /* ── play / pause ─────────────────────────────────── */
+  function setPlaying(val) {
+    playing = val;
+    lastTime = null;
+    const btn = document.getElementById('btn-play');
+    btn.textContent = playing ? '⏸ Pause' : '▶ Play';
+    btn.classList.toggle('active', playing);
+    if (playing) statusEl.textContent = 'playing';
+    else if (statusEl.textContent === 'playing') statusEl.textContent = 'paused';
+  }
+  function togglePlay() { setPlaying(!playing); }
+
+  /* ── scrub hold ───────────────────────────────────── */
+  function startHold(dir) {
+    holdDir = dir; lastTime = null;
+    document.getElementById(dir === -1 ? 'btn-back' : 'btn-fwd').classList.add('held');
+  }
+  function stopHold() {
+    holdDir = 0;
+    document.getElementById('btn-back').classList.remove('held');
+    document.getElementById('btn-fwd').classList.remove('held');
+  }
+
+  /* ── reset ────────────────────────────────────────── */
+  function resetPos() {
+    setPlaying(false); offset = 0; applyOffset();
+    statusEl.textContent = 'reset';
+  }
+
+  /* ── speed ────────────────────────────────────────── */
+  function setSpeed(s) {
+    speed = s;
+    document.querySelectorAll('.spd-btn').forEach(b => {
+      b.classList.toggle('active-spd', parseFloat(b.textContent) === s);
+    });
+  }
+
+  /* ── font size ────────────────────────────────────── */
+  function setFontSize(v) {
+    teletext.style.fontSize = v + 'px';
+    fontLabel.textContent = v + 'px';
+    setTimeout(updateHighlight, 50);
+  }
+
+  /* ── script editor ────────────────────────────────── */
+  function toggleEdit() {
+    const panel = document.getElementById('edit-panel');
+    const btn   = document.getElementById('btn-edit');
+    const open  = panel.classList.toggle('open');
+    btn.classList.toggle('active', open);
+    if (open) setPlaying(false);
+  }
+
+  function applyScript() {
+    const val = document.getElementById('script-input').value.trim();
+    if (val) { teletext.textContent = val; offset = 0; applyOffset(); }
+    toggleEdit();
+    statusEl.textContent = 'ready';
+  }
+
+  /* ── save script ──────────────────────────────────── */
+  function saveScript() {
+    const text = teletext.textContent;
+    const blob = new Blob([text], {type: 'text/plain'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'script.txt';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  /* ── load script from file ────────────────────────── */
+  function loadScript() {
+    document.getElementById('file-input').click();
+  }
+
+  function onFileLoad(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      document.getElementById('script-input').value = ev.target.result;
+      statusEl.textContent = 'loaded';
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  }
+
+  /* ── keyboard ─────────────────────────────────────── */
+  function ev(e, fn, arg) { e.preventDefault(); fn(arg); }
+
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'TEXTAREA') return;
+    if (e.code === 'Space')     { e.preventDefault(); togglePlay(); }
+    if (e.code === 'ArrowUp')   { e.preventDefault(); offset -= 80; applyOffset(); }
+    if (e.code === 'ArrowDown') { e.preventDefault(); offset += 80; applyOffset(); }
+    if (e.code === 'KeyJ' && holdDir !== -1) startHold(-1);
+    if (e.code === 'KeyL' && holdDir !== 1)  startHold(1);
+    const speeds = {'Digit1':0.5,'Digit2':1,'Digit3':1.5,'Digit4':2,'Digit5':3};
+    if (speeds[e.code] !== undefined) setSpeed(speeds[e.code]);
+  });
+
+  document.addEventListener('keyup', e => {
+    if (e.code === 'KeyJ' || e.code === 'KeyL') stopHold();
+  });
+
+  /* ── touch drag ───────────────────────────────────── */
+  let touchY = null;
+  scrollArea.addEventListener('touchstart', e => { touchY = e.touches[0].clientY; }, {passive:true});
+  scrollArea.addEventListener('touchmove',  e => {
+    if (touchY === null) return;
+    offset += (touchY - e.touches[0].clientY) * 1.2;
+    applyOffset();
+    touchY = e.touches[0].clientY;
+  }, {passive:true});
+  scrollArea.addEventListener('touchend', () => { touchY = null; });
+
+  // init
+  updateProgress();
+  updateHighlight();
+</script>
+</body>
+</html>
