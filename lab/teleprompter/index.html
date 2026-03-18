@@ -4,107 +4,248 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Teleprompter — Pedro Brauner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet">
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; font-family: system-ui, sans-serif; }
-  #app { display: flex; flex-direction: column; height: 100vh; background: #000; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  /* progress bar */
+  :root {
+    --bg: #080808;
+    --surface: #111;
+    --border: rgba(255,255,255,0.06);
+    --text: #f0ede8;
+    --text-muted: rgba(240,237,232,0.45);
+    --accent: #e03418;
+  }
+
+  html, body { height: 100%; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  /* ── nav ───────────────────────────────────────────── */
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 60px;
+    height: 60px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(8,8,8,0.95);
+    backdrop-filter: blur(12px);
+    flex-shrink: 0;
+    z-index: 100;
+  }
+
+  .nav-logo {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .nav-logo span { color: var(--accent); }
+
+  .nav-back {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .nav-back:hover { color: var(--text); }
+
+  /* ── app shell ─────────────────────────────────────── */
+  #app { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+  /* ── progress bar ──────────────────────────────────── */
   #progress-bar-wrap {
-    height: 3px; background: #1a1a1a; flex-shrink: 0; position: relative;
+    height: 2px; background: var(--border); flex-shrink: 0;
   }
   #progress-bar {
-    height: 100%; width: 0%; background: rgba(255,200,0,0.7);
+    height: 100%; width: 0%; background: var(--accent);
     transition: width 0.1s linear;
   }
 
+  /* ── controls ──────────────────────────────────────── */
   #controls {
     display: flex; align-items: center; gap: 10px;
-    padding: 10px 16px; background: #111;
-    border-bottom: 1px solid #333; flex-shrink: 0; flex-wrap: wrap;
-  }
-  #scroll-area { flex: 1; overflow: hidden; position: relative; }
-  #text-wrapper { padding: 60px 10%; will-change: transform; }
-  #teletext {
-    font-size: 48px; line-height: 1.5; color: #fff;
-    white-space: pre-wrap; word-break: break-word;
-    letter-spacing: 0.01em; user-select: none;
+    padding: 10px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0; flex-wrap: wrap;
   }
 
-  /* current line highlight */
+  .ctrl-btn {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.12);
+    color: var(--text-muted);
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+    user-select: none;
+  }
+  .ctrl-btn:hover { border-color: rgba(255,255,255,0.3); color: var(--text); }
+  .ctrl-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  .scroll-btn {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.12);
+    color: var(--text-muted);
+    padding: 6px 16px;
+    border-radius: 4px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    user-select: none; -webkit-user-select: none;
+    touch-action: none;
+    transition: border-color 0.1s, color 0.1s;
+  }
+  .scroll-btn:hover { border-color: rgba(255,255,255,0.3); color: var(--text); }
+  .scroll-btn.held { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.3); color: var(--text); }
+
+  .spd-btn {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.12);
+    color: var(--text-muted);
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    cursor: pointer; min-width: 34px; text-align: center; user-select: none;
+    transition: border-color 0.1s, color 0.1s;
+  }
+  .spd-btn:hover { border-color: rgba(255,255,255,0.3); color: var(--text); }
+  .spd-btn.active-spd { border-color: var(--accent); color: var(--accent); }
+
+  #font-range { width: 80px; accent-color: var(--accent); }
+
+  .divider { width: 1px; height: 20px; background: var(--border); margin: 0 2px; flex-shrink: 0; }
+
+  .lbl {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  #status {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-left: auto;
+    min-width: 60px;
+    text-align: right;
+  }
+
+  /* ── script editor panel ───────────────────────────── */
+  #edit-panel {
+    display: none; flex-direction: column; gap: 8px;
+    padding: 12px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  #edit-panel.open { display: flex; }
+
+  #script-input {
+    background: var(--bg);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: var(--text);
+    font-size: 14px;
+    padding: 10px 12px;
+    border-radius: 4px;
+    resize: vertical;
+    min-height: 140px;
+    font-family: 'DM Sans', sans-serif;
+    line-height: 1.6;
+  }
+  #script-input:focus { outline: none; border-color: rgba(255,255,255,0.3); }
+
+  .panel-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+  /* ── scroll area & text ────────────────────────────── */
+  #scroll-area { flex: 1; overflow: hidden; position: relative; }
+  #text-wrapper { padding: 60px 10%; will-change: transform; }
+
+  #teletext {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 48px;
+    font-weight: 300;
+    line-height: 1.5;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+    letter-spacing: 0.01em;
+    user-select: none;
+  }
+
+  /* ── highlight & cursor ────────────────────────────── */
   #highlight-line {
     position: absolute; left: 0; right: 0;
     pointer-events: none; z-index: 1;
-    background: rgba(255,200,0,0.07);
-    border-top: 1px solid rgba(255,200,0,0.2);
-    border-bottom: 1px solid rgba(255,200,0,0.2);
+    background: rgba(224,52,24,0.05);
+    border-top: 1px solid rgba(224,52,24,0.15);
+    border-bottom: 1px solid rgba(224,52,24,0.15);
     transition: height 0.1s;
   }
 
   #gradient-top {
     position: absolute; top: 0; left: 0; right: 0; height: 80px;
-    background: linear-gradient(to bottom, #000, transparent);
+    background: linear-gradient(to bottom, var(--bg), transparent);
     pointer-events: none; z-index: 2;
   }
   #gradient-bottom {
     position: absolute; bottom: 0; left: 0; right: 0; height: 80px;
-    background: linear-gradient(to top, #000, transparent);
+    background: linear-gradient(to top, var(--bg), transparent);
     pointer-events: none; z-index: 2;
   }
+
   #cursor-line {
     position: absolute; left: 10%; right: 10%; top: 38%;
-    height: 3px; background: rgba(255,200,0,0.35);
-    pointer-events: none; z-index: 3; border-radius: 2px;
+    height: 2px; background: rgba(224,52,24,0.4);
+    pointer-events: none; z-index: 3; border-radius: 1px;
   }
 
-  .ctrl-btn {
-    background: transparent; border: 1px solid #444; color: #ccc;
-    padding: 6px 14px; border-radius: 6px; font-size: 13px;
-    cursor: pointer; white-space: nowrap;
-    transition: background 0.15s, color 0.15s; user-select: none;
+  @media (max-width: 768px) {
+    nav { padding: 0 24px; }
+    #controls { padding: 10px 16px; }
+    #edit-panel { padding: 12px 16px; }
   }
-  .ctrl-btn:hover { background: #222; color: #fff; }
-  .ctrl-btn.active { background: #fff; color: #000; border-color: #fff; }
-
-  .scroll-btn {
-    background: transparent; border: 1px solid #444; color: #ccc;
-    padding: 6px 16px; border-radius: 6px; font-size: 14px;
-    cursor: pointer; user-select: none; -webkit-user-select: none;
-    touch-action: none; transition: background 0.1s;
-  }
-  .scroll-btn:hover { background: #222; }
-  .scroll-btn.held { background: #333; border-color: #888; color: #fff; }
-
-  .spd-btn {
-    background: transparent; border: 1px solid #444; color: #999;
-    padding: 5px 10px; border-radius: 6px; font-size: 12px;
-    cursor: pointer; min-width: 34px; text-align: center; user-select: none;
-  }
-  .spd-btn:hover { background: #222; color: #fff; }
-  .spd-btn.active-spd { background: #333; color: #fff; border-color: #666; }
-
-  #font-range { width: 80px; accent-color: #999; }
-
-  #edit-panel {
-    display: none; flex-direction: column; gap: 8px;
-    padding: 12px 16px; background: #111;
-    border-bottom: 1px solid #333; flex-shrink: 0;
-  }
-  #edit-panel.open { display: flex; }
-  #script-input {
-    background: #1a1a1a; border: 1px solid #444; color: #eee;
-    font-size: 14px; padding: 10px 12px; border-radius: 6px;
-    resize: vertical; min-height: 140px; font-family: inherit; line-height: 1.6;
-  }
-  #script-input:focus { outline: none; border-color: #666; }
-
-  .panel-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-  #status { font-size: 11px; color: #555; margin-left: auto; min-width: 60px; text-align: right; }
-  .divider { width: 1px; height: 20px; background: #333; margin: 0 2px; flex-shrink: 0; }
-  .lbl { font-size: 12px; color: #666; }
 </style>
 </head>
 <body>
+
+<nav>
+  <a href="/" class="nav-logo">PB<span>.</span></a>
+  <a href="/lab/" class="nav-back">← Back to Lab</a>
+</nav>
+
 <div id="app">
 
   <div id="progress-bar-wrap"><div id="progress-bar"></div></div>
@@ -150,7 +291,7 @@ Shortcuts: Space play/pause · J back · L forward · 1–5 speed · ↑↓ nudg
 
 Good luck on camera.</textarea>
     <div class="panel-row">
-      <button class="ctrl-btn" onclick="applyScript()" style="color:#fff;border-color:#666;">Apply script</button>
+      <button class="ctrl-btn active" onclick="applyScript()">Apply script</button>
       <button class="ctrl-btn" onclick="loadScript()">↑ Load .txt file</button>
       <input type="file" id="file-input" accept=".txt" style="display:none" onchange="onFileLoad(event)" />
       <button class="ctrl-btn" onclick="toggleEdit()">Close</button>
