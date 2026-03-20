@@ -1,0 +1,1753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>rdy.gg Social Media Content Strategy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alumni+Sans:ital,wght@0,400;0,600;0,700;0,800;1,700;1,800&family=Nunito+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --midnight: #080a0e;
+  --card: #0f1117;
+  --card-alt: #191c23;
+  --surface: #1e2230;
+  --green: #00D161;
+  --green-dim: rgba(0,209,97,0.15);
+  --green-glow: rgba(0,209,97,0.25);
+  --gold: #C9A84C;
+  --gold-bright: #F0C840;
+  --gold-dim: rgba(240,200,64,0.15);
+  --red: #e04040;
+  --cs2-blue: #0059C0;
+  --dota-red: #b91800;
+  --lol-gold: #c88900;
+  --valorant-pink: #ff294e;
+  --text-primary: #ffffff;
+  --text-secondary: #c8ccd6;
+  --text-muted: #7a8499;
+  --text-dim: #3e4557;
+  --border: rgba(255,255,255,0.05);
+  --border-solid: #1e2230;
+  --radius: 6px;
+  --radius-lg: 10px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Nunito Sans',sans-serif;background:var(--midnight);color:var(--text-primary);line-height:1.65;overflow-x:hidden;}
+h1,h2,h3,h4,h5,h6{font-family:'Alumni Sans',sans-serif;font-weight:700;letter-spacing:.04em;text-transform:uppercase;line-height:1.2;}
+p{color:var(--text-secondary);margin-bottom:1rem;}
+a{color:var(--green);text-decoration:none;}
+a:hover{text-decoration:underline;}
+strong{color:var(--text-primary);}
+
+/* ── SIDEBAR ── */
+.sidebar{position:fixed;top:0;left:0;width:240px;height:100vh;background:var(--card);border-right:1px solid var(--border);z-index:200;display:flex;flex-direction:column;overflow-y:auto;}
+.sidebar::-webkit-scrollbar{width:4px;}
+.sidebar::-webkit-scrollbar-thumb{background:var(--surface);border-radius:4px;}
+.sidebar-logo{padding:24px 20px 16px;border-bottom:1px solid var(--border);}
+.sidebar-logo span{font-family:'Nunito Sans',sans-serif;font-weight:700;font-size:.75rem;text-transform:uppercase;letter-spacing:.14em;color:var(--text-muted);}
+.nav-group{padding:16px 0 8px;}
+.nav-group-title{font-family:'Nunito Sans',sans-serif;font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;color:var(--text-dim);padding:0 20px 8px;font-weight:700;}
+.nav-link{display:block;padding:8px 20px;font-size:.88rem;color:var(--text-muted);cursor:pointer;border-left:3px solid transparent;transition:all .15s;}
+.nav-link:hover{color:var(--text-secondary);background:rgba(255,255,255,.02);text-decoration:none;}
+.nav-link.active{color:var(--green);border-left-color:var(--green);background:var(--green-dim);}
+
+/* ── MAIN ── */
+.main{margin-left:240px;min-height:100vh;position:relative;z-index:1;}
+.content-wrap{max-width:1100px;margin:0 auto;padding:0 40px;}
+section{padding:60px 0;}
+section+section{border-top:1px solid var(--border);}
+
+/* ── BACKGROUND AMBIENT ── */
+.bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+.bg-grid{position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,0.035) 1px,transparent 1px);background-size:38px 38px;animation:gridShift 90s linear infinite;}
+@keyframes gridShift{0%{background-position:0 0;}100%{background-position:38px 38px;}}
+.orb{position:absolute;border-radius:50%;filter:blur(110px);will-change:transform;}
+.orb-green{width:900px;height:900px;background:radial-gradient(circle,rgba(0,209,97,0.09) 0%,transparent 65%);top:-320px;right:-180px;animation:floatA 26s ease-in-out infinite alternate;}
+.orb-gold{width:700px;height:700px;background:radial-gradient(circle,rgba(240,200,64,0.06) 0%,transparent 65%);bottom:-220px;left:-120px;animation:floatB 33s ease-in-out infinite alternate;}
+.orb-blue{width:500px;height:500px;background:radial-gradient(circle,rgba(0,89,192,0.05) 0%,transparent 65%);top:50%;left:35%;animation:floatC 40s ease-in-out infinite alternate;}
+@keyframes floatA{0%{transform:translate(0,0) scale(1);}50%{transform:translate(-50px,60px) scale(1.04);}100%{transform:translate(40px,80px) scale(0.97);}}
+@keyframes floatB{0%{transform:translate(0,0) scale(1);}50%{transform:translate(70px,-40px) scale(1.06);}100%{transform:translate(-30px,-70px) scale(0.98);}}
+@keyframes floatC{0%{transform:translate(0,0) scale(1);}100%{transform:translate(-60px,50px) scale(1.08);}}
+
+/* ── HERO ── */
+.hero{position:relative;padding:100px 40px 80px;background:linear-gradient(160deg,var(--card) 0%,var(--surface) 50%,var(--card) 100%);overflow:hidden;}
+.hero-blob{position:absolute;border-radius:50%;pointer-events:none;will-change:transform;}
+.hero-blob-1{top:-40%;right:-10%;width:600px;height:600px;background:radial-gradient(circle,rgba(0,209,97,0.2) 0%,transparent 70%);}
+.hero-blob-2{bottom:-30%;left:10%;width:400px;height:400px;background:radial-gradient(circle,rgba(240,200,64,0.15) 0%,transparent 70%);}
+.hero-inner{position:relative;max-width:1100px;margin:0 auto;z-index:1;}
+.hero .label{font-family:'Nunito Sans',sans-serif;font-size:.84rem;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:12px;font-weight:700;}
+.hero h1{font-size:3.2rem;background:linear-gradient(135deg,#fff 30%,var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:12px;}
+.hero .subtitle{font-family:'Alumni Sans',sans-serif;font-size:1.3rem;color:var(--gold-bright);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
+.hero .meta{font-size:.9rem;color:var(--text-muted);}
+.hero .meta span{color:var(--text-secondary);}
+
+/* ── SECTION HEADERS ── */
+.section-label{font-family:'Nunito Sans',sans-serif;font-size:.82rem;letter-spacing:.14em;text-transform:uppercase;color:var(--green);font-weight:700;margin-bottom:8px;}
+.section-title{font-size:2rem;margin-bottom:6px;}
+.section-desc{font-size:1rem;color:var(--text-muted);margin-bottom:32px;max-width:700px;}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;margin-bottom:20px;transition:all .25s;}
+.card:hover{border-color:rgba(0,209,97,.3);box-shadow:0 4px 24px rgba(0,209,97,.06);}
+.card-alt{background:var(--card-alt);}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-bottom:24px;}
+.card-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:24px;}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:start;}
+.split-70{display:grid;grid-template-columns:1.8fr 1fr;gap:32px;align-items:start;}
+
+/* ── STAT BLOCKS ── */
+.stat-row{display:flex;gap:20px;margin-bottom:24px;flex-wrap:wrap;}
+.stat-block{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 24px;flex:1;min-width:180px;text-align:center;}
+.stat-block .value{font-family:'Alumni Sans',sans-serif;font-size:2.2rem;font-weight:800;color:var(--green);line-height:1;}
+.stat-block .value.gold{color:var(--gold-bright);}
+.stat-block .value.red{color:var(--red);}
+.stat-block .label{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-top:6px;font-family:'Nunito Sans',sans-serif;}
+
+/* ── HIGHLIGHT BOX ── */
+.highlight{background:var(--card);border-left:3px solid var(--green);border-radius:0 var(--radius) var(--radius) 0;padding:16px 20px;margin:20px 0;}
+.highlight.gold{border-left-color:var(--gold-bright);}
+.highlight.red{border-left-color:var(--red);}
+.highlight p{margin:0;color:var(--text-secondary);}
+.highlight strong{color:var(--text-primary);}
+
+/* ── PROBLEM ITEMS ── */
+.problem-list{list-style:none;display:flex;flex-direction:column;gap:12px;}
+.problem-item{display:flex;gap:12px;align-items:flex-start;padding:16px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);}
+.problem-icon{flex-shrink:0;width:28px;height:28px;background:rgba(224,64,64,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--red);font-size:.8rem;font-weight:700;}
+.problem-item p{margin:0;font-size:.95rem;}
+
+/* ── LAYER CARDS ── */
+.layer-card{border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px;position:relative;overflow:hidden;}
+.layer-card.always-on{background:linear-gradient(135deg,var(--card) 0%,rgba(0,209,97,.04) 100%);border-color:rgba(0,209,97,.2);}
+.layer-card.event-amp{background:linear-gradient(135deg,var(--card) 0%,rgba(240,200,64,.04) 100%);border-color:rgba(240,200,64,.2);}
+.layer-card h3{margin-bottom:8px;}
+.layer-card .tag{display:inline-block;font-family:'Nunito Sans',sans-serif;font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;padding:4px 12px;border-radius:20px;margin-bottom:12px;font-weight:700;}
+.layer-card.always-on .tag{background:var(--green-dim);color:var(--green);}
+.layer-card.event-amp .tag{background:var(--gold-dim);color:var(--gold-bright);}
+
+/* ── CHARTS ── */
+.chart-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;margin-bottom:20px;}
+.chart-box h4{font-size:1.05rem;margin-bottom:18px;color:var(--text-secondary);font-weight:600;font-family:'Nunito Sans',sans-serif;text-transform:none;letter-spacing:0;}
+.chart-box canvas{width:100%!important;max-height:280px;}
+
+/* ── CAMPAIGN COLLAPSIBLES ── */
+.campaign{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:16px;overflow:hidden;transition:border-color .25s;}
+.campaign:hover{border-color:rgba(0,209,97,.25);}
+.campaign-header{display:flex;align-items:center;gap:16px;padding:20px 24px;cursor:pointer;user-select:none;}
+.campaign-num{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--gold-bright));display:flex;align-items:center;justify-content:center;font-family:'Alumni Sans',sans-serif;font-weight:800;font-size:1.1rem;color:var(--midnight);flex-shrink:0;}
+.campaign-header-text{flex:1;}
+.campaign-header-text h3{font-size:1.15rem;margin:0;letter-spacing:.06em;}
+.campaign-header-text .camp-sub{font-size:.88rem;color:var(--text-muted);margin-top:3px;text-transform:none;letter-spacing:normal;font-family:'Nunito Sans',sans-serif;}
+.campaign-badges{display:flex;gap:8px;flex-shrink:0;}
+.badge{font-family:'Nunito Sans',sans-serif;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;padding:5px 12px;border-radius:20px;font-weight:700;border:1px solid;}
+.badge.ig{background:rgba(193,53,132,.15);color:#E1306C;border-color:rgba(193,53,132,.3);}
+.badge.x{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.15);}
+.badge.fb{background:rgba(24,119,242,.15);color:#4A90D9;border-color:rgba(24,119,242,.3);}
+.chevron{width:20px;height:20px;color:var(--text-dim);transition:transform .3s cubic-bezier(.4,0,.2,1);flex-shrink:0;}
+.campaign.open .chevron{transform:rotate(180deg);color:var(--green);}
+.campaign-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .4s cubic-bezier(.4,0,.2,1);}
+.campaign.open .campaign-body{grid-template-rows:1fr;}
+.campaign-body-inner{overflow:hidden;padding:0 24px;}
+.campaign.open .campaign-body-inner{padding:0 24px 24px;}
+.campaign-body-inner>*:first-child{margin-top:0;}
+.camp-section{margin-top:20px;}
+.camp-section h5{font-size:.82rem;color:var(--green);letter-spacing:.1em;margin-bottom:8px;}
+
+/* ── IMAGE PLACEHOLDERS ── */
+.img-placeholder{background:var(--card-alt);border:2px dashed var(--border-solid);border-radius:var(--radius-lg);padding:40px 24px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;margin:16px 0;min-height:180px;}
+.img-placeholder svg{width:40px;height:40px;color:var(--text-dim);}
+.img-placeholder .ph-label{font-family:'Alumni Sans',sans-serif;font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);}
+.img-placeholder .ph-hint{font-size:.75rem;color:var(--text-dim);}
+
+/* ── TABLES ── */
+table{width:100%;border-collapse:collapse;font-size:.92rem;}
+thead th{font-family:'Nunito Sans',sans-serif;font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);padding:10px 14px;text-align:left;border-bottom:1px solid var(--border-solid);font-weight:700;}
+tbody td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text-secondary);}
+tbody tr{transition:background .15s;}
+tbody tr:hover{background:var(--card-alt);}
+tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
+
+/* ── CALENDAR ── */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.cal-header{font-family:'Nunito Sans',sans-serif;font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);text-align:center;padding:8px 0;font-weight:700;}
+.cal-day{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:8px;min-height:80px;font-size:.82rem;position:relative;transition:all .2s;}
+.cal-day:hover{border-color:var(--surface);}
+.cal-day .day-num{font-family:'Alumni Sans',sans-serif;font-weight:700;color:var(--text-muted);font-size:.82rem;}
+.cal-day.event{border-color:var(--gold);background:rgba(240,200,64,.03);}
+.cal-day.event .day-num{color:var(--gold-bright);}
+.cal-day.empty{background:transparent;border-color:transparent;}
+.cal-dots{display:flex;gap:3px;flex-wrap:wrap;margin-top:6px;}
+.cal-dot{display:inline-flex;align-items:center;justify-content:center;height:18px;min-width:18px;border-radius:3px;font-size:.62rem;font-weight:700;font-family:'Nunito Sans',sans-serif;color:rgba(0,0,0,0.85);padding:0 4px;line-height:1;}
+.cal-dot.daily{background:var(--green);}
+.cal-dot.stats{background:var(--cs2-blue);color:#fff;}
+.cal-dot.regional{background:#9B59B6;color:#fff;}
+.cal-dot.matchday{background:var(--gold-bright);}
+.cal-dot.deepdive{background:var(--red);color:#fff;}
+.cal-dot.video{background:#E67E22;}
+
+/* ── PHASE TIMELINE ── */
+.timeline{display:flex;gap:12px;margin:24px 0;}
+.phase-block{flex:1;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;position:relative;}
+.phase-block::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--radius-lg) var(--radius-lg) 0 0;}
+.phase-block:nth-child(1)::before{background:var(--green);}
+.phase-block:nth-child(2)::before{background:var(--cs2-blue);}
+.phase-block:nth-child(3)::before{background:var(--gold-bright);}
+.phase-block:nth-child(4)::before{background:var(--red);}
+.phase-block h4{font-size:.95rem;margin-bottom:4px;}
+.phase-block .phase-date{font-size:.78rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.07em;font-family:'Nunito Sans',sans-serif;margin-bottom:10px;}
+.phase-block ul{list-style:none;font-size:.88rem;color:var(--text-muted);}
+.phase-block li{padding:3px 0;padding-left:14px;position:relative;}
+.phase-block li::before{content:'';position:absolute;left:0;top:10px;width:6px;height:6px;border-radius:50%;background:var(--surface);}
+
+/* ── TEAM GRID ── */
+.team-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;}
+.team-member{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;text-align:center;transition:all .25s;}
+.team-member:hover{border-color:rgba(0,209,97,.3);}
+.team-member .avatar{width:48px;height:48px;border-radius:50%;background:var(--surface);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-family:'Alumni Sans',sans-serif;font-weight:800;font-size:1rem;color:var(--green);}
+.team-member h4{font-size:.95rem;margin-bottom:2px;text-transform:uppercase;}
+.team-member .role{font-size:.78rem;color:var(--green);text-transform:uppercase;letter-spacing:.07em;font-family:'Nunito Sans',sans-serif;}
+.team-member p{font-size:.85rem;color:var(--text-muted);margin-top:8px;margin-bottom:0;}
+
+/* ── FORMAT RULES ── */
+.format-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;display:flex;gap:16px;align-items:flex-start;margin-bottom:12px;transition:all .25s;}
+.format-card:hover{border-color:rgba(0,209,97,.2);}
+.format-icon{width:40px;height:40px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.2rem;}
+.format-card h4{font-size:.95rem;margin-bottom:4px;}
+.format-card p{font-size:.9rem;margin:0;color:var(--text-muted);}
+.rule-do{color:var(--green);font-weight:700;font-size:.88rem;}
+.rule-dont{color:var(--red);font-weight:700;font-size:.88rem;}
+
+/* ── EDITORIAL SUPPORT ── */
+.support-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:32px 0 24px;}
+.support-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;position:relative;overflow:hidden;transition:border-color .25s;}
+.support-card:hover{border-color:rgba(255,255,255,.12);}
+.support-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.support-card.cs2-card::before{background:#0059c0;}
+.support-card.dota-card::before{background:#b91800;}
+.support-card.lol-card::before{background:#c88900;}
+.support-card.lol-card{opacity:.75;}
+.game-pill{display:inline-block;font-family:'Alumni Sans',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.1em;padding:3px 10px;border-radius:4px;margin-bottom:14px;text-transform:uppercase;}
+.game-pill.cs2{background:rgba(0,89,192,.18);color:#6aabff;}
+.game-pill.dota{background:rgba(185,24,0,.18);color:#ff7a68;}
+.game-pill.lol{background:rgba(200,137,0,.18);color:#f0c040;}
+.support-card h3{font-family:'Alumni Sans',sans-serif;font-size:1.5rem;font-weight:800;color:var(--text-primary);margin:0 0 18px;text-transform:uppercase;letter-spacing:.04em;}
+.soon-pill{display:inline-block;font-size:.6rem;font-weight:700;letter-spacing:.1em;padding:2px 8px;border-radius:10px;background:rgba(200,137,0,.15);color:#f0c040;text-transform:uppercase;margin-left:8px;vertical-align:middle;}
+.support-contacts{display:flex;flex-direction:column;gap:10px;margin-bottom:18px;}
+.contact-item{padding:10px 12px;background:var(--surface);border-radius:8px;border:1px solid var(--border);}
+.contact-name{font-size:.92rem;font-weight:700;color:var(--text-primary);}
+.contact-alias{font-size:.82rem;color:var(--green);font-weight:600;}
+.support-tags{display:flex;flex-wrap:wrap;gap:6px;}
+.stag{font-size:.62rem;font-weight:600;letter-spacing:.05em;padding:3px 9px;border-radius:4px;background:var(--surface);color:var(--text-secondary);text-transform:uppercase;border:1px solid var(--border);}
+.discord-note{display:flex;align-items:flex-start;gap:14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 22px;margin-top:4px;}
+.discord-note .dn-icon{font-size:1.4rem;flex-shrink:0;margin-top:1px;}
+.discord-note p{font-size:.88rem;color:var(--text-secondary);line-height:1.65;margin:0;}
+.discord-note strong{color:var(--text-primary);}
+
+/* ── FORMATS PIPELINE ── */
+.pipeline-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:0 0 8px;}
+.pipeline-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px 24px 20px 28px;position:relative;transition:border-color .25s;display:flex;flex-direction:column;}
+.pipeline-card:hover{border-color:rgba(255,255,255,.12);}
+.pipeline-card::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3px;border-radius:var(--radius-lg) 0 0 var(--radius-lg);}
+.pipeline-card.now::before{background:var(--green);}
+.pipeline-card.next::before{background:var(--gold);}
+.pipe-badge{display:inline-flex;align-items:center;gap:6px;font-size:.62rem;font-weight:700;letter-spacing:.1em;padding:3px 10px;border-radius:10px;text-transform:uppercase;margin-bottom:14px;width:fit-content;}
+.pipe-badge.now{background:rgba(0,209,97,.15);color:var(--green);}
+.pipe-badge.next{background:rgba(240,200,64,.12);color:var(--gold);}
+.pipe-badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block;}
+.pipeline-card h3{font-family:'Alumni Sans',sans-serif;font-size:1.9rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--text-primary);margin:0 0 5px;}
+.pipe-tagline{font-size:.83rem;color:var(--text-muted);font-style:italic;margin:0 0 14px;line-height:1.4;}
+.pipeline-card .pipe-body{font-size:.87rem;color:var(--text-secondary);line-height:1.65;margin:0 0 18px;flex:1;}
+.pipe-meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+.pipe-who{font-size:.7rem;color:var(--text-muted);padding:3px 9px;background:var(--surface);border:1px solid var(--border);border-radius:4px;}
+.pipe-game{font-size:.6rem;font-weight:700;letter-spacing:.08em;padding:2px 8px;border-radius:3px;text-transform:uppercase;}
+.pipe-game.cs2{background:rgba(0,89,192,.2);color:#6aabff;}
+.pipe-game.dota{background:rgba(185,24,0,.2);color:#ff7a68;}
+.pipe-game.lol{background:rgba(200,137,0,.2);color:#f0c040;}
+.pipe-game.all{background:rgba(0,209,97,.1);color:var(--green);}
+.pipe-fmt{font-size:.6rem;font-weight:700;letter-spacing:.05em;padding:2px 8px;border-radius:3px;text-transform:uppercase;background:var(--surface);color:var(--text-muted);border:1px solid var(--border);}
+.pipe-divider{margin:28px 0 20px;display:flex;align-items:center;gap:14px;}
+.pipe-divider span{font-family:'Alumni Sans',sans-serif;font-size:.75rem;font-weight:700;letter-spacing:.12em;color:var(--text-dim);text-transform:uppercase;white-space:nowrap;}
+.pipe-divider::before,.pipe-divider::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* ── KPI TABLE ── */
+.kpi-table{border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-top:28px;}
+.kpi-header{display:grid;grid-template-columns:1.2fr 1fr 1.2fr;padding:11px 20px;background:var(--surface);border-bottom:1px solid var(--border);font-family:'Alumni Sans',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);}
+.kpi-row{display:grid;grid-template-columns:1.2fr 1fr 1.2fr;padding:15px 20px;border-bottom:1px solid var(--border);align-items:center;transition:background .2s;}
+.kpi-row:last-child{border-bottom:none;}
+.kpi-row:hover{background:rgba(255,255,255,.02);}
+.kpi-platform{display:flex;align-items:center;gap:9px;font-size:.87rem;font-weight:600;color:var(--text-primary);}
+.kpi-now{font-size:.83rem;color:var(--text-muted);}
+.kpi-target{font-size:.87rem;color:var(--green);font-weight:600;}
+.kpi-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.kpi-dot.dota{background:#b91800;}
+.kpi-dot.cs2{background:#0059c0;}
+.kpi-dot.fb{background:#1877f2;}
+.kpi-dot.web{background:var(--green);}
+.kpi-row-web{background:rgba(0,209,97,.03);}
+.kpi-row-web .kpi-platform{color:var(--text-secondary);}
+
+/* ── CLOSING ── */
+.closing-card{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:var(--radius-lg);padding:28px 32px;margin-top:28px;}
+.closing-card p{font-size:.95rem;color:var(--text-secondary);line-height:1.75;margin:0 0 20px;}
+.closing-card p:last-child{margin:0;}
+.closing-items{display:flex;flex-direction:column;gap:10px;margin-top:20px;}
+.closing-item{display:flex;align-items:baseline;gap:12px;font-size:.88rem;color:var(--text-secondary);}
+.closing-item strong{color:var(--text-primary);min-width:80px;}
+
+/* ── SCROLL TOP ── */
+.scroll-top{position:fixed;bottom:24px;right:24px;width:40px;height:40px;background:var(--green);color:var(--midnight);border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:300;opacity:0;transform:translateY(20px);transition:all .3s;font-size:1.2rem;}
+.scroll-top.visible{opacity:1;transform:translateY(0);}
+.scroll-top:hover{box-shadow:0 0 20px var(--green-glow);}
+
+/* ── LEGEND ── */
+.legend{display:flex;gap:20px;flex-wrap:wrap;margin:12px 0;font-size:.95rem;}
+.legend-item{display:flex;align-items:center;gap:8px;color:var(--text-secondary);}
+
+/* ── COUNTRY KEY ── */
+.country-key{display:flex;gap:20px;flex-wrap:wrap;margin-top:12px;padding:12px 16px;background:var(--card-alt);border-radius:var(--radius);font-size:.88rem;color:var(--text-muted);}
+.country-key-item{display:flex;align-items:center;gap:6px;}
+.country-key-item .code{font-family:'Nunito Sans',sans-serif;font-weight:700;color:var(--text-secondary);letter-spacing:.04em;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:1024px){
+  .sidebar{display:none;}
+  .main{margin-left:0;}
+  .split,.split-70{grid-template-columns:1fr;}
+  .card-grid-3{grid-template-columns:1fr 1fr;}
+  .timeline{flex-direction:column;}
+}
+@media(max-width:640px){
+  .hero h1{font-size:2rem;}
+  .card-grid-3{grid-template-columns:1fr;}
+  .cal-grid{font-size:.7rem;}
+  .stat-row{flex-direction:column;}
+}
+
+/* ── ANIMATIONS ── */
+.fade-in{opacity:0;transform:translateY(16px);transition:opacity .5s,transform .5s;}
+.fade-in.visible{opacity:1;transform:translateY(0);}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.pulse{animation:pulse 2s infinite;}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ BACKGROUND ═══════════ -->
+<div class="bg-layer" aria-hidden="true">
+  <div class="bg-grid"></div>
+  <div class="orb orb-green"></div>
+  <div class="orb orb-gold"></div>
+  <div class="orb orb-blue"></div>
+</div>
+
+<!-- ═══════════ SIDEBAR ═══════════ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <span>Social Media Strategy · Q2 2026</span>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-title">Strategy</div>
+    <a class="nav-link active" href="#hero">Overview</a>
+    <a class="nav-link" href="#problem">The Opportunity</a>
+    <a class="nav-link" href="#framework">Framework</a>
+    <a class="nav-link" href="#audience">Audience Intel</a>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-title">Campaigns</div>
+    <a class="nav-link" href="#campaigns">All Campaigns</a>
+    <a class="nav-link" href="#video">Video Pipeline</a>
+    <a class="nav-link" href="#formats">Format Rules</a>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-title">Execution</div>
+    <a class="nav-link" href="#calendar">Content Calendar</a>
+    <a class="nav-link" href="#editorial-support">Editorial Support</a>
+    <a class="nav-link" href="#rollout">Phased Rollout</a>
+    <a class="nav-link" href="#lol">LoL Launch</a>
+    <a class="nav-link" href="#targets">60-Day Targets</a>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-title">What's Next</div>
+    <a class="nav-link" href="#pipeline">Formats Pipeline</a>
+    <a class="nav-link" href="#closing">Next Steps</a>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-title">Appendix</div>
+    <a class="nav-link" href="#research">Research &amp; Data</a>
+  </div>
+</aside>
+
+<!-- ═══════════ MAIN ═══════════ -->
+<div class="main">
+
+<!-- ── HERO ── -->
+<section class="hero" id="hero">
+  <div class="hero-blob hero-blob-1" id="heroBlob1"></div>
+  <div class="hero-blob hero-blob-2" id="heroBlob2"></div>
+  <div class="hero-inner">
+    <div class="label">April 2026 Strategy Document</div>
+    <h1>Social Media<br>Content Strategy</h1>
+    <div class="subtitle">rdy.gg | Global Esports Media</div>
+    <p class="meta">Prepared for the <span>April 1st Strategy Meeting</span> &middot; Covering Instagram, Facebook, X/Twitter across CS2, Dota 2 &amp; LoL</p>
+  </div>
+</section>
+
+<!-- ── THE PROBLEM ── -->
+<section id="problem">
+<div class="content-wrap fade-in">
+  <div class="section-label">Current State</div>
+  <h2 class="section-title">The Opportunity</h2>
+  <p class="section-desc">Where the accounts stand today, and what a structured strategy unlocks.</p>
+
+  <div class="split-70">
+    <div>
+      <ul class="problem-list">
+        <li class="problem-item"><div class="problem-icon">!</div><p><strong>The pages read as a clip channel.</strong> Our editorial depth, stats work, and analysis don't show up on social yet.</p></li>
+        <li class="problem-item"><div class="problem-icon">!</div><p><strong>No documented content strategy for Facebook or Instagram.</strong> Hootsuite is ready. The strategy hasn't been formalized until now.</p></li>
+        <li class="problem-item"><div class="problem-icon">!</div><p><strong>Stories and carousels are untapped.</strong> The articles, stat graphics, and interviews we already produce are a natural feed for both formats.</p></li>
+        <li class="problem-item"><div class="problem-icon">!</div><p><strong>Posting consistency is the single biggest algorithmic lever.</strong> Everything else follows from that.</p></li>
+        <li class="problem-item"><div class="problem-icon">!</div><p><strong>Social isn't driving website traffic yet.</strong> That connection is the clearest quick win available.</p></li>
+      </ul>
+    </div>
+    <div>
+      <div class="highlight gold">
+        <p><strong>Last Non-Video Posts (for reference)</strong></p>
+        <p style="margin-top:8px;">Facebook: <strong style="color:var(--gold-bright);">Feb 22</strong><br>
+        Dota Instagram: <strong style="color:var(--gold-bright);">Feb 22</strong><br>
+        CS Instagram: <strong style="color:var(--gold-bright);">Dec 14</strong></p>
+      </div>
+      <div class="img-placeholder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        <span class="ph-label">Screenshot of current IG feed</span>
+        <span class="ph-hint">Drop image into /strategy-images/</span>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ── FRAMEWORK ── -->
+<section id="framework">
+<div class="content-wrap fade-in">
+  <div class="section-label">Strategic Approach</div>
+  <h2 class="section-title">The Two-Layer Framework</h2>
+  <p class="section-desc">A stable baseline that can peak whenever we need it. Global identity, regional execution.</p>
+
+  <div class="split" style="margin-bottom:32px;">
+    <div class="layer-card always-on">
+      <div class="tag">Layer 1</div>
+      <h3 style="color:var(--green);">Always-On Engine</h3>
+      <p>Runs every week regardless of events. Template-driven and repeatable, built around what we already produce.</p>
+      <p style="margin:0;"><strong>Campaigns:</strong> The rdy.gg Daily, Numbers Don't Lie, Deep Dive Drop<br><strong>Video:</strong> Context Cap, W's and L's, Win Condition clips</p>
+    </div>
+    <div class="layer-card event-amp">
+      <div class="tag">Layer 2</div>
+      <h3 style="color:var(--gold-bright);">Event Amplifier</h3>
+      <p>Scales up around tournaments. Menu-driven: pick what fits the moment, not a fixed checklist.</p>
+      <p style="margin:0;"><strong>Campaigns:</strong> Regional Spotlight, Match Day Hub</p>
+    </div>
+  </div>
+
+  <div class="chart-box">
+    <h4>Content Intensity Over Time: Always-On Baseline + Event Peaks</h4>
+    <canvas id="intensityChart" height="100"></canvas>
+  </div>
+
+  <div class="highlight gold">
+    <p><strong>Philosophy:</strong> "Be global in identity, regional in execution." rdy.gg is a global esports media brand, but activation on social media is contextual. IEM Rio week → lean Brazilian. CIS shuffle dominating news → serve that audience. Major in Copenhagen → go hard on EU content. The brand stays consistent, the targeting flexes.</p>
+  </div>
+</div>
+</section>
+
+<!-- ── AUDIENCE INTELLIGENCE ── -->
+<section id="audience">
+<div class="content-wrap fade-in">
+  <div class="section-label">Know Your Audience</div>
+  <h2 class="section-title">Audience Intelligence</h2>
+  <p class="section-desc">Current demographics, platform performance, and the regions that matter, today and for the future.</p>
+
+  <div class="stat-row">
+    <div class="stat-block"><div class="value">935K</div><div class="label">Dota IG Views / Month</div></div>
+    <div class="stat-block"><div class="value">16.7K</div><div class="label">CS IG Views / Month</div></div>
+    <div class="stat-block"><div class="value gold">1.3M</div><div class="label">Dota X Impressions / 3mo</div></div>
+    <div class="stat-block"><div class="value gold">6.6%</div><div class="label">Dota X Engagement Rate</div></div>
+    <div class="stat-block"><div class="value">871</div><div class="label">Dota X Followers</div></div>
+    <div class="stat-block"><div class="value">141</div><div class="label">CS X Followers</div></div>
+  </div>
+
+  <h3 style="font-size:1.1rem;margin-top:32px;">Instagram Demographics, Last 30 Days</h3>
+  <div class="split" style="margin-top:16px;">
+    <div class="chart-box">
+      <h4>Dota 2 Instagram: 935,400 Views</h4>
+      <canvas id="dotaDemoChart" height="220"></canvas>
+    </div>
+    <div class="chart-box">
+      <h4>CS2 Instagram: 16,700 Views</h4>
+      <canvas id="csDemoChart" height="220"></canvas>
+    </div>
+  </div>
+  <div class="country-key">
+    <span class="country-key-item"><span class="code">🇵🇭 PHL</span> Philippines</span>
+    <span class="country-key-item"><span class="code">🇺🇿 UZB</span> Uzbekistan</span>
+    <span class="country-key-item"><span class="code">🇮🇷 IRN</span> Iran</span>
+    <span class="country-key-item"><span class="code">🇧🇷 BRA</span> Brazil</span>
+    <span class="country-key-item"><span class="code">🇹🇷 TUR</span> Turkey</span>
+    <span class="country-key-item"><span class="code">🇲🇳 MGL</span> Mongolia</span>
+    <span class="country-key-item"><span class="code">🌐 Other</span> All other countries</span>
+  </div>
+
+  <h3 style="font-size:1.1rem;margin-top:32px;">X/Twitter Performance</h3>
+  <div class="split" style="margin-top:16px;">
+    <div class="card">
+      <h4 style="font-size:.85rem;color:var(--green);">Dota 2 X: Strong Foundation</h4>
+      <p>871 followers generating 1.3M impressions and 90,000 engagements in 3 months. That's a <strong>6.6% engagement rate</strong>. Industry average is 1-2%. Arnoud has found the voice; the campaign formalizes it into a repeatable system.</p>
+    </div>
+    <div class="card">
+      <h4 style="font-size:.85rem;color:var(--cs2-blue);">CS2 X: Viral Potential</h4>
+      <p>141 followers but individual posts hitting <strong>50,000+ views</strong>. The audience is there, the content resonates. It just needs consistency. Stat-driven tweets are the fastest growth lever at this stage.</p>
+    </div>
+  </div>
+
+  <h3 style="font-size:1.1rem;margin-top:32px;">Optimal Posting Windows by Region</h3>
+  <div class="chart-box" style="margin-top:16px;">
+    <h4>Peak Engagement Times (Local Evening Hours → CET)</h4>
+    <canvas id="timingChart" height="140"></canvas>
+  </div>
+
+  <div class="highlight" style="margin-top:24px;">
+    <p><strong>Growth Target:</strong> rdy.gg is a European site with global ambitions. The current SEA and Central Asian audience is a strength, but <strong>EU is the primary growth target</strong>, with CIS/Eastern Europe as a content-rich region and NA as a secondary market. All posting windows are referenced in <strong>CET</strong> as the standard timezone. The EU evening slot (6-8 PM CET) should be a daily priority alongside regional windows.</p>
+  </div>
+
+  <h3 style="font-size:1.1rem;margin-top:32px;">Regional Audience Layers</h3>
+  <div class="card-grid" style="margin-top:16px;">
+    <div class="card"><h4 style="font-size:.85rem;color:var(--dota-red);">SEA / Philippines</h4><p style="font-size:.85rem;margin:0;">Current engagement base. 57% of Dota IG. Facebook-dominant region. Passionate, interactive, meme-literate. Peak: 11 AM – 1 PM CET (6-8 PM PHT).</p></div>
+    <div class="card"><h4 style="font-size:.85rem;color:var(--cs2-blue);">Central Asia / Turkey</h4><p style="font-size:.85rem;margin:0;">CS heartland. 50% of CS IG from Uzbekistan, 17% Turkey. Emerging esports market. Peak: 2 – 4 PM CET (6-8 PM local).</p></div>
+    <div class="card"><h4 style="font-size:.85rem;color:var(--gold-bright);">EU / Western Europe</h4><p style="font-size:.85rem;margin:0;">Primary growth target. Tier-one market for sponsorship and brand value. Analytically minded. Peak: 6 – 8 PM CET.</p></div>
+    <div class="card"><h4 style="font-size:.85rem;color:var(--green);">LATAM / Brazil</h4><p style="font-size:.85rem;margin:0;">Event-activated audience. Huge spikes around SA tournaments (IEM Rio). 3.7% of Dota IG. Peak: 10 PM CET (6 PM BRT).</p></div>
+    <div class="card"><h4 style="font-size:.85rem;color:var(--red);">CIS / Eastern Europe</h4><p style="font-size:.85rem;margin:0;">Content-rich region: NaVi, Spirit, BetBoom. Even English content attracts CIS fans. Covers stories everyone cares about globally.</p></div>
+  </div>
+</div>
+</section>
+
+<!-- ── CAMPAIGNS ── -->
+<section id="campaigns">
+<div class="content-wrap fade-in">
+  <div class="section-label">The Five Campaigns</div>
+  <h2 class="section-title">Campaign Breakdown</h2>
+  <p class="section-desc">Five interlocking campaigns: three Always-On, two Event-Driven. Click each to expand full details.</p>
+
+  <!-- CAMPAIGN 1 -->
+  <div class="campaign" id="camp1">
+    <div class="campaign-header" onclick="toggleCampaign('camp1')">
+      <div class="campaign-num">1</div>
+      <div class="campaign-header-text">
+        <h3>The rdy.gg Daily</h3>
+        <div class="camp-sub">Daily news digest. Brings our Stories to life</div>
+      </div>
+      <div class="campaign-badges"><span class="badge ig">IG Stories</span><span class="badge x">X</span></div>
+      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+    <div class="campaign-body"><div class="campaign-body-inner">
+      <div class="split-70">
+        <div>
+          <div class="camp-section"><h5>Concept</h5>
+          <p>A templated daily news digest delivered through Instagram Stories (4-6 slides/day) and native X posts (3-5 tweets/day). Covers roster moves, match results, upcoming matches, and a stat of the day. Last Story slide always links to the website.</p></div>
+          <div class="camp-section"><h5>Format</h5>
+          <p><strong>Stories:</strong> Branded cover slide → news item slides → stat of the day → CTA (link to website). Bryan designs 5 reusable templates: headline, stat, match result, quote, CTA.</p>
+          <p><strong>X:</strong> Quick-hit tweets in native format. Formalize what Arnoud does instinctively for Dota into a repeatable playbook for CS and LoL.</p></div>
+          <div class="camp-section"><h5>Why It Works</h5>
+          <p>Stories don't need algorithmic favor; they're consumed habitually. In the Philippines, IG Stories consumption is massive. Once templates exist, production takes <strong>15-20 minutes/day</strong>.</p></div>
+          <div class="camp-section"><h5>Ownership</h5>
+          <p><strong>Arnoud</strong> (daily posting) · <strong>Bryan</strong> (templates) · <strong>Pedro</strong> (content direction)</p></div>
+          <div class="camp-section"><h5>Cadence</h5><p>Daily. Every single day.</p></div>
+          <div class="camp-section"><h5>Posting Time</h5>
+          <p>Dota (SEA): 11 AM – 1 PM CET (7-9 PM PHT). CS (Central Asia/Turkey): 2 – 4 PM CET (7-9 PM local). EU: 6 – 8 PM CET. LATAM: 10 PM CET (6 PM BRT).</p></div>
+        </div>
+        <div>
+          <div class="img-placeholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            <span class="ph-label">Example Story Sequence Mockup</span>
+            <span class="ph-hint">Suggested: 1080 × 1920px</span>
+          </div>
+          <div class="img-placeholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            <span class="ph-label">Template System Preview</span>
+            <span class="ph-hint">Bryan's 5 reusable templates</span>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- CAMPAIGN 2 -->
+  <div class="campaign" id="camp2">
+    <div class="campaign-header" onclick="toggleCampaign('camp2')">
+      <div class="campaign-num">2</div>
+      <div class="campaign-header-text">
+        <h3>Numbers Don't Lie</h3>
+        <div class="camp-sub">Engagement engine. Breaks the clip machine perception with data</div>
+      </div>
+      <div class="campaign-badges"><span class="badge ig">IG Feed</span><span class="badge x">X</span></div>
+      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+    <div class="campaign-body"><div class="campaign-body-inner">
+      <div class="split-70">
+        <div>
+          <div class="camp-section"><h5>Concept</h5>
+          <p>Carousel stat cards on IG Feed + punchy stat tweets with graphic on X. Uses the data and statistics rdy.gg already produces for the website. <strong>No static single images</strong>, only carousels (Instagram algorithm penalizes static posts).</p></div>
+          <div class="camp-section"><h5>Format: IG Carousel Structure</h5>
+          <p><strong>Slide 1:</strong> Provocative headline stat ("s1mple's rating in his last 10 maps: 1.42")<br>
+          <strong>Slide 2:</strong> Context and comparison<br>
+          <strong>Slide 3:</strong> Head-to-head or ranking visual<br>
+          <strong>Slide 4:</strong> CTA: "Who's better? Drop it in the comments"</p>
+          <p><strong>On X:</strong> One-liner + Bryan's stat graphic. Designed to get quote-tweeted.</p></div>
+          <div class="camp-section"><h5>Why It Works</h5>
+          <p>Carousels get <strong>1.4× wider reach</strong> and <strong>3.1× higher engagement</strong> than static images. Saves and shares (the most valuable IG signals) are highest for carousels. The Filipino Dota community and Central Asian CS community are <strong>intensely opinionated</strong> about stats, and provocative stats drive comment wars, which is the #1 engagement signal.</p></div>
+          <div class="camp-section"><h5>Ownership</h5>
+          <p><strong>Arnoud</strong> (posting) · <strong>Bryan</strong> (carousel design system) · <strong>Pedro</strong> (stat selection)</p></div>
+          <div class="camp-section"><h5>Cadence</h5><p>3× per week.</p></div>
+        </div>
+        <div>
+          <div class="img-placeholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            <span class="ph-label">Example Carousel Stat Card</span>
+            <span class="ph-hint">4-slide carousel mockup</span>
+          </div>
+          <div class="highlight">
+            <p><strong>Algorithm insight:</strong> Saves and shares are worth <strong>3× more</strong> than likes. A single save = more than 50 generic likes on Facebook. Design every carousel to be either saveable (educational) or shareable (hot take).</p>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- CAMPAIGN 3 -->
+  <div class="campaign" id="camp3">
+    <div class="campaign-header" onclick="toggleCampaign('camp3')">
+      <div class="campaign-num">3</div>
+      <div class="campaign-header-text">
+        <h3>Regional Spotlight</h3>
+        <div class="camp-sub">Brand differentiator: localized content, rotating editorial lens</div>
+      </div>
+      <div class="campaign-badges"><span class="badge fb">Facebook</span><span class="badge x">X</span><span class="badge ig">IG</span></div>
+      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+    <div class="campaign-body"><div class="campaign-body-inner">
+      <div class="split-70">
+        <div>
+          <div class="camp-section"><h5>Concept</h5>
+          <p>A rotating weekly content series that highlights teams, players, and storylines from specific regions. "This Week in SEA Dota" → "EU CS Power Rankings" → "CIS Shuffle Watch" → "LATAM Roundup." The regional angle rotates based on what's timely and which audience to target.</p></div>
+          <div class="camp-section"><h5>Format</h5>
+          <p><strong>Facebook (primary):</strong> Longer-form native text + custom graphic header. NOT link posts; native gets better reach. Links go in comments.<br>
+          <strong>X:</strong> Thread format, 5-7 tweets summarizing regional storylines.<br>
+          <strong>IG:</strong> Carousel summary version.</p></div>
+          <div class="camp-section"><h5>Why It Works</h5>
+          <p><strong>No English-language esports outlet</strong> consistently covers regional scenes on social media. HLTV, Liquipedia, Dot Esports are all globally focused. If rdy.gg becomes "the page that covers MY region's scene," that's a real brand identity and reason to follow.</p>
+          <p>Also directly serves the <strong>EU growth target</strong>. "This Week in European CS" targets tier-one markets.</p></div>
+          <div class="camp-section"><h5>Regional Rotation Logic</h5>
+          <p><strong>Normal weeks:</strong> Balanced rotation (SEA → EU/CIS → LATAM).<br>
+          <strong>Event weeks:</strong> Lean into the event's region. IEM Rio = heavy LATAM. PGL Major in EU = heavy EU content.</p></div>
+          <div class="camp-section"><h5>Ownership</h5>
+          <p><strong>Pedro</strong> (editorial direction) · <strong>Arnoud</strong> (posting) · <strong>Bryan</strong> (header graphics)</p></div>
+          <div class="camp-section"><h5>Cadence</h5><p>3× per week (one per region rotation).</p></div>
+        </div>
+        <div>
+          <div class="img-placeholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            <span class="ph-label">Example Regional Spotlight Post</span>
+            <span class="ph-hint">Facebook native post + graphic</span>
+          </div>
+          <div class="img-placeholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            <span class="ph-label">X Thread Example</span>
+            <span class="ph-hint">"This Week in SEA Dota" thread</span>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- CAMPAIGN 4 -->
+  <div class="campaign" id="camp4">
+    <div class="campaign-header" onclick="toggleCampaign('camp4')">
+      <div class="campaign-num">4</div>
+      <div class="campaign-header-text">
+        <h3>Match Day Hub</h3>
+        <div class="camp-sub">Event-driven engagement, followership growth through match-day ritual</div>
+      </div>
+      <div class="campaign-badges"><span class="badge x">X Lead</span><span class="badge ig">IG Stories</span><span class="badge fb">Facebook</span></div>
+      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+    <div class="campaign-body"><div class="campaign-body-inner">
+      <div class="split-70">
+        <div>
+          <div class="camp-section"><h5>Concept</h5>
+          <p>On match days, rdy.gg runs a three-phase activation: <strong>Pre-match</strong> (prediction polls, hype content), <strong>During</strong> (live commentary, key moment updates), <strong>Post-match</strong> (result graphic, hot takes, recap link to website).</p></div>
+          <div class="camp-section"><h5>Event Scaling</h5>
+          <p><strong>Regular league matches:</strong> Light activation, prediction tweet, result graphic.<br>
+          <strong>Major tournaments (IEM Rio, Majors, TI):</strong> Full intensity, all platforms firing, on-site content if present.</p></div>
+          <div class="camp-section"><h5>On-Site Content Menu</h5>
+          <p>Not a checklist, but a menu of options. The person at the event picks what feels natural:</p>
+          <p style="color:var(--text-secondary);">Venue walkthrough Stories · Crowd reaction clips · Player sightings · Production behind-the-scenes · Casual hallway interviews · Arena atmosphere before doors open · Food/venue neighborhood vibes</p></div>
+          <div class="camp-section"><h5>Why It Works</h5>
+          <p>X is where esports conversation happens live. Being present <strong>before and during</strong> matches (not just clips after) makes rdy.gg part of the fan's match-day ritual. Prediction content drives shares; people love announcing their picks.</p></div>
+          <div class="camp-section"><h5>First Full Activation</h5>
+          <p><strong>IEM Rio, April 2026.</strong> People on site. Brazilian audience on Facebook/IG. Perfect test of the full Event Amplifier system.</p></div>
+          <div class="camp-section"><h5>Ownership</h5>
+          <p><strong>Arnoud</strong> (day-to-day) · <strong>Arnoud</strong> (Dota X) · <strong>Pedro</strong> (CS X) · <strong>On-site person</strong> (event content)</p></div>
+        </div>
+        <div>
+          <div class="img-placeholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            <span class="ph-label">Match Day Content Flow</span>
+            <span class="ph-hint">Pre → During → Post diagram</span>
+          </div>
+          <div class="img-placeholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            <span class="ph-label">On-Site Stories Examples</span>
+            <span class="ph-hint">Behind-the-scenes reference</span>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- CAMPAIGN 5 -->
+  <div class="campaign" id="camp5">
+    <div class="campaign-header" onclick="toggleCampaign('camp5')">
+      <div class="campaign-num">5</div>
+      <div class="campaign-header-text">
+        <h3>Deep Dive Drop</h3>
+        <div class="camp-sub">Website traffic bridge: every article gets a social package</div>
+      </div>
+      <div class="campaign-badges"><span class="badge ig">IG Carousel</span><span class="badge fb">Facebook</span><span class="badge x">X Thread</span></div>
+      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+    <div class="campaign-body"><div class="campaign-body-inner">
+      <div class="split-70">
+        <div>
+          <div class="camp-section"><h5>Concept</h5>
+          <p>Every time a deep dive article, interview, or major piece goes live on rdy.gg, it gets a dedicated cross-platform social package. The goal: drive traffic from social to website.</p></div>
+          <div class="camp-section"><h5>Format</h5>
+          <p><strong>IG Carousel:</strong> 5 slides pulling the most interesting insights/quotes. Last slide = "Read the full story, link in bio." Editorial feel: magazine layout, pull quotes, big typography.<br>
+          <strong>Facebook:</strong> Native content (image + text summary). Link in the comments (not main post, better reach).<br>
+          <strong>X Thread:</strong> 5 key takeaways, each as its own tweet. Final tweet links to the full article.</p></div>
+          <div class="camp-section"><h5>Why It Works</h5>
+          <p>Currently, articles go live on the website and that's it. Formalizing a social package for every article ensures content actually reaches the audience. Carousel format = highest save and share rates on IG.</p></div>
+          <div class="camp-section"><h5>Ownership</h5>
+          <p><strong>Pedro</strong> (content selection) · <strong>Arnoud</strong> (posting) · <strong>Bryan</strong> (carousel design)</p></div>
+          <div class="camp-section"><h5>Cadence</h5><p>1-2× per week, tied to publication schedule.</p></div>
+        </div>
+        <div>
+          <div class="img-placeholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            <span class="ph-label">Example Deep Dive Carousel</span>
+            <span class="ph-hint">5-slide editorial carousel</span>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+</div>
+</section>
+
+<!-- ── VIDEO & PODCAST PIPELINE ── -->
+<section id="video">
+<div class="content-wrap fade-in">
+  <div class="section-label">Existing Production</div>
+  <h2 class="section-title">Video &amp; Podcast Pipeline</h2>
+  <p class="section-desc">We already produce 3-5 original videos per week plus two active podcasts. This content is the foundation of our social presence and needs to be fully integrated into the campaign framework, not treated as a separate effort.</p>
+
+  <div class="highlight gold">
+    <p><strong>The Supercomputer Principle:</strong> Every video and podcast episode contains multiple standalone social moments. A 45-minute Win Condition episode might produce 3-5 clips that each work as independent content on social. The goal is to think of each clip not as "here is our podcast" but as "here is one insight from our work that stands on its own."</p>
+  </div>
+
+  <h3 style="font-size:1.1rem;margin-top:28px;">Active Video Shows</h3>
+  <div class="card-grid" style="margin-top:16px;">
+    <div class="card">
+      <h4 style="font-size:.85rem;color:#E67E22;">Context Cap</h4>
+      <p style="font-size:.85rem;margin:0;"><strong>Format:</strong> Short vertical videos, under 1 minute. Gives quick context on important events and news. Perfect native format for IG Reels, TikTok, X video, and Facebook Reels.</p>
+      <p style="font-size:.85rem;margin-top:8px;margin-bottom:0;"><strong>Cadence:</strong> Multiple per week, depending on news cycle.</p>
+    </div>
+    <div class="card">
+      <h4 style="font-size:.85rem;color:#E67E22;">W's and L's</h4>
+      <p style="font-size:.85rem;margin:0;"><strong>Format:</strong> Weekly video recap of the biggest winners and losers. Around 3 minutes. Covers the most impactful events of the week in an opinionated, editorial style.</p>
+      <p style="font-size:.85rem;margin-top:8px;margin-bottom:0;"><strong>Cadence:</strong> Weekly.</p>
+    </div>
+  </div>
+
+  <h3 style="font-size:1.1rem;margin-top:28px;">Active Podcasts</h3>
+  <div class="card-grid" style="margin-top:16px;">
+    <div class="card">
+      <h4 style="font-size:.85rem;color:var(--cs2-blue);">Win Condition CS2</h4>
+      <p style="font-size:.85rem;margin:0;">Weekly podcast covering the CS2 competitive scene. Each episode generates multiple clip-worthy moments: hot takes, predictions, player analysis, meta discussion. Clips feed directly into IG Reels, X posts, and Stories.</p>
+    </div>
+    <div class="card">
+      <h4 style="font-size:.85rem;color:var(--dota-red);">Win Condition Dota</h4>
+      <p style="font-size:.85rem;margin:0;">Weekly podcast covering the Dota 2 competitive scene. Same clip extraction approach. Particularly strong with the SEA audience on IG and the Dota community on X, where Arnoud already has the voice dialed in.</p>
+    </div>
+  </div>
+
+  <h3 style="font-size:1.1rem;margin-top:28px;">How Video Feeds the Campaign Framework</h3>
+  <div style="overflow-x:auto;margin:16px 0;">
+    <table>
+      <thead><tr><th>Source</th><th>IG Reels</th><th>IG Stories</th><th>Facebook</th><th>X / Twitter</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Context Cap</strong></td><td>Post as Reel (native vertical)</td><td>Teaser clip + swipe-up to Reel</td><td>Native video post</td><td>Video tweet, punchy caption</td></tr>
+        <tr><td><strong>W's and L's</strong></td><td>Full video as Reel or cut into 2-3 shorter clips</td><td>Highlight moments, link to full video</td><td>Native video + text summary</td><td>Thread: each W and L as a tweet</td></tr>
+        <tr><td><strong>Win Condition CS2</strong></td><td>Best clips as Reels (30-60s)</td><td>"Hot take of the week" clip</td><td>Clip + discussion prompt</td><td>Quote clip + hot take text</td></tr>
+        <tr><td><strong>Win Condition Dota</strong></td><td>Best clips as Reels (30-60s)</td><td>"Hot take of the week" clip</td><td>Clip + discussion prompt</td><td>Quote clip + hot take text</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="highlight">
+    <p><strong>Weekly video minimum:</strong> 3-5 original videos + podcast clips. This means on any given week, we should have at least <strong>5-8 Reels</strong> ready to go across accounts, before even counting the template-based campaign content. Video is what keeps the feed alive between carousels and stat cards.</p>
+  </div>
+
+  <h3 style="font-size:1.1rem;margin-top:28px;">Editorial Content Segments</h3>
+  <p>The Content Segments Menu provides a library of editorial formats that can be turned into video or social content. These are not a checklist; they're a menu of options that the team picks from based on what's timely and interesting.</p>
+  <div class="card-grid-3" style="margin-top:16px;">
+    <div class="card card-alt">
+      <h4 style="font-size:.8rem;color:var(--green);">Data-Driven</h4>
+      <p style="font-size:.82rem;margin:0;">The Number That Explains Everything, Form Check, Supercomputer Says, The Stat That Lied, Historical Parallels</p>
+    </div>
+    <div class="card card-alt">
+      <h4 style="font-size:.8rem;color:var(--gold-bright);">Community &amp; Narrative</h4>
+      <p style="font-size:.82rem;margin:0;">You Called It, The Debate, The Quiet Storyline, What Happened To, The Rivalry File, One Match That Changed Everything</p>
+    </div>
+    <div class="card card-alt">
+      <h4 style="font-size:.8rem;color:#E67E22;">Reactive &amp; Fun</h4>
+      <p style="font-size:.82rem;margin:0;">First Take, The Overreaction Check, Context Drop, Winners &amp; Losers, The Unserious Stats, The 3 AM Thought</p>
+    </div>
+  </div>
+  <p style="font-size:.85rem;color:var(--text-muted);margin-top:12px;">Game-specific segments (Draft Autopsy, AWP Hierarchy, Map Pool Report, Clutch Index, etc.) live in the full Content Segments Menu document and are available for any video or social format.</p>
+</div>
+</section>
+
+<!-- ── FORMAT RULES ── -->
+<section id="formats">
+<div class="content-wrap fade-in">
+  <div class="section-label">Content Playbook</div>
+  <h2 class="section-title">Platform Format Rules</h2>
+  <p class="section-desc">What to post where, and what NOT to post. Based on current algorithm research.</p>
+
+  <div class="format-card">
+    <div class="format-icon" style="background:rgba(193,53,132,.15);color:#E1306C;">◻</div>
+    <div><h4>Instagram Feed</h4><p><span class="rule-do">DO:</span> Carousels and Reels only. <span class="rule-dont">DON'T:</span> No static single images. Carousels get 1.4× wider reach and 3.1× higher engagement than static.</p></div>
+  </div>
+  <div class="format-card">
+    <div class="format-icon" style="background:rgba(193,53,132,.15);color:#E1306C;">◎</div>
+    <div><h4>Instagram Stories</h4><p>News digests, polls, predictions, behind-the-scenes. Raw and authentic beats polished. Used for daily touchpoints and event coverage.</p></div>
+  </div>
+  <div class="format-card">
+    <div class="format-icon" style="background:rgba(193,53,132,.15);color:#E1306C;">▶</div>
+    <div><h4>Instagram Reels</h4><p><span class="rule-do">DO:</span> Context Cap videos, W's and L's, Win Condition podcast clips, Marcin's match highlights. Primary discovery format (30% avg reach). Hook in first 3 seconds. Target: <strong>5-8 Reels/week</strong> across accounts. <span class="rule-dont">DON'T:</span> Post full podcast episodes as Reels. Keep clips to 30-90 seconds.</p></div>
+  </div>
+  <div class="format-card">
+    <div class="format-icon" style="background:rgba(24,119,242,.15);color:#4A90D9;">f</div>
+    <div><h4>Facebook</h4><p><span class="rule-do">DO:</span> Native text + image posts. <span class="rule-dont">DON'T:</span> Link in main post body (kills reach). Links go in comments. 50% of feed is now recommended content, so small pages can go viral.</p></div>
+  </div>
+  <div class="format-card">
+    <div class="format-icon" style="background:rgba(255,255,255,.08);color:#fff;">𝕏</div>
+    <div><h4>X / Twitter</h4><p>Quick-hit tweets for daily takes, threads for long-form. Stat graphics drive quote-tweets. Engagement and conversation-driven. Reply to people.</p></div>
+  </div>
+
+  <div class="chart-box" style="margin-top:24px;">
+    <h4>Instagram Format Performance: Reach vs. Engagement</h4>
+    <canvas id="formatChart" height="140"></canvas>
+  </div>
+</div>
+</section>
+
+<!-- ── CONTENT CALENDAR ── -->
+<section id="calendar">
+<div class="content-wrap fade-in">
+  <div class="section-label">Execution Plan</div>
+  <h2 class="section-title">Content Calendar</h2>
+  <p class="section-desc">A reusable weekly template, plus a full April 2026 calendar with IEM Rio as the Event Amplifier activation.</p>
+
+  <h3 style="font-size:1.1rem;">Weekly Template: Baseline Rhythm</h3>
+  <div style="overflow-x:auto;margin:16px 0 32px;">
+    <table>
+      <thead><tr><th>Day</th><th>IG Stories</th><th>IG Feed / Reels</th><th>Facebook</th><th>X / Twitter</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Monday</strong></td><td>rdy.gg Daily</td><td>Context Cap Reel</td><td>Regional Spotlight (SEA)</td><td>Daily tweets + Spotlight thread</td></tr>
+        <tr><td><strong>Tuesday</strong></td><td>rdy.gg Daily</td><td>Numbers Don't Lie carousel</td><td>Context Cap video</td><td>Stat tweet + graphic</td></tr>
+        <tr><td><strong>Wednesday</strong></td><td>rdy.gg Daily</td><td>Podcast clip Reel (CS2 or Dota)</td><td>Regional Spotlight (EU/CIS)</td><td>Daily tweets + Spotlight thread</td></tr>
+        <tr><td><strong>Thursday</strong></td><td>rdy.gg Daily</td><td>Numbers Don't Lie carousel + Context Cap Reel</td><td>Deep Dive Drop</td><td>Stat tweet + Deep Dive thread</td></tr>
+        <tr><td><strong>Friday</strong></td><td>rdy.gg Daily</td><td>Deep Dive Drop carousel + W's and L's Reel</td><td>Regional Spotlight (LATAM) + W's and L's video</td><td>Daily tweets + W's and L's thread</td></tr>
+        <tr><td><strong>Saturday</strong></td><td>rdy.gg Daily (lighter)</td><td>Numbers Don't Lie carousel + podcast clip</td><td>Podcast clip</td><td>Match Day Hub (if matches)</td></tr>
+        <tr><td><strong>Sunday</strong></td><td>rdy.gg Daily (lighter)</td><td>Marcin highlight clip</td><td>-</td><td>Match Day Hub (if matches)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="font-size:1.1rem;">April 2026: Full Month with IEM Rio</h3>
+  <div class="legend">
+    <div class="legend-item"><div class="cal-dot daily">1</div>Daily</div>
+    <div class="legend-item"><div class="cal-dot stats">2</div>Numbers Don't Lie</div>
+    <div class="legend-item"><div class="cal-dot regional">3</div>Regional Spotlight</div>
+    <div class="legend-item"><div class="cal-dot matchday">4</div>Match Day Hub</div>
+    <div class="legend-item"><div class="cal-dot deepdive">5</div>Deep Dive Drop</div>
+    <div class="legend-item"><div class="cal-dot video">6</div>Video / Podcast</div>
+    <div class="legend-item"><div style="width:18px;height:18px;border:2px solid var(--gold);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:.6rem;color:var(--gold-bright);font-weight:700;">★</div>IEM Rio</div>
+  </div>
+  <div class="cal-grid" style="margin-top:12px;" id="aprilCal"></div>
+</div>
+</section>
+
+<!-- ── EDITORIAL SUPPORT ── -->
+<section id="editorial-support">
+<div class="content-wrap fade-in">
+  <div class="section-label">Editorial Support</div>
+  <h2>Who To Ask For What</h2>
+  <p>Everyone can help with anything. These are the natural first contacts by game, all on Discord.</p>
+
+  <div class="support-grid">
+
+    <!-- CS2 -->
+    <div class="support-card cs2-card">
+      <div class="game-pill cs2">CS2</div>
+      <h3>Counter-Strike 2</h3>
+      <div class="support-contacts">
+        <div class="contact-item">
+          <div class="contact-name">Elliott Griffiths</div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-name">Sam Carder</div>
+        </div>
+      </div>
+      <div class="support-tags">
+        <span class="stag">Stats &amp; data</span>
+        <span class="stag">Match context</span>
+        <span class="stag">Player storylines</span>
+        <span class="stag">Tournament angles</span>
+      </div>
+    </div>
+
+    <!-- Dota 2 -->
+    <div class="support-card dota-card">
+      <div class="game-pill dota">Dota 2</div>
+      <h3>Dota 2</h3>
+      <div class="support-contacts">
+        <div class="contact-item">
+          <div class="contact-name">Andreea <span class="contact-alias">"Div"</span> Esanu</div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-name">Cristy <span class="contact-alias">"Pandora"</span> Ramadani</div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-name">Jarrad <span class="contact-alias">"Beladriel"</span> Adams</div>
+        </div>
+      </div>
+      <div class="support-tags">
+        <span class="stag">Stats &amp; data</span>
+        <span class="stag">Match context</span>
+        <span class="stag">Player storylines</span>
+        <span class="stag">Regional angles</span>
+      </div>
+    </div>
+
+    <!-- LoL -->
+    <div class="support-card lol-card">
+      <div class="game-pill lol">LoL <span class="soon-pill">Coming Soon</span></div>
+      <h3>League of Legends</h3>
+      <div class="support-contacts">
+        <div class="contact-item">
+          <div class="contact-name">Michael Hassall</div>
+        </div>
+      </div>
+      <div class="support-tags">
+        <span class="stag">MSI coverage</span>
+        <span class="stag">Player data</span>
+        <span class="stag">Regional context</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="discord-note">
+    <div class="dn-icon">💬</div>
+    <p>Most relevant for <strong>Numbers Don't Lie</strong> (raw stats), <strong>Match Day Hub</strong> (match context), and <strong>Deep Dive Drop</strong> (editorial depth).</p>
+  </div>
+</div>
+</section>
+
+<!-- ── PHASED ROLLOUT ── -->
+<section id="rollout">
+<div class="content-wrap fade-in">
+  <div class="section-label">Implementation</div>
+  <h2 class="section-title">Phased Rollout</h2>
+  <p class="section-desc">Don't launch everything at once. Build the habit, test the system, then scale.</p>
+
+  <div class="timeline">
+    <div class="phase-block">
+      <h4 style="color:var(--green);">Phase 1: Foundation</h4>
+      <div class="phase-date">April 2026</div>
+      <ul>
+        <li>Launch Campaigns 1 &amp; 2</li>
+        <li>Bryan creates all templates</li>
+        <li>Team learns the daily rhythm</li>
+        <li>IEM Rio = first Event Amplifier test</li>
+        <li>Establish posting time windows</li>
+      </ul>
+    </div>
+    <div class="phase-block">
+      <h4 style="color:var(--cs2-blue);">Phase 2: Expansion</h4>
+      <div class="phase-date">May 2026</div>
+      <ul>
+        <li>Add Campaigns 3 &amp; 5</li>
+        <li>Regional Spotlight + Deep Dive Drop</li>
+        <li>LoL accounts in soft-launch mode</li>
+        <li>Refine posting times based on April data</li>
+        <li>Facebook Groups engagement begins</li>
+      </ul>
+    </div>
+    <div class="phase-block">
+      <h4 style="color:var(--gold-bright);">Phase 3: Peak</h4>
+      <div class="phase-date">June / July 2026</div>
+      <ul>
+        <li>All 5 campaigns running</li>
+        <li>MSI = LoL "coming out" moment</li>
+        <li>Full Event Amplifier at MSI</li>
+        <li>System is refined and habitual</li>
+      </ul>
+    </div>
+    <div class="phase-block">
+      <h4 style="color:var(--red);">Phase 4: Maximum</h4>
+      <div class="phase-date">CS Major + TI</div>
+      <ul>
+        <li>Battle-tested system at full power</li>
+        <li>All eyes on rdy.gg</li>
+        <li>On-site content from multiple events</li>
+        <li>EU/NA growth campaigns intensify</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ── TEAM ── -->
+<!-- ── LOL LAUNCH ── -->
+<section id="lol">
+<div class="content-wrap fade-in">
+  <div class="section-label">New Vertical</div>
+  <h2 class="section-title">LoL Launch Strategy</h2>
+  <p class="section-desc">Soft start now, big push at MSI. Don't blow launch energy before the product is ready to impress.</p>
+
+  <div class="split">
+    <div>
+      <div class="highlight gold">
+        <p><strong>Approach:</strong> Gradual pump forward. The first big event after launch is <strong>MSI (June-July 2026)</strong>, and that's the "we're here" moment. Before that, build presence quietly.</p>
+      </div>
+      <h4 style="font-size:.9rem;margin-top:20px;">Pre-MSI (April / May)</h4>
+      <p>Build presence, populate accounts with content, find the editorial voice. Build a content library. The Always-On campaigns (Daily, Numbers Don't Lie) start running for LoL. Soft-launch, no big announcement.</p>
+      <h4 style="font-size:.9rem;margin-top:16px;">MSI (June / July)</h4>
+      <p>Full Event Amplifier activation. "Road to MSI" countdown series in weeks before. Daily MSI coverage during the event. If someone is physically there: behind-the-scenes Stories, on-site content. Full editorial coverage planned: articles, stats, deep dives. Possibly someone at the event physically (TBC).</p>
+      <h4 style="font-size:.9rem;margin-top:16px;">Post-MSI</h4>
+      <p>LoL accounts are established. Continue with Always-On content. Build toward Worlds later in the year.</p>
+    </div>
+    <div>
+      <div class="img-placeholder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        <span class="ph-label">LoL Account Identity Mockup</span>
+        <span class="ph-hint">Branding for LoL IG / X</span>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ── 60-DAY TARGETS ── -->
+<section id="targets">
+<div class="content-wrap fade-in">
+  <div class="section-label">Success Metrics</div>
+  <h2 class="section-title">60-Day Targets</h2>
+  <p class="section-desc">The website currently runs on paid social managed externally. This strategy builds the organic layer: an owned audience that compounds over time and reduces dependence on ad spend. These are the numbers we are accountable to by June 1st.</p>
+
+  <div class="kpi-table">
+    <div class="kpi-header">
+      <span>Platform</span>
+      <span>Now</span>
+      <span>60 Days</span>
+    </div>
+    <div class="kpi-row">
+      <span class="kpi-platform"><span class="kpi-dot dota"></span>Instagram Dota</span>
+      <span class="kpi-now">829 followers</span>
+      <span class="kpi-target">1,350 followers</span>
+    </div>
+    <div class="kpi-row">
+      <span class="kpi-platform"><span class="kpi-dot cs2"></span>Instagram CS2</span>
+      <span class="kpi-now">461 followers</span>
+      <span class="kpi-target">700 followers + one Reel at 15k+ views</span>
+    </div>
+    <div class="kpi-row">
+      <span class="kpi-platform"><span class="kpi-dot dota"></span>X Dota</span>
+      <span class="kpi-now">879 followers · 6.6% engagement</span>
+      <span class="kpi-target">1,100 followers · hold 6%+</span>
+    </div>
+    <div class="kpi-row">
+      <span class="kpi-platform"><span class="kpi-dot cs2"></span>X CS2</span>
+      <span class="kpi-now">140 followers</span>
+      <span class="kpi-target">250 followers · impressions primary</span>
+    </div>
+    <div class="kpi-row">
+      <span class="kpi-platform"><span class="kpi-dot fb"></span>Facebook</span>
+      <span class="kpi-now">753 followers</span>
+      <span class="kpi-target">950 followers</span>
+    </div>
+    <div class="kpi-row kpi-row-web">
+      <span class="kpi-platform"><span class="kpi-dot web"></span>Website · Organic Social</span>
+      <span class="kpi-now">~70 sessions / day</span>
+      <span class="kpi-target">140 sessions / day</span>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ── FORMATS PIPELINE ── -->
+<section id="pipeline">
+<div class="content-wrap fade-in">
+  <div class="section-label">What's Next</div>
+  <h2 class="section-title">Formats Pipeline</h2>
+  <p class="section-desc">Ordered by how soon we can start. The round-based formats are the immediate priority.</p>
+
+  <div class="pipe-divider"><span>Start Now</span></div>
+  <div class="pipeline-grid">
+
+    <div class="pipeline-card now">
+      <div class="pipe-badge now">Start Now</div>
+      <h3>The Round</h3>
+      <p class="pipe-tagline">One round. Full breakdown. Why it was won or lost.</p>
+      <p class="pipe-body">One round, walked through completely: positioning, timing, reads, what the losing side missed. Pedro voiceover, Sam on the CS2 read. Adapts to Dota (team fight) and LoL (objective fight) when ready.</p>
+      <div class="pipe-meta">
+        <span class="pipe-game cs2">CS2 first</span>
+        <span class="pipe-game dota">Dota soon</span>
+        <span class="pipe-game lol">LoL soon</span>
+        <span class="pipe-fmt">Vertical · 60-90s</span>
+      </div>
+    </div>
+
+    <div class="pipeline-card now">
+      <div class="pipe-badge now">Start Now</div>
+      <h3>The Setup</h3>
+      <p class="pipe-tagline">The utility, the smoke, the rotation that built the win before it started.</p>
+      <p class="pipe-body">The coordination that built the win before the round started. CS2: smokes, flashes, molotovs. Which utility, where it landed, why it worked. Dota: the smoke, the timing, the five heroes that made it executable. LoL: the objective setup, the engage pattern. Pedro voiceover, Sam and the Dota team on the knowledge side.</p>
+      <div class="pipe-meta">
+        <span class="pipe-game cs2">CS2</span>
+        <span class="pipe-game dota">Dota 2</span>
+        <span class="pipe-game lol">LoL</span>
+        <span class="pipe-fmt">Vertical · 60-90s</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="pipe-divider"><span>Next Up</span></div>
+  <div class="pipeline-grid">
+
+    <div class="pipeline-card next">
+      <div class="pipe-badge next">Next Up</div>
+      <h3>The Number</h3>
+      <p class="pipe-tagline">One stat. Why it changes how you read the current moment.</p>
+      <p class="pipe-body">One number that reframes something the scene thinks it already understands. Short, opinionated, repeatable.</p>
+      <div class="pipe-meta">
+
+        <span class="pipe-game all">Cross-game</span>
+        <span class="pipe-fmt">Vertical · ~60s</span>
+      </div>
+    </div>
+
+    <div class="pipeline-card next">
+      <div class="pipe-badge next">Next Up</div>
+      <h3>Paper vs. Reality</h3>
+      <p class="pipe-tagline">What the stats predicted. What actually happened. The gap between them.</p>
+      <p class="pipe-body">After a major result: take what the narrative said would happen, measure it against what did. IEM Rio, MSI, any result that surprises the scene.</p>
+      <div class="pipe-meta">
+
+        <span class="pipe-game all">Cross-game</span>
+        <span class="pipe-fmt">Vertical · ~90s</span>
+      </div>
+    </div>
+
+    <div class="pipeline-card next">
+      <div class="pipe-badge next">Next Up</div>
+      <h3>Cold Read</h3>
+      <p class="pipe-tagline">Before the match starts: what to watch for and why it matters.</p>
+      <p class="pipe-body">Pre-match: stats, storylines, key matchups. Event-driven, only runs when there's something worth previewing. The most natural horizontal format in the lineup.</p>
+      <div class="pipe-meta">
+
+        <span class="pipe-game cs2">CS2</span>
+        <span class="pipe-game dota">Dota 2</span>
+        <span class="pipe-fmt">Horizontal · 2-3 min</span>
+      </div>
+    </div>
+
+    <div class="pipeline-card next">
+      <div class="pipe-badge next">Next Up</div>
+      <h3>Rising</h3>
+      <p class="pipe-tagline">The player the algorithm hasn't caught up to yet.</p>
+      <p class="pipe-body">Someone quietly having a great run that mainstream coverage is sleeping on. Stats-backed, editorially led. Fits the regional positioning naturally: Central Asia, SEA, emerging EU.</p>
+      <div class="pipe-meta">
+
+        <span class="pipe-game all">Cross-game</span>
+        <span class="pipe-fmt">Vertical · ~90s</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+</section>
+
+<!-- ── CLOSING ── -->
+<section id="closing">
+<div class="content-wrap fade-in">
+  <div class="section-label">Next Steps</div>
+  <h2 class="section-title">To Start</h2>
+
+  <div class="closing-card">
+    <p>The strategy is ready. What it needs to move is four things from the room, and one deadline.</p>
+    <div class="closing-items">
+      <div class="closing-item"><strong>Bryan</strong> Phase 1 templates delivered before April 14, in time for the first scheduled posts.</div>
+      <div class="closing-item"><strong>Marcin</strong> Aligned on the video pipeline: Context Cap and W's &amp; L's clips extracted and formatted for Reels on a fixed weekly schedule.</div>
+      <div class="closing-item"><strong>Arnoud</strong> Posting calendar locked in Hootsuite for April, starting with The rdy.gg Daily and Deep Dive Drop.</div>
+      <div class="closing-item"><strong>The Round + The Setup</strong> First episodes produced and ready before IEM Rio. Target window: BLAST Rotterdam playoffs.</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ── RESEARCH APPENDIX ── -->
+<section id="research">
+<div class="content-wrap fade-in">
+  <div class="section-label">Data &amp; Sources</div>
+  <h2 class="section-title">Research Appendix</h2>
+  <p class="section-desc">Algorithm mechanics, platform benchmarks, and rdy.gg's own analytics. The data behind every decision in this document.</p>
+
+  <div class="card" style="margin-bottom:24px;">
+    <h3 style="font-size:1rem;color:var(--green);margin:0 0 16px;">Instagram Algorithm 2025-2026</h3>
+    <div class="split">
+      <div>
+        <h5 style="font-size:.75rem;color:var(--text-muted);margin-bottom:12px;">Top Ranking Signals</h5>
+        <p><strong>1. Watch Time.</strong> Viewers decide in 1.7 seconds. 60%+ retention is the target. The last 10 seconds matter as much as the hook: if people replay or linger at the end, the algorithm reads that as a strong signal.</p>
+        <p><strong>2. Likes per Reach.</strong> The percentage of viewers who like, measured against how many people saw it, not total followers.</p>
+        <p><strong>3. Sends per Reach.</strong> How often content is shared via DM. Third most powerful signal and the hardest to fake.</p>
+        <h5 style="font-size:.75rem;color:var(--text-muted);margin:16px 0 12px;">Hidden Engagement Weights</h5>
+        <p>Saves and shares carry <strong>3× the weight</strong> of likes. Dwell time, scroll velocity, and completion rate are all tracked passively. Meaningful comments (more than 4 words) carry more weight than emoji reactions. This is why carousels that teach something outperform highlights that entertain.</p>
+        <h5 style="font-size:.75rem;color:var(--text-muted);margin:16px 0 12px;">Posting Behaviour</h5>
+        <p>The algorithm penalises accounts that delete and repost. Consistency of posting schedule matters more than posting frequency. Engaging with comments in the first 60 minutes after posting significantly boosts distribution.</p>
+      </div>
+      <div>
+        <h5 style="font-size:.75rem;color:var(--text-muted);margin-bottom:12px;">Format Comparison</h5>
+        <p><strong>Reels:</strong> 30.81% avg reach rate. The discovery engine. Hook in first 3 seconds. 30-90 second sweet spot. Vertical 9:16 only.</p>
+        <p><strong>Carousels:</strong> 14.45% reach but 10% engagement rate — 109% more engagement per person reached than Reels. Highest save rate of any format. Up to 20 slides; the algorithm re-serves carousels to people who didn't swipe the first time.</p>
+        <p><strong>Static images:</strong> 7% engagement, 125% lower reach than Reels. Avoid for feed posts. Only acceptable use is Stories.</p>
+        <p style="font-size:.8rem;color:var(--text-dim);margin-top:12px;">Optimal weekly mix: 3-4 Reels + 2-3 carousels. No static feed posts.</p>
+        <h5 style="font-size:.75rem;color:var(--text-muted);margin:16px 0 12px;">Stories</h5>
+        <p>Stories do not affect feed algorithm directly, but consistent Story posting increases profile visits, which is a secondary feed ranking signal. Completion rate and poll/sticker interactions are the key Story metrics. Ideal length: 3-7 frames per Story set.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:24px;">
+    <h3 style="font-size:1rem;color:var(--cs2-blue);margin:0 0 16px;">X / Twitter Algorithm 2025-2026</h3>
+    <div class="split">
+      <div>
+        <h5 style="font-size:.75rem;color:var(--text-muted);margin-bottom:12px;">Feed Structure</h5>
+        <p>X surfaces three feeds: For You (algorithm), Following (chronological), and Search. The For You tab is the discovery surface and the one that matters for growth. It operates on an interest graph, not a social graph, meaning a 140-follower account can reach the same audience as a 140K account if the content signals are right. The March 6 spike in rdy.gg's own analytics (357 sessions from X in a single day) is a direct example of this ceiling.</p>
+        <h5 style="font-size:.75rem;color:var(--text-muted);margin:16px 0 12px;">Key Ranking Signals</h5>
+        <p><strong>Replies</strong> (highest weight) → Reposts → Likes → Bookmarks → Profile clicks. Engagement velocity in the first 30 minutes is the most critical window. A post that gets 20 replies in 30 minutes will be distributed far more aggressively than one that gets 200 likes over 24 hours.</p>
+        <h5 style="font-size:.75rem;color:var(--text-muted);margin:16px 0 12px;">Content Quality</h5>
+        <p>X Premium (verified) accounts get a distribution multiplier in For You. This is why getting X Premium for the CS2 account is a practical priority, not just an analytics unlock. Posts with external links receive reduced distribution; the workaround is to post the link in the first reply rather than the main post.</p>
+      </div>
+      <div>
+        <h5 style="font-size:.75rem;color:var(--text-muted);margin-bottom:12px;">Format Performance</h5>
+        <p><strong>Video:</strong> Native video uploaded directly to X outperforms linked video by a significant margin. X's algorithm actively promotes native video in For You. Vertical video (9:16) performs best on mobile.</p>
+        <p><strong>Threads:</strong> High engagement format for narrative content. Each reply in a thread gets its own distribution opportunity. Good fit for Deep Dive Drop and Cold Read long-form.</p>
+        <p><strong>Images:</strong> 2-4 image posts outperform single images. Alt text improves accessibility and is indexed by search.</p>
+        <h5 style="font-size:.75rem;color:var(--text-muted);margin:16px 0 12px;">rdy.gg Benchmark</h5>
+        <p>Dota X account: <strong>6.6% engagement rate</strong> against an industry average of 0.5-2% for media accounts. X referral traffic to rdy.gg: 37.79% engaged session rate, 31s average time on site — the second highest quality traffic source after Organic Search.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:24px;">
+    <h3 style="font-size:1rem;color:var(--cs2-blue);margin:0 0 16px;">Facebook Algorithm 2025-2026</h3>
+    <div class="split">
+      <div>
+        <h5 style="font-size:.75rem;color:var(--text-muted);margin-bottom:12px;">The Recommendation Shift</h5>
+        <p>Up to <strong>50% of Feed</strong> is now recommended content from pages users do not follow. This is a TikTok-style interest graph model. A page with 753 followers has the same viral ceiling as a page with 5M followers if the content signals are strong enough. The implication: growing the page follower count matters less than producing content the algorithm wants to recommend.</p>
+        <h5 style="font-size:.75rem;color:var(--text-muted);margin:16px 0 12px;">Most Valuable Signals</h5>
+        <p><strong>Saves</strong> (highest weight) → Shares to Stories → Shares via DM → Long-form comments → Reactions. A single save is algorithmically worth more than 50 generic likes. Content that teaches, informs, or surprises tends to generate saves; content that entertains tends to generate reactions. Aim for the former.</p>
+      </div>
+      <div>
+        <h5 style="font-size:.75rem;color:var(--text-muted);margin-bottom:12px;">Native Content vs Links</h5>
+        <p>Facebook actively suppresses link posts in organic distribution. Native video, text posts, and image posts all outperform link-only posts significantly. The workaround: post the content natively (the clip, the stat image, the key quote), then add the article link in the first comment. This is the standard approach for media pages operating within the algorithm's preferences.</p>
+        <h5 style="font-size:.75rem;color:var(--text-muted);margin:16px 0 12px;">Groups as Organic Reach</h5>
+        <p>Facebook Groups have 1.8B monthly active users and are treated as high-trust surfaces by the algorithm. Participating authentically in regional esports groups (SEA Dota communities, Turkish CS groups, Brazilian esports pages) builds presence without paid spend. Sharing value first, not links.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:24px;">
+    <h3 style="font-size:1rem;color:var(--gold-bright);margin:0 0 16px;">rdy.gg Analytics Snapshot (Jan-Mar 2026)</h3>
+    <div class="split">
+      <div>
+        <h5 style="font-size:.75rem;color:var(--text-muted);margin-bottom:12px;">Traffic by Channel (Total: 2,023,175 sessions)</h5>
+        <p><strong>Paid Social:</strong> 1,710,654 sessions (84.55%). Driven by external agency campaigns on Facebook and TikTok. The current engine.</p>
+        <p><strong>Direct:</strong> 88,305 sessions (4.36%). Low engagement rate (5.3%), indicating most direct traffic is bot or branded search.</p>
+        <p><strong>Organic Search:</strong> 11,362 sessions (0.56%). Highest quality traffic: 60.31% engagement rate, 35s average session. The long-term SEO asset.</p>
+        <p><strong>Organic Social:</strong> 5,214 sessions (0.26%). Baseline for this strategy. Target: 140 sessions/day by June 1st.</p>
+      </div>
+      <div>
+        <h5 style="font-size:.75rem;color:var(--text-muted);margin-bottom:12px;">Organic Social Quality Breakdown</h5>
+        <p><strong>X / t.co referral:</strong> 1,511 sessions, 37.79% engagement rate, 31s average session. The highest quality organic social traffic by a significant margin. One viral post on March 6 generated 357 sessions in a single day — equivalent to roughly 5 average days of X traffic in one spike.</p>
+        <p><strong>Facebook (m.facebook + facebook.com):</strong> ~3,176 sessions combined. Lower engagement rate than X but higher raw volume.</p>
+        <h5 style="font-size:.75rem;color:var(--text-muted);margin:16px 0 12px;">The Opportunity</h5>
+        <p>Organic social is currently 0.26% of total traffic. A strategy that doubles organic social sessions while maintaining quality represents a meaningful reduction in paid dependency — without touching the paid campaigns already running.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-box">
+    <h4>Instagram: Reach vs. Engagement by Format (2025-2026 Benchmarks)</h4>
+    <canvas id="benchmarkChart" height="160"></canvas>
+  </div>
+
+  <div style="margin-top:24px;padding:20px;background:var(--card);border-radius:var(--radius-lg);border:1px solid var(--border);">
+    <h5 style="font-size:.75rem;color:var(--text-dim);margin-bottom:12px;">Sources</h5>
+    <p style="font-size:.78rem;color:var(--text-dim);margin:0;line-height:1.9;">
+      Buffer: Instagram Algorithm 2026 Guide · Sprout Social: Instagram Algorithm · DataSlayer: Instagram Algorithm 2025 · Hootsuite: Instagram Algorithm 2026 · CreatorsJet: Reels vs Carousels vs Images Study · EpicOwl: Reels vs Carousels 2025 · NetInfluencer: Carousels Outperform Reels · Social Insider: 2026 IG Organic Benchmarks · WordStream: Facebook Algorithm 2026 · Brandwatch: Facebook Algorithm 2025 · Social Media Examiner: Facebook Content Strategy 2025 · Sprout Social: Best Times to Post · Influencer Marketing Hub: Social Media for Gaming &amp; Esports · British Esports Federation: Social Media Marketing in Esports · X Business: For You Ranking Signals 2025 · Hootsuite: X Algorithm 2026 · Social Insider: X Engagement Benchmarks 2025 · rdy.gg Google Analytics 4: Traffic Acquisition Report, Jan-Mar 2026
+    </p>
+  </div>
+</div>
+</section>
+
+</div><!-- /main -->
+
+<!-- SCROLL TO TOP -->
+<button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script>
+// ── SPACE CANVAS ──
+(function(){
+  const canvas = document.createElement('canvas');
+  canvas.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;';
+  document.querySelector('.bg-layer').prepend(canvas);
+  const ctx = canvas.getContext('2d');
+
+  let W = canvas.width = window.innerWidth;
+  let H = canvas.height = window.innerHeight;
+
+  window.addEventListener('resize', () => {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    initStars();
+  }, { passive: true });
+
+  // Planet positions (visual only, used to bend bezier control points)
+  const planets = [
+    { gx: () => W * 0.88, gy: () => H * 0.08 },
+    { gx: () => W * 0.05, gy: () => H * 0.92 },
+    { gx: () => W * 0.45, gy: () => H * 0.52 },
+  ];
+
+  // Star field
+  let stars = [];
+  function initStars() {
+    stars = Array.from({ length: 95 }, () => ({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 1.1 + 0.3,
+      baseAlpha: Math.random() * 0.22 + 0.05,
+      speed: Math.random() * 1.0 + 0.3,
+      phase: Math.random() * Math.PI * 2,
+    }));
+  }
+  initStars();
+
+  // Cubic bezier helper
+  function bez(p0,p1,p2,p3,t){
+    const m=1-t;
+    return {
+      x:m*m*m*p0.x+3*m*m*t*p1.x+3*m*t*t*p2.x+t*t*t*p3.x,
+      y:m*m*m*p0.y+3*m*m*t*p1.y+3*m*t*t*p2.y+t*t*t*p3.y
+    };
+  }
+
+  function edgePt(edge){
+    if(edge===0) return {x:-15,        y:H*(0.15+Math.random()*0.7)};
+    if(edge===1) return {x:W+15,       y:H*(0.15+Math.random()*0.7)};
+    if(edge===2) return {x:W*(0.15+Math.random()*0.7), y:-15};
+                 return {x:W*(0.15+Math.random()*0.7), y:H+15};
+  }
+
+  // Projectiles
+  const shots = [];
+
+  class Shot {
+    constructor(x,y,tx,ty){
+      this.x=x; this.y=y;
+      const d=Math.sqrt((tx-x)**2+(ty-y)**2)||1;
+      const spd=3.5;
+      this.vx=(tx-x)/d*spd; this.vy=(ty-y)/d*spd;
+      this.life=1; this.trail=[];
+    }
+    update(){
+      this.trail.push({x:this.x,y:this.y});
+      if(this.trail.length>10) this.trail.shift();
+      this.x+=this.vx; this.y+=this.vy;
+      this.life-=0.018;
+    }
+    draw(){
+      if(this.trail.length>1){
+        ctx.beginPath();
+        ctx.moveTo(this.trail[0].x,this.trail[0].y);
+        for(const p of this.trail) ctx.lineTo(p.x,p.y);
+        ctx.strokeStyle=`rgba(255,210,60,${this.life*0.7})`;
+        ctx.lineWidth=1.5; ctx.stroke();
+      }
+      ctx.beginPath();
+      ctx.arc(this.x,this.y,2,0,Math.PI*2);
+      ctx.fillStyle=`rgba(255,230,100,${this.life})`;
+      ctx.fill();
+    }
+  }
+
+  class Ship {
+    constructor(){
+      const startEdge = Math.floor(Math.random()*4);
+      let endEdge = Math.floor(Math.random()*3);
+      if(endEdge>=startEdge) endEdge++;
+      const p0 = edgePt(startEdge);
+      const p3 = edgePt(endEdge);
+
+      // Mid control points: nudge toward nearest planet to fake gravity curve
+      const mid1x = p0.x+(p3.x-p0.x)*0.33 + (Math.random()-0.5)*W*0.3;
+      const mid1y = p0.y+(p3.y-p0.y)*0.33 + (Math.random()-0.5)*H*0.3;
+      const mid2x = p0.x+(p3.x-p0.x)*0.66 + (Math.random()-0.5)*W*0.3;
+      const mid2y = p0.y+(p3.y-p0.y)*0.66 + (Math.random()-0.5)*H*0.3;
+
+      // Find nearest planet and pull control points toward it
+      let best=null, bestD=Infinity;
+      for(const pl of planets){
+        const d=Math.sqrt((pl.gx()-mid1x)**2+(pl.gy()-mid1y)**2);
+        if(d<bestD){bestD=d;best=pl;}
+      }
+      const bend=0.25+Math.random()*0.2;
+      this.p0=p0;
+      this.p1={x:mid1x+(best.gx()-mid1x)*bend, y:mid1y+(best.gy()-mid1y)*bend};
+      this.p2={x:mid2x+(best.gx()-mid2x)*bend, y:mid2y+(best.gy()-mid2y)*bend};
+      this.p3=p3;
+
+      this.t=0;
+      this.speed=0.0006+Math.random()*0.0004; // slow drift
+      this.trail=[];
+      this.alive=true;
+      this.size=3;
+      this.shotCooldown=0;
+      const pos=bez(this.p0,this.p1,this.p2,this.p3,0);
+      this.x=pos.x; this.y=pos.y; this.vx=0; this.vy=0;
+    }
+
+    update(allShips){
+      const prev={x:this.x,y:this.y};
+      this.t+=this.speed;
+      if(this.t>=1){this.alive=false;return;}
+      const pos=bez(this.p0,this.p1,this.p2,this.p3,this.t);
+      this.vx=pos.x-prev.x; this.vy=pos.y-prev.y;
+      this.x=pos.x; this.y=pos.y;
+      this.trail.push({x:prev.x,y:prev.y});
+      if(this.trail.length>50) this.trail.shift();
+      if(this.shotCooldown>0) this.shotCooldown--;
+
+      // Shoot at nearest other ship if close enough
+      if(this.shotCooldown===0){
+        for(const other of allShips){
+          if(other===this) continue;
+          const dx=other.x-this.x, dy=other.y-this.y;
+          if(Math.sqrt(dx*dx+dy*dy)<260){
+            shots.push(new Shot(this.x,this.y,other.x,other.y));
+            this.shotCooldown=120+Math.floor(Math.random()*80);
+            break;
+          }
+        }
+      }
+    }
+
+    draw(){
+      if(this.trail.length<2) return;
+      // Outer glow trail
+      for(let i=1;i<this.trail.length;i++){
+        const t=i/this.trail.length;
+        ctx.beginPath();
+        ctx.moveTo(this.trail[i-1].x,this.trail[i-1].y);
+        ctx.lineTo(this.trail[i].x,this.trail[i].y);
+        ctx.strokeStyle=`rgba(160,200,255,${t*0.35})`;
+        ctx.lineWidth=t*2.2; ctx.stroke();
+      }
+      // Bright core
+      const tail=Math.max(0,this.trail.length-14);
+      ctx.beginPath();
+      ctx.moveTo(this.trail[tail].x,this.trail[tail].y);
+      for(let i=tail+1;i<this.trail.length;i++) ctx.lineTo(this.trail[i].x,this.trail[i].y);
+      ctx.strokeStyle='rgba(255,255,255,0.6)';
+      ctx.lineWidth=1; ctx.stroke();
+
+      // Ship
+      const angle=Math.atan2(this.vy,this.vx);
+      const s=this.size;
+      ctx.save();
+      ctx.translate(this.x,this.y);
+      ctx.rotate(angle);
+      ctx.shadowColor='rgba(180,220,255,0.9)';
+      ctx.shadowBlur=8;
+      ctx.beginPath();
+      ctx.moveTo(s*2.4,0);
+      ctx.lineTo(-s,-s*0.75);
+      ctx.lineTo(-s*0.4,0);
+      ctx.lineTo(-s,s*0.75);
+      ctx.closePath();
+      ctx.fillStyle='rgba(255,255,255,0.95)';
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  const ships=[];
+  let lastSpawn=-99999;
+  let nextSpawn=6000+Math.random()*8000;
+
+  function animate(ts){
+    ctx.clearRect(0,0,W,H);
+
+    // Stars
+    for(const s of stars){
+      const alpha=s.baseAlpha+Math.sin(ts*0.001*s.speed+s.phase)*0.07;
+      ctx.beginPath();
+      ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(255,255,255,${Math.max(0,alpha)})`;
+      ctx.fill();
+    }
+
+    // Shots
+    for(let i=shots.length-1;i>=0;i--){
+      shots[i].update(); shots[i].draw();
+      if(shots[i].life<=0) shots.splice(i,1);
+    }
+
+    // Spawn
+    if(ts-lastSpawn>nextSpawn){
+      ships.push(new Ship());
+      lastSpawn=ts;
+      nextSpawn=6000+Math.random()*8000;
+    }
+
+    // Ships
+    for(let i=ships.length-1;i>=0;i--){
+      ships[i].update(ships);
+      ships[i].draw();
+      if(!ships[i].alive) ships.splice(i,1);
+    }
+
+    requestAnimationFrame(animate);
+  }
+
+  requestAnimationFrame(animate);
+})();
+
+// ── PARALLAX ──
+const blob1=document.getElementById('heroBlob1');
+const blob2=document.getElementById('heroBlob2');
+window.addEventListener('scroll',()=>{
+  const y=window.scrollY;
+  if(blob1) blob1.style.transform='translateY('+y*0.35+'px)';
+  if(blob2) blob2.style.transform='translateY('+y*0.2+'px)';
+},{passive:true});
+
+// ── SIDEBAR NAV ──
+const navLinks=document.querySelectorAll('.nav-link');
+const sections=document.querySelectorAll('section[id]');
+
+const observer=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      navLinks.forEach(l=>l.classList.remove('active'));
+      const active=document.querySelector('.nav-link[href="#'+e.target.id+'"]');
+      if(active) active.classList.add('active');
+    }
+  });
+},{threshold:0.15,rootMargin:'-80px 0px -60% 0px'});
+sections.forEach(s=>observer.observe(s));
+
+navLinks.forEach(l=>{
+  l.addEventListener('click',e=>{
+    e.preventDefault();
+    const target=document.querySelector(l.getAttribute('href'));
+    if(target) target.scrollIntoView({behavior:'smooth'});
+  });
+});
+
+// ── FADE IN ──
+const fadeObs=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');fadeObs.unobserve(e.target);}});
+},{threshold:0.1});
+document.querySelectorAll('.fade-in').forEach(el=>fadeObs.observe(el));
+
+// ── SCROLL TOP ──
+window.addEventListener('scroll',()=>{
+  document.getElementById('scrollTop').classList.toggle('visible',window.scrollY>500);
+});
+
+// ── CAMPAIGN COLLAPSIBLES ──
+function toggleCampaign(id){
+  const el=document.getElementById(id);
+  el.classList.toggle('open');
+}
+
+// ── APRIL CALENDAR ──
+(function buildCalendar(){
+  const cal=document.getElementById('aprilCal');
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  days.forEach(d=>{cal.insertAdjacentHTML('beforeend','<div class="cal-header">'+d+'</div>');});
+
+  // April 2026 starts on Wednesday (day index 2 in Mon-start)
+  const startOffset=2;
+  for(let i=0;i<startOffset;i++) cal.insertAdjacentHTML('beforeend','<div class="cal-day empty"></div>');
+
+  const rioStart=15,rioEnd=20;
+  const campaignMap={
+    1:{dots:['daily','video']},2:{dots:['daily','stats']},3:{dots:['daily','regional','video']},
+    4:{dots:['daily','video']},5:{dots:['daily','video']},6:{dots:['daily','stats','video']},7:{dots:['daily']},
+    8:{dots:['daily','regional','video']},9:{dots:['daily','stats']},10:{dots:['daily','deepdive','video']},
+    11:{dots:['daily','video']},12:{dots:['daily']},13:{dots:['daily','stats','video']},14:{dots:['daily','regional']},
+    15:{dots:['daily','matchday','video']},16:{dots:['daily','stats','matchday']},17:{dots:['daily','regional','matchday','video']},
+    18:{dots:['daily','matchday','deepdive']},19:{dots:['daily','matchday','video']},20:{dots:['daily','stats','matchday','video']},
+    21:{dots:['daily','regional']},22:{dots:['daily','stats','video']},23:{dots:['daily','deepdive']},
+    24:{dots:['daily','regional','video']},25:{dots:['daily','video']},26:{dots:['daily']},
+    27:{dots:['daily','stats','video']},28:{dots:['daily','regional']},29:{dots:['daily','stats','video']},
+    30:{dots:['daily','deepdive','video']}
+  };
+
+  const dotNum={daily:'1',stats:'2',regional:'3',matchday:'4',deepdive:'5',video:'6'};
+  for(let d=1;d<=30;d++){
+    const isEvent=d>=rioStart&&d<=rioEnd;
+    const dots=(campaignMap[d]?.dots||['daily']).map(t=>'<div class="cal-dot '+t+'">'+dotNum[t]+'</div>').join('');
+    cal.insertAdjacentHTML('beforeend',
+      '<div class="cal-day'+(isEvent?' event':'')+'"><div class="day-num">'+d+(isEvent?' ★':'')+'</div><div class="cal-dots">'+dots+'</div></div>');
+  }
+})();
+
+// ── CHARTS ──
+Chart.defaults.color='#c8ccd6';
+Chart.defaults.borderColor='rgba(255,255,255,0.05)';
+Chart.defaults.font.family="'Nunito Sans',sans-serif";
+Chart.defaults.font.size=14;
+
+// Intensity Timeline
+new Chart(document.getElementById('intensityChart'),{
+  type:'line',
+  data:{
+    labels:['Jan','Feb','Mar','','Apr','','May','','Jun','Jul','','Aug','Sep','Oct','Nov'],
+    datasets:[
+      {label:'Always-On Baseline',data:[0,0,2,3,5,5,5,5,5,5,5,5,5,5,5],borderColor:'#00D161',backgroundColor:'rgba(0,209,97,0.1)',fill:true,tension:.4,pointRadius:0},
+      {label:'Event Amplifier',data:[0,0,3,1,8,3,2,1,9,9,2,1,1,10,8],borderColor:'#F0C840',backgroundColor:'rgba(240,200,64,0.08)',fill:true,tension:.4,pointRadius:3,pointBackgroundColor:'#F0C840'}
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'top',labels:{usePointStyle:true,padding:24,font:{size:14},color:'#c8ccd6'}}},
+    scales:{
+      y:{display:true,grid:{color:'rgba(255,255,255,0.03)'},ticks:{display:false}},
+      x:{grid:{display:false},ticks:{font:{size:13},color:'#c8ccd6'}}
+    },
+    elements:{line:{borderWidth:2}}
+  }
+});
+
+// Dota Demographics
+new Chart(document.getElementById('dotaDemoChart'),{
+  type:'doughnut',
+  data:{
+    labels:['🇵🇭 PHL  57%','🇺🇿 UZB  11%','🇮🇷 IRN  5%','🇧🇷 BRA  3.7%','🌐 Other  23.3%'],
+    datasets:[{data:[57,11,5,3.7,23.3],backgroundColor:['#00D161','#0059C0','#C9A84C','#b91800','#1e2230'],borderWidth:0}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{padding:18,usePointStyle:true,font:{size:13},color:'#c8ccd6'}}}}
+});
+
+// CS Demographics
+new Chart(document.getElementById('csDemoChart'),{
+  type:'doughnut',
+  data:{
+    labels:['🇺🇿 UZB  50%','🇹🇷 TUR  17%','🇲🇳 MGL  8%','🇵🇭 PHL  3.6%','🌐 Other  21.4%'],
+    datasets:[{data:[50,17,8,3.6,21.4],backgroundColor:['#0059C0','#e04040','#C9A84C','#00D161','#1e2230'],borderWidth:0}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{padding:18,usePointStyle:true,font:{size:13},color:'#c8ccd6'}}}}
+});
+
+// Posting Times
+new Chart(document.getElementById('timingChart'),{
+  type:'bar',
+  data:{
+    labels:['🇵🇭 SEA','🇺🇿 Central Asia','🇹🇷 Turkey','🇧🇷 LATAM','🇪🇺 EU Target'],
+    datasets:[
+      {label:'Start (CET)',data:[11,14,18,22,18],backgroundColor:'rgba(0,209,97,0.3)',borderColor:'#00D161',borderWidth:1},
+      {label:'End (CET)',data:[13,15,19,23,20],backgroundColor:'rgba(0,209,97,0.6)',borderColor:'#00D161',borderWidth:1}
+    ]
+  },
+  options:{
+    indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'top',labels:{usePointStyle:true,padding:24,font:{size:14},color:'#c8ccd6'}}},
+    scales:{
+      x:{title:{display:true,text:'CET Hour',color:'#7a8499',font:{size:13}},grid:{color:'rgba(255,255,255,0.03)'},min:9,max:24,ticks:{font:{size:13},color:'#c8ccd6'}},
+      y:{grid:{display:false},ticks:{font:{size:14},color:'#c8ccd6'}}
+    }
+  }
+});
+
+// Format Performance
+new Chart(document.getElementById('formatChart'),{
+  type:'bar',
+  data:{
+    labels:['Reels','Carousels','Static Images'],
+    datasets:[
+      {label:'Avg Reach %',data:[30.81,14.45,8],backgroundColor:'rgba(0,209,97,0.6)',borderRadius:4},
+      {label:'Engagement Rate %',data:[2.46,10,7],backgroundColor:'rgba(240,200,64,0.6)',borderRadius:4}
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'top',labels:{usePointStyle:true,padding:24,font:{size:14},color:'#c8ccd6'}}},
+    scales:{
+      y:{grid:{color:'rgba(255,255,255,0.03)'},title:{display:true,text:'Percentage',color:'#7a8499',font:{size:13}},ticks:{font:{size:13},color:'#c8ccd6'}},
+      x:{grid:{display:false},ticks:{font:{size:14},color:'#c8ccd6'}}
+    }
+  }
+});
+
+// Benchmark Radar
+new Chart(document.getElementById('benchmarkChart'),{
+  type:'radar',
+  data:{
+    labels:['Reach','Engagement','Saves','Shares','Comments','Purchase Intent'],
+    datasets:[
+      {label:'Reels',data:[95,40,30,60,35,25],borderColor:'#00D161',backgroundColor:'rgba(0,209,97,0.1)',pointBackgroundColor:'#00D161'},
+      {label:'Carousels',data:[50,85,95,70,80,90],borderColor:'#F0C840',backgroundColor:'rgba(240,200,64,0.1)',pointBackgroundColor:'#F0C840'},
+      {label:'Static',data:[25,55,40,20,45,35],borderColor:'#7a8499',backgroundColor:'rgba(122,132,153,0.05)',pointBackgroundColor:'#7a8499'}
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'top',labels:{usePointStyle:true,padding:24,font:{size:14},color:'#c8ccd6'}}},
+    scales:{r:{angleLines:{color:'rgba(255,255,255,0.05)'},grid:{color:'rgba(255,255,255,0.05)'},pointLabels:{font:{size:14,weight:'600'},color:'#c8ccd6'},ticks:{display:false}}}
+  }
+});
+</script>
+</body>
+</html>
