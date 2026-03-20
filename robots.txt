@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /decks/
+
+# Allow the rest of the site
+Allow: /

@@ -11,6 +11,7 @@
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
 <title>rdy.gg Social Media Content Strategy</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -341,9 +342,16 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
 .fade-in.visible{opacity:1;transform:translateY(0);}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
 .pulse{animation:pulse 2s infinite;}
+
+/* ── READ PROGRESS BAR ── */
+#read-progress-wrap{position:fixed;top:0;left:0;right:0;height:3px;background:rgba(0,209,97,0.12);z-index:1000;pointer-events:none;}
+#read-progress{height:100%;width:0%;background:var(--green);transition:width 0.1s linear;}
 </style>
 </head>
 <body>
+
+<!-- ── READ PROGRESS BAR ── -->
+<div id="read-progress-wrap" aria-hidden="true"><div id="read-progress"></div></div>
 
 <!-- ═══════════ BACKGROUND ═══════════ -->
 <div class="bg-layer" aria-hidden="true">
@@ -1616,10 +1624,18 @@ const fadeObs=new IntersectionObserver((entries)=>{
 },{threshold:0.1});
 document.querySelectorAll('.fade-in').forEach(el=>fadeObs.observe(el));
 
-// ── SCROLL TOP ──
+// ── SCROLL TOP + READ PROGRESS ──
+const readProgress=document.getElementById('read-progress');
+function updateReadProgress(){
+  const scrolled=window.scrollY;
+  const total=document.documentElement.scrollHeight-window.innerHeight;
+  readProgress.style.width=(total>0?(scrolled/total)*100:0).toFixed(1)+'%';
+}
 window.addEventListener('scroll',()=>{
   document.getElementById('scrollTop').classList.toggle('visible',window.scrollY>500);
-});
+  updateReadProgress();
+},{passive:true});
+updateReadProgress();
 
 // ── CAMPAIGN COLLAPSIBLES ──
 function toggleCampaign(id){
