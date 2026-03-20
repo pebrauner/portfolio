@@ -275,13 +275,14 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
 
 /* ── KPI TABLE ── */
 .kpi-table{border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-top:28px;}
-.kpi-header{display:grid;grid-template-columns:1.2fr 1fr 1.2fr;padding:11px 20px;background:var(--surface);border-bottom:1px solid var(--border);font-family:'Alumni Sans',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);}
-.kpi-row{display:grid;grid-template-columns:1.2fr 1fr 1.2fr;padding:15px 20px;border-bottom:1px solid var(--border);align-items:center;transition:background .2s;}
+.kpi-header{display:grid;grid-template-columns:1.2fr 1fr 1.2fr 0.6fr;padding:11px 20px;background:var(--surface);border-bottom:1px solid var(--border);font-family:'Nunito Sans',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);}
+.kpi-row{display:grid;grid-template-columns:1.2fr 1fr 1.2fr 0.6fr;padding:15px 20px;border-bottom:1px solid var(--border);align-items:center;transition:background .2s;}
 .kpi-row:last-child{border-bottom:none;}
 .kpi-row:hover{background:rgba(255,255,255,.02);}
 .kpi-platform{display:flex;align-items:center;gap:9px;font-size:.87rem;font-weight:600;color:var(--text-primary);}
 .kpi-now{font-size:.83rem;color:var(--text-muted);}
 .kpi-target{font-size:.87rem;color:var(--green);font-weight:600;}
+.kpi-growth{font-size:.83rem;color:#4a9eff;font-weight:700;}
 .kpi-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
 .kpi-dot.dota{background:#b91800;}
 .kpi-dot.cs2{background:#0059c0;}
@@ -1076,36 +1077,43 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
       <span>Platform</span>
       <span>Now</span>
       <span>60 Days</span>
+      <span>Growth</span>
     </div>
     <div class="kpi-row">
       <span class="kpi-platform"><span class="kpi-dot dota"></span>Instagram Dota</span>
       <span class="kpi-now">829 followers</span>
       <span class="kpi-target">1,350 followers</span>
+      <span class="kpi-growth">+63%</span>
     </div>
     <div class="kpi-row">
       <span class="kpi-platform"><span class="kpi-dot cs2"></span>Instagram CS2</span>
       <span class="kpi-now">461 followers</span>
       <span class="kpi-target">700 followers + one Reel at 15k+ views</span>
+      <span class="kpi-growth">+52%</span>
     </div>
     <div class="kpi-row">
       <span class="kpi-platform"><span class="kpi-dot dota"></span>X Dota</span>
       <span class="kpi-now">879 followers · 6.6% engagement</span>
       <span class="kpi-target">1,100 followers · hold 6%+</span>
+      <span class="kpi-growth">+25%</span>
     </div>
     <div class="kpi-row">
       <span class="kpi-platform"><span class="kpi-dot cs2"></span>X CS2</span>
       <span class="kpi-now">140 followers</span>
-      <span class="kpi-target">250 followers · impressions primary</span>
+      <span class="kpi-target">280 followers · impressions primary</span>
+      <span class="kpi-growth">+100%</span>
     </div>
     <div class="kpi-row">
       <span class="kpi-platform"><span class="kpi-dot fb"></span>Facebook</span>
       <span class="kpi-now">753 followers</span>
       <span class="kpi-target">950 followers</span>
+      <span class="kpi-growth">+26%</span>
     </div>
     <div class="kpi-row kpi-row-web">
       <span class="kpi-platform"><span class="kpi-dot web"></span>Website · Organic Social</span>
       <span class="kpi-now">~70 sessions / day</span>
       <span class="kpi-target">140 sessions / day</span>
+      <span class="kpi-growth">+100%</span>
     </div>
   </div>
 </div>
