@@ -48,18 +48,15 @@
   ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
   /* ─── CURSOR ─── */
-  /* Gauntlet cursor — side-view armoured glove pointing right.
-     Layout: [cuff/bracer] → [palm+knuckles] → [index finger →]
-     Hotspot at fingertip: (31, 16). */
+  /* Pixel-art gauntlet cursor. Hotspot at fingertip (3, 3). */
   html, body {
-    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Crect x='0' y='8' width='10' height='16' rx='3' fill='%23111'/%3E%3Crect x='1' y='9' width='8' height='14' rx='2' fill='%23787878'/%3E%3Crect x='2' y='9' width='5' height='12' fill='%23a0a0a0' opacity='0.4'/%3E%3Crect x='1' y='14' width='8' height='3' fill='%23444'/%3E%3Crect x='2' y='15' width='6' height='1' fill='%23999' opacity='0.7'/%3E%3Ccircle cx='3' cy='11' r='0.8' fill='%23bbb'/%3E%3Ccircle cx='7' cy='11' r='0.8' fill='%23bbb'/%3E%3Ccircle cx='3' cy='20' r='0.8' fill='%23bbb'/%3E%3Ccircle cx='7' cy='20' r='0.8' fill='%23bbb'/%3E%3Crect x='8' y='7' width='13' height='18' rx='2' fill='%23111'/%3E%3Crect x='9' y='8' width='11' height='16' rx='1' fill='%238a8a8a'/%3E%3Crect x='10' y='9' width='3' height='13' fill='%23b5b5b5' opacity='0.35'/%3E%3Ccircle cx='18' cy='10' r='1.5' fill='%23c5c5c5'/%3E%3Ccircle cx='18' cy='14' r='1.5' fill='%23c5c5c5'/%3E%3Ccircle cx='18' cy='18' r='1.5' fill='%23c5c5c5'/%3E%3Ccircle cx='18' cy='22' r='1.5' fill='%23c5c5c5'/%3E%3Crect x='19' y='12' width='7' height='8' rx='1' fill='%23111'/%3E%3Crect x='20' y='13' width='5' height='6' rx='1' fill='%23878787'/%3E%3Crect x='20' y='13' width='2' height='5' fill='%23c0c0c0' opacity='0.5'/%3E%3Crect x='24' y='13' width='1' height='5' fill='%23555' opacity='0.5'/%3E%3Crect x='25' y='12' width='1' height='8' fill='%23333'/%3E%3Crect x='25' y='13' width='6' height='6' rx='1' fill='%23111'/%3E%3Crect x='26' y='14' width='4' height='4' rx='1' fill='%23878787'/%3E%3Crect x='26' y='14' width='2' height='3' fill='%23c0c0c0' opacity='0.5'/%3E%3C/svg%3E") 31 16, auto;
+    cursor: url("/assets/img/cursor-gauntlet.png") 3 3, auto;
   }
-  /* Hover/pointer — finger glows red (site accent) */
   a, button, [role="button"], input[type="submit"], input[type="reset"],
   .btn-primary, .btn-ghost, .nav-link, .photo-item, .writing-card,
   .carousel-btn, .lightbox-close, .lightbox-prev, .lightbox-next,
   .photo-dot, select, label {
-    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Crect x='0' y='8' width='10' height='16' rx='3' fill='%23111'/%3E%3Crect x='1' y='9' width='8' height='14' rx='2' fill='%23787878'/%3E%3Crect x='2' y='9' width='5' height='12' fill='%23a0a0a0' opacity='0.4'/%3E%3Crect x='1' y='14' width='8' height='3' fill='%23444'/%3E%3Crect x='2' y='15' width='6' height='1' fill='%23999' opacity='0.7'/%3E%3Ccircle cx='3' cy='11' r='0.8' fill='%23bbb'/%3E%3Ccircle cx='7' cy='11' r='0.8' fill='%23bbb'/%3E%3Ccircle cx='3' cy='20' r='0.8' fill='%23bbb'/%3E%3Ccircle cx='7' cy='20' r='0.8' fill='%23bbb'/%3E%3Crect x='8' y='7' width='13' height='18' rx='2' fill='%23111'/%3E%3Crect x='9' y='8' width='11' height='16' rx='1' fill='%238a8a8a'/%3E%3Crect x='10' y='9' width='3' height='13' fill='%23b5b5b5' opacity='0.35'/%3E%3Ccircle cx='18' cy='10' r='1.5' fill='%23c5c5c5'/%3E%3Ccircle cx='18' cy='14' r='1.5' fill='%23c5c5c5'/%3E%3Ccircle cx='18' cy='18' r='1.5' fill='%23c5c5c5'/%3E%3Ccircle cx='18' cy='22' r='1.5' fill='%23c5c5c5'/%3E%3Crect x='19' y='12' width='7' height='8' rx='1' fill='%23111'/%3E%3Crect x='20' y='13' width='5' height='6' rx='1' fill='%23b83010'/%3E%3Crect x='20' y='13' width='2' height='5' fill='%23ff7050' opacity='0.5'/%3E%3Crect x='24' y='13' width='1' height='5' fill='%23801008' opacity='0.6'/%3E%3Crect x='25' y='12' width='1' height='8' fill='%23333'/%3E%3Crect x='25' y='13' width='6' height='6' rx='1' fill='%23e03418'/%3E%3Crect x='26' y='14' width='4' height='4' rx='1' fill='%23c83010'/%3E%3Crect x='26' y='14' width='2' height='3' fill='%23ff7050' opacity='0.5'/%3E%3C/svg%3E") 31 16, pointer;
+    cursor: url("/assets/img/cursor-gauntlet-hover.png") 3 3, pointer;
   }
 
   /* ─── NAV ─── */
