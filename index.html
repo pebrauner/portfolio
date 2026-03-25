@@ -1843,10 +1843,13 @@
 
   /* ─── HERO PARALLAX ─── */
   const heroPhoto = document.querySelector('.hero-photo');
-  window.addEventListener('scroll', () => {
-    const y = window.scrollY;
-    heroPhoto.style.transform = `translateY(${y * 0.4}px)`;
-  }, { passive: true });
+  let parallaxTarget = 0, parallaxCurrent = 0;
+  window.addEventListener('scroll', () => { parallaxTarget = window.scrollY; }, { passive: true });
+  (function parallaxLoop() {
+    parallaxCurrent += (parallaxTarget - parallaxCurrent) * 0.07;
+    heroPhoto.style.transform = `translateY(${parallaxCurrent * 0.4}px)`;
+    requestAnimationFrame(parallaxLoop);
+  })();
 
   /* ─── FORM SUBMIT ─── */
   async function handleSubmit(e) {
