@@ -1198,17 +1198,11 @@
     overflow: hidden;
   }
 
-  .bg-grid {
+  #bg-dither {
     position: absolute;
     inset: 0;
-    background-image: radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px);
-    background-size: 44px 44px;
-    animation: bgGridShift 120s linear infinite;
-  }
-
-  @keyframes bgGridShift {
-    0%   { background-position: 0 0; }
-    100% { background-position: 44px 44px; }
+    width: 100%;
+    height: 100%;
   }
 
   .bg-orb {
@@ -1267,7 +1261,7 @@
 
 <!-- BACKGROUND AMBIENT -->
 <div class="bg-layer" aria-hidden="true">
-  <div class="bg-grid"></div>
+  <canvas id="bg-dither"></canvas>
   <div class="bg-orb bg-orb-red"></div>
   <div class="bg-orb bg-orb-warm"></div>
   <div class="bg-orb bg-orb-ember"></div>
@@ -1863,5 +1857,96 @@
   }
 </script>
 
+
+<script>
+(function () {
+  const canvas = document.getElementById('bg-dither');
+  const ctx    = canvas.getContext('2d');
+
+  // Raw + smoothed mouse (start off-screen so no initial burst)
+  let rawX = -3000, rawY = -3000;
+  let smX  = rawX,  smY  = rawY;
+  window.addEventListener('mousemove', e => { rawX = e.clientX; rawY = e.clientY; });
+
+  function resize() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  const CELL  = 22;
+  const CHARS = ['.', '·', ':', '+', 'x', '#'];
+
+  // Stable per-cell phase offsets for animated noise
+  const MAX_COLS = Math.ceil(3840 / CELL);
+  const MAX_ROWS = Math.ceil(2160 / CELL);
+  const phase = new Float32Array(MAX_COLS * MAX_ROWS);
+  for (let i = 0; i < phase.length; i++) phase[i] = Math.random() * Math.PI * 2;
+
+  let t = 0;
+
+  function frame() {
+    requestAnimationFrame(frame);
+
+    // Ease mouse toward raw position
+    smX += (rawX - smX) * 0.09;
+    smY += (rawY - smY) * 0.09;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const cols = Math.ceil(canvas.width  / CELL) + 1;
+    const rows = Math.ceil(canvas.height / CELL) + 1;
+
+    ctx.font        = Math.round(CELL * 0.62) + 'px "Space Mono",monospace';
+    ctx.textAlign   = 'center';
+    ctx.textBaseline = 'middle';
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const x = c * CELL + CELL * 0.5;
+        const y = r * CELL + CELL * 0.5;
+
+        // Slow breathing ambient noise per cell
+        const p     = phase[r * MAX_COLS + c] || 0;
+        const base  = (Math.sin(t * 0.22 + p) * 0.5 + 0.5) * 0.16;
+
+        // Mouse proximity — quadratic falloff over 340px radius
+        const dx    = x - smX;
+        const dy    = y - smY;
+        const dist  = Math.sqrt(dx * dx + dy * dy);
+        const RANGE = 340;
+        const mVal  = dist < RANGE ? Math.pow(1 - dist / RANGE, 2) : 0;
+
+        const total = base + mVal * 0.84;
+        if (total < 0.04) continue;
+
+        const ci   = Math.min(CHARS.length - 1, Math.floor(total * CHARS.length));
+        const char = CHARS[ci];
+
+        // Color: grey ambient → warm midfield → portfolio red at peak
+        let rC, gC, bC, a;
+        if (mVal > 0.55) {
+          a  = 0.10 + mVal * 0.60;
+          rC = 224; gC = 52; bC = 24;           // --accent red
+        } else if (mVal > 0.12) {
+          a  = 0.04 + mVal * 0.38;
+          rC = 230; gC = 130; bC = 90;          // warm transition
+        } else {
+          a  = base * 0.55;
+          rC = 200; gC = 200; bC = 200;         // faint grey field
+        }
+
+        ctx.fillStyle = 'rgba(' + rC + ',' + gC + ',' + bC + ',' + a.toFixed(3) + ')';
+        ctx.fillText(char, x, y);
+      }
+    }
+
+    t += 0.016;
+  }
+
+  frame();
+})();
+</script>
 </body>
 </html>
