@@ -47,17 +47,6 @@
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
   ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
-  /* ─── CURSOR ─── */
-  /* Pixel-art gauntlet cursor. Hotspot at fingertip (3, 3). */
-  html, body {
-    cursor: url("/assets/img/cursor-gauntlet.png") 3 3, auto;
-  }
-  a, button, [role="button"], input[type="submit"], input[type="reset"],
-  .btn-primary, .btn-ghost, .nav-link, .photo-item, .writing-card,
-  .carousel-btn, .lightbox-close, .lightbox-prev, .lightbox-next,
-  .photo-dot, select, label {
-    cursor: url("/assets/img/cursor-gauntlet-hover.png") 3 3, pointer;
-  }
 
   /* ─── NAV ─── */
   .nav {
@@ -1875,7 +1864,7 @@
   window.addEventListener('resize', resize);
   resize();
 
-  const CELL  = 22;
+  const CELL  = 14;
   const CHARS = ['.', '·', ':', '+', 'x', '#'];
 
   // Stable per-cell phase offsets for animated noise
@@ -1890,15 +1879,15 @@
     requestAnimationFrame(frame);
 
     // Ease mouse toward raw position
-    smX += (rawX - smX) * 0.09;
-    smY += (rawY - smY) * 0.09;
+    smX += (rawX - smX) * 0.18;
+    smY += (rawY - smY) * 0.18;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const cols = Math.ceil(canvas.width  / CELL) + 1;
     const rows = Math.ceil(canvas.height / CELL) + 1;
 
-    ctx.font        = Math.round(CELL * 0.62) + 'px "Space Mono",monospace';
+    ctx.font        = Math.round(CELL * 0.7) + 'px "Space Mono",monospace';
     ctx.textAlign   = 'center';
     ctx.textBaseline = 'middle';
 
@@ -1909,7 +1898,7 @@
 
         // Slow breathing ambient noise per cell
         const p     = phase[r * MAX_COLS + c] || 0;
-        const base  = (Math.sin(t * 0.22 + p) * 0.5 + 0.5) * 0.16;
+        const base  = (Math.sin(t * 0.55 + p) * 0.5 + 0.5) * 0.18;
 
         // Mouse proximity — quadratic falloff over 340px radius
         const dx    = x - smX;
@@ -1942,7 +1931,7 @@
       }
     }
 
-    t += 0.016;
+    t += 0.032;
   }
 
   frame();
