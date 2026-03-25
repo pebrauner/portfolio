@@ -625,7 +625,6 @@
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 10px;
-    overflow: hidden;
     transition: border-color 0.3s, transform 0.3s;
   }
 
@@ -690,6 +689,8 @@
     position: relative;
     aspect-ratio: 16 / 9;
     background: var(--surface-2);
+    overflow: hidden;
+    border-radius: 10px 10px 0 0;
   }
 
   .video-thumb iframe {
@@ -1843,16 +1844,13 @@
 
   /* ─── HERO PARALLAX ─── */
   const heroPhoto = document.querySelector('.hero-photo');
-  let rafPending = false;
-  window.addEventListener('scroll', () => {
-    if (!rafPending) {
-      rafPending = true;
-      requestAnimationFrame(() => {
-        heroPhoto.style.transform = `translateY(${window.scrollY * 0.4}px)`;
-        rafPending = false;
-      });
-    }
-  }, { passive: true });
+  let parallaxTarget = 0, parallaxCurrent = 0;
+  window.addEventListener('scroll', () => { parallaxTarget = window.scrollY; }, { passive: true });
+  (function parallaxLoop() {
+    parallaxCurrent += (parallaxTarget - parallaxCurrent) * 0.20;
+    heroPhoto.style.transform = `translateY(${parallaxCurrent * 0.25}px)`;
+    requestAnimationFrame(parallaxLoop);
+  })();
 
   /* ─── FORM SUBMIT ─── */
   async function handleSubmit(e) {
