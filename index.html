@@ -1178,6 +1178,43 @@
     .content-grid { grid-template-columns: 1fr; }
   }
 
+  /* ─── BORDER GLOW ─── */
+  .writing-card,
+  .video-card,
+  .content-card,
+  .contact-email {
+    --gx: 50%;
+    --gy: 50%;
+    --glow-o: 0;
+    position: relative;
+  }
+
+  .writing-card::after,
+  .video-card::after,
+  .content-card::after,
+  .contact-email::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: radial-gradient(
+      260px circle at var(--gx) var(--gy),
+      rgba(224, 52, 24, 0.7) 0%,
+      rgba(255, 92, 43, 0.3) 40%,
+      transparent 70%
+    );
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: var(--glow-o);
+    transition: opacity 0.35s ease;
+    pointer-events: none;
+    z-index: 2;
+  }
+
   /* ─── BACKGROUND AMBIENT ─── */
   .bg-layer {
     position: fixed;
@@ -1846,6 +1883,27 @@
   }
 </script>
 
+
+<script>
+// ─── BORDER GLOW ───
+(function () {
+  const SEL = '.writing-card, .video-card, .content-card, .contact-email';
+
+  function attach(el) {
+    el.addEventListener('mousemove', e => {
+      const r = el.getBoundingClientRect();
+      el.style.setProperty('--gx', (e.clientX - r.left) + 'px');
+      el.style.setProperty('--gy', (e.clientY - r.top)  + 'px');
+      el.style.setProperty('--glow-o', '1');
+    });
+    el.addEventListener('mouseleave', () => {
+      el.style.setProperty('--glow-o', '0');
+    });
+  }
+
+  document.querySelectorAll(SEL).forEach(attach);
+})();
+</script>
 
 <script>
 (function () {
