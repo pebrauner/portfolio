@@ -1690,7 +1690,6 @@
   }
 
   function spawnSparks(count) {
-    resizeCanvas();
     const bc = getBoardCenter();
     for (let i = 0; i < count; i++) {
       const spawnX = bc.x + (Math.random() - 0.5) * bc.w * 1.2;
@@ -1727,7 +1726,7 @@
       s.y += s.vy;
       s.vy += 4 * dt;
       s.trail.push({ x: s.x, y: s.y });
-      if (s.trail.length > 6) s.trail.shift();
+      if (s.trail.length > 3) s.trail.shift();
       const alpha = s.life / s.maxLife;
       if (s.trail.length > 1) {
         const [r, g, b] = s.color;
@@ -1775,11 +1774,11 @@
       boardFrame.classList.remove('malfunction', 'flash-resolve');
       void boardFrame.offsetWidth;
       boardFrame.classList.add('malfunction');
-      spawnSparks(45); startSparkLoop();
-      setTimeout(() => spawnSparks(35), 100);
-      setTimeout(() => spawnSparks(40), 220);
-      setTimeout(() => spawnSparks(30), 350);
-      setTimeout(() => spawnSparks(25), 500);
+      spawnSparks(18); startSparkLoop();
+      setTimeout(() => spawnSparks(14), 120);
+      setTimeout(() => spawnSparks(16), 260);
+      setTimeout(() => spawnSparks(12), 400);
+      setTimeout(() => spawnSparks(10), 540);
       setTimeout(() => {
         boardFrame.classList.remove('malfunction');
         boardFrame.classList.add('flash-resolve');
