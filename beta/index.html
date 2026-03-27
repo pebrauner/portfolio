@@ -1041,66 +1041,8 @@
   }
   .resume-download:hover { border-color: var(--red); color: var(--red); }
 
-  /* ===== SPARK / MALFUNCTION ===== */
-  .spark-canvas {
-    position: fixed;
-    inset: 0;
-    width: 100vw;
-    height: 100vh;
-    pointer-events: none;
-    z-index: 9996;
-  }
-  .board-frame.malfunction { animation: malfunction-shake .6s ease-out; }
-  .board-frame.malfunction::before {
-    content: '';
-    position: absolute;
-    inset: -4px;
-    border: 2px solid transparent;
-    z-index: 20;
-    pointer-events: none;
-    animation: border-zap .6s steps(3) forwards;
-  }
-  @keyframes malfunction-shake {
-    0%    { transform: translate(0,0) skewX(0deg); }
-    10%   { transform: translate(-4px,2px) skewX(-1deg); }
-    20%   { transform: translate(3px,-3px) skewX(1.5deg); }
-    30%   { transform: translate(-2px,1px) skewX(-0.5deg); }
-    40%   { transform: translate(4px,-1px) skewX(1deg); }
-    50%   { transform: translate(-1px,3px) skewX(-1deg); }
-    60%   { transform: translate(2px,-2px) skewX(0.5deg); }
-    80%   { transform: translate(-1px,1px) skewX(0deg); }
-    100%  { transform: translate(0,0) skewX(0deg); }
-  }
-  @keyframes border-zap {
-    0%   { border-color: #ffdd44; box-shadow: 0 0 20px rgba(255,221,68,.5), inset 0 0 15px rgba(255,221,68,.2); }
-    33%  { border-color: #4488ff; box-shadow: 0 0 25px rgba(68,136,255,.5), inset 0 0 15px rgba(68,136,255,.2); }
-    66%  { border-color: #ffdd44; box-shadow: 0 0 30px rgba(255,221,68,.6), inset 0 0 20px rgba(255,221,68,.3); }
-    100% { border-color: transparent; box-shadow: none; }
-  }
-  .board-frame.flash-resolve::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: white;
-    z-index: 30;
-    animation: white-flash .3s ease-out forwards;
-    pointer-events: none;
-  }
-  @keyframes white-flash {
-    0%   { opacity: .25; }
-    30%  { opacity: .15; }
-    100% { opacity: 0; }
-  }
-  .board-frame.malfunction .flap {
-    animation: text-zap .5s steps(2) infinite;
-  }
-  @keyframes text-zap {
-    0%   { color: var(--red); text-shadow: 0 0 6px var(--red-glow); }
-    25%  { color: #ffdd44; text-shadow: 0 0 12px rgba(255,221,68,.6); }
-    50%  { color: #4488ff; text-shadow: 0 0 12px rgba(68,136,255,.6); }
-    75%  { color: #ffdd44; text-shadow: 0 0 8px rgba(255,221,68,.4); }
-    100% { color: var(--red); text-shadow: 0 0 6px var(--red-glow); }
-  }
+  /* ===== SHUTDOWN / REBOOT ===== */
+  /* opacity transitions handled inline by JS */
 
   /* ===== FOOTER ===== */
   footer {
@@ -1147,7 +1089,6 @@
 <body>
 
 <canvas id="dither-bg"></canvas>
-<canvas class="spark-canvas" id="sparkCanvas"></canvas>
 <div class="scanlines"></div>
 <div class="vignette"></div>
 
@@ -1670,122 +1611,31 @@
       remaining === 1 ? '· 1 pull left ·' : `· ${remaining} pulls left ·`;
   }
 
-  // ===== SPARK SYSTEM =====
+  // ===== SHUTDOWN / REBOOT =====
   const boardFrame = document.getElementById('boardFrame');
-  const sparkCanvas = document.getElementById('sparkCanvas');
-  const ctx = sparkCanvas.getContext('2d');
-  let sparks = [];
-  let sparkAnimating = false;
 
-  function resizeCanvas() {
-    sparkCanvas.width = window.innerWidth;
-    sparkCanvas.height = window.innerHeight;
-  }
-  resizeCanvas();
-  window.addEventListener('resize', resizeCanvas);
+  async function triggerMalfunction() {
+    // Glitch flicker — 3 rapid opacity hits
+    boardFrame.style.transition = 'opacity 0.04s';
+    boardFrame.style.opacity = '0.15';
+    await sleep(55);
+    boardFrame.style.opacity = '1';
+    await sleep(35);
+    boardFrame.style.opacity = '0.08';
+    await sleep(45);
+    boardFrame.style.opacity = '0.6';
+    await sleep(30);
 
-  function getBoardCenter() {
-    const rect = boardFrame.getBoundingClientRect();
-    return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2, w: rect.width, h: rect.height };
-  }
+    // Full shutdown — snap to black
+    boardFrame.style.transition = 'opacity 0.07s';
+    boardFrame.style.opacity = '0';
+    await sleep(560);
 
-  function spawnSparks(count) {
-    const bc = getBoardCenter();
-    for (let i = 0; i < count; i++) {
-      const spawnX = bc.x + (Math.random() - 0.5) * bc.w * 1.2;
-      const spawnY = bc.y + (Math.random() - 0.5) * bc.h * 1.2;
-      const angle = Math.random() * Math.PI * 2;
-      const speed = 3 + Math.random() * 9;
-      const isBlue = Math.random() > 0.45;
-      const isHot = Math.random() > 0.7;
-      sparks.push({
-        x: spawnX, y: spawnY,
-        vx: Math.cos(angle) * speed * (0.5 + Math.random()),
-        vy: Math.sin(angle) * speed * (0.5 + Math.random()) - 2,
-        life: 0.5 + Math.random() * 1.2,
-        maxLife: 0.5 + Math.random() * 1.2,
-        size: isHot ? (3 + Math.random() * 4) : (1.5 + Math.random() * 3),
-        color: isBlue ? [80, 160, 255] : [255, 230, 50],
-        hot: isHot,
-        wobbleFreq: 5 + Math.random() * 15,
-        wobbleAmp: 0.5 + Math.random() * 2.5,
-        phase: Math.random() * Math.PI * 2,
-        trail: [],
-      });
-    }
-  }
-
-  function updateSparks(dt, time) {
-    ctx.clearRect(0, 0, sparkCanvas.width, sparkCanvas.height);
-    sparks = sparks.filter(s => {
-      s.life -= dt;
-      if (s.life <= 0) return false;
-      const wobble = Math.sin(time * s.wobbleFreq + s.phase) * s.wobbleAmp;
-      s.vx += wobble * dt * 10;
-      s.x += s.vx;
-      s.y += s.vy;
-      s.vy += 4 * dt;
-      s.trail.push({ x: s.x, y: s.y });
-      if (s.trail.length > 3) s.trail.shift();
-      const alpha = s.life / s.maxLife;
-      if (s.trail.length > 1) {
-        const [r, g, b] = s.color;
-        for (let t = 0; t < s.trail.length - 1; t++) {
-          const ta = (t / s.trail.length) * alpha * 0.3;
-          const ts = s.size * (t / s.trail.length) * 0.5;
-          ctx.beginPath();
-          ctx.arc(s.trail[t].x, s.trail[t].y, ts, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(${r},${g},${b},${ta})`;
-          ctx.fill();
-        }
-      }
-      const [r, g, b] = s.color;
-      ctx.beginPath();
-      ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`;
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(s.x, s.y, s.size * 0.4, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(255,255,255,${alpha * (s.hot ? 0.95 : 0.7)})`;
-      ctx.fill();
-      return true;
-    });
-  }
-
-  let sparkRAF = null;
-  function sparkLoop(last) {
-    const now = performance.now();
-    const dt = Math.min((now - last) / 1000, 0.05);
-    updateSparks(dt, now / 1000);
-    if (sparkAnimating || sparks.length > 0) {
-      sparkRAF = requestAnimationFrame(() => sparkLoop(now));
-    } else {
-      ctx.clearRect(0, 0, sparkCanvas.width, sparkCanvas.height);
-      sparkRAF = null;
-    }
-  }
-  function startSparkLoop() {
-    if (!sparkRAF) sparkRAF = requestAnimationFrame(() => sparkLoop(performance.now()));
-  }
-
-  function triggerMalfunction() {
-    return new Promise(resolve => {
-      sparkAnimating = true;
-      boardFrame.classList.remove('malfunction', 'flash-resolve');
-      void boardFrame.offsetWidth;
-      boardFrame.classList.add('malfunction');
-      spawnSparks(18); startSparkLoop();
-      setTimeout(() => spawnSparks(14), 120);
-      setTimeout(() => spawnSparks(16), 260);
-      setTimeout(() => spawnSparks(12), 400);
-      setTimeout(() => spawnSparks(10), 540);
-      setTimeout(() => {
-        boardFrame.classList.remove('malfunction');
-        boardFrame.classList.add('flash-resolve');
-        sparkAnimating = false;
-        setTimeout(() => { boardFrame.classList.remove('flash-resolve'); resolve(); }, 300);
-      }, 700);
-    });
+    // Reboot — fade back in
+    boardFrame.style.transition = 'opacity 0.35s ease-out';
+    boardFrame.style.opacity = '1';
+    await sleep(350);
+    boardFrame.style.transition = '';
   }
 
   async function pull() {
