@@ -1615,26 +1615,46 @@
   const boardFrame = document.getElementById('boardFrame');
 
   async function triggerMalfunction() {
-    // Glitch flicker — 3 rapid opacity hits
-    boardFrame.style.transition = 'opacity 0.04s';
-    boardFrame.style.opacity = '0.15';
-    await sleep(55);
-    boardFrame.style.opacity = '1';
-    await sleep(35);
-    boardFrame.style.opacity = '0.08';
-    await sleep(45);
-    boardFrame.style.opacity = '0.6';
+    // Phase 1 — aggressive colour strobe (~420ms)
+    const t0 = performance.now();
+    let on = false;
+    const hues = [0, 90, 180, 270, 45, 315];
+    let hi = 0;
+    while (performance.now() - t0 < 420) {
+      on = !on;
+      if (on) {
+        boardFrame.style.opacity  = '1';
+        boardFrame.style.filter   = `hue-rotate(${hues[hi++ % hues.length]}deg) brightness(${1.8 + Math.random() * 1.2})`;
+      } else {
+        boardFrame.style.opacity  = '0.04';
+        boardFrame.style.filter   = 'brightness(0.1)';
+      }
+      await sleep(20 + Math.random() * 35);
+    }
+
+    // Phase 2 — CRT collapse: board squishes to a bright white line
+    boardFrame.style.opacity    = '1';
+    boardFrame.style.filter     = 'brightness(6) saturate(0)';
+    boardFrame.style.transition = 'transform 0.12s ease-in';
+    boardFrame.style.transform  = 'scaleY(0.015)';
+    await sleep(140);
+
+    // Phase 3 — hard black out
+    boardFrame.style.transition = 'none';
+    boardFrame.style.transform  = 'scaleY(0)';
+    boardFrame.style.opacity    = '0';
+    boardFrame.style.filter     = '';
+    await sleep(480);
+
+    // Phase 4 — reboot: line expands back to full board
+    boardFrame.style.filter    = 'brightness(6) saturate(0)';
+    boardFrame.style.opacity   = '1';
+    boardFrame.style.transform = 'scaleY(0.015)';
     await sleep(30);
-
-    // Full shutdown — snap to black
-    boardFrame.style.transition = 'opacity 0.07s';
-    boardFrame.style.opacity = '0';
-    await sleep(560);
-
-    // Reboot — fade back in
-    boardFrame.style.transition = 'opacity 0.35s ease-out';
-    boardFrame.style.opacity = '1';
-    await sleep(350);
+    boardFrame.style.transition = 'transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), filter 0.6s ease-out';
+    boardFrame.style.transform  = 'none';
+    boardFrame.style.filter     = 'none';
+    await sleep(440);
     boardFrame.style.transition = '';
   }
 
