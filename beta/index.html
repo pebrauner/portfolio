@@ -255,6 +255,74 @@
   .hero-tagline.visible { opacity: 1; }
   .hero-tagline em { color: var(--red); font-style: normal; text-shadow: 0 0 6px var(--red-glow); }
 
+  /* ===== HERO STATS + ACTIONS ===== */
+  .hero-stats {
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 36px;
+    opacity: 0;
+    transition: opacity .6s ease .3s;
+  }
+  .hero-stats.visible { opacity: 1; }
+  .hero-stat { text-align: center; }
+  .hero-stat-val {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 16px;
+    color: var(--red);
+    text-shadow: 0 0 8px var(--red-glow);
+  }
+  .hero-stat-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 28px;
+    flex-wrap: wrap;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity .6s ease .45s;
+  }
+  .hero-actions.visible { opacity: 1; }
+  .btn-hero {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 12px 28px;
+    border: 1px solid;
+    cursor: pointer;
+    background: none;
+    transition: background .2s, color .2s, box-shadow .2s;
+  }
+  .btn-hero-primary {
+    border-color: var(--red);
+    color: var(--red);
+  }
+  .btn-hero-primary:hover {
+    background: var(--red);
+    color: #0a0a0a;
+    box-shadow: 0 0 20px var(--red-glow);
+  }
+  .btn-hero-ghost {
+    border-color: var(--border);
+    color: var(--text-dim);
+  }
+  .btn-hero-ghost:hover {
+    border-color: var(--text-dim);
+    color: var(--text);
+  }
+
   .scroll-cue {
     margin-top: 40px;
     font-family: 'IBM Plex Mono', monospace;
@@ -1122,6 +1190,31 @@
   <div class="roll-counter" id="rollCounter"></div>
   <div class="hero-sub" id="heroSub">Journalist &amp; Content Strategist</div>
   <p class="hero-tagline" id="heroTag">Writing, directing, and decoding stories that move — in <em>three languages</em>.</p>
+
+  <div class="hero-stats" id="heroStats">
+    <div class="hero-stat">
+      <div class="hero-stat-val">5+</div>
+      <div class="hero-stat-label">Years covering<br>esports</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-val">100+</div>
+      <div class="hero-stat-label">Articles<br>published</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-val">10M+</div>
+      <div class="hero-stat-label">People<br>reached</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-val">50+</div>
+      <div class="hero-stat-label">Videos<br>published</div>
+    </div>
+  </div>
+
+  <div class="hero-actions" id="heroActions">
+    <a href="#contact" class="btn-hero btn-hero-primary">Get in Touch</a>
+    <button class="btn-hero btn-hero-ghost" onclick="openResume()">Curriculum Vitae ↓</button>
+  </div>
+
   <div class="scroll-cue" id="scrollCue">↓ Scroll ↓</div>
 </div>
 
@@ -1729,6 +1822,8 @@
     await sleep(300);
     document.getElementById('heroSub').classList.add('visible');
     document.getElementById('heroTag').classList.add('visible');
+    document.getElementById('heroStats').classList.add('visible');
+    document.getElementById('heroActions').classList.add('visible');
     document.getElementById('scrollCue').classList.add('visible');
     pullCount = 0;
     updateCounter();
