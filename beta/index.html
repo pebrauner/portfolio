@@ -1615,46 +1615,88 @@
   const boardFrame = document.getElementById('boardFrame');
 
   async function triggerMalfunction() {
-    // Phase 1 — aggressive colour strobe (~420ms)
-    const t0 = performance.now();
-    let on = false;
-    const hues = [0, 90, 180, 270, 45, 315];
-    let hi = 0;
-    while (performance.now() - t0 < 420) {
-      on = !on;
-      if (on) {
-        boardFrame.style.opacity  = '1';
-        boardFrame.style.filter   = `hue-rotate(${hues[hi++ % hues.length]}deg) brightness(${1.8 + Math.random() * 1.2})`;
-      } else {
-        boardFrame.style.opacity  = '0.04';
-        boardFrame.style.filter   = 'brightness(0.1)';
+    // ── Phase 1: All flaps panic simultaneously ──
+    // Each runs its own async loop at a different speed — raw chaos, no flip animation
+    let alive = true;
+
+    allFlaps.forEach(f => {
+      if (f.isSpace) return;
+      const speed     = 28 + Math.random() * 110; // each flap at own rate
+      const freezeP   = 0.18;                      // 18% chance of a stutter-freeze
+      (async () => {
+        while (alive) {
+          const rnd = CHARS[Math.floor(Math.random() * CHARS.length)];
+          f.el.querySelector('.top span').textContent    = rnd;
+          f.el.querySelector('.bottom span').textContent = rnd;
+          f.val = rnd;
+          const freeze = Math.random() < freezeP ? Math.random() * 280 : 0;
+          await sleep(speed + freeze);
+        }
+      })();
+    });
+
+    // ── Phase 2: Surge 1 (~250ms in) — red heat, board shudders ──
+    await sleep(260);
+    boardFrame.style.filter    = 'brightness(8) saturate(3)';
+    boardFrame.style.boxShadow = '0 0 80px rgba(224,52,24,0.95), 0 0 200px rgba(224,52,24,0.45)';
+    boardFrame.style.transform = 'translateX(-4px)';
+    await sleep(65);
+    boardFrame.style.filter    = '';
+    boardFrame.style.boxShadow = '';
+    boardFrame.style.transform = 'translateX(3px)';
+    await sleep(40);
+    boardFrame.style.transform = '';
+
+    // ── Phase 3: Surge 2 (~450ms in) — bigger, individual flap jitter ──
+    await sleep(150);
+    allFlaps.forEach(f => {
+      if (!f.isSpace && Math.random() < 0.55) {
+        f.el.style.transform = `translateX(${(Math.random() - 0.5) * 12}px)`;
       }
-      await sleep(20 + Math.random() * 35);
-    }
+    });
+    boardFrame.style.filter    = 'brightness(13) saturate(2)';
+    boardFrame.style.boxShadow = '0 0 140px rgba(255,80,30,0.98), 0 0 320px rgba(224,52,24,0.55)';
+    boardFrame.style.transform = 'translateX(5px) skewX(-1deg)';
+    await sleep(85);
+    boardFrame.style.filter    = '';
+    boardFrame.style.boxShadow = '';
+    boardFrame.style.transform = '';
+    allFlaps.forEach(f => f.el.style.transform = '');
 
-    // Phase 2 — CRT collapse: board squishes to a bright white line
-    boardFrame.style.opacity    = '1';
-    boardFrame.style.filter     = 'brightness(6) saturate(0)';
-    boardFrame.style.transition = 'transform 0.12s ease-in';
-    boardFrame.style.transform  = 'scaleY(0.015)';
-    await sleep(140);
+    // ── Phase 4: Kill shot (~660ms in) — white overload, then instant black ──
+    await sleep(110);
+    boardFrame.style.transform = 'translateX(-3px) skewX(1deg)';
+    boardFrame.style.filter    = 'brightness(22) saturate(0)';
+    boardFrame.style.boxShadow = '0 0 200px rgba(255,255,255,0.6)';
+    await sleep(70);
 
-    // Phase 3 — hard black out
-    boardFrame.style.transition = 'none';
-    boardFrame.style.transform  = 'scaleY(0)';
-    boardFrame.style.opacity    = '0';
+    // DEAD. Hard cut, no transition.
+    alive = false;
+    boardFrame.style.transition  = 'none';
+    boardFrame.style.filter      = '';
+    boardFrame.style.boxShadow   = '';
+    boardFrame.style.transform   = '';
+    boardFrame.style.opacity     = '0';
+
+    // Reset all flap text while invisible
+    allFlaps.forEach(f => {
+      ['top','bottom','flip-top','flip-bottom'].forEach(cls => {
+        const s = f.el.querySelector('.' + cls + ' span');
+        if (s) s.textContent = f.target;
+      });
+      f.val = f.target;
+    });
+
+    // ── Phase 5: Silence ──
+    await sleep(500);
+
+    // ── Phase 6: Reboot flash ──
+    boardFrame.style.filter  = 'brightness(4)';
+    boardFrame.style.opacity = '1';
+    await sleep(90);
+    boardFrame.style.transition = 'filter 0.4s ease-out';
     boardFrame.style.filter     = '';
-    await sleep(480);
-
-    // Phase 4 — reboot: line expands back to full board
-    boardFrame.style.filter    = 'brightness(6) saturate(0)';
-    boardFrame.style.opacity   = '1';
-    boardFrame.style.transform = 'scaleY(0.015)';
-    await sleep(30);
-    boardFrame.style.transition = 'transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), filter 0.6s ease-out';
-    boardFrame.style.transform  = 'none';
-    boardFrame.style.filter     = 'none';
-    await sleep(440);
+    await sleep(120);
     boardFrame.style.transition = '';
   }
 
