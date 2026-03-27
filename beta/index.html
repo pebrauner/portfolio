@@ -1678,13 +1678,14 @@
     boardFrame.style.transform   = '';
     boardFrame.style.opacity     = '0';
 
-    // Reset all flap text while invisible
+    // Reset all flap text to random garbage while invisible
     allFlaps.forEach(f => {
+      const rnd = f.isSpace ? ' ' : CHARS[Math.floor(Math.random() * CHARS.length)];
       ['top','bottom','flip-top','flip-bottom'].forEach(cls => {
         const s = f.el.querySelector('.' + cls + ' span');
-        if (s) s.textContent = f.target;
+        if (s) s.textContent = rnd;
       });
-      f.val = f.target;
+      f.val = rnd;
     });
 
     // ── Phase 5: Silence ──
