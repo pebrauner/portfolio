@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-B770C9F7FJ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-B770C9F7FJ');
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Win Condition: ESL One Melbourne — Pedro Brauner</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Chakra+Petch:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --red: #e03418; --red-hot: #ff5c2b; --red-dark: #8b1a1a;
+    --red-glow: rgba(224,52,24,0.25); --red-glow-soft: rgba(224,52,24,0.1);
+    --bg: #0a0a0a; --surface: #111; --surface2: #161616;
+    --border: #1e1e1e; --text: #eae4dc; --text-dim: #b0b0b0;
+  }
+  html { scroll-behavior: smooth; background: var(--bg); }
+  body { background: transparent; color: var(--text); font-family: 'Chakra Petch', sans-serif; overflow-x: hidden; cursor: crosshair; line-height: 1.6; }
+  #dither-bg { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+  ::selection { background: var(--red-glow); color: var(--text); }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--red); }
+  .scanlines { position: fixed; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.18) 2px, rgba(0,0,0,.18) 4px); pointer-events: none; z-index: 9998; }
+  .vignette { position: fixed; inset: 0; background: radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,.70) 100%); pointer-events: none; z-index: 9997; }
+
+  .progress-bar { position: fixed; top: 0; left: 0; height: 2px; background: var(--red); width: 0%; z-index: 10001; box-shadow: 0 0 8px var(--red-glow); }
+
+  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 9999; display: flex; justify-content: space-between; align-items: center; padding: 16px 32px; background: rgba(10,10,10,.88); border-bottom: 1px solid var(--border); backdrop-filter: blur(6px); }
+  .nav-logo { font-family: 'Press Start 2P', monospace; font-size: 10px; color: var(--red); text-shadow: 0 0 8px var(--red-glow); letter-spacing: 2px; text-decoration: none; }
+  .nav-links { display: flex; gap: 24px; list-style: none; }
+  .nav-links a { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text-dim); text-decoration: none; text-transform: uppercase; letter-spacing: 2px; transition: color .2s, text-shadow .2s; }
+  .nav-links a:hover, .nav-links a.active { color: var(--red); text-shadow: 0 0 6px var(--red-glow); }
+  .nav-left { display: flex; align-items: center; gap: 20px; }
+  .nav-back { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); text-decoration: none; transition: color .2s; border: 1px solid var(--border); padding: 6px 12px; }
+  .nav-back:hover { color: var(--red); border-color: var(--red-dark); }
+
+  .article-wrap { position: relative; z-index: 1; max-width: 720px; margin: 0 auto; padding: 120px 40px 100px; }
+
+  .back-link { display: inline-flex; align-items: center; gap: 8px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); text-decoration: none; margin-bottom: 48px; transition: color .2s; }
+  .back-link:hover { color: var(--red); }
+
+  .article-source { font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: var(--red); margin-bottom: 16px; }
+  .article-title { font-family: 'Chakra Petch', sans-serif; font-weight: 700; font-size: clamp(32px, 5vw, 52px); line-height: 1.2; color: var(--text); margin-bottom: 24px; letter-spacing: 0.5px; }
+  .article-byline { font-family: 'IBM Plex Mono', monospace; font-size: 13px; letter-spacing: 2px; color: var(--text-dim); display: flex; align-items: center; gap: 16px; margin-bottom: 40px; flex-wrap: wrap; }
+  .article-byline-sep { width: 1px; height: 12px; background: var(--border); flex-shrink: 0; }
+  .article-divider { width: 100%; height: 1px; background: linear-gradient(to right, var(--red), transparent); margin-bottom: 48px; opacity: 0.5; }
+
+  .article-body p { font-size: 18px; line-height: 1.85; color: var(--text); margin-bottom: 1.5em; }
+  .article-body p:first-of-type::first-letter { font-size: 3.2em; font-weight: 700; line-height: 0.85; float: left; margin-right: 8px; margin-top: 4px; color: var(--red); text-shadow: 0 0 12px var(--red-glow); }
+  .article-body h2 { font-family: 'Chakra Petch', sans-serif; font-weight: 700; font-size: 24px; color: var(--text); margin: 2.5em 0 1em; padding-left: 14px; border-left: 3px solid var(--red); letter-spacing: 1px; text-transform: uppercase; }
+  .article-body h3 { font-family: 'Chakra Petch', sans-serif; font-weight: 600; font-size: 16px; color: var(--text-dim); margin: 2em 0 0.75em; padding-left: 14px; border-left: 3px solid var(--red-dark); text-transform: uppercase; letter-spacing: 2px; }
+  .article-body blockquote { border-left: 3px solid var(--red); background: var(--surface); padding: 20px 24px; margin: 2em 0; font-style: italic; font-size: 19px; color: var(--text); line-height: 1.7; }
+  .article-body blockquote cite { display: block; margin-top: 10px; font-style: normal; font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--red); }
+
+  .placeholder-note { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--red-dark); border: 1px dashed var(--red-dark); padding: 8px 14px; margin-bottom: 1.5em; background: rgba(139,26,26,0.06); letter-spacing: 1px; }
+
+  .article-footer-nav { display: flex; justify-content: space-between; gap: 16px; margin-top: 80px; padding-top: 32px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+  .afn-link { text-decoration: none; max-width: 45%; }
+  .afn-link.right { text-align: right; margin-left: auto; }
+  .afn-dir { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 6px; transition: color .2s; }
+  .afn-title { font-family: 'Chakra Petch', sans-serif; font-weight: 600; font-size: 15px; color: var(--text-dim); line-height: 1.4; transition: color .2s; }
+  .afn-link:hover .afn-dir, .afn-link:hover .afn-title { color: var(--red); }
+
+  footer { text-align: center; padding: 24px; border-top: 1px solid var(--border); font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); letter-spacing: 2px; position: relative; z-index: 1; }
+
+  .fade-in { opacity: 0; transform: translateY(20px); transition: opacity .7s ease, transform .7s ease; }
+  .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+  @media (max-width: 768px) {
+    nav { padding: 12px 16px; }
+    .nav-links { gap: 12px; }
+    .nav-links a { font-size: 9px; }
+    .article-wrap { padding: 100px 20px 80px; }
+    .article-footer-nav { flex-direction: column; }
+    .afn-link { max-width: 100%; }
+    .afn-link.right { text-align: left; margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+<canvas id="dither-bg"></canvas>
+<div class="scanlines"></div>
+<div class="vignette"></div>
+
+<nav>
+  <div class="nav-left">
+    <a href="../index.html" class="nav-back">← Back</a>
+    <a href="../index.html" class="nav-logo">PB.</a>
+  </div>
+  <ul class="nav-links">
+    <li><a href="../index.html#video">Video</a></li>
+    <li><a href="../index.html#photography">Photography</a></li>
+    <li><a href="../index.html#content">Content</a></li>
+    <li><a href="../index.html#writing" class="active">Writing</a></li>
+    <li><a href="../index.html#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<article class="article-wrap">
+
+  <a href="../index.html#writing" class="back-link fade-in">← Writing</a>
+
+  <header class="fade-in">
+    <div class="article-source">RDY.gg · 2025</div>
+    <h1 class="article-title">Win Condition: Breaking Down the Meta Shift at ESL One Melbourne</h1>
+    <div class="article-byline">
+      <span>By Pedro Brauner</span>
+      <span class="article-byline-sep"></span>
+      <span>2025</span>
+    </div>
+    <div class="article-divider"></div>
+  </header>
+
+  <div class="article-body fade-in">
+
+    <div class="placeholder-note">[ PLACEHOLDER — Replace paragraphs below with article content ]</div>
+
+    <p>Melbourne told us something that the rankings had been quietly suggesting for months: the meta had shifted, and the teams that recognized it early were the ones still standing on Sunday. It wasn't the most dramatic tournament of the season, but it was one of the most instructive.</p>
+
+    <p>[ Replace this intro. Describe the tournament's significance in the broader circuit context — where it fell in the calendar, what was on the line for the top teams, and why this event in particular was revealing about the state of Dota 2 strategy at the time. ]</p>
+
+    <h2>The Shift Nobody Talked About</h2>
+
+    <p>[ Identify the specific meta change you're analyzing. Was it a hero falling out of favor? A strategic trend around early objectives, draft priorities, late-game itemization? Describe what changed and when the first signs appeared in the tournament. ]</p>
+
+    <p>[ Go deeper. Which teams adapted well and why? Which got caught flat-footed? Use specific series or maps to make the argument concrete. ]</p>
+
+    <blockquote>
+      "[ A quote from a player or coach about the meta, their preparation, or what surprised them at Melbourne. ]"
+      <cite>— [ Name, Team ]</cite>
+    </blockquote>
+
+    <h2>Why It Matters Beyond Melbourne</h2>
+
+    <p>[ Connect this to the bigger picture: what does this meta shift mean for the upcoming tournaments? Which teams are positioned to benefit, which need to adapt urgently, and what does it tell us about where the game is heading? ]</p>
+
+    <p>[ Closing paragraph — your read on whether this is a lasting shift or a tournament-specific adjustment. What to watch for at the next major event. ]</p>
+
+  </div>
+
+  <nav class="article-footer-nav fade-in" aria-label="Article navigation">
+    <a href="esports-business.html" class="afn-link">
+      <div class="afn-dir">← Previous</div>
+      <div class="afn-title">The Business of Esports: Why Orgs Are Betting on Content Over Competition</div>
+    </a>
+  </nav>
+
+</article>
+
+<footer>Pedro Brauner © 2026</footer>
+
+<script>
+  const bar = document.getElementById('progressBar');
+  window.addEventListener('scroll', () => {
+    const total = document.documentElement.scrollHeight - window.innerHeight;
+    if (total > 0) bar.style.width = (window.scrollY / total * 100) + '%';
+  }, { passive: true });
+
+  const fadeEls = document.querySelectorAll('.fade-in');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 80);
+        obs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  fadeEls.forEach(el => obs.observe(el));
+</script>
+<script src="dither-bg.js"></script>
+
+</body>
+</html>
