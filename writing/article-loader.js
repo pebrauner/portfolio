@@ -226,7 +226,7 @@
   }
 
   function initFadeIn() {
-    var els = document.querySelectorAll('.fade-in');
+    var vh  = window.innerHeight;
     var obs = new IntersectionObserver(function (entries) {
       entries.forEach(function (e, i) {
         if (e.isIntersecting) {
@@ -234,8 +234,15 @@
           obs.unobserve(e.target);
         }
       });
-    }, { threshold: 0.1 });
-    els.forEach(function (el) { obs.observe(el); });
+    }, { threshold: 0.05 });
+    document.querySelectorAll('.fade-in').forEach(function (el) {
+      /* already in the viewport → show immediately, no observer needed */
+      if (el.getBoundingClientRect().top < vh) {
+        el.classList.add('visible');
+      } else {
+        obs.observe(el);
+      }
+    });
   }
 
   /* ─── main ─── */
@@ -286,11 +293,13 @@
 
       initFadeIn();
 
-      /* position annotations immediately, then again once fonts are ready */
-      positionAnnotations();
-      if (document.fonts && document.fonts.ready) {
-        document.fonts.ready.then(positionAnnotations);
-      }
+      /* wait one frame so the browser commits layout before measuring */
+      requestAnimationFrame(function () {
+        positionAnnotations();
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(positionAnnotations);
+        }
+      });
 
       /* reposition on resize */
       var resizeTimer;
