@@ -1,12 +1,12 @@
 (function () {
 
-  /* ─── capture loader path synchronously (currentScript is null in defer/async) ─── */
-  var _cs  = document.currentScript;
+  /* ─── capture loader path synchronously ─── */
+  var _cs      = document.currentScript;
   var loaderSrc = _cs ? _cs.src : '';
   var loaderDir = loaderSrc ? loaderSrc.replace(/[^/]+$/, '') : location.href.replace(/[^/]+$/, '');
   var rootURL   = loaderSrc ? new URL('../', loaderSrc).href : location.origin + '/';
 
-  /* ─── inject full CSS ─── */
+  /* ─── inject CSS ─── */
   var style = document.createElement('style');
   style.textContent = [
     '*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }',
@@ -49,7 +49,8 @@
     '.article-byline-sep { width: 1px; height: 12px; background: var(--border); flex-shrink: 0; }',
     '.article-divider { width: 100%; height: 1px; background: linear-gradient(to right, var(--red), transparent); margin-bottom: 48px; opacity: 0.5; }',
 
-    /* body text */
+    /* body text — single column, right-padded to make room for margin notes */
+    '.article-body { position: relative; padding-right: 300px; }',
     '.article-body p { font-size: 18px; line-height: 1.85; color: var(--text); margin-bottom: 1.5em; }',
     '.article-body p:first-of-type::first-letter { font-size: 3.2em; font-weight: 700; line-height: 0.85; float: left; margin-right: 8px; margin-top: 4px; color: var(--red); text-shadow: 0 0 12px var(--red-glow); }',
     '.article-body h2 { font-family: \'Chakra Petch\', sans-serif; font-weight: 700; font-size: 24px; color: var(--text); margin: 2.5em 0 1em; padding-left: 14px; border-left: 3px solid var(--red); letter-spacing: 1px; text-transform: uppercase; }',
@@ -58,11 +59,28 @@
     '.article-body a:hover { color: var(--red); }',
     '.article-body blockquote { border-left: 3px solid var(--red); background: var(--surface); padding: 20px 24px; margin: 2em 0; font-style: italic; font-size: 19px; color: var(--text); line-height: 1.7; }',
     '.article-body blockquote cite { display: block; margin-top: 10px; font-style: normal; font-family: \'IBM Plex Mono\', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--red); }',
-
-    /* placeholder */
     '.placeholder-note { font-family: \'IBM Plex Mono\', monospace; font-size: 12px; color: var(--red-dark); border: 1px dashed var(--red-dark); padding: 8px 14px; margin-bottom: 1.5em; background: rgba(139,26,26,0.06); letter-spacing: 1px; }',
 
-    /* annotation — base (shared between inline mobile and margin desktop) */
+    /* annotations — taken fully out of flow, positioned in right margin by JS */
+    '.article-body .annotation {',
+    '  position: absolute;',
+    '  right: 0;',
+    '  width: 240px;',
+    '  padding: 0 0 0 14px;',
+    '  border-left: 2px solid rgba(245,197,66,0.22);',
+    '  background: none;',
+    '  margin: 0;',
+    '}',
+    /* connector line: a short horizontal rule bridging text column and annotation */
+    '.article-body .annotation::before {',
+    '  content: "";',
+    '  position: absolute;',
+    '  left: -52px;',
+    '  top: 0.65em;',
+    '  width: 44px;',
+    '  height: 1px;',
+    '  background: rgba(245,197,66,0.2);',
+    '}',
     '.annotation-label { font-family: \'IBM Plex Mono\', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--yellow); opacity: 0.55; display: block; margin-bottom: 8px; }',
     '.annotation p { font-size: 13px !important; line-height: 1.7; color: rgba(245,197,66,0.72) !important; margin-bottom: 0.5em !important; }',
     '.annotation p:last-child { margin-bottom: 0 !important; }',
@@ -72,22 +90,9 @@
     '.annotation strong { color: rgba(245,197,66,0.9); font-weight: 600; }',
     '.annotation em { font-style: italic; }',
 
-    /* ── MARGIN ANNOTATION GRID LAYOUT ── */
-    '.article-body { display: grid; grid-template-columns: 1fr 240px; column-gap: 52px; align-items: start; }',
-    '.article-body > * { grid-column: 1; min-width: 0; }',
-    /* annotations go to column 2 */
-    '.article-body > .annotation { grid-column: 2; align-self: start; margin: 0; padding: 0 0 0 14px; border-left: 2px solid rgba(245,197,66,0.22); background: none; }',
-    /* hr spans both columns */
-    '.article-body > hr.article-hr { grid-column: 1 / -1; border: none; border-top: 1px solid var(--border); margin: 3em 0; }',
-    /* Q&A: full width, sub-grid for its own annotations */
-    '.article-body > .article-qa { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 240px; column-gap: 52px; align-items: start; }',
-    '.article-qa > * { grid-column: 1; min-width: 0; }',
-    '.article-qa > .annotation { grid-column: 2; align-self: start; margin: 0; padding: 0 0 0 14px; border-left: 2px solid rgba(245,197,66,0.22); background: none; }',
-
-    /* img credit */
+    /* misc */
+    '.article-hr { border: none; border-top: 1px solid var(--border); margin: 3em 0; }',
     '.img-credit { font-family: \'IBM Plex Mono\', monospace; font-size: 11px; color: var(--text-dim); opacity: 0.45; letter-spacing: 1px; margin-bottom: 2em; margin-top: -0.5em; }',
-
-    /* Q&A standalone styles */
     '.article-qa { margin-top: 0; }',
     '.qa-question { font-family: \'Chakra Petch\', sans-serif; font-weight: 700; font-size: 20px; color: var(--text); margin: 2em 0 0.75em; }',
     '.qa-answer { font-size: 18px; line-height: 1.85; color: var(--text); margin-bottom: 1em; }',
@@ -98,20 +103,22 @@
     '.fade-in.visible { opacity: 1; transform: translateY(0); }',
     '.article-loading { font-family: \'IBM Plex Mono\', monospace; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-dim); padding-top: 40px; opacity: 0.4; }',
 
-    /* ── MOBILE: annotations go back inline ── */
-    '@media (max-width: 900px) {',
+    /* mobile — annotations back inline */
+    '@media (max-width: 960px) {',
     '  nav { padding: 12px 16px; }',
     '  .nav-links { gap: 12px; }',
     '  .nav-links a { font-size: 9px; }',
     '  .article-wrap { max-width: 720px; padding: 100px 20px 80px; }',
-    '  .article-body { display: block; }',
-    '  .article-body > .article-qa { display: block; }',
-    '  .article-body > .annotation, .article-qa > .annotation {',
+    '  .article-body { padding-right: 0; }',
+    '  .article-body .annotation {',
+    '    position: static;',
+    '    width: auto;',
     '    margin: 1.75em 0;',
     '    padding: 14px 0 14px 20px;',
     '    border-left: 2px solid rgba(245,197,66,0.3);',
     '    background: rgba(245,197,66,0.025);',
     '  }',
+    '  .article-body .annotation::before { display: none; }',
     '}',
   ].join('\n');
   document.head.appendChild(style);
@@ -124,7 +131,6 @@
     document.head.appendChild(fl);
   }
 
-  /* ─── paint background immediately ─── */
   document.documentElement.style.background = '#0a0a0a';
 
   /* ─── build page structure ─── */
@@ -151,7 +157,7 @@
     '</article>' +
     '<footer>Pedro Brauner \u00a9 2026</footer>';
 
-  /* ─── dither bg script ─── */
+  /* ─── dither bg ─── */
   var dSc = document.createElement('script');
   dSc.src = loaderDir + 'dither-bg.js';
   document.body.appendChild(dSc);
@@ -161,6 +167,44 @@
   mSc.src = 'https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js';
   mSc.onload = initArticle;
   document.body.appendChild(mSc);
+
+  /* ─── annotation positioning ─── */
+  function positionAnnotations() {
+    var body = document.querySelector('.article-body');
+    if (!body) return;
+
+    var annotations = Array.from(body.querySelectorAll('.annotation'));
+    if (!annotations.length) return;
+
+    /* on narrow screens, let CSS handle inline display */
+    if (window.innerWidth <= 960) {
+      annotations.forEach(function (ann) {
+        ann.style.top = '';
+      });
+      body.style.minHeight = '';
+      return;
+    }
+
+    var scrollY   = window.scrollY;
+    var bodyTop   = body.getBoundingClientRect().top + scrollY;
+    var minBottom = 0; /* tracks the lowest point of the last placed annotation */
+
+    annotations.forEach(function (ann) {
+      /* align annotation with the bottom of the element it follows */
+      var prev = ann.previousElementSibling;
+      var targetTop = 0;
+      if (prev) {
+        targetTop = prev.getBoundingClientRect().bottom + scrollY - bodyTop;
+      }
+
+      var finalTop = Math.max(minBottom, targetTop);
+      ann.style.top = finalTop + 'px';
+      minBottom = finalTop + ann.offsetHeight + 24;
+    });
+
+    /* ensure article-body is tall enough to contain all margin annotations */
+    body.style.minHeight = minBottom + 'px';
+  }
 
   /* ─── helpers ─── */
   function parseFrontmatter(raw) {
@@ -194,9 +238,9 @@
     els.forEach(function (el) { obs.observe(el); });
   }
 
-  /* ─── main article init (runs after marked.js loads) ─── */
+  /* ─── main ─── */
   async function initArticle() {
-    var slug = (window.ARTICLE_SLUG) || new URLSearchParams(location.search).get('slug');
+    var slug = window.ARTICLE_SLUG || new URLSearchParams(location.search).get('slug');
     var root = document.getElementById('article-root');
 
     if (!slug) {
@@ -204,7 +248,6 @@
       return;
     }
 
-    /* configure marked: external links open in new tab */
     var renderer = new marked.Renderer();
     renderer.link = function (href, title, text) {
       var ext = href && (href.startsWith('http://') || href.startsWith('https://'));
@@ -218,10 +261,10 @@
     try {
       var res = await fetch(loaderDir + 'articles/' + slug + '.md');
       if (!res.ok) throw new Error(res.status);
-      var raw = await res.text();
-      var parsed = parseFrontmatter(raw);
+      var raw      = await res.text();
+      var parsed   = parseFrontmatter(raw);
       var rendered = marked.parse(parsed.content);
-      var mins = readingTime(rendered);
+      var mins     = readingTime(rendered);
 
       document.title = (parsed.meta.title || 'Article') + ' \u2014 Pedro Brauner';
 
@@ -243,6 +286,20 @@
 
       initFadeIn();
 
+      /* position annotations immediately, then again once fonts are ready */
+      positionAnnotations();
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(positionAnnotations);
+      }
+
+      /* reposition on resize */
+      var resizeTimer;
+      window.addEventListener('resize', function () {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(positionAnnotations, 120);
+      });
+
+      /* scroll progress bar */
       var bar = document.getElementById('progressBar');
       window.addEventListener('scroll', function () {
         var total = document.documentElement.scrollHeight - window.innerHeight;
