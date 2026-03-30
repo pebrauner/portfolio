@@ -263,6 +263,8 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
 .pipeline-card::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3px;border-radius:var(--radius-lg) 0 0 var(--radius-lg);}
 .pipeline-card.now::before{background:var(--green);}
 .pipeline-card.next::before{background:var(--gold);}
+.pipeline-card.cs-accent::before{background:var(--cs2-blue);}
+.pipeline-card.gold-accent::before{background:var(--gold-bright);}
 .pipe-badge{display:inline-flex;align-items:center;gap:6px;font-size:.62rem;font-weight:700;letter-spacing:.1em;padding:3px 10px;border-radius:10px;text-transform:uppercase;margin-bottom:14px;width:fit-content;}
 .pipe-badge.now{background:rgba(0,209,97,.15);color:var(--green);}
 .pipe-badge.next{background:rgba(240,200,64,.12);color:var(--gold);}
@@ -468,6 +470,10 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
     <a class="nav-link" href="#closing">Next Steps</a>
   </div>
   <div class="nav-group">
+    <div class="nav-group-title">Data &amp; Product</div>
+    <a class="nav-link" href="#platform">Platform Vision</a>
+  </div>
+  <div class="nav-group">
     <div class="nav-group-title">Appendix</div>
     <a class="nav-link" href="#research">Research &amp; Data</a>
   </div>
@@ -545,7 +551,7 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
       <div class="tag">Layer 1</div>
       <h3 style="color:var(--green);">Always-On Engine</h3>
       <p>Runs every week regardless of events. Template-driven and repeatable, built around what we already produce.</p>
-      <p style="margin:0;"><strong>Campaigns:</strong> The rdy.gg Daily, Numbers Don't Lie, Deep Dive Drop<br><strong>Video:</strong> Context Cap, W's and L's, Win Condition clips</p>
+      <p style="margin:0;"><strong>Campaigns:</strong> The rdy.gg Daily, The Print, Deep Dive Drop<br><strong>Video:</strong> Context Cap, W's and L's, Win Condition clips</p>
     </div>
     <div class="layer-card event-amp">
       <div class="tag">Layer 2</div>
@@ -691,7 +697,7 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
     <div class="campaign-header" onclick="toggleCampaign('camp2')">
       <div class="campaign-num">2</div>
       <div class="campaign-header-text">
-        <h3>Numbers Don't Lie</h3>
+        <h3>The Print</h3>
         <div class="camp-sub">Engagement engine. Breaks the clip machine perception with data</div>
       </div>
       <div class="campaign-badges"><span class="badge ig">IG Feed</span><span class="badge x">X</span></div>
@@ -981,11 +987,11 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
       <thead><tr><th>Day</th><th>IG Stories</th><th>IG Feed / Reels</th><th>Facebook</th><th>X / Twitter</th></tr></thead>
       <tbody>
         <tr><td><strong>Monday</strong></td><td>rdy.gg Daily</td><td>Context Cap Reel</td><td>Regional Spotlight (SEA)</td><td>Daily tweets + Spotlight thread</td></tr>
-        <tr><td><strong>Tuesday</strong></td><td>rdy.gg Daily</td><td>Numbers Don't Lie carousel</td><td>Context Cap video</td><td>Stat tweet + graphic</td></tr>
+        <tr><td><strong>Tuesday</strong></td><td>rdy.gg Daily</td><td>The Print carousel</td><td>Context Cap video</td><td>Stat tweet + graphic</td></tr>
         <tr><td><strong>Wednesday</strong></td><td>rdy.gg Daily</td><td>Podcast clip Reel (CS2 or Dota)</td><td>Regional Spotlight (EU/CIS)</td><td>Daily tweets + Spotlight thread</td></tr>
-        <tr><td><strong>Thursday</strong></td><td>rdy.gg Daily</td><td>Numbers Don't Lie carousel + Context Cap Reel</td><td>Deep Dive Drop</td><td>Stat tweet + Deep Dive thread</td></tr>
+        <tr><td><strong>Thursday</strong></td><td>rdy.gg Daily</td><td>The Print carousel + Context Cap Reel</td><td>Deep Dive Drop</td><td>Stat tweet + Deep Dive thread</td></tr>
         <tr><td><strong>Friday</strong></td><td>rdy.gg Daily</td><td>Deep Dive Drop carousel + W's and L's Reel</td><td>Regional Spotlight (LATAM) + W's and L's video</td><td>Daily tweets + W's and L's thread</td></tr>
-        <tr><td><strong>Saturday</strong></td><td>rdy.gg Daily (lighter)</td><td>Numbers Don't Lie carousel + podcast clip</td><td>Podcast clip</td><td>Match Day Hub (if matches)</td></tr>
+        <tr><td><strong>Saturday</strong></td><td>rdy.gg Daily (lighter)</td><td>The Print carousel + podcast clip</td><td>Podcast clip</td><td>Match Day Hub (if matches)</td></tr>
         <tr><td><strong>Sunday</strong></td><td>rdy.gg Daily (lighter)</td><td>Marcin highlight clip</td><td>-</td><td>Match Day Hub (if matches)</td></tr>
       </tbody>
     </table>
@@ -994,7 +1000,7 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
   <h3 style="font-size:1.1rem;">April 2026: Full Month with IEM Rio</h3>
   <div class="legend">
     <div class="legend-item"><div class="cal-dot daily">1</div>Daily</div>
-    <div class="legend-item"><div class="cal-dot stats">2</div>Numbers Don't Lie</div>
+    <div class="legend-item"><div class="cal-dot stats">2</div>The Print</div>
     <div class="legend-item"><div class="cal-dot regional">3</div>Regional Spotlight</div>
     <div class="legend-item"><div class="cal-dot matchday">4</div>Match Day Hub</div>
     <div class="legend-item"><div class="cal-dot deepdive">5</div>Deep Dive Drop</div>
@@ -1077,7 +1083,7 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
 
   <div class="discord-note">
     <div class="dn-icon">💬</div>
-    <p>Most relevant for <strong>Numbers Don't Lie</strong> (raw stats), <strong>Match Day Hub</strong> (match context), and <strong>Deep Dive Drop</strong> (editorial depth).</p>
+    <p>Most relevant for <strong>The Print</strong> (raw stats), <strong>Match Day Hub</strong> (match context), and <strong>Deep Dive Drop</strong> (editorial depth).</p>
   </div>
 </div>
 </section>
@@ -1150,7 +1156,7 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
         <p><strong>Approach:</strong> Gradual pump forward. The first big event after launch is <strong>MSI (June-July 2026)</strong>, and that's the "we're here" moment. Before that, build presence quietly.</p>
       </div>
       <h4 style="font-size:.9rem;margin-top:20px;">Pre-MSI — <strong>LoL Always-On starts May 5</strong></h4>
-      <p>Build presence, populate accounts with content, find the editorial voice. The Always-On campaigns (Daily, Numbers Don't Lie) start running for LoL on <strong>May 5</strong>, one post/day. No announcement. Quiet start.</p>
+      <p>Build presence, populate accounts with content, find the editorial voice. The Always-On campaigns (Daily, The Print) start running for LoL on <strong>May 5</strong>, one post/day. No announcement. Quiet start.</p>
       <h4 style="font-size:.9rem;margin-top:16px;">MSI (June / July)</h4>
       <p>Full Event Amplifier activation. "Road to MSI" countdown series in weeks before. Daily MSI coverage during the event. If someone is physically there: behind-the-scenes Stories, on-site content. Full editorial coverage planned: articles, stats, deep dives. Possibly someone at the event physically (TBC).</p>
       <h4 style="font-size:.9rem;margin-top:16px;">Post-MSI</h4>
@@ -1277,7 +1283,7 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
           </tr>
           <tr class="new-row">
             <td><span class="task-name">Stat curation &amp; angle selection</span><span class="task-note">Pick the stats, frame the narrative for Bryan</span></td>
-            <td>Numbers Don't Lie</td>
+            <td>The Print</td>
             <td><span class="freq-badge weekly">3×/week</span></td>
             <td>40 min</td>
             <td><span class="hours-val">2 hrs</span></td>
@@ -1400,15 +1406,15 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
             <td><span class="hours-val">~9 hrs</span></td>
           </tr>
           <tr class="new-row">
-            <td><span class="task-name">Numbers Don't Lie carousel design</span><span class="task-note">4-slide carousels from Pedro's stat briefs</span></td>
-            <td>Numbers Don't Lie</td>
+            <td><span class="task-name">The Print carousel design</span><span class="task-note">4-slide carousels from Pedro's stat briefs</span></td>
+            <td>The Print</td>
             <td><span class="freq-badge weekly">3×/week</span></td>
             <td>45 min</td>
             <td><span class="hours-val">2.25 hrs</span></td>
           </tr>
           <tr class="new-row">
             <td><span class="task-name">Stat graphics for X</span><span class="task-note">Single-image stat cards for tweets</span></td>
-            <td>Numbers Don't Lie</td>
+            <td>The Print</td>
             <td><span class="freq-badge weekly">3×/week</span></td>
             <td>20 min</td>
             <td><span class="hours-val">1 hr</span></td>
@@ -1465,7 +1471,7 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
           </tr>
           <tr class="new-row">
             <td><span class="task-name">Carousel + stat tweet posting</span><span class="task-note">Post Bryan's designs with copy</span></td>
-            <td>Numbers Don't Lie</td>
+            <td>The Print</td>
             <td><span class="freq-badge weekly">3×/week</span></td>
             <td>10 min</td>
             <td><span class="hours-val">0.5 hrs</span></td>
@@ -1618,6 +1624,190 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
 </div>
 </section>
 
+<!-- ── DATA & PRODUCT ── -->
+<section id="platform">
+<div class="content-wrap fade-in">
+  <div class="section-label">Data &amp; Product</div>
+  <h2 class="section-title">Building the Destination</h2>
+  <p class="section-desc">The editorial strategy and the platform strategy are the same thing. Social drives users to the site — the site has to give them a reason to stay, return during events, and trust rdy.gg as the place that actually understands what it's covering.</p>
+
+  <div class="exec-summary-card" style="margin-bottom:40px;">
+    <p>HLTV has data. Liquipedia has information. What neither of them has is <strong>editorial intelligence layered on top of proprietary analytical systems</strong>. That's the gap rdy.gg is positioned to fill.</p>
+    <p>The three features below are the foundation of rdy.gg as a data destination: live event hubs that become the URL people share during tournaments, match analysis pages that explain the why behind every result, and the rdy Index — a player ranking system built on role-normalized metrics that no one else is calculating. The prototypes are built. What follows is the implementation case.</p>
+  </div>
+
+  <div class="pipeline-grid" style="margin-bottom:20px;">
+
+    <div class="pipeline-card now">
+      <div class="pipe-badge now">Prototype Ready</div>
+      <h3>Live Event Hubs</h3>
+      <p class="pipe-tagline">One URL per tournament. Everything in one place.</p>
+      <p class="pipe-body">A dedicated page per event — live scores, bracket, team stats, schedule, and the rdy.gg editorial feed in one place. The format that turns a one-time article reader into a user who comes back every match day. Prototyped for IEM Rio 2026 (CS2) and TI 2026 (Dota 2).</p>
+      <div class="pipe-meta">
+        <span class="pipe-game cs2">CS2</span>
+        <span class="pipe-game dota">Dota 2</span>
+        <span class="pipe-fmt">Web · Event-driven</span>
+      </div>
+    </div>
+
+    <div class="pipeline-card cs-accent">
+      <div class="pipe-badge" style="background:rgba(0,89,192,.15);color:#6aabff;">Prototype Ready</div>
+      <h3>Match Analysis</h3>
+      <p class="pipe-tagline">The layer HLTV doesn't have. Roles, draft, economy.</p>
+      <p class="pipe-body">Per-match analytical pages built on the Star Points role system — positional breakdowns per side, economy graphs, draft timelines for Dota 2, and head-to-head player comparisons. Every match becomes a persistent data record that editorial can reference and link back to.</p>
+      <div class="pipe-meta">
+        <span class="pipe-game cs2">CS2</span>
+        <span class="pipe-game dota">Dota 2</span>
+        <span class="pipe-fmt">Web · Per-match</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="pipeline-card gold-accent" style="margin-bottom:32px;">
+    <div class="pipe-badge" style="background:rgba(240,200,64,.12);color:var(--gold-bright);">Data Pipeline Ready</div>
+    <h3>rdy Index</h3>
+    <p class="pipe-tagline">rdy.gg's proprietary player ranking. Role-normalized, context-weighted performance.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:16px;align-items:start;">
+      <div>
+        <p class="pipe-body" style="margin-bottom:14px;">The metric that separates rdy.gg from every other stats platform. Instead of rating all players against the same baseline, the rdy Index rates each player against their role's average — AWPers against AWPers, Hard Supports against Hard Supports. The result is a 0–100 score that reflects individual impact within a team system, not just who takes the most resources.</p>
+        <div style="display:flex;flex-direction:column;gap:9px;margin-bottom:16px;">
+          <div style="display:flex;align-items:baseline;gap:10px;">
+            <span style="font-family:'Alumni Sans',sans-serif;font-size:1.1rem;font-weight:800;color:var(--gold-bright);min-width:26px;flex-shrink:0;">01</span>
+            <div><strong style="font-size:.87rem;color:var(--text-primary);">Overall Player Rating</strong><span style="font-size:.78rem;color:var(--text-muted);"> — 0–100 composite, role-normalized</span></div>
+          </div>
+          <div style="display:flex;align-items:baseline;gap:10px;">
+            <span style="font-family:'Alumni Sans',sans-serif;font-size:1.1rem;font-weight:800;color:var(--gold-bright);min-width:26px;flex-shrink:0;">02</span>
+            <div><strong style="font-size:.87rem;color:var(--text-primary);">Dual Swing</strong><span style="font-size:.78rem;color:var(--text-muted);"> — Round impact × Duel impact per map</span></div>
+          </div>
+          <div style="display:flex;align-items:baseline;gap:10px;">
+            <span style="font-family:'Alumni Sans',sans-serif;font-size:1.1rem;font-weight:800;color:var(--gold-bright);min-width:26px;flex-shrink:0;">03</span>
+            <div><strong style="font-size:.87rem;color:var(--text-primary);">KPR vs Role Avg</strong><span style="font-size:.78rem;color:var(--text-muted);"> — CT/T performance vs role baseline</span></div>
+          </div>
+          <div style="display:flex;align-items:baseline;gap:10px;">
+            <span style="font-family:'Alumni Sans',sans-serif;font-size:1.1rem;font-weight:800;color:var(--gold-bright);min-width:26px;flex-shrink:0;">04</span>
+            <div><strong style="font-size:.87rem;color:var(--text-primary);">Playstyle Profiles</strong><span style="font-size:.78rem;color:var(--text-muted);"> — Aggression × Lurk index per player</span></div>
+          </div>
+        </div>
+        <div class="pipe-meta">
+          <span class="pipe-game cs2">CS2 first</span>
+          <span class="pipe-game dota">Dota 2 next</span>
+          <span class="pipe-fmt">Updated per event</span>
+        </div>
+      </div>
+      <div>
+        <div class="chart-box" style="margin:0;padding:18px 20px;">
+          <h4 style="font-size:.76rem;margin-bottom:2px;">rdy Index — Overall Player Rating</h4>
+          <p style="font-size:.7rem;color:var(--text-dim);margin-bottom:14px;font-family:'Nunito Sans',sans-serif;">Top 10 · CS2 · All events · Role-normalized composite</p>
+          <canvas id="rdyIndexChart" style="max-height:230px;"></canvas>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;font-size:.68rem;color:var(--text-muted);font-family:'Nunito Sans',sans-serif;">
+            <span style="display:flex;align-items:center;gap:4px;"><span style="width:9px;height:9px;border-radius:50%;background:#FB923C;display:inline-block;flex-shrink:0;"></span>AWPer</span>
+            <span style="display:flex;align-items:center;gap:4px;"><span style="width:9px;height:9px;border-radius:50%;background:#22D3EE;display:inline-block;flex-shrink:0;"></span>Star Rifler</span>
+            <span style="display:flex;align-items:center;gap:4px;"><span style="width:9px;height:9px;border-radius:50%;background:#3B82F6;display:inline-block;flex-shrink:0;"></span>Second Star</span>
+            <span style="display:flex;align-items:center;gap:4px;"><span style="width:9px;height:9px;border-radius:50%;background:#EC4899;display:inline-block;flex-shrink:0;"></span>Support</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pipe-divider"><span>Implementation Detail</span></div>
+
+  <button class="workload-reveal-btn" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open');" style="margin-bottom:8px;">
+    <span class="btn-label">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h12M2 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Event Hubs — Feature Specification
+    </span>
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+  </button>
+  <div class="workload-body" style="margin-bottom:12px;">
+    <div class="workload-body-inner">
+      <div class="workload-table-wrap">
+        <table>
+          <thead><tr><th>Module</th><th>What it does</th><th style="text-align:center;width:72px;">CS2</th><th style="text-align:center;width:72px;">Dota 2</th></tr></thead>
+          <tbody>
+            <tr class="section-divider"><td colspan="4">Live Layer</td></tr>
+            <tr class="new-row"><td><span class="task-name">Live Score Hero</span><span class="task-note">Animated banner · series score · team logos · live badge</span></td><td>Primary entry point during events. Auto-updates from data feed.</td><td style="text-align:center;color:var(--green);">✓</td><td style="text-align:center;color:var(--green);">✓</td></tr>
+            <tr class="new-row"><td><span class="task-name">Match Cards</span><span class="task-note">Per-map scores · veto grid · round history · economy panel</span></td><td>Expandable per match. Round history and economy panel update live.</td><td style="text-align:center;color:var(--green);">✓</td><td style="text-align:center;color:var(--text-dim);">—</td></tr>
+            <tr class="section-divider"><td colspan="4">Tournament Structure</td></tr>
+            <tr class="new-row"><td><span class="task-name">Group Standings</span><span class="task-note">W/L/Diff/Points · advancement zone indicators</span></td><td>Color-coded by status: qualified / contention / eliminated.</td><td style="text-align:center;color:var(--green);">✓</td><td style="text-align:center;color:var(--green);">✓</td></tr>
+            <tr class="new-row"><td><span class="task-name">Bracket View</span><span class="task-note">Upper/Lower bracket · live scores · horizontally scrollable</span></td><td>Grand Final highlighted. Live scores per match slot.</td><td style="text-align:center;color:var(--green);">✓</td><td style="text-align:center;color:var(--green);">✓</td></tr>
+            <tr class="new-row"><td><span class="task-name">Match Schedule</span><span class="task-note">Day-by-day · format tags · editorial must-watch labels</span></td><td>Integrated with editorial feed. Surfaces rdy.gg articles per match.</td><td style="text-align:center;color:var(--green);">✓</td><td style="text-align:center;color:var(--green);">✓</td></tr>
+            <tr class="section-divider"><td colspan="4">Team &amp; Editorial Layer</td></tr>
+            <tr class="new-row"><td><span class="task-name">Team Profiles</span><span class="task-note">Expandable roster cards · player stats · radar charts</span></td><td>Player roles, Rating / KDA / ADR, playstyle descriptor per player.</td><td style="text-align:center;color:var(--green);">✓</td><td style="text-align:center;color:var(--green);">✓</td></tr>
+            <tr class="new-row"><td><span class="task-name">Editorial Feed</span><span class="task-note">Article cards filtered by tournament · inline</span></td><td>Surfaces existing rdy.gg articles directly within the hub page.</td><td style="text-align:center;color:var(--green);">✓</td><td style="text-align:center;color:var(--green);">✓</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <button class="workload-reveal-btn" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open');" style="margin-bottom:8px;">
+    <span class="btn-label">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h12M2 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Match Analysis — Feature Specification
+    </span>
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+  </button>
+  <div class="workload-body" style="margin-bottom:12px;">
+    <div class="workload-body-inner">
+      <div class="workload-table-wrap">
+        <table>
+          <thead><tr><th>Component</th><th>What it does</th><th style="text-align:center;width:72px;">CS2</th><th style="text-align:center;width:72px;">Dota 2</th></tr></thead>
+          <tbody>
+            <tr class="section-divider"><td colspan="4">Role &amp; System Analysis</td></tr>
+            <tr class="new-row"><td><span class="task-name">Role Analysis Table</span><span class="task-note">Star Points · CT/T positions · resource delta · utility share</span></td><td>Role assignments per player. Positional breakdown per side.</td><td style="text-align:center;color:var(--green);">✓</td><td style="text-align:center;color:var(--text-muted);">Planned</td></tr>
+            <tr class="new-row"><td><span class="task-name">System Explainer</span><span class="task-note">Collapsible methodology card per match</span></td><td>Explains Star Points to new readers without cluttering the page.</td><td style="text-align:center;color:var(--green);">✓</td><td style="text-align:center;color:var(--green);">✓</td></tr>
+            <tr class="section-divider"><td colspan="4">Performance &amp; Economy</td></tr>
+            <tr class="new-row"><td><span class="task-name">Player Stats Table</span><span class="task-note">Full 10-player table · sortable columns</span></td><td>K/D/A, GPM, XPM, Net Worth, Hero/Tower Damage per player.</td><td style="text-align:center;color:var(--green);">✓</td><td style="text-align:center;color:var(--green);">✓</td></tr>
+            <tr class="new-row"><td><span class="task-name">Economy Graph</span><span class="task-note">Net worth over match time · event markers</span></td><td>SVG time-series. Toggle between net worth, gold adv, XP adv.</td><td style="text-align:center;color:var(--text-muted);">Planned</td><td style="text-align:center;color:var(--green);">✓</td></tr>
+            <tr class="new-row"><td><span class="task-name">Player Comparison</span><span class="task-note">Radar chart + bar comparison · key matchup focus</span></td><td>Focused on the primary carry duel of each match.</td><td style="text-align:center;color:var(--text-muted);">Planned</td><td style="text-align:center;color:var(--green);">✓</td></tr>
+            <tr class="section-divider"><td colspan="4">Draft (Dota 2)</td></tr>
+            <tr class="new-row"><td><span class="task-name">Draft Timeline</span><span class="task-note">20-step pick/ban · editorial annotation per step</span></td><td>Phase-separated. Each step annotated with strategic rationale.</td><td style="text-align:center;color:var(--text-dim);">—</td><td style="text-align:center;color:var(--green);">✓</td></tr>
+            <tr class="new-row"><td><span class="task-name">Draft Commentary</span><span class="task-note">Editorial analysis block below the timeline</span></td><td>Key decisions, synergies, and counter-picks explained.</td><td style="text-align:center;color:var(--text-dim);">—</td><td style="text-align:center;color:var(--green);">✓</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <button class="workload-reveal-btn" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open');" style="margin-bottom:8px;">
+    <span class="btn-label">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h12M2 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      rdy Index — Metrics &amp; Publication Plan
+    </span>
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+  </button>
+  <div class="workload-body" style="margin-bottom:20px;">
+    <div class="workload-body-inner">
+      <div class="workload-table-wrap">
+        <table>
+          <thead><tr><th>Metric</th><th>What it measures</th><th style="width:100px;">Status</th><th>Visualization</th></tr></thead>
+          <tbody>
+            <tr class="section-divider"><td colspan="4">Core Rating</td></tr>
+            <tr class="new-row"><td><span class="task-name">Overall Player Rating</span><span class="task-note">0–100 composite · ZywOo = 100</span></td><td>Role-normalized aggregate. Each player rated vs role peers, not the full pool.</td><td><span class="freq-badge daily">Ready</span></td><td>Bar chart · Top/Bottom 20</td></tr>
+            <tr class="section-divider"><td colspan="4">Impact Metrics</td></tr>
+            <tr class="new-row"><td><span class="task-name">Dual Swing</span><span class="task-note">Round Swing % × Duel Swing % per map</span></td><td>How much a player swings individual duels and how often those swing rounds. Quadrant: Superstars top-right.</td><td><span class="freq-badge daily">Ready</span></td><td>Scatter · quadrant view</td></tr>
+            <tr class="new-row"><td><span class="task-name">KPR vs Role Avg</span><span class="task-note">CT and T-side kills/round vs role baseline</span></td><td>Where a player over/under-performs vs what's expected of their role on each side.</td><td><span class="freq-badge daily">Ready</span></td><td>Scatter · CT vs T axes</td></tr>
+            <tr class="section-divider"><td colspan="4">Playstyle Profiling</td></tr>
+            <tr class="new-row"><td><span class="task-name">Playstyle Profiles</span><span class="task-note">T-side Aggression × T-side Lurk Score</span></td><td>Per-team scatter showing how each player's T-side tendencies cluster — aggressive vs patient.</td><td><span class="freq-badge daily">Ready</span></td><td>Scatter · per-team view</td></tr>
+            <tr class="new-row"><td><span class="task-name">Star Points</span><span class="task-note">Role classification engine (upstream)</span></td><td>Assigns roles via resource allocation and performance weighting. Feeds all downstream metrics.</td><td><span class="freq-badge daily">Ready</span></td><td>Role table · per match</td></tr>
+            <tr class="section-divider"><td colspan="4">Publication Cadence</td></tr>
+            <tr class="event-row"><td><span class="task-name">Per-Event Snapshot</span></td><td>Full rdy Index published after each S-Tier and A-Tier event. Top/Bottom 20 + Dual Swing quadrant.</td><td><span class="freq-badge event">Per event</span></td><td>Standalone dashboard page</td></tr>
+            <tr class="event-row"><td><span class="task-name">Live Match View</span></td><td>Role analysis and Star Points published per match during the event window.</td><td><span class="freq-badge event">Per event</span></td><td>Match Analysis page</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="highlight gold">
+    <p><strong>Implementation path:</strong> Event Hub and Match Analysis prototypes are built and demoable today. The rdy Index data pipeline is operational. Next step is aligning with the dev team on integration into rdy.gg's CMS and data infrastructure — these pages need to pull from the same data source editorial already uses.</p>
+  </div>
+
+</div>
+</section>
+
 <!-- ── CLOSING ── -->
 <section id="closing">
 <div class="content-wrap fade-in">
@@ -1629,7 +1819,7 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
     <div class="closing-items">
       <div class="closing-item"><strong>Bryan</strong> Phase 1 templates delivered before April 14, in time for the first scheduled posts.</div>
       <div class="closing-item"><strong>Marcin</strong> Aligned on the video pipeline: Context Cap and W's &amp; L's clips extracted and formatted for Reels on a fixed weekly schedule.</div>
-      <div class="closing-item"><strong>Arnaud</strong> Posting calendar locked in Hootsuite for April, starting with The rdy.gg Daily and Numbers Don't Lie.</div>
+      <div class="closing-item"><strong>Arnaud</strong> Posting calendar locked in Hootsuite for April, starting with The rdy.gg Daily and The Print.</div>
       <div class="closing-item"><strong>The Round + The Setup</strong> First episodes produced and ready before IEM Rio. Target window: BLAST Rotterdam playoffs.</div>
       <div class="closing-item"><strong>CS2 X Account</strong> Get X Premium (Blue) before the first scheduled posts. The distribution multiplier in For You is a practical priority, not a nice-to-have.</div>
     </div>
@@ -2190,6 +2380,33 @@ new Chart(document.getElementById('benchmarkChart'),{
     responsive:true,maintainAspectRatio:false,
     plugins:{legend:{position:'top',labels:{usePointStyle:true,padding:24,font:{size:14},color:'#c8ccd6'}}},
     scales:{r:{angleLines:{color:'rgba(255,255,255,0.05)'},grid:{color:'rgba(255,255,255,0.05)'},pointLabels:{font:{size:14,weight:'600'},color:'#c8ccd6'},ticks:{display:false}}}
+  }
+});
+
+// rdy Index — Overall Player Rating preview
+new Chart(document.getElementById('rdyIndexChart'),{
+  type:'bar',
+  data:{
+    labels:['ZywOo','donk','flameZ','m0NESY','kyousuke','sh1ro','KSCERATO','NiKo','Staehr','HeavyGoD'],
+    datasets:[{
+      data:[100,90,86,80,78,75,71,68,66,66],
+      backgroundColor:['#FB923C','#22D3EE','#EC4899','#FB923C','#3B82F6','#FB923C','#3B82F6','#22D3EE','#22D3EE','#EC4899'],
+      borderRadius:3,
+      barThickness:14
+    }]
+  },
+  options:{
+    indexAxis:'y',
+    responsive:true,
+    maintainAspectRatio:false,
+    plugins:{
+      legend:{display:false},
+      tooltip:{callbacks:{label:(ctx)=>' '+ctx.raw+' — '+['AWPer','Star Rifler','Support','AWPer','Second Star','AWPer','Second Star','Star Rifler','Star Rifler','Support'][ctx.dataIndex]}}
+    },
+    scales:{
+      x:{min:0,max:100,grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#7a8499',font:{size:10,family:'Nunito Sans'}},border:{color:'rgba(255,255,255,0.06)'}},
+      y:{grid:{display:false},ticks:{color:'#c8ccd6',font:{size:10,family:'Nunito Sans'}},border:{display:false}}
+    }
   }
 });
 </script>
