@@ -1835,14 +1835,20 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
   <!-- Prototype showcase -->
 
   <!-- CS2: Player Cards -->
-  <div style="border:1px solid var(--border-solid);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:20px;">
-    <div style="padding:10px 16px;background:var(--card-alt);border-bottom:1px solid var(--border-solid);display:flex;align-items:center;justify-content:space-between;">
-      <span style="font-family:'Alumni Sans',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);">Match Analysis · Player Cards</span>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span class="pipe-game cs2">CS2</span>
-        <span style="font-family:'Nunito Sans',sans-serif;font-size:.68rem;color:var(--text-dim);">FURIA · IEM Rio 2026 · 5 players</span>
-      </div>
+  <button class="workload-reveal-btn open" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open');" style="margin-bottom:0;border-radius:var(--radius-lg) var(--radius-lg) 0 0;border-color:var(--border-solid);">
+    <span class="btn-label">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="2" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/></svg>
+      Match Analysis · Player Cards
+      <span class="pipe-game cs2" style="margin-left:4px;">CS2</span>
+      <span style="font-family:'Nunito Sans',sans-serif;font-size:.68rem;color:var(--text-dim);font-weight:400;text-transform:none;letter-spacing:0;">FURIA · IEM Rio 2026</span>
+    </span>
+    <div style="display:flex;align-items:center;gap:14px;flex-shrink:0;">
+      <a href="../../lab/cs-prot/role_analysis.html" target="_blank" onclick="event.stopPropagation();" style="font-family:'Nunito Sans',sans-serif;font-size:.7rem;color:var(--text-muted);text-decoration:none;border-bottom:1px solid var(--text-dim);padding-bottom:1px;white-space:nowrap;transition:color .15s;" onmouseover="this.style.color='var(--green)';this.style.borderBottomColor='var(--green)'" onmouseout="this.style.color='var(--text-muted)';this.style.borderBottomColor='var(--text-dim)'">View full prototype →</a>
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
     </div>
+  </button>
+  <div class="workload-body open" style="margin-bottom:20px;border:1px solid var(--border-solid);border-top:none;border-radius:0 0 var(--radius-lg) var(--radius-lg);overflow:hidden;">
+    <div class="workload-body-inner" style="overflow:hidden;">
     <div class="pc-scroll">
       <!-- KSCERATO -->
       <div class="pc-card">
@@ -1960,17 +1966,23 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
         <div class="pc-playstyle"><span class="pc-style-lbl">Playstyle</span><span class="pc-style-val">Aggressive Entry</span></div>
       </div>
     </div>
-  </div>
+  </div></div>
 
   <!-- CS2: Role Analysis & Star Points -->
-  <div style="border:1px solid var(--border-solid);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:20px;">
-    <div style="padding:10px 16px;background:var(--card-alt);border-bottom:1px solid var(--border-solid);display:flex;align-items:center;justify-content:space-between;">
-      <span style="font-family:'Alumni Sans',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);">Match Analysis · Roles &amp; Star Points</span>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span class="pipe-game cs2">CS2</span>
-        <span style="font-family:'Nunito Sans',sans-serif;font-size:.68rem;color:var(--text-dim);">FURIA · Mirage · vs Spirit</span>
-      </div>
+  <button class="workload-reveal-btn open" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open');" style="margin-bottom:0;border-radius:var(--radius-lg) var(--radius-lg) 0 0;border-color:var(--border-solid);">
+    <span class="btn-label">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h8M2 12h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      Match Analysis · Roles &amp; Star Points
+      <span class="pipe-game cs2" style="margin-left:4px;">CS2</span>
+      <span style="font-family:'Nunito Sans',sans-serif;font-size:.68rem;color:var(--text-dim);font-weight:400;text-transform:none;letter-spacing:0;">FURIA · Mirage · vs Spirit</span>
+    </span>
+    <div style="display:flex;align-items:center;gap:14px;flex-shrink:0;">
+      <a href="../../lab/cs-prot/role_analysis.html" target="_blank" onclick="event.stopPropagation();" style="font-family:'Nunito Sans',sans-serif;font-size:.7rem;color:var(--text-muted);text-decoration:none;border-bottom:1px solid var(--text-dim);padding-bottom:1px;white-space:nowrap;transition:color .15s;" onmouseover="this.style.color='var(--green)';this.style.borderBottomColor='var(--green)'" onmouseout="this.style.color='var(--text-muted)';this.style.borderBottomColor='var(--text-dim)'">View full prototype →</a>
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
     </div>
+  </button>
+  <div class="workload-body open" style="margin-bottom:20px;border:1px solid var(--border-solid);border-top:none;border-radius:0 0 var(--radius-lg) var(--radius-lg);overflow:hidden;">
+    <div class="workload-body-inner" style="overflow:hidden;">
     <div class="roles-wrap">
       <table class="roles-tbl">
         <thead>
@@ -2060,17 +2072,23 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
         </tbody>
       </table>
     </div>
-  </div>
+  </div></div>
 
   <!-- Dota 2: Full Match Scoreboard -->
-  <div style="border:1px solid var(--border-solid);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:28px;">
-    <div style="padding:10px 16px;background:var(--card-alt);border-bottom:1px solid var(--border-solid);display:flex;align-items:center;justify-content:space-between;">
-      <span style="font-family:'Alumni Sans',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);">Match Analysis · Player Scoreboard</span>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span class="pipe-game dota">Dota 2</span>
-        <span style="font-family:'Nunito Sans',sans-serif;font-size:.68rem;color:var(--text-dim);">NAVI vs Spirit · TI 2026 · Game 2</span>
-      </div>
+  <button class="workload-reveal-btn open" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open');" style="margin-bottom:0;border-radius:var(--radius-lg) var(--radius-lg) 0 0;border-color:var(--border-solid);">
+    <span class="btn-label">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h12M2 12h8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      Match Analysis · Player Scoreboard
+      <span class="pipe-game dota" style="margin-left:4px;">Dota 2</span>
+      <span style="font-family:'Nunito Sans',sans-serif;font-size:.68rem;color:var(--text-dim);font-weight:400;text-transform:none;letter-spacing:0;">NAVI vs Spirit · TI 2026</span>
+    </span>
+    <div style="display:flex;align-items:center;gap:14px;flex-shrink:0;">
+      <a href="../../lab/dota-prot/TI2026_Match_Analysis_rdy_gg.html" target="_blank" onclick="event.stopPropagation();" style="font-family:'Nunito Sans',sans-serif;font-size:.7rem;color:var(--text-muted);text-decoration:none;border-bottom:1px solid var(--text-dim);padding-bottom:1px;white-space:nowrap;transition:color .15s;" onmouseover="this.style.color='var(--green)';this.style.borderBottomColor='var(--green)'" onmouseout="this.style.color='var(--text-muted)';this.style.borderBottomColor='var(--text-dim)'">View full prototype →</a>
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
     </div>
+  </button>
+  <div class="workload-body open" style="margin-bottom:28px;border:1px solid var(--border-solid);border-top:none;border-radius:0 0 var(--radius-lg) var(--radius-lg);overflow:hidden;">
+    <div class="workload-body-inner" style="overflow:hidden;">
     <div class="dm-wrap">
       <table class="dm-tbl">
         <thead>
@@ -2214,7 +2232,7 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
         </tbody>
       </table>
     </div>
-  </div>
+  </div></div>
 
   <div class="pipe-divider"><span>Implementation Detail</span></div>
 
