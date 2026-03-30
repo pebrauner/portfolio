@@ -461,7 +461,8 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
 .pc-card{min-width:210px;flex:1 0 210px;padding:16px;border-right:1px solid var(--border);background:var(--card);}
 .pc-card:last-child{border-right:none;}
 .pc-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;}
-.pc-avatar{width:48px;height:48px;border-radius:8px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-family:'Alumni Sans',sans-serif;font-weight:800;font-size:18px;color:var(--text-secondary);flex-shrink:0;border:1px solid var(--border-solid);}
+.pc-avatar{width:48px;height:48px;border-radius:8px;background:var(--surface);overflow:hidden;flex-shrink:0;border:1px solid var(--border-solid);}
+.pc-avatar img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block;}
 .pc-identity{flex:1;min-width:0;}
 .pc-nick{font-family:'Alumni Sans',sans-serif;font-weight:800;font-size:15px;color:var(--text-primary);line-height:1.1;}
 .pc-real{font-size:10px;color:var(--text-dim);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -502,7 +503,8 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
 .roles-tbl tr.pl-row:hover td{background:rgba(255,255,255,.025);}
 .roles-tbl tr.pl-row:last-child td{border-bottom:none;}
 .pl-cell{display:flex;align-items:center;gap:9px;min-width:120px;}
-.pl-av{width:32px;height:32px;border-radius:6px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-family:'Alumni Sans',sans-serif;font-weight:800;font-size:13px;color:var(--text-secondary);flex-shrink:0;}
+.pl-av{width:32px;height:32px;border-radius:6px;background:var(--surface);overflow:hidden;flex-shrink:0;}
+.pl-av img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block;}
 .pl-nm{font-family:'Alumni Sans',sans-serif;font-size:14px;font-weight:700;color:var(--text-primary);}
 .res-pos{color:var(--green);font-family:'Alumni Sans',sans-serif;font-weight:700;font-size:13px;}
 .res-neg{color:var(--red);font-family:'Alumni Sans',sans-serif;font-weight:700;font-size:13px;}
@@ -525,7 +527,10 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
 .dm-team-row.rad td{color:#4ADE80;background:rgba(74,222,128,.07);}
 .dm-team-row.dire td{color:#F87171;background:rgba(248,113,113,.07);}
 .dm-hero{display:flex;align-items:center;gap:8px;}
-.dm-icon{width:32px;height:22px;border-radius:3px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--text-dim);flex-shrink:0;font-family:'Nunito Sans',sans-serif;border:1px solid var(--border);}
+.dm-icon{width:44px;height:30px;border-radius:3px;background:var(--surface);overflow:hidden;flex-shrink:0;border:1px solid var(--border);}
+.dm-icon img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block;}
+.dm-pl-av{width:26px;height:26px;border-radius:4px;background:var(--surface);overflow:hidden;flex-shrink:0;}
+.dm-pl-av img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block;}
 .dm-hero-nm{font-family:'Alumni Sans',sans-serif;font-size:13px;font-weight:700;color:var(--text-primary);}
 .dm-player{font-size:10px;color:var(--text-muted);}
 .dm-k{color:#4ADE80;font-family:'Alumni Sans',sans-serif;font-weight:700;font-size:13px;}
@@ -1842,7 +1847,7 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
       <!-- KSCERATO -->
       <div class="pc-card">
         <div class="pc-top">
-          <div class="pc-avatar" style="border-top:2px solid #FFD700;color:#FFD700;">KS</div>
+          <div class="pc-avatar" style="border-top:2px solid #FFD700;"><img src="../../lab/cs-prot/assets/players/furia/kscerato.png" alt="KSCERATO"></div>
           <div class="pc-identity">
             <div class="pc-nick">KSCERATO</div>
             <div class="pc-real">Kaike Cerato</div>
@@ -1865,7 +1870,7 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
       <!-- FalleN -->
       <div class="pc-card">
         <div class="pc-top">
-          <div class="pc-avatar" style="border-top:2px solid #60A5FA;color:#60A5FA;">FN</div>
+          <div class="pc-avatar" style="border-top:2px solid #60A5FA;"><img src="../../lab/cs-prot/assets/players/furia/fallen.png" alt="FalleN"></div>
           <div class="pc-identity">
             <div class="pc-nick">FalleN</div>
             <div class="pc-real">Gabriel Toledo</div>
@@ -1888,7 +1893,7 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
       <!-- yuurih -->
       <div class="pc-card">
         <div class="pc-top">
-          <div class="pc-avatar" style="border-top:2px solid #A8B4C8;color:#A8B4C8;">YU</div>
+          <div class="pc-avatar" style="border-top:2px solid #A8B4C8;"><img src="../../lab/cs-prot/assets/players/furia/yuurih.png" alt="yuurih"></div>
           <div class="pc-identity">
             <div class="pc-nick">yuurih</div>
             <div class="pc-real">Yuri Boian</div>
@@ -1911,7 +1916,7 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
       <!-- molodoy -->
       <div class="pc-card">
         <div class="pc-top">
-          <div class="pc-avatar" style="border-top:2px solid #6B7A8D;color:#6B7A8D;">ML</div>
+          <div class="pc-avatar" style="border-top:2px solid #6B7A8D;"><img src="../../lab/cs-prot/assets/players/furia/molodoy.png" alt="molodoy"></div>
           <div class="pc-identity">
             <div class="pc-nick">molodoy</div>
             <div class="pc-real">Igor Bezrukov</div>
@@ -1934,7 +1939,7 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
       <!-- YEKINDAR -->
       <div class="pc-card">
         <div class="pc-top">
-          <div class="pc-avatar" style="border-top:2px solid #00D161;color:#00D161;">YK</div>
+          <div class="pc-avatar" style="border-top:2px solid #00D161;"><img src="../../lab/cs-prot/assets/players/furia/yekindar.png" alt="YEKINDAR"></div>
           <div class="pc-identity">
             <div class="pc-nick">YEKINDAR</div>
             <div class="pc-real">Mareks Gaļinskis</div>
@@ -1993,7 +1998,7 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
         </thead>
         <tbody>
           <tr class="pl-row">
-            <td><div class="pl-cell"><div class="pl-av" style="border-top:2px solid #FFD700;color:#FFD700;">KS</div><span class="pl-nm">KSCERATO</span></div></td>
+            <td><div class="pl-cell"><div class="pl-av" style="border-top:2px solid #FFD700;"><img src="../../lab/cs-prot/assets/players/furia/kscerato.png" alt="KSCERATO"></div><span class="pl-nm">KSCERATO</span></div></td>
             <td style="text-align:right;"><span style="font-family:'Alumni Sans',sans-serif;font-size:14px;font-weight:700;color:var(--green);">84</span></td>
             <td class="ct-col"><span class="rp ct-b-anchor">B Anchor</span></td>
             <td class="ct-col"><div style="min-width:64px;"><div class="sp-num">4.8</div><div class="sp-bar-track"><div class="sp-bar-fill ct" style="width:96%;"></div></div></div></td>
@@ -2005,7 +2010,7 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
             <td style="text-align:right;"><div style="text-align:right;"><div class="sp-num">8.4</div><div class="sp-bar-track" style="margin-left:auto;"><div class="sp-bar-fill total" style="width:100%;"></div></div></div></td>
           </tr>
           <tr class="pl-row">
-            <td><div class="pl-cell"><div class="pl-av" style="border-top:2px solid #60A5FA;color:#60A5FA;">FN</div><span class="pl-nm">FalleN</span></div></td>
+            <td><div class="pl-cell"><div class="pl-av" style="border-top:2px solid #60A5FA;"><img src="../../lab/cs-prot/assets/players/furia/fallen.png" alt="FalleN"></div><span class="pl-nm">FalleN</span></div></td>
             <td style="text-align:right;"><span style="font-family:'Alumni Sans',sans-serif;font-size:14px;font-weight:700;color:#6aabff;">72</span></td>
             <td class="ct-col"><span class="rp ct-a-main">A Main</span></td>
             <td class="ct-col"><div style="min-width:64px;"><div class="sp-num">3.9</div><div class="sp-bar-track"><div class="sp-bar-fill ct" style="width:78%;"></div></div></div></td>
@@ -2017,7 +2022,7 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
             <td style="text-align:right;"><div style="text-align:right;"><div class="sp-num">7.2</div><div class="sp-bar-track" style="margin-left:auto;"><div class="sp-bar-fill total" style="width:86%;"></div></div></div></td>
           </tr>
           <tr class="pl-row">
-            <td><div class="pl-cell"><div class="pl-av" style="border-top:2px solid #A8B4C8;color:#A8B4C8;">YU</div><span class="pl-nm">yuurih</span></div></td>
+            <td><div class="pl-cell"><div class="pl-av" style="border-top:2px solid #A8B4C8;"><img src="../../lab/cs-prot/assets/players/furia/yuurih.png" alt="yuurih"></div><span class="pl-nm">yuurih</span></div></td>
             <td style="text-align:right;"><span style="font-family:'Alumni Sans',sans-serif;font-size:14px;font-weight:700;color:var(--text-secondary);">77</span></td>
             <td class="ct-col"><span class="rp ct-a-site">A Site</span></td>
             <td class="ct-col"><div style="min-width:64px;"><div class="sp-num">2.8</div><div class="sp-bar-track"><div class="sp-bar-fill ct" style="width:56%;"></div></div></div></td>
@@ -2029,7 +2034,7 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
             <td style="text-align:right;"><div style="text-align:right;"><div class="sp-num">5.1</div><div class="sp-bar-track" style="margin-left:auto;"><div class="sp-bar-fill total" style="width:61%;"></div></div></div></td>
           </tr>
           <tr class="pl-row">
-            <td><div class="pl-cell"><div class="pl-av" style="border-top:2px solid #6B7A8D;color:#6B7A8D;">ML</div><span class="pl-nm">molodoy</span></div></td>
+            <td><div class="pl-cell"><div class="pl-av" style="border-top:2px solid #6B7A8D;"><img src="../../lab/cs-prot/assets/players/furia/molodoy.png" alt="molodoy"></div><span class="pl-nm">molodoy</span></div></td>
             <td style="text-align:right;"><span style="font-family:'Alumni Sans',sans-serif;font-size:14px;font-weight:700;color:var(--text-muted);">65</span></td>
             <td class="ct-col"><span class="rp ct-b-site">B Site</span></td>
             <td class="ct-col"><div style="min-width:64px;"><div class="sp-num">1.9</div><div class="sp-bar-track"><div class="sp-bar-fill ct" style="width:38%;"></div></div></div></td>
@@ -2041,7 +2046,7 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
             <td style="text-align:right;"><div style="text-align:right;"><div class="sp-num">3.8</div><div class="sp-bar-track" style="margin-left:auto;"><div class="sp-bar-fill total" style="width:45%;"></div></div></div></td>
           </tr>
           <tr class="pl-row">
-            <td><div class="pl-cell"><div class="pl-av" style="border-top:2px solid #00D161;color:#00D161;">YK</div><span class="pl-nm">YEKINDAR</span></div></td>
+            <td><div class="pl-cell"><div class="pl-av" style="border-top:2px solid #00D161;"><img src="../../lab/cs-prot/assets/players/furia/yekindar.png" alt="YEKINDAR"></div><span class="pl-nm">YEKINDAR</span></div></td>
             <td style="text-align:right;"><span style="font-family:'Alumni Sans',sans-serif;font-size:14px;font-weight:700;color:var(--text-muted);">69</span></td>
             <td class="ct-col"><span class="rp ct-mid-a">Mid / A</span></td>
             <td class="ct-col"><div style="min-width:64px;"><div class="sp-num">1.4</div><div class="sp-bar-track"><div class="sp-bar-fill ct" style="width:28%;"></div></div></div></td>
@@ -2085,7 +2090,7 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
         <tbody>
           <tr class="dm-team-row rad"><td colspan="10">&#9650; NAVI &mdash; Radiant</td></tr>
           <tr class="rad-row">
-            <td><div class="dm-hero"><div class="dm-icon">AM</div><div><div class="dm-hero-nm">Anti-Mage</div><div class="dm-player">RIDDYS</div></div></div></td>
+            <td><div class="dm-hero"><div class="dm-icon"><img src="../../lab/dota-prot/assets/dota2_portraits/antimage.png" alt="Anti-Mage"></div><div class="dm-pl-av"><img src="../../lab/dota-prot/assets/players/NAVI/RIDDYS.png" alt="RIDDYS"></div><div><div class="dm-hero-nm">Anti-Mage</div><div class="dm-player">RIDDYS</div></div></div></td>
             <td style="color:var(--gold-bright);font-family:'Alumni Sans',sans-serif;font-weight:700;">25</td>
             <td><span class="dm-k">14</span><span class="dm-sep">/</span><span class="dm-d">3</span><span class="dm-sep">/</span><span class="dm-a">7</span></td>
             <td class="dm-gpm">712</td>
@@ -2097,7 +2102,7 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
             <td style="font-family:'Alumni Sans',sans-serif;font-weight:600;color:var(--text-secondary);">22</td>
           </tr>
           <tr class="rad-row">
-            <td><div class="dm-hero"><div class="dm-icon">IN</div><div><div class="dm-hero-nm">Invoker</div><div class="dm-player">GOTTHEJUICE</div></div></div></td>
+            <td><div class="dm-hero"><div class="dm-icon"><img src="../../lab/dota-prot/assets/dota2_portraits/invoker.png" alt="Invoker"></div><div class="dm-pl-av"><img src="../../lab/dota-prot/assets/players/NAVI/GOTTHEJUICE.png" alt="GOTTHEJUICE"></div><div><div class="dm-hero-nm">Invoker</div><div class="dm-player">GOTTHEJUICE</div></div></div></td>
             <td style="color:var(--gold-bright);font-family:'Alumni Sans',sans-serif;font-weight:700;">25</td>
             <td><span class="dm-k">9</span><span class="dm-sep">/</span><span class="dm-d">4</span><span class="dm-sep">/</span><span class="dm-a">11</span></td>
             <td class="dm-gpm">584</td>
@@ -2109,7 +2114,7 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
             <td style="font-family:'Alumni Sans',sans-serif;font-weight:600;color:var(--text-secondary);">18</td>
           </tr>
           <tr class="rad-row">
-            <td><div class="dm-hero"><div class="dm-icon">AX</div><div><div class="dm-hero-nm">Axe</div><div class="dm-player">PMA</div></div></div></td>
+            <td><div class="dm-hero"><div class="dm-icon"><img src="../../lab/dota-prot/assets/dota2_portraits/axe.png" alt="Axe"></div><div class="dm-pl-av"><img src="../../lab/dota-prot/assets/players/NAVI/PMA.png" alt="PMA"></div><div><div class="dm-hero-nm">Axe</div><div class="dm-player">PMA</div></div></div></td>
             <td style="color:var(--gold-bright);font-family:'Alumni Sans',sans-serif;font-weight:700;">24</td>
             <td><span class="dm-k">6</span><span class="dm-sep">/</span><span class="dm-d">5</span><span class="dm-sep">/</span><span class="dm-a">14</span></td>
             <td class="dm-gpm">430</td>
@@ -2121,7 +2126,7 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
             <td style="font-family:'Alumni Sans',sans-serif;font-weight:600;color:var(--text-secondary);">8</td>
           </tr>
           <tr class="rad-row">
-            <td><div class="dm-hero"><div class="dm-icon">CM</div><div><div class="dm-hero-nm">Crystal Maiden</div><div class="dm-player">NIKU</div></div></div></td>
+            <td><div class="dm-hero"><div class="dm-icon"><img src="../../lab/dota-prot/assets/dota2_portraits/crystal_maiden.png" alt="Crystal Maiden"></div><div class="dm-pl-av"><img src="../../lab/dota-prot/assets/players/NAVI/NIKU.png" alt="NIKU"></div><div><div class="dm-hero-nm">Crystal Maiden</div><div class="dm-player">NIKU</div></div></div></td>
             <td style="color:var(--gold-bright);font-family:'Alumni Sans',sans-serif;font-weight:700;">22</td>
             <td><span class="dm-k">2</span><span class="dm-sep">/</span><span class="dm-d">6</span><span class="dm-sep">/</span><span class="dm-a">18</span></td>
             <td class="dm-gpm">251</td>
@@ -2133,7 +2138,7 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
             <td style="font-family:'Alumni Sans',sans-serif;font-weight:600;color:var(--text-secondary);">3</td>
           </tr>
           <tr class="rad-row">
-            <td><div class="dm-hero"><div class="dm-icon">RU</div><div><div class="dm-hero-nm">Rubick</div><div class="dm-player">ZAYAC</div></div></div></td>
+            <td><div class="dm-hero"><div class="dm-icon"><img src="../../lab/dota-prot/assets/dota2_portraits/rubick.png" alt="Rubick"></div><div class="dm-pl-av"><img src="../../lab/dota-prot/assets/players/NAVI/ZAYAC.png" alt="ZAYAC"></div><div><div class="dm-hero-nm">Rubick</div><div class="dm-player">ZAYAC</div></div></div></td>
             <td style="color:var(--gold-bright);font-family:'Alumni Sans',sans-serif;font-weight:700;">23</td>
             <td><span class="dm-k">3</span><span class="dm-sep">/</span><span class="dm-d">7</span><span class="dm-sep">/</span><span class="dm-a">16</span></td>
             <td class="dm-gpm">198</td>
@@ -2147,7 +2152,7 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
           <tr style="height:2px;"><td colspan="10" style="padding:0;background:var(--border-solid);"></td></tr>
           <tr class="dm-team-row dire"><td colspan="10">&#9660; Spirit &mdash; Dire</td></tr>
           <tr class="dire-row">
-            <td><div class="dm-hero"><div class="dm-icon">PA</div><div><div class="dm-hero-nm">Phantom Assassin</div><div class="dm-player">yatoro</div></div></div></td>
+            <td><div class="dm-hero"><div class="dm-icon"><img src="../../lab/dota-prot/assets/dota2_portraits/phantom_assassin.png" alt="Phantom Assassin"></div><div><div class="dm-hero-nm">Phantom Assassin</div><div class="dm-player">yatoro</div></div></div></td>
             <td style="color:var(--gold-bright);font-family:'Alumni Sans',sans-serif;font-weight:700;">24</td>
             <td><span class="dm-k">11</span><span class="dm-sep">/</span><span class="dm-d">5</span><span class="dm-sep">/</span><span class="dm-a">8</span></td>
             <td class="dm-gpm">680</td>
@@ -2159,7 +2164,7 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
             <td style="font-family:'Alumni Sans',sans-serif;font-weight:600;color:var(--text-secondary);">16</td>
           </tr>
           <tr class="dire-row">
-            <td><div class="dm-hero"><div class="dm-icon">SS</div><div><div class="dm-hero-nm">Storm Spirit</div><div class="dm-player">Larl</div></div></div></td>
+            <td><div class="dm-hero"><div class="dm-icon"><img src="../../lab/dota-prot/assets/dota2_portraits/storm_spirit.png" alt="Storm Spirit"></div><div><div class="dm-hero-nm">Storm Spirit</div><div class="dm-player">Larl</div></div></div></td>
             <td style="color:var(--gold-bright);font-family:'Alumni Sans',sans-serif;font-weight:700;">24</td>
             <td><span class="dm-k">8</span><span class="dm-sep">/</span><span class="dm-d">5</span><span class="dm-sep">/</span><span class="dm-a">9</span></td>
             <td class="dm-gpm">540</td>
@@ -2171,7 +2176,7 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
             <td style="font-family:'Alumni Sans',sans-serif;font-weight:600;color:var(--text-secondary);">14</td>
           </tr>
           <tr class="dire-row">
-            <td><div class="dm-hero"><div class="dm-icon">CE</div><div><div class="dm-hero-nm">Centaur</div><div class="dm-player">Collapse</div></div></div></td>
+            <td><div class="dm-hero"><div class="dm-icon"><img src="../../lab/dota-prot/assets/dota2_portraits/centaur.png" alt="Centaur"></div><div><div class="dm-hero-nm">Centaur</div><div class="dm-player">Collapse</div></div></div></td>
             <td style="color:var(--gold-bright);font-family:'Alumni Sans',sans-serif;font-weight:700;">22</td>
             <td><span class="dm-k">4</span><span class="dm-sep">/</span><span class="dm-d">8</span><span class="dm-sep">/</span><span class="dm-a">12</span></td>
             <td class="dm-gpm">380</td>
@@ -2183,7 +2188,7 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
             <td style="font-family:'Alumni Sans',sans-serif;font-weight:600;color:var(--text-secondary);">6</td>
           </tr>
           <tr class="dire-row">
-            <td><div class="dm-hero"><div class="dm-icon">WL</div><div><div class="dm-hero-nm">Warlock</div><div class="dm-player">Mira</div></div></div></td>
+            <td><div class="dm-hero"><div class="dm-icon"><img src="../../lab/dota-prot/assets/dota2_portraits/warlock.png" alt="Warlock"></div><div><div class="dm-hero-nm">Warlock</div><div class="dm-player">Mira</div></div></div></td>
             <td style="color:var(--gold-bright);font-family:'Alumni Sans',sans-serif;font-weight:700;">21</td>
             <td><span class="dm-k">1</span><span class="dm-sep">/</span><span class="dm-d">8</span><span class="dm-sep">/</span><span class="dm-a">16</span></td>
             <td class="dm-gpm">232</td>
@@ -2195,7 +2200,7 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
             <td style="font-family:'Alumni Sans',sans-serif;font-weight:600;color:var(--text-secondary);">2</td>
           </tr>
           <tr class="dire-row">
-            <td><div class="dm-hero"><div class="dm-icon">ES</div><div><div class="dm-hero-nm">Earthshaker</div><div class="dm-player">Tobi</div></div></div></td>
+            <td><div class="dm-hero"><div class="dm-icon"><img src="../../lab/dota-prot/assets/dota2_portraits/earthshaker.png" alt="Earthshaker"></div><div><div class="dm-hero-nm">Earthshaker</div><div class="dm-player">Tobi</div></div></div></td>
             <td style="color:var(--gold-bright);font-family:'Alumni Sans',sans-serif;font-weight:700;">21</td>
             <td><span class="dm-k">2</span><span class="dm-sep">/</span><span class="dm-d">9</span><span class="dm-sep">/</span><span class="dm-a">15</span></td>
             <td class="dm-gpm">188</td>
