@@ -14,140 +14,228 @@
   <title>404 — Pedro Brauner</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Chakra+Petch:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #080808;
+      --red: #e03418;
+      --red-hot: #ff5c2b;
+      --red-glow: rgba(224, 52, 24, 0.25);
+      --red-glow-soft: rgba(224, 52, 24, 0.1);
+      --bg: #0a0a0a;
       --surface: #111;
-      --border: rgba(255,255,255,0.06);
-      --text: #f0ede8;
-      --text-muted: rgba(240,237,232,0.45);
-      --accent: #e03418;
+      --border: #1e1e1e;
+      --text: #eae4dc;
+      --text-dim: #b0b0b0;
+    }
+
+    html {
+      background: var(--bg);
+      scroll-behavior: smooth;
     }
 
     body {
-      background: var(--bg);
+      background: transparent;
       color: var(--text);
-      font-family: 'DM Sans', sans-serif;
+      font-family: 'Chakra Petch', sans-serif;
       min-height: 100vh;
-      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      cursor: crosshair;
+      line-height: 1.6;
     }
 
+    #dither-bg {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .scanlines {
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.18) 2px, rgba(0,0,0,.18) 4px);
+      pointer-events: none;
+      z-index: 9998;
+    }
+
+    .vignette {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,.70) 100%);
+      pointer-events: none;
+      z-index: 9997;
+    }
+
+    ::selection { background: var(--red-glow); color: var(--text); }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); }
+    ::-webkit-scrollbar-thumb:hover { background: var(--red); }
+
+    /* ===== NAV ===== */
     nav {
       position: fixed;
       top: 0; left: 0; right: 0;
+      z-index: 9999;
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      padding: 0 60px;
-      height: 60px;
+      align-items: center;
+      padding: 16px 32px;
+      background: rgba(10,10,10,.88);
       border-bottom: 1px solid var(--border);
-      background: rgba(8,8,8,0.9);
-      backdrop-filter: blur(12px);
-      z-index: 100;
+      backdrop-filter: blur(6px);
     }
 
     .nav-logo {
-      font-family: 'Space Mono', monospace;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      color: var(--text);
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      color: var(--red);
+      text-shadow: 0 0 8px var(--red-glow);
+      letter-spacing: 2px;
       text-decoration: none;
     }
-
-    .nav-logo span { color: var(--accent); }
 
     .nav-back {
-      font-family: 'Space Mono', monospace;
-      font-size: 10px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
       letter-spacing: 2px;
       text-transform: uppercase;
-      color: var(--text-muted);
+      color: var(--text-dim);
       text-decoration: none;
-      transition: color 0.2s;
+      transition: color .2s, text-shadow .2s;
     }
 
-    .nav-back:hover { color: var(--text); }
+    .nav-back:hover {
+      color: var(--red);
+      text-shadow: 0 0 6px var(--red-glow);
+    }
 
+    /* ===== MAIN ===== */
     main {
+      position: relative;
+      z-index: 1;
       display: flex;
       flex-direction: column;
       justify-content: center;
       min-height: 100vh;
-      padding: 100px 60px;
+      padding: 100px 60px 80px;
       max-width: 1000px;
     }
 
-    .label {
-      font-family: 'Space Mono', monospace;
-      font-size: 10px;
+    .error-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
       letter-spacing: 5px;
       text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 24px;
+      color: var(--red);
+      text-shadow: 0 0 6px var(--red-glow);
+      margin-bottom: 32px;
     }
 
-    h1 {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(80px, 18vw, 220px);
-      line-height: 0.85;
-      letter-spacing: -2px;
-      margin-bottom: 32px;
+    .error-code {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(48px, 10vw, 96px);
+      line-height: 1.2;
+      color: var(--red);
+      text-shadow: 0 0 40px var(--red-glow), 0 0 12px var(--red-glow);
+      margin-bottom: 16px;
+      animation: flicker 4s infinite;
+    }
+
+    .error-title {
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: clamp(32px, 6vw, 64px);
+      font-weight: 700;
+      letter-spacing: 4px;
+      text-transform: uppercase;
       color: var(--text);
+      margin-bottom: 40px;
+    }
+
+    .divider {
+      width: 48px;
+      height: 1px;
+      background: var(--red);
+      box-shadow: 0 0 6px var(--red-glow);
+      margin-bottom: 32px;
     }
 
     .description {
-      color: var(--text-muted);
-      font-size: 16px;
-      font-weight: 300;
-      line-height: 1.7;
-      max-width: 400px;
-      margin-bottom: 48px;
+      font-family: 'Chakra Petch', sans-serif;
+      color: var(--text-dim);
+      font-size: 15px;
+      line-height: 1.8;
+      max-width: 440px;
+      margin-bottom: 56px;
     }
 
     .home-link {
       display: inline-flex;
       align-items: center;
-      gap: 10px;
-      font-family: 'Space Mono', monospace;
-      font-size: 10px;
+      gap: 12px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
       letter-spacing: 3px;
       text-transform: uppercase;
-      color: var(--text-muted);
+      color: var(--text-dim);
       text-decoration: none;
-      transition: color 0.2s;
+      transition: color .2s, text-shadow .2s;
+      padding: 14px 24px;
+      border: 1px solid var(--border);
+      width: fit-content;
     }
 
-    .home-link:hover { color: var(--accent); }
+    .home-link:hover {
+      color: var(--red);
+      text-shadow: 0 0 6px var(--red-glow);
+      border-color: var(--red);
+      box-shadow: 0 0 12px var(--red-glow-soft, rgba(224,52,24,.1));
+    }
 
     .home-link .arrow {
-      transition: transform 0.2s;
+      transition: transform .2s;
     }
 
     .home-link:hover .arrow { transform: translateX(-4px); }
 
+    @keyframes flicker {
+      0%, 97%, 100% { opacity: 1; }
+      97.5% { opacity: 0.6; }
+      98% { opacity: 1; }
+      98.5% { opacity: 0.4; }
+      99% { opacity: 1; }
+    }
+
     @media (max-width: 768px) {
-      nav { padding: 0 24px; }
-      main { padding: 100px 24px 80px; }
+      nav { padding: 14px 20px; }
+      main { padding: 90px 24px 60px; }
+      .error-code { font-size: clamp(36px, 12vw, 64px); }
     }
   </style>
 </head>
 <body>
 
+<canvas id="dither-bg"></canvas>
+<div class="scanlines"></div>
+<div class="vignette"></div>
+
 <nav>
-  <a href="/" class="nav-logo">PB<span>.</span></a>
+  <a href="/" class="nav-logo">PB.</a>
   <a href="/" class="nav-back">← Back to Portfolio</a>
 </nav>
 
 <main>
-  <div class="label">Error 404</div>
-  <h1>NOT<br>FOUND</h1>
+  <div class="error-label">// system error</div>
+  <div class="error-code">404</div>
+  <div class="error-title">Not Found</div>
+  <div class="divider"></div>
   <p class="description">
-    This page doesn't exist — or got moved. Nothing to analyze here.
+    This page doesn't exist — or got moved.<br>Nothing to analyze here.
   </p>
   <a href="/" class="home-link">
     <span class="arrow">←</span>
@@ -155,5 +243,6 @@
   </a>
 </main>
 
+<script src="writing/dither-bg.js"></script>
 </body>
 </html>
