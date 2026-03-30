@@ -424,6 +424,122 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
 /* ── READ PROGRESS BAR ── */
 #read-progress-wrap{position:fixed;top:0;left:0;right:0;height:3px;background:rgba(0,209,97,0.12);z-index:1000;pointer-events:none;}
 #read-progress{height:100%;width:0%;background:var(--green);transition:width 0.1s linear;}
+
+/* ── PROTOTYPE SHOWCASE ── */
+/* Shared role pills */
+.rp{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-family:'Nunito Sans',sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;}
+.rp.awper{background:rgba(96,165,250,.15);color:#60A5FA;border:1px solid rgba(96,165,250,.25);}
+.rp.star-rifler{background:rgba(255,215,0,.1);color:#FFD700;border:1px solid rgba(255,215,0,.2);}
+.rp.second-star{background:rgba(192,200,216,.08);color:#A8B4C8;border:1px solid rgba(192,200,216,.15);}
+.rp.support{background:rgba(107,114,128,.12);color:#6B7A8D;border:1px solid rgba(107,114,128,.18);}
+.rp.igl{background:rgba(0,209,97,.08);color:#00D161;border:1px solid rgba(0,209,97,.15);}
+.rp.ct-short{background:rgba(251,146,60,.1);color:#FB923C;border:1px solid rgba(251,146,60,.2);}
+.rp.ct-anchor{background:rgba(100,116,139,.1);color:#94A3B8;border:1px solid rgba(100,116,139,.2);}
+.rp.ct-b-anchor{background:rgba(100,116,139,.1);color:#94A3B8;border:1px solid rgba(100,116,139,.2);}
+.rp.ct-a-main{background:rgba(96,165,250,.1);color:#93C5FD;border:1px solid rgba(96,165,250,.2);}
+.rp.ct-a-site{background:rgba(192,200,216,.08);color:#A8B4C8;border:1px solid rgba(192,200,216,.15);}
+.rp.ct-b-site{background:rgba(107,114,128,.1);color:#9CA3AF;border:1px solid rgba(107,114,128,.18);}
+.rp.ct-mid-a{background:rgba(45,212,191,.1);color:#2DD4BF;border:1px solid rgba(45,212,191,.2);}
+.rp.t-b-exec{background:rgba(251,146,60,.1);color:#FB923C;border:1px solid rgba(251,146,60,.2);}
+.rp.t-mid-ctrl{background:rgba(45,212,191,.1);color:#2DD4BF;border:1px solid rgba(45,212,191,.2);}
+.rp.t-a-exec{background:rgba(192,200,216,.08);color:#A8B4C8;border:1px solid rgba(192,200,216,.15);}
+.rp.t-utility{background:rgba(107,114,128,.1);color:#9CA3AF;border:1px solid rgba(107,114,128,.18);}
+.rp.t-entry{background:rgba(249,115,22,.1);color:#F97316;border:1px solid rgba(249,115,22,.2);}
+
+/* SP bars */
+.sp-num{font-family:'Alumni Sans',sans-serif;font-size:16px;font-weight:700;color:var(--text-primary);line-height:1;}
+.sp-bar-track{width:100%;max-width:56px;height:3px;background:var(--surface);border-radius:2px;margin-top:4px;overflow:hidden;}
+.sp-bar-fill{height:100%;border-radius:2px;transition:width .6s cubic-bezier(.4,0,.2,1);}
+.sp-bar-fill.ct{background:linear-gradient(90deg,rgba(96,165,250,.4),#60A5FA);}
+.sp-bar-fill.t{background:linear-gradient(90deg,rgba(251,146,60,.4),#FB923C);}
+.sp-bar-fill.total{background:linear-gradient(90deg,var(--green-dim),var(--green));}
+
+/* Player cards */
+.pc-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;display:flex;}
+.pc-scroll::-webkit-scrollbar{height:3px;}
+.pc-scroll::-webkit-scrollbar-thumb{background:var(--surface);border-radius:3px;}
+.pc-card{min-width:210px;flex:1 0 210px;padding:16px;border-right:1px solid var(--border);background:var(--card);}
+.pc-card:last-child{border-right:none;}
+.pc-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;}
+.pc-avatar{width:48px;height:48px;border-radius:8px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-family:'Alumni Sans',sans-serif;font-weight:800;font-size:18px;color:var(--text-secondary);flex-shrink:0;border:1px solid var(--border-solid);}
+.pc-identity{flex:1;min-width:0;}
+.pc-nick{font-family:'Alumni Sans',sans-serif;font-weight:800;font-size:15px;color:var(--text-primary);line-height:1.1;}
+.pc-real{font-size:10px;color:var(--text-dim);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.pc-score{text-align:right;flex-shrink:0;}
+.pc-score-val{font-family:'Alumni Sans',sans-serif;font-weight:800;font-size:22px;color:#fff;line-height:1;border-radius:5px;padding:3px 7px;display:inline-block;background:var(--surface);}
+.pc-score-val.sc-green{background:#1a5c35;}
+.pc-score-val.sc-blue{background:#1a3a6e;}
+.pc-score-val.sc-gray{background:var(--surface);}
+.pc-score-label{font-size:8px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;text-align:center;font-family:'Nunito Sans',sans-serif;}
+.pc-stats{display:flex;flex-direction:column;margin-top:2px;}
+.pc-stat{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:11px;}
+.pc-stat:last-child{border-bottom:none;}
+.pc-stat-lbl{color:var(--text-muted);font-weight:600;font-family:'Nunito Sans',sans-serif;}
+.pc-stat-val{font-family:'Alumni Sans',sans-serif;font-weight:700;font-size:12px;color:var(--text-primary);display:flex;align-items:center;gap:3px;}
+.pc-trend{font-size:9px;font-family:'Nunito Sans',sans-serif;font-weight:600;}
+.pc-trend.up{color:var(--green);}
+.pc-trend.dn{color:var(--red);}
+.pc-playstyle{display:flex;align-items:center;justify-content:space-between;padding:6px 0 0;margin-top:2px;border-top:1px solid var(--border);}
+.pc-style-lbl{font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;font-family:'Nunito Sans',sans-serif;}
+.pc-style-val{font-size:10px;color:var(--green);font-weight:600;font-family:'Nunito Sans',sans-serif;}
+
+/* Roles table */
+.roles-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.roles-wrap::-webkit-scrollbar{height:3px;}
+.roles-wrap::-webkit-scrollbar-thumb{background:var(--surface);border-radius:3px;}
+.roles-tbl{width:100%;border-collapse:collapse;min-width:860px;}
+.roles-tbl th{font-family:'Nunito Sans',sans-serif;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:7px 12px;text-align:left;white-space:nowrap;}
+.roles-tbl .grp-row th{background:var(--card-alt);border-bottom:1px solid var(--border-solid);color:var(--text-dim);text-align:center;}
+.roles-tbl .grp-row th.left{text-align:left;}
+.roles-tbl .grp-row th.ct-grp{color:#60A5FA;background:rgba(96,165,250,.04);border-bottom-color:rgba(96,165,250,.2);}
+.roles-tbl .grp-row th.t-grp{color:#FB923C;background:rgba(251,146,60,.04);border-bottom-color:rgba(251,146,60,.2);}
+.roles-tbl .cols-row th{background:var(--card);border-bottom:1px solid var(--border-solid);color:var(--text-dim);}
+.roles-tbl .cols-row th.ct-col{background:rgba(96,165,250,.025);color:rgba(96,165,250,.45);}
+.roles-tbl .cols-row th.t-col{background:rgba(251,146,60,.025);color:rgba(251,146,60,.45);}
+.roles-tbl td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.roles-tbl td.ct-col{background:rgba(96,165,250,.015);}
+.roles-tbl td.t-col{background:rgba(251,146,60,.015);}
+.roles-tbl tr.pl-row:hover td{background:rgba(255,255,255,.025);}
+.roles-tbl tr.pl-row:last-child td{border-bottom:none;}
+.pl-cell{display:flex;align-items:center;gap:9px;min-width:120px;}
+.pl-av{width:32px;height:32px;border-radius:6px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-family:'Alumni Sans',sans-serif;font-weight:800;font-size:13px;color:var(--text-secondary);flex-shrink:0;}
+.pl-nm{font-family:'Alumni Sans',sans-serif;font-size:14px;font-weight:700;color:var(--text-primary);}
+.res-pos{color:var(--green);font-family:'Alumni Sans',sans-serif;font-weight:700;font-size:13px;}
+.res-neg{color:var(--red);font-family:'Alumni Sans',sans-serif;font-weight:700;font-size:13px;}
+.util-val{font-family:'Alumni Sans',sans-serif;font-size:13px;font-weight:600;color:var(--text-secondary);}
+
+/* Dota match stats table */
+.dm-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.dm-wrap::-webkit-scrollbar{height:3px;}
+.dm-wrap::-webkit-scrollbar-thumb{background:var(--surface);border-radius:3px;}
+.dm-tbl{width:100%;border-collapse:collapse;min-width:720px;}
+.dm-tbl th{font-family:'Nunito Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.07em;color:var(--text-muted);text-transform:uppercase;padding:8px 10px;border-bottom:1px solid var(--border-solid);white-space:nowrap;text-align:left;}
+.dm-tbl th:not(:first-child){text-align:center;}
+.dm-tbl td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.04);white-space:nowrap;vertical-align:middle;}
+.dm-tbl td:not(:first-child){text-align:center;}
+.dm-tbl tr.rad-row{background:rgba(74,222,128,.04);}
+.dm-tbl tr.dire-row{background:rgba(248,113,113,.04);}
+.dm-tbl tr:hover td{background:rgba(255,255,255,.03);}
+.dm-tbl tr:last-child td{border-bottom:none;}
+.dm-team-row td{padding:5px 10px;font-family:'Alumni Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;}
+.dm-team-row.rad td{color:#4ADE80;background:rgba(74,222,128,.07);}
+.dm-team-row.dire td{color:#F87171;background:rgba(248,113,113,.07);}
+.dm-hero{display:flex;align-items:center;gap:8px;}
+.dm-icon{width:32px;height:22px;border-radius:3px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--text-dim);flex-shrink:0;font-family:'Nunito Sans',sans-serif;border:1px solid var(--border);}
+.dm-hero-nm{font-family:'Alumni Sans',sans-serif;font-size:13px;font-weight:700;color:var(--text-primary);}
+.dm-player{font-size:10px;color:var(--text-muted);}
+.dm-k{color:#4ADE80;font-family:'Alumni Sans',sans-serif;font-weight:700;font-size:13px;}
+.dm-d{color:#F87171;font-family:'Alumni Sans',sans-serif;font-weight:700;font-size:13px;}
+.dm-a{color:var(--gold-bright);font-family:'Alumni Sans',sans-serif;font-weight:700;font-size:13px;}
+.dm-sep{color:var(--text-dim);font-size:11px;margin:0 1px;}
+.dm-gpm{color:var(--gold-bright);font-family:'Alumni Sans',sans-serif;font-weight:700;font-size:13px;}
+.dm-nw{font-family:'Alumni Sans',sans-serif;font-weight:700;font-size:13px;color:var(--text-primary);}
+.dm-bar-wrap{display:flex;align-items:center;gap:5px;justify-content:center;}
+.dm-bar-bg{width:44px;height:4px;background:rgba(255,255,255,.07);border-radius:2px;flex-shrink:0;overflow:hidden;}
+.dm-bar-fill{height:100%;border-radius:2px;}
+.dm-bar-fill.hero{background:#F87171;}
+.dm-bar-fill.tower{background:var(--gold-bright);}
+.dm-num{font-family:'Alumni Sans',sans-serif;font-size:12px;font-weight:600;color:var(--text-secondary);}
 </style>
 </head>
 <body>
@@ -1711,143 +1827,388 @@ tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
     </div>
   </div>
 
-  <!-- Demo tables -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px;">
+  <!-- Prototype showcase -->
 
-    <!-- Player Scoreboard (Dota 2) -->
-    <div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <span style="font-family:'Alumni Sans',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);">Match Analysis / Player Scoreboard</span>
-        <span style="font-family:'Nunito Sans',sans-serif;font-size:.68rem;background:rgba(74,222,128,.12);color:#4ADE80;border:1px solid rgba(74,222,128,.25);border-radius:3px;padding:2px 7px;">Radiant · NAVI</span>
-      </div>
-      <div class="workload-table-wrap" style="margin:0;">
-        <table>
-          <thead>
-            <tr>
-              <th>Hero / Player</th>
-              <th style="text-align:center;width:36px;">Pos</th>
-              <th style="text-align:center;width:40px;">K</th>
-              <th style="text-align:center;width:40px;">D</th>
-              <th style="text-align:center;width:40px;">A</th>
-              <th style="text-align:center;width:56px;">GPM</th>
-              <th style="text-align:center;width:56px;">NW</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr style="border-left:3px solid #4ADE80;">
-              <td><span class="task-name">Anti-Mage</span><span class="task-note">RIDDYS</span></td>
-              <td style="text-align:center;"><span style="display:inline-block;font-size:.62rem;font-weight:700;font-family:'Nunito Sans',sans-serif;background:rgba(74,222,128,.18);color:#4ADE80;border-radius:3px;padding:1px 5px;">1</span></td>
-              <td style="text-align:center;color:var(--text-primary);">14</td>
-              <td style="text-align:center;color:var(--text-secondary);">3</td>
-              <td style="text-align:center;color:var(--text-secondary);">7</td>
-              <td style="text-align:center;color:var(--text-primary);">712</td>
-              <td style="text-align:center;color:var(--text-primary);">34.2k</td>
-            </tr>
-            <tr style="border-left:3px solid #60A5FA;">
-              <td><span class="task-name">Invoker</span><span class="task-note">GOTTHEJUICE</span></td>
-              <td style="text-align:center;"><span style="display:inline-block;font-size:.62rem;font-weight:700;font-family:'Nunito Sans',sans-serif;background:rgba(96,165,250,.18);color:#60A5FA;border-radius:3px;padding:1px 5px;">2</span></td>
-              <td style="text-align:center;color:var(--text-primary);">9</td>
-              <td style="text-align:center;color:var(--text-secondary);">4</td>
-              <td style="text-align:center;color:var(--text-secondary);">11</td>
-              <td style="text-align:center;color:var(--text-primary);">584</td>
-              <td style="text-align:center;color:var(--text-primary);">27.1k</td>
-            </tr>
-            <tr style="border-left:3px solid #FB923C;">
-              <td><span class="task-name">Axe</span><span class="task-note">PMA</span></td>
-              <td style="text-align:center;"><span style="display:inline-block;font-size:.62rem;font-weight:700;font-family:'Nunito Sans',sans-serif;background:rgba(251,146,60,.18);color:#FB923C;border-radius:3px;padding:1px 5px;">3</span></td>
-              <td style="text-align:center;color:var(--text-primary);">6</td>
-              <td style="text-align:center;color:var(--text-secondary);">5</td>
-              <td style="text-align:center;color:var(--text-secondary);">14</td>
-              <td style="text-align:center;color:var(--text-primary);">430</td>
-              <td style="text-align:center;color:var(--text-primary);">19.8k</td>
-            </tr>
-            <tr style="border-left:3px solid #A78BFA;">
-              <td><span class="task-name">Crystal Maiden</span><span class="task-note">NIKU</span></td>
-              <td style="text-align:center;"><span style="display:inline-block;font-size:.62rem;font-weight:700;font-family:'Nunito Sans',sans-serif;background:rgba(167,139,250,.18);color:#A78BFA;border-radius:3px;padding:1px 5px;">4</span></td>
-              <td style="text-align:center;color:var(--text-primary);">2</td>
-              <td style="text-align:center;color:var(--text-secondary);">6</td>
-              <td style="text-align:center;color:var(--text-secondary);">18</td>
-              <td style="text-align:center;color:var(--text-primary);">251</td>
-              <td style="text-align:center;color:var(--text-primary);">10.4k</td>
-            </tr>
-            <tr style="border-left:3px solid #F87171;">
-              <td><span class="task-name">Rubick</span><span class="task-note">ZAYAC</span></td>
-              <td style="text-align:center;"><span style="display:inline-block;font-size:.62rem;font-weight:700;font-family:'Nunito Sans',sans-serif;background:rgba(248,113,113,.18);color:#F87171;border-radius:3px;padding:1px 5px;">5</span></td>
-              <td style="text-align:center;color:var(--text-primary);">3</td>
-              <td style="text-align:center;color:var(--text-secondary);">7</td>
-              <td style="text-align:center;color:var(--text-secondary);">16</td>
-              <td style="text-align:center;color:var(--text-primary);">198</td>
-              <td style="text-align:center;color:var(--text-primary);">8.7k</td>
-            </tr>
-          </tbody>
-        </table>
+  <!-- CS2: Player Cards -->
+  <div style="border:1px solid var(--border-solid);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:20px;">
+    <div style="padding:10px 16px;background:var(--card-alt);border-bottom:1px solid var(--border-solid);display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-family:'Alumni Sans',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);">Match Analysis · Player Cards</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="pipe-game cs2">CS2</span>
+        <span style="font-family:'Nunito Sans',sans-serif;font-size:.68rem;color:var(--text-dim);">FURIA · IEM Rio 2026 · 5 players</span>
       </div>
     </div>
-
-    <!-- Roles & Star Points (CS2) -->
-    <div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <span style="font-family:'Alumni Sans',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);">Match Analysis / Roles &amp; Star Points</span>
-        <span style="font-family:'Nunito Sans',sans-serif;font-size:.68rem;background:rgba(251,146,60,.12);color:#FB923C;border:1px solid rgba(251,146,60,.25);border-radius:3px;padding:2px 7px;">CS2 · FURIA</span>
+    <div class="pc-scroll">
+      <!-- KSCERATO -->
+      <div class="pc-card">
+        <div class="pc-top">
+          <div class="pc-avatar" style="border-top:2px solid #FFD700;color:#FFD700;">KS</div>
+          <div class="pc-identity">
+            <div class="pc-nick">KSCERATO</div>
+            <div class="pc-real">Kaike Cerato</div>
+            <span class="rp star-rifler" style="margin-top:4px;font-size:9px;">Star Rifler</span>
+          </div>
+          <div class="pc-score">
+            <div class="pc-score-val sc-green">84</div>
+            <div class="pc-score-label">rdy Index</div>
+          </div>
+        </div>
+        <div class="pc-stats">
+          <div class="pc-stat"><span class="pc-stat-lbl">ADR</span><span class="pc-stat-val">78.4 <span class="pc-trend up">↑4.2</span></span></div>
+          <div class="pc-stat"><span class="pc-stat-lbl">HS%</span><span class="pc-stat-val">52.1% <span class="pc-trend up">↑6.8%</span></span></div>
+          <div class="pc-stat"><span class="pc-stat-lbl">Opening K/Rd</span><span class="pc-stat-val">0.19 <span class="pc-trend up">↑0.04</span></span></div>
+          <div class="pc-stat"><span class="pc-stat-lbl">1vX Clutch</span><span class="pc-stat-val">48% <span class="pc-trend up">↑9%</span></span></div>
+          <div class="pc-stat"><span class="pc-stat-lbl">Flash Asst/Rd</span><span class="pc-stat-val">0.05 <span class="pc-trend dn">↓0.01</span></span></div>
+        </div>
+        <div class="pc-playstyle"><span class="pc-style-lbl">Playstyle</span><span class="pc-style-val">Anchor Rifler</span></div>
       </div>
-      <div class="workload-table-wrap" style="margin:0;">
-        <table>
-          <thead>
-            <tr>
-              <th>Player</th>
-              <th>Role</th>
-              <th style="text-align:center;width:44px;">CT</th>
-              <th style="text-align:center;width:44px;">T</th>
-              <th style="text-align:center;width:44px;">SP</th>
-              <th style="text-align:center;width:52px;">Res.&Delta;</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><span class="task-name">KSCERATO</span></td>
-              <td><span style="display:inline-block;font-size:.62rem;font-weight:700;font-family:'Nunito Sans',sans-serif;background:rgba(34,211,238,.14);color:#22D3EE;border-radius:3px;padding:1px 6px;">Star Rifler</span></td>
-              <td style="text-align:center;font-size:.78rem;color:var(--text-secondary);">B anchor</td>
-              <td style="text-align:center;font-size:.78rem;color:var(--text-secondary);">B executes</td>
-              <td style="text-align:center;font-weight:700;color:var(--text-primary);">8.4</td>
-              <td style="text-align:center;color:#4ADE80;font-weight:600;">+2.1</td>
-            </tr>
-            <tr>
-              <td><span class="task-name">FalleN</span></td>
-              <td><span style="display:inline-block;font-size:.62rem;font-weight:700;font-family:'Nunito Sans',sans-serif;background:rgba(251,146,60,.14);color:#FB923C;border-radius:3px;padding:1px 6px;">AWPer</span></td>
-              <td style="text-align:center;font-size:.78rem;color:var(--text-secondary);">A main</td>
-              <td style="text-align:center;font-size:.78rem;color:var(--text-secondary);">Mid control</td>
-              <td style="text-align:center;font-weight:700;color:var(--text-primary);">7.2</td>
-              <td style="text-align:center;color:#4ADE80;font-weight:600;">+1.8</td>
-            </tr>
-            <tr>
-              <td><span class="task-name">yuurih</span></td>
-              <td><span style="display:inline-block;font-size:.62rem;font-weight:700;font-family:'Nunito Sans',sans-serif;background:rgba(59,130,246,.14);color:#3B82F6;border-radius:3px;padding:1px 6px;">Second Star</span></td>
-              <td style="text-align:center;font-size:.78rem;color:var(--text-secondary);">A site</td>
-              <td style="text-align:center;font-size:.78rem;color:var(--text-secondary);">A executes</td>
-              <td style="text-align:center;font-weight:700;color:var(--text-primary);">5.1</td>
-              <td style="text-align:center;color:#F87171;font-weight:600;">-0.4</td>
-            </tr>
-            <tr>
-              <td><span class="task-name">molodoy</span></td>
-              <td><span style="display:inline-block;font-size:.62rem;font-weight:700;font-family:'Nunito Sans',sans-serif;background:rgba(236,72,153,.14);color:#EC4899;border-radius:3px;padding:1px 6px;">Support</span></td>
-              <td style="text-align:center;font-size:.78rem;color:var(--text-secondary);">B site</td>
-              <td style="text-align:center;font-size:.78rem;color:var(--text-secondary);">Utility</td>
-              <td style="text-align:center;font-weight:700;color:var(--text-primary);">3.8</td>
-              <td style="text-align:center;color:#F87171;font-weight:600;">-1.2</td>
-            </tr>
-            <tr>
-              <td><span class="task-name">YEKINDAR</span></td>
-              <td><span style="display:inline-block;font-size:.62rem;font-weight:700;font-family:'Nunito Sans',sans-serif;background:rgba(122,132,153,.14);color:#7a8499;border-radius:3px;padding:1px 6px;">IGL</span></td>
-              <td style="text-align:center;font-size:.78rem;color:var(--text-secondary);">Mid/A</td>
-              <td style="text-align:center;font-size:.78rem;color:var(--text-secondary);">Entry</td>
-              <td style="text-align:center;font-weight:700;color:var(--text-primary);">2.9</td>
-              <td style="text-align:center;color:#F87171;font-weight:600;">-2.3</td>
-            </tr>
-          </tbody>
-        </table>
+      <!-- FalleN -->
+      <div class="pc-card">
+        <div class="pc-top">
+          <div class="pc-avatar" style="border-top:2px solid #60A5FA;color:#60A5FA;">FN</div>
+          <div class="pc-identity">
+            <div class="pc-nick">FalleN</div>
+            <div class="pc-real">Gabriel Toledo</div>
+            <span class="rp awper" style="margin-top:4px;font-size:9px;">AWPer</span>
+          </div>
+          <div class="pc-score">
+            <div class="pc-score-val sc-blue">72</div>
+            <div class="pc-score-label">rdy Index</div>
+          </div>
+        </div>
+        <div class="pc-stats">
+          <div class="pc-stat"><span class="pc-stat-lbl">ADR</span><span class="pc-stat-val">71.6 <span class="pc-trend dn">↓3.4</span></span></div>
+          <div class="pc-stat"><span class="pc-stat-lbl">HS%</span><span class="pc-stat-val">28.3% <span class="pc-trend dn">↓2.1%</span></span></div>
+          <div class="pc-stat"><span class="pc-stat-lbl">Opening K/Rd</span><span class="pc-stat-val">0.14 <span class="pc-trend up">↑0.02</span></span></div>
+          <div class="pc-stat"><span class="pc-stat-lbl">1vX Clutch</span><span class="pc-stat-val">38% <span class="pc-trend dn">↓4%</span></span></div>
+          <div class="pc-stat"><span class="pc-stat-lbl">Flash Asst/Rd</span><span class="pc-stat-val">0.06 <span class="pc-trend up">↑0.02</span></span></div>
+        </div>
+        <div class="pc-playstyle"><span class="pc-style-lbl">Playstyle</span><span class="pc-style-val">Passive AWP</span></div>
+      </div>
+      <!-- yuurih -->
+      <div class="pc-card">
+        <div class="pc-top">
+          <div class="pc-avatar" style="border-top:2px solid #A8B4C8;color:#A8B4C8;">YU</div>
+          <div class="pc-identity">
+            <div class="pc-nick">yuurih</div>
+            <div class="pc-real">Yuri Boian</div>
+            <span class="rp second-star" style="margin-top:4px;font-size:9px;">Second Star</span>
+          </div>
+          <div class="pc-score">
+            <div class="pc-score-val sc-green">77</div>
+            <div class="pc-score-label">rdy Index</div>
+          </div>
+        </div>
+        <div class="pc-stats">
+          <div class="pc-stat"><span class="pc-stat-lbl">ADR</span><span class="pc-stat-val">74.2 <span class="pc-trend up">↑2.6</span></span></div>
+          <div class="pc-stat"><span class="pc-stat-lbl">HS%</span><span class="pc-stat-val">49.6% <span class="pc-trend up">↑3.2%</span></span></div>
+          <div class="pc-stat"><span class="pc-stat-lbl">Opening K/Rd</span><span class="pc-stat-val">0.17 <span class="pc-trend up">↑0.02</span></span></div>
+          <div class="pc-stat"><span class="pc-stat-lbl">1vX Clutch</span><span class="pc-stat-val">41% <span class="pc-trend up">↑5%</span></span></div>
+          <div class="pc-stat"><span class="pc-stat-lbl">Flash Asst/Rd</span><span class="pc-stat-val">0.09 <span class="pc-trend up">↑0.03</span></span></div>
+        </div>
+        <div class="pc-playstyle"><span class="pc-style-lbl">Playstyle</span><span class="pc-style-val">Trade Fragger</span></div>
+      </div>
+      <!-- molodoy -->
+      <div class="pc-card">
+        <div class="pc-top">
+          <div class="pc-avatar" style="border-top:2px solid #6B7A8D;color:#6B7A8D;">ML</div>
+          <div class="pc-identity">
+            <div class="pc-nick">molodoy</div>
+            <div class="pc-real">Igor Bezrukov</div>
+            <span class="rp support" style="margin-top:4px;font-size:9px;">Support</span>
+          </div>
+          <div class="pc-score">
+            <div class="pc-score-val sc-gray">65</div>
+            <div class="pc-score-label">rdy Index</div>
+          </div>
+        </div>
+        <div class="pc-stats">
+          <div class="pc-stat"><span class="pc-stat-lbl">ADR</span><span class="pc-stat-val">68.9 <span class="pc-trend up">↑1.4</span></span></div>
+          <div class="pc-stat"><span class="pc-stat-lbl">HS%</span><span class="pc-stat-val">44.2% <span class="pc-trend dn">↓5.1%</span></span></div>
+          <div class="pc-stat"><span class="pc-stat-lbl">Opening K/Rd</span><span class="pc-stat-val">0.13 <span class="pc-trend dn">↓0.01</span></span></div>
+          <div class="pc-stat"><span class="pc-stat-lbl">1vX Clutch</span><span class="pc-stat-val">32% <span class="pc-trend dn">↓6%</span></span></div>
+          <div class="pc-stat"><span class="pc-stat-lbl">Flash Asst/Rd</span><span class="pc-stat-val">0.21 <span class="pc-trend up">↑0.06</span></span></div>
+        </div>
+        <div class="pc-playstyle"><span class="pc-style-lbl">Playstyle</span><span class="pc-style-val">Utility Support</span></div>
+      </div>
+      <!-- YEKINDAR -->
+      <div class="pc-card">
+        <div class="pc-top">
+          <div class="pc-avatar" style="border-top:2px solid #00D161;color:#00D161;">YK</div>
+          <div class="pc-identity">
+            <div class="pc-nick">YEKINDAR</div>
+            <div class="pc-real">Mareks Gaļinskis</div>
+            <span class="rp igl" style="margin-top:4px;font-size:9px;">IGL</span>
+          </div>
+          <div class="pc-score">
+            <div class="pc-score-val sc-gray">69</div>
+            <div class="pc-score-label">rdy Index</div>
+          </div>
+        </div>
+        <div class="pc-stats">
+          <div class="pc-stat"><span class="pc-stat-lbl">ADR</span><span class="pc-stat-val">73.1 <span class="pc-trend up">↑3.8</span></span></div>
+          <div class="pc-stat"><span class="pc-stat-lbl">HS%</span><span class="pc-stat-val">38.7% <span class="pc-trend up">↑1.9%</span></span></div>
+          <div class="pc-stat"><span class="pc-stat-lbl">Opening K/Rd</span><span class="pc-stat-val">0.21 <span class="pc-trend up">↑0.06</span></span></div>
+          <div class="pc-stat"><span class="pc-stat-lbl">1vX Clutch</span><span class="pc-stat-val">35% <span class="pc-trend up">↑3%</span></span></div>
+          <div class="pc-stat"><span class="pc-stat-lbl">Flash Asst/Rd</span><span class="pc-stat-val">0.14 <span class="pc-trend up">↑0.04</span></span></div>
+        </div>
+        <div class="pc-playstyle"><span class="pc-style-lbl">Playstyle</span><span class="pc-style-val">Aggressive Entry</span></div>
       </div>
     </div>
+  </div>
 
+  <!-- CS2: Role Analysis & Star Points -->
+  <div style="border:1px solid var(--border-solid);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:20px;">
+    <div style="padding:10px 16px;background:var(--card-alt);border-bottom:1px solid var(--border-solid);display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-family:'Alumni Sans',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);">Match Analysis · Roles &amp; Star Points</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="pipe-game cs2">CS2</span>
+        <span style="font-family:'Nunito Sans',sans-serif;font-size:.68rem;color:var(--text-dim);">FURIA · Mirage · vs Spirit</span>
+      </div>
+    </div>
+    <div class="roles-wrap">
+      <table class="roles-tbl">
+        <thead>
+          <tr class="grp-row">
+            <th class="left" colspan="2">Player</th>
+            <th class="ct-grp" colspan="2">CT Side</th>
+            <th class="t-grp" colspan="2">T Side</th>
+            <th style="text-align:center;">Star Ranking</th>
+            <th style="text-align:right;">Res. &Delta;</th>
+            <th style="text-align:right;">Util Share</th>
+            <th style="text-align:right;">Total SP</th>
+          </tr>
+          <tr class="cols-row">
+            <th style="min-width:130px;">Player</th>
+            <th style="text-align:right;min-width:52px;">Rating</th>
+            <th class="ct-col" style="min-width:120px;">CT Role</th>
+            <th class="ct-col" style="min-width:88px;">CT Star Pts</th>
+            <th class="t-col" style="min-width:120px;">T Role</th>
+            <th class="t-col" style="min-width:88px;">T Star Pts</th>
+            <th style="text-align:center;min-width:110px;">Overall Role</th>
+            <th style="text-align:right;min-width:80px;">Res. &Delta;</th>
+            <th style="text-align:right;min-width:72px;">Util</th>
+            <th style="text-align:right;min-width:80px;">Total SP</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="pl-row">
+            <td><div class="pl-cell"><div class="pl-av" style="border-top:2px solid #FFD700;color:#FFD700;">KS</div><span class="pl-nm">KSCERATO</span></div></td>
+            <td style="text-align:right;"><span style="font-family:'Alumni Sans',sans-serif;font-size:14px;font-weight:700;color:var(--green);">84</span></td>
+            <td class="ct-col"><span class="rp ct-b-anchor">B Anchor</span></td>
+            <td class="ct-col"><div style="min-width:64px;"><div class="sp-num">4.8</div><div class="sp-bar-track"><div class="sp-bar-fill ct" style="width:96%;"></div></div></div></td>
+            <td class="t-col"><span class="rp t-b-exec">B Executes</span></td>
+            <td class="t-col"><div style="min-width:64px;"><div class="sp-num">3.6</div><div class="sp-bar-track"><div class="sp-bar-fill t" style="width:72%;"></div></div></div></td>
+            <td style="text-align:center;"><span class="rp star-rifler">Star Rifler</span></td>
+            <td style="text-align:right;"><span class="res-pos">+2.1</span></td>
+            <td style="text-align:right;"><span class="util-val">0.08</span></td>
+            <td style="text-align:right;"><div style="text-align:right;"><div class="sp-num">8.4</div><div class="sp-bar-track" style="margin-left:auto;"><div class="sp-bar-fill total" style="width:100%;"></div></div></div></td>
+          </tr>
+          <tr class="pl-row">
+            <td><div class="pl-cell"><div class="pl-av" style="border-top:2px solid #60A5FA;color:#60A5FA;">FN</div><span class="pl-nm">FalleN</span></div></td>
+            <td style="text-align:right;"><span style="font-family:'Alumni Sans',sans-serif;font-size:14px;font-weight:700;color:#6aabff;">72</span></td>
+            <td class="ct-col"><span class="rp ct-a-main">A Main</span></td>
+            <td class="ct-col"><div style="min-width:64px;"><div class="sp-num">3.9</div><div class="sp-bar-track"><div class="sp-bar-fill ct" style="width:78%;"></div></div></div></td>
+            <td class="t-col"><span class="rp t-mid-ctrl">Mid Control</span></td>
+            <td class="t-col"><div style="min-width:64px;"><div class="sp-num">3.3</div><div class="sp-bar-track"><div class="sp-bar-fill t" style="width:66%;"></div></div></div></td>
+            <td style="text-align:center;"><span class="rp awper">AWPer</span></td>
+            <td style="text-align:right;"><span class="res-pos">+1.8</span></td>
+            <td style="text-align:right;"><span class="util-val">0.06</span></td>
+            <td style="text-align:right;"><div style="text-align:right;"><div class="sp-num">7.2</div><div class="sp-bar-track" style="margin-left:auto;"><div class="sp-bar-fill total" style="width:86%;"></div></div></div></td>
+          </tr>
+          <tr class="pl-row">
+            <td><div class="pl-cell"><div class="pl-av" style="border-top:2px solid #A8B4C8;color:#A8B4C8;">YU</div><span class="pl-nm">yuurih</span></div></td>
+            <td style="text-align:right;"><span style="font-family:'Alumni Sans',sans-serif;font-size:14px;font-weight:700;color:var(--text-secondary);">77</span></td>
+            <td class="ct-col"><span class="rp ct-a-site">A Site</span></td>
+            <td class="ct-col"><div style="min-width:64px;"><div class="sp-num">2.8</div><div class="sp-bar-track"><div class="sp-bar-fill ct" style="width:56%;"></div></div></div></td>
+            <td class="t-col"><span class="rp t-a-exec">A Executes</span></td>
+            <td class="t-col"><div style="min-width:64px;"><div class="sp-num">2.3</div><div class="sp-bar-track"><div class="sp-bar-fill t" style="width:46%;"></div></div></div></td>
+            <td style="text-align:center;"><span class="rp second-star">Second Star</span></td>
+            <td style="text-align:right;"><span class="res-neg">-0.4</span></td>
+            <td style="text-align:right;"><span class="util-val">0.11</span></td>
+            <td style="text-align:right;"><div style="text-align:right;"><div class="sp-num">5.1</div><div class="sp-bar-track" style="margin-left:auto;"><div class="sp-bar-fill total" style="width:61%;"></div></div></div></td>
+          </tr>
+          <tr class="pl-row">
+            <td><div class="pl-cell"><div class="pl-av" style="border-top:2px solid #6B7A8D;color:#6B7A8D;">ML</div><span class="pl-nm">molodoy</span></div></td>
+            <td style="text-align:right;"><span style="font-family:'Alumni Sans',sans-serif;font-size:14px;font-weight:700;color:var(--text-muted);">65</span></td>
+            <td class="ct-col"><span class="rp ct-b-site">B Site</span></td>
+            <td class="ct-col"><div style="min-width:64px;"><div class="sp-num">1.9</div><div class="sp-bar-track"><div class="sp-bar-fill ct" style="width:38%;"></div></div></div></td>
+            <td class="t-col"><span class="rp t-utility">Utility</span></td>
+            <td class="t-col"><div style="min-width:64px;"><div class="sp-num">1.9</div><div class="sp-bar-track"><div class="sp-bar-fill t" style="width:38%;"></div></div></div></td>
+            <td style="text-align:center;"><span class="rp support">Support</span></td>
+            <td style="text-align:right;"><span class="res-neg">-1.2</span></td>
+            <td style="text-align:right;"><span class="util-val">0.21</span></td>
+            <td style="text-align:right;"><div style="text-align:right;"><div class="sp-num">3.8</div><div class="sp-bar-track" style="margin-left:auto;"><div class="sp-bar-fill total" style="width:45%;"></div></div></div></td>
+          </tr>
+          <tr class="pl-row">
+            <td><div class="pl-cell"><div class="pl-av" style="border-top:2px solid #00D161;color:#00D161;">YK</div><span class="pl-nm">YEKINDAR</span></div></td>
+            <td style="text-align:right;"><span style="font-family:'Alumni Sans',sans-serif;font-size:14px;font-weight:700;color:var(--text-muted);">69</span></td>
+            <td class="ct-col"><span class="rp ct-mid-a">Mid / A</span></td>
+            <td class="ct-col"><div style="min-width:64px;"><div class="sp-num">1.4</div><div class="sp-bar-track"><div class="sp-bar-fill ct" style="width:28%;"></div></div></div></td>
+            <td class="t-col"><span class="rp t-entry">Entry</span></td>
+            <td class="t-col"><div style="min-width:64px;"><div class="sp-num">1.5</div><div class="sp-bar-track"><div class="sp-bar-fill t" style="width:30%;"></div></div></div></td>
+            <td style="text-align:center;"><span class="rp igl">IGL</span></td>
+            <td style="text-align:right;"><span class="res-neg">-2.3</span></td>
+            <td style="text-align:right;"><span class="util-val">0.14</span></td>
+            <td style="text-align:right;"><div style="text-align:right;"><div class="sp-num">2.9</div><div class="sp-bar-track" style="margin-left:auto;"><div class="sp-bar-fill total" style="width:35%;"></div></div></div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Dota 2: Full Match Scoreboard -->
+  <div style="border:1px solid var(--border-solid);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:28px;">
+    <div style="padding:10px 16px;background:var(--card-alt);border-bottom:1px solid var(--border-solid);display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-family:'Alumni Sans',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);">Match Analysis · Player Scoreboard</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="pipe-game dota">Dota 2</span>
+        <span style="font-family:'Nunito Sans',sans-serif;font-size:.68rem;color:var(--text-dim);">NAVI vs Spirit · TI 2026 · Game 2</span>
+      </div>
+    </div>
+    <div class="dm-wrap">
+      <table class="dm-tbl">
+        <thead>
+          <tr>
+            <th style="min-width:160px;">Hero / Player</th>
+            <th>LVL</th>
+            <th>K / D / A</th>
+            <th>GPM</th>
+            <th>XPM</th>
+            <th>Net Worth</th>
+            <th>Hero Dmg</th>
+            <th>Tower Dmg</th>
+            <th>LH</th>
+            <th>DN</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="dm-team-row rad"><td colspan="10">&#9650; NAVI &mdash; Radiant</td></tr>
+          <tr class="rad-row">
+            <td><div class="dm-hero"><div class="dm-icon">AM</div><div><div class="dm-hero-nm">Anti-Mage</div><div class="dm-player">RIDDYS</div></div></div></td>
+            <td style="color:var(--gold-bright);font-family:'Alumni Sans',sans-serif;font-weight:700;">25</td>
+            <td><span class="dm-k">14</span><span class="dm-sep">/</span><span class="dm-d">3</span><span class="dm-sep">/</span><span class="dm-a">7</span></td>
+            <td class="dm-gpm">712</td>
+            <td style="color:var(--text-secondary);font-family:'Alumni Sans',sans-serif;font-weight:600;">780</td>
+            <td class="dm-nw">34,200</td>
+            <td><div class="dm-bar-wrap"><div class="dm-bar-bg"><div class="dm-bar-fill hero" style="width:82%;"></div></div><span class="dm-num">28.5k</span></div></td>
+            <td><div class="dm-bar-wrap"><div class="dm-bar-bg"><div class="dm-bar-fill tower" style="width:58%;"></div></div><span class="dm-num">4.1k</span></div></td>
+            <td style="font-family:'Alumni Sans',sans-serif;font-weight:600;color:var(--text-secondary);">420</td>
+            <td style="font-family:'Alumni Sans',sans-serif;font-weight:600;color:var(--text-secondary);">22</td>
+          </tr>
+          <tr class="rad-row">
+            <td><div class="dm-hero"><div class="dm-icon">IN</div><div><div class="dm-hero-nm">Invoker</div><div class="dm-player">GOTTHEJUICE</div></div></div></td>
+            <td style="color:var(--gold-bright);font-family:'Alumni Sans',sans-serif;font-weight:700;">25</td>
+            <td><span class="dm-k">9</span><span class="dm-sep">/</span><span class="dm-d">4</span><span class="dm-sep">/</span><span class="dm-a">11</span></td>
+            <td class="dm-gpm">584</td>
+            <td style="color:var(--text-secondary);font-family:'Alumni Sans',sans-serif;font-weight:600;">620</td>
+            <td class="dm-nw">27,100</td>
+            <td><div class="dm-bar-wrap"><div class="dm-bar-bg"><div class="dm-bar-fill hero" style="width:64%;"></div></div><span class="dm-num">22.1k</span></div></td>
+            <td><div class="dm-bar-wrap"><div class="dm-bar-bg"><div class="dm-bar-fill tower" style="width:96%;"></div></div><span class="dm-num">6.8k</span></div></td>
+            <td style="font-family:'Alumni Sans',sans-serif;font-weight:600;color:var(--text-secondary);">310</td>
+            <td style="font-family:'Alumni Sans',sans-serif;font-weight:600;color:var(--text-secondary);">18</td>
+          </tr>
+          <tr class="rad-row">
+            <td><div class="dm-hero"><div class="dm-icon">AX</div><div><div class="dm-hero-nm">Axe</div><div class="dm-player">PMA</div></div></div></td>
+            <td style="color:var(--gold-bright);font-family:'Alumni Sans',sans-serif;font-weight:700;">24</td>
+            <td><span class="dm-k">6</span><span class="dm-sep">/</span><span class="dm-d">5</span><span class="dm-sep">/</span><span class="dm-a">14</span></td>
+            <td class="dm-gpm">430</td>
+            <td style="color:var(--text-secondary);font-family:'Alumni Sans',sans-serif;font-weight:600;">460</td>
+            <td class="dm-nw">19,800</td>
+            <td><div class="dm-bar-wrap"><div class="dm-bar-bg"><div class="dm-bar-fill hero" style="width:45%;"></div></div><span class="dm-num">15.6k</span></div></td>
+            <td><div class="dm-bar-wrap"><div class="dm-bar-bg"><div class="dm-bar-fill tower" style="width:30%;"></div></div><span class="dm-num">2.1k</span></div></td>
+            <td style="font-family:'Alumni Sans',sans-serif;font-weight:600;color:var(--text-secondary);">215</td>
+            <td style="font-family:'Alumni Sans',sans-serif;font-weight:600;color:var(--text-secondary);">8</td>
+          </tr>
+          <tr class="rad-row">
+            <td><div class="dm-hero"><div class="dm-icon">CM</div><div><div class="dm-hero-nm">Crystal Maiden</div><div class="dm-player">NIKU</div></div></div></td>
+            <td style="color:var(--gold-bright);font-family:'Alumni Sans',sans-serif;font-weight:700;">22</td>
+            <td><span class="dm-k">2</span><span class="dm-sep">/</span><span class="dm-d">6</span><span class="dm-sep">/</span><span class="dm-a">18</span></td>
+            <td class="dm-gpm">251</td>
+            <td style="color:var(--text-secondary);font-family:'Alumni Sans',sans-serif;font-weight:600;">288</td>
+            <td class="dm-nw">10,400</td>
+            <td><div class="dm-bar-wrap"><div class="dm-bar-bg"><div class="dm-bar-fill hero" style="width:18%;"></div></div><span class="dm-num">6.2k</span></div></td>
+            <td><div class="dm-bar-wrap"><div class="dm-bar-bg"><div class="dm-bar-fill tower" style="width:7%;"></div></div><span class="dm-num">500</span></div></td>
+            <td style="font-family:'Alumni Sans',sans-serif;font-weight:600;color:var(--text-secondary);">88</td>
+            <td style="font-family:'Alumni Sans',sans-serif;font-weight:600;color:var(--text-secondary);">3</td>
+          </tr>
+          <tr class="rad-row">
+            <td><div class="dm-hero"><div class="dm-icon">RU</div><div><div class="dm-hero-nm">Rubick</div><div class="dm-player">ZAYAC</div></div></div></td>
+            <td style="color:var(--gold-bright);font-family:'Alumni Sans',sans-serif;font-weight:700;">23</td>
+            <td><span class="dm-k">3</span><span class="dm-sep">/</span><span class="dm-d">7</span><span class="dm-sep">/</span><span class="dm-a">16</span></td>
+            <td class="dm-gpm">198</td>
+            <td style="color:var(--text-secondary);font-family:'Alumni Sans',sans-serif;font-weight:600;">240</td>
+            <td class="dm-nw">8,700</td>
+            <td><div class="dm-bar-wrap"><div class="dm-bar-bg"><div class="dm-bar-fill hero" style="width:22%;"></div></div><span class="dm-num">7.8k</span></div></td>
+            <td><div class="dm-bar-wrap"><div class="dm-bar-bg"><div class="dm-bar-fill tower" style="width:5%;"></div></div><span class="dm-num">320</span></div></td>
+            <td style="font-family:'Alumni Sans',sans-serif;font-weight:600;color:var(--text-secondary);">62</td>
+            <td style="font-family:'Alumni Sans',sans-serif;font-weight:600;color:var(--text-secondary);">1</td>
+          </tr>
+          <tr style="height:2px;"><td colspan="10" style="padding:0;background:var(--border-solid);"></td></tr>
+          <tr class="dm-team-row dire"><td colspan="10">&#9660; Spirit &mdash; Dire</td></tr>
+          <tr class="dire-row">
+            <td><div class="dm-hero"><div class="dm-icon">PA</div><div><div class="dm-hero-nm">Phantom Assassin</div><div class="dm-player">yatoro</div></div></div></td>
+            <td style="color:var(--gold-bright);font-family:'Alumni Sans',sans-serif;font-weight:700;">24</td>
+            <td><span class="dm-k">11</span><span class="dm-sep">/</span><span class="dm-d">5</span><span class="dm-sep">/</span><span class="dm-a">8</span></td>
+            <td class="dm-gpm">680</td>
+            <td style="color:var(--text-secondary);font-family:'Alumni Sans',sans-serif;font-weight:600;">720</td>
+            <td class="dm-nw">32,800</td>
+            <td><div class="dm-bar-wrap"><div class="dm-bar-bg"><div class="dm-bar-fill hero" style="width:76%;"></div></div><span class="dm-num">26.4k</span></div></td>
+            <td><div class="dm-bar-wrap"><div class="dm-bar-bg"><div class="dm-bar-fill tower" style="width:45%;"></div></div><span class="dm-num">3.2k</span></div></td>
+            <td style="font-family:'Alumni Sans',sans-serif;font-weight:600;color:var(--text-secondary);">402</td>
+            <td style="font-family:'Alumni Sans',sans-serif;font-weight:600;color:var(--text-secondary);">16</td>
+          </tr>
+          <tr class="dire-row">
+            <td><div class="dm-hero"><div class="dm-icon">SS</div><div><div class="dm-hero-nm">Storm Spirit</div><div class="dm-player">Larl</div></div></div></td>
+            <td style="color:var(--gold-bright);font-family:'Alumni Sans',sans-serif;font-weight:700;">24</td>
+            <td><span class="dm-k">8</span><span class="dm-sep">/</span><span class="dm-d">5</span><span class="dm-sep">/</span><span class="dm-a">9</span></td>
+            <td class="dm-gpm">540</td>
+            <td style="color:var(--text-secondary);font-family:'Alumni Sans',sans-serif;font-weight:600;">580</td>
+            <td class="dm-nw">24,100</td>
+            <td><div class="dm-bar-wrap"><div class="dm-bar-bg"><div class="dm-bar-fill hero" style="width:57%;"></div></div><span class="dm-num">19.8k</span></div></td>
+            <td><div class="dm-bar-wrap"><div class="dm-bar-bg"><div class="dm-bar-fill tower" style="width:76%;"></div></div><span class="dm-num">5.4k</span></div></td>
+            <td style="font-family:'Alumni Sans',sans-serif;font-weight:600;color:var(--text-secondary);">288</td>
+            <td style="font-family:'Alumni Sans',sans-serif;font-weight:600;color:var(--text-secondary);">14</td>
+          </tr>
+          <tr class="dire-row">
+            <td><div class="dm-hero"><div class="dm-icon">CE</div><div><div class="dm-hero-nm">Centaur</div><div class="dm-player">Collapse</div></div></div></td>
+            <td style="color:var(--gold-bright);font-family:'Alumni Sans',sans-serif;font-weight:700;">22</td>
+            <td><span class="dm-k">4</span><span class="dm-sep">/</span><span class="dm-d">8</span><span class="dm-sep">/</span><span class="dm-a">12</span></td>
+            <td class="dm-gpm">380</td>
+            <td style="color:var(--text-secondary);font-family:'Alumni Sans',sans-serif;font-weight:600;">420</td>
+            <td class="dm-nw">17,200</td>
+            <td><div class="dm-bar-wrap"><div class="dm-bar-bg"><div class="dm-bar-fill hero" style="width:37%;"></div></div><span class="dm-num">12.9k</span></div></td>
+            <td><div class="dm-bar-wrap"><div class="dm-bar-bg"><div class="dm-bar-fill tower" style="width:25%;"></div></div><span class="dm-num">1.8k</span></div></td>
+            <td style="font-family:'Alumni Sans',sans-serif;font-weight:600;color:var(--text-secondary);">188</td>
+            <td style="font-family:'Alumni Sans',sans-serif;font-weight:600;color:var(--text-secondary);">6</td>
+          </tr>
+          <tr class="dire-row">
+            <td><div class="dm-hero"><div class="dm-icon">WL</div><div><div class="dm-hero-nm">Warlock</div><div class="dm-player">Mira</div></div></div></td>
+            <td style="color:var(--gold-bright);font-family:'Alumni Sans',sans-serif;font-weight:700;">21</td>
+            <td><span class="dm-k">1</span><span class="dm-sep">/</span><span class="dm-d">8</span><span class="dm-sep">/</span><span class="dm-a">16</span></td>
+            <td class="dm-gpm">232</td>
+            <td style="color:var(--text-secondary);font-family:'Alumni Sans',sans-serif;font-weight:600;">265</td>
+            <td class="dm-nw">9,400</td>
+            <td><div class="dm-bar-wrap"><div class="dm-bar-bg"><div class="dm-bar-fill hero" style="width:14%;"></div></div><span class="dm-num">4.8k</span></div></td>
+            <td><div class="dm-bar-wrap"><div class="dm-bar-bg"><div class="dm-bar-fill tower" style="width:4%;"></div></div><span class="dm-num">280</span></div></td>
+            <td style="font-family:'Alumni Sans',sans-serif;font-weight:600;color:var(--text-secondary);">74</td>
+            <td style="font-family:'Alumni Sans',sans-serif;font-weight:600;color:var(--text-secondary);">2</td>
+          </tr>
+          <tr class="dire-row">
+            <td><div class="dm-hero"><div class="dm-icon">ES</div><div><div class="dm-hero-nm">Earthshaker</div><div class="dm-player">Tobi</div></div></div></td>
+            <td style="color:var(--gold-bright);font-family:'Alumni Sans',sans-serif;font-weight:700;">21</td>
+            <td><span class="dm-k">2</span><span class="dm-sep">/</span><span class="dm-d">9</span><span class="dm-sep">/</span><span class="dm-a">15</span></td>
+            <td class="dm-gpm">188</td>
+            <td style="color:var(--text-secondary);font-family:'Alumni Sans',sans-serif;font-weight:600;">220</td>
+            <td class="dm-nw">7,900</td>
+            <td><div class="dm-bar-wrap"><div class="dm-bar-bg"><div class="dm-bar-fill hero" style="width:20%;"></div></div><span class="dm-num">6.9k</span></div></td>
+            <td><div class="dm-bar-wrap"><div class="dm-bar-bg"><div class="dm-bar-fill tower" style="width:3%;"></div></div><span class="dm-num">180</span></div></td>
+            <td style="font-family:'Alumni Sans',sans-serif;font-weight:600;color:var(--text-secondary);">55</td>
+            <td style="font-family:'Alumni Sans',sans-serif;font-weight:600;color:var(--text-secondary);">1</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <div class="pipe-divider"><span>Implementation Detail</span></div>
