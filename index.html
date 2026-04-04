@@ -13,6 +13,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pedro Brauner — Journalist & Content Strategist</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Chakra+Petch:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1194,9 +1195,137 @@
     .form-row { grid-template-columns: 1fr; }
     .resume-section { padding: 48px 20px; }
   }
+
+  /* ===== LOADING SCREEN ===== */
+  #loader {
+    position: fixed; inset: 0; z-index: 99999;
+    background: #0a0a0a;
+    display: flex; align-items: center; justify-content: center;
+    transition: opacity .8s ease, visibility .8s ease;
+  }
+  #loader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+  #loader-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .loader-content { position: relative; z-index: 2; text-align: center; pointer-events: none; }
+  .loader-name {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(18px, 4vw, 44px);
+    color: var(--red);
+    text-shadow: 0 0 28px var(--red-glow), 0 0 60px rgba(224,52,24,.1);
+    letter-spacing: .08em; line-height: 1.6; margin-bottom: 44px;
+  }
+  .loader-bar-wrap {
+    width: 200px; height: 1px;
+    background: rgba(224,52,24,.15);
+    margin: 0 auto 14px; overflow: hidden;
+  }
+  .loader-bar-fill { height: 100%; width: 0%; background: var(--red); box-shadow: 0 0 6px var(--red-glow); }
+  .loader-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px; letter-spacing: .22em; text-transform: uppercase; color: var(--text-dim);
+  }
+
+  /* ===== MARQUEE ===== */
+  .marquee-strip {
+    overflow: hidden; border-bottom: 1px solid var(--border);
+    padding: 9px 0; background: var(--surface);
+  }
+  .marquee-track { display: inline-block; white-space: nowrap; animation: marq 34s linear infinite; }
+  .marquee-track span {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--text-dim); padding: 0 26px;
+  }
+  .marquee-track span.m-dot { color: var(--red); padding: 0 4px; }
+  @keyframes marq { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+  /* ===== INTEL / CAREER SIGNAL ===== */
+  .intel-section { padding: 80px 60px; border-top: 1px solid var(--border); }
+  .metrics-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin: 32px 0 8px; }
+  .m-card {
+    background: var(--surface); border: 1px solid var(--border); border-left: 2px solid transparent;
+    padding: 24px 20px; position: relative; overflow: hidden;
+    transition: border-color .25s, box-shadow .25s;
+  }
+  .m-card:hover { border-color: var(--red); box-shadow: 0 0 18px var(--red-glow-soft); }
+  .m-card::before {
+    content: ''; position: absolute; inset: 0;
+    background-image: linear-gradient(rgba(255,255,255,.011) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.011) 1px, transparent 1px);
+    background-size: 28px 28px; pointer-events: none;
+  }
+  .m-code { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: .1em; color: var(--red-dark); position: absolute; top: 10px; right: 12px; }
+  .m-value { font-family: 'Press Start 2P', monospace; font-size: clamp(16px, 2.6vw, 28px); line-height: 1.2; color: var(--red); text-shadow: 0 0 8px var(--red-glow-soft); position: relative; z-index: 1; }
+  .m-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--text); margin-top: 10px; position: relative; z-index: 1; }
+  .m-note { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: .05em; color: var(--text-dim); margin-top: 4px; position: relative; z-index: 1; }
+
+  .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+  .chart-wrap { background: var(--surface); border: 1px solid var(--border); padding: 22px 20px; }
+  .chart-head { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+  .chart-head-accent { color: var(--red); }
+
+  .bar-row { display: grid; grid-template-columns: 110px 1fr 82px; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+  .bar-row:first-child { border-top: 1px solid var(--border); }
+  .bar-row:hover .bl-name { color: var(--text); }
+  .bl-name { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .04em; color: var(--text-dim); transition: color .2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bl-period { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: rgba(176,176,176,.3); margin-top: 2px; }
+  .bl-track { height: 1px; background: var(--border); position: relative; }
+  .bl-fill { position: absolute; top: 0; left: 0; height: 100%; background: var(--red); width: 0%; }
+  .bl-fill::after { content: ''; position: absolute; right: -1px; top: 50%; transform: translateY(-50%); width: 4px; height: 4px; border-radius: 50%; background: var(--red); box-shadow: 0 0 4px var(--red-glow); }
+  .bl-val { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: .04em; color: var(--text-dim); text-align: right; }
+  .bar-scale { display: flex; justify-content: space-between; padding: 8px 0 0; }
+  .bar-scale span { font-family: 'IBM Plex Mono', monospace; font-size: 8px; color: rgba(176,176,176,.22); letter-spacing: .04em; }
+
+  .cov-stack { height: 4px; display: flex; gap: 1px; overflow: hidden; margin-bottom: 20px; }
+  .cov-seg { height: 100%; width: 0%; }
+  .cov-rows { display: flex; flex-direction: column; gap: 10px; }
+  .cov-row { display: grid; grid-template-columns: 8px 80px 1fr 40px; align-items: center; gap: 10px; cursor: default; }
+  .cov-row:hover .cov-name { color: var(--text); }
+  .cov-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .cov-name { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-dim); transition: color .2s; }
+  .cov-track { height: 1px; background: var(--border); }
+  .cov-bar-inner { height: 100%; width: 0%; }
+  .cov-pct { font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; color: var(--text); text-align: right; }
+
+  .timeline-wrap { background: var(--surface); border: 1px solid var(--border); padding: 24px 24px 44px; }
+  .tl-head { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 40px; display: flex; justify-content: space-between; }
+  .tl-head-accent { color: var(--red); }
+  .tl-outer { position: relative; height: 130px; }
+  .tl-axis { position: absolute; top: 56px; left: 0; right: 0; height: 1px; background: var(--border); }
+  .tl-axis-fill { height: 100%; width: 0%; background: var(--red); opacity: .55; }
+  .tl-years { position: absolute; top: 70px; left: 0; right: 0; display: flex; justify-content: space-between; }
+  .tl-yr { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: .08em; color: rgba(176,176,176,.28); }
+  .tl-node { position: absolute; top: 56px; transform: translate(-50%,-50%); cursor: pointer; z-index: 5; }
+  .tl-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--red); border: 2px solid var(--bg); transition: transform .2s; position: relative; }
+  .tl-node:hover .tl-dot { transform: scale(1.6); }
+  .tl-node.is-current .tl-dot::after { content: ''; position: absolute; inset: -5px; border-radius: 50%; border: 1px solid var(--red); animation: nodebeat 2.2s ease-out infinite; }
+  @keyframes nodebeat { 0% { transform: scale(1); opacity: .8; } 100% { transform: scale(3); opacity: 0; } }
+  .tl-lbl { position: absolute; left: 50%; transform: translateX(-50%); pointer-events: none; white-space: nowrap; text-align: center; }
+  .tl-lbl.above { bottom: calc(100% + 12px); }
+  .tl-lbl.below { top: calc(100% + 12px); }
+  .tl-org { font-family: 'Chakra Petch', sans-serif; font-weight: 700; font-size: .72rem; letter-spacing: .04em; text-transform: uppercase; display: block; color: var(--text); }
+  .tl-yr-lbl { font-family: 'IBM Plex Mono', monospace; font-size: .5rem; letter-spacing: .06em; color: var(--text-dim); display: block; margin-top: 1px; }
+  .tl-card { position: absolute; bottom: calc(100% + 18px); left: 50%; transform: translateX(-50%) translateY(6px); background: var(--surface2); border: 1px solid var(--border); border-top: 1px solid var(--red); padding: 10px 12px; min-width: 155px; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 20; }
+  .tl-node:hover .tl-card { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .tc-org { font-family: 'Chakra Petch', sans-serif; font-weight: 700; font-size: .9rem; text-transform: uppercase; letter-spacing: .04em; color: var(--red); text-shadow: 0 0 6px var(--red-glow-soft); }
+  .tc-role { font-family: 'IBM Plex Mono', monospace; font-size: .55rem; letter-spacing: .05em; color: var(--text-dim); margin-top: 3px; }
+  .tc-detail { font-family: 'IBM Plex Mono', monospace; font-size: .55rem; letter-spacing: .04em; color: var(--text); margin-top: 8px; border-top: 1px solid var(--border); padding-top: 8px; }
+  @media (max-width: 768px) {
+    .metrics-row { grid-template-columns: 1fr 1fr; }
+    .dash-grid { grid-template-columns: 1fr; }
+    .intel-section { padding: 60px 20px; }
+  }
 </style>
 </head>
 <body>
+
+<!-- ===== LOADING SCREEN ===== -->
+<div id="loader">
+  <canvas id="loader-canvas"></canvas>
+  <div class="loader-content">
+    <div class="loader-name">PEDRO<br>BRAUNER</div>
+    <div class="loader-bar-wrap"><div class="loader-bar-fill" id="loaderBarFill"></div></div>
+    <div class="loader-label" id="loaderLabel">Initializing...</div>
+  </div>
+</div>
 
 <canvas id="dither-bg"></canvas>
 <div class="scanlines"></div>
@@ -1209,6 +1338,7 @@
     <li><a href="#photography" data-section="photography">Photography</a></li>
     <li><a href="#content" data-section="content">Content</a></li>
     <li><a href="#writing" data-section="writing">Writing</a></li>
+    <li><a href="#intel" data-section="intel">Intel</a></li>
     <li><a href="#contact" data-section="contact">Contact</a></li>
   </ul>
 </nav>
@@ -1266,6 +1396,11 @@
   <div class="stat"><div class="stat-num">100+</div><div class="stat-label">Articles</div></div>
   <div class="stat"><div class="stat-num">10M+</div><div class="stat-label">Reached</div></div>
   <div class="stat"><div class="stat-num">50+</div><div class="stat-label">Videos</div></div>
+</div>
+
+<!-- ===== MARQUEE ===== -->
+<div class="marquee-strip">
+  <div class="marquee-track" id="marqueeTrack"></div>
 </div>
 
 <!-- ===== 01 · VIDEO ===== -->
@@ -1505,6 +1640,75 @@
       </div>
       <div class="wi-meta"><span class="wi-year">2025</span><span class="wi-arrow">→</span></div>
     </a>
+  </div>
+</section>
+
+<!-- ===== 05 · INTEL ===== -->
+<section class="intel-section" id="intel">
+  <div class="section-header fade-in">
+    <span class="section-num">05</span>
+    <h2 class="section-title">Career Signal</h2>
+  </div>
+  <p class="section-subtitle fade-in">Five years of coverage, output, and reach — visualized.</p>
+
+  <div class="metrics-row">
+    <div class="m-card fade-in">
+      <span class="m-code">M-001</span>
+      <div class="m-value" data-target="10" data-suffix="M+">0</div>
+      <div class="m-label">People Reached</div>
+      <div class="m-note">Across all platforms</div>
+    </div>
+    <div class="m-card fade-in">
+      <span class="m-code">M-002</span>
+      <div class="m-value" data-target="250" data-suffix="+">0</div>
+      <div class="m-label">Articles Published</div>
+      <div class="m-note">Esports.net + more</div>
+    </div>
+    <div class="m-card fade-in">
+      <span class="m-code">M-003</span>
+      <div class="m-value" data-target="100" data-suffix="+">0</div>
+      <div class="m-label">Interviews Conducted</div>
+      <div class="m-note">Tier-1 players &amp; orgs</div>
+    </div>
+    <div class="m-card fade-in">
+      <span class="m-code">M-004</span>
+      <div class="m-value" data-target="50" data-suffix="+">0</div>
+      <div class="m-label">Videos Produced</div>
+      <div class="m-note">Shows, docs, formats</div>
+    </div>
+  </div>
+
+  <div class="dash-grid">
+    <div class="chart-wrap fade-in">
+      <div class="chart-head">
+        <span>Output by Platform</span>
+        <span class="chart-head-accent">pieces ↗</span>
+      </div>
+      <div id="barList"></div>
+      <div class="bar-scale">
+        <span>0</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span>
+      </div>
+    </div>
+    <div class="chart-wrap fade-in">
+      <div class="chart-head">
+        <span>Coverage by Game</span>
+        <span class="chart-head-accent">% of output</span>
+      </div>
+      <div class="cov-stack" id="covStack"></div>
+      <div class="cov-rows" id="covRows"></div>
+    </div>
+  </div>
+
+  <div class="timeline-wrap fade-in">
+    <div class="tl-head">
+      <span>Career Arc</span>
+      <span class="tl-head-accent">Oct 2021 → Present</span>
+    </div>
+    <div class="tl-outer" id="tlOuter">
+      <div class="tl-axis"><div class="tl-axis-fill" id="tlFill"></div></div>
+      <div class="tl-years" id="tlYears"></div>
+      <div id="tlDots"></div>
+    </div>
   </div>
 </section>
 
@@ -2200,6 +2404,263 @@
 })();
 </script>
 
+<!-- ===== LOADING SCREEN ===== -->
+<script>
+(function () {
+  const canvas   = document.getElementById('loader-canvas');
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+
+  const scene  = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.z = 6;
+
+  /* primary icosahedron wireframe */
+  const ico = new THREE.LineSegments(
+    new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(2.15, 2)),
+    new THREE.LineBasicMaterial({ color: 0xe03418, transparent: true, opacity: 0.52 })
+  );
+  scene.add(ico);
+
+  /* small offset shape */
+  const small = new THREE.LineSegments(
+    new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(0.82, 1)),
+    new THREE.LineBasicMaterial({ color: 0xeae4dc, transparent: true, opacity: 0.09 })
+  );
+  small.position.set(4.4, -1.6, -1.8);
+  scene.add(small);
+
+  /* particle field */
+  const N = 200, pts = new Float32Array(N * 3);
+  for (let i = 0; i < N * 3; i++) pts[i] = (Math.random() - .5) * 28;
+  const pGeo = new THREE.BufferGeometry();
+  pGeo.setAttribute('position', new THREE.BufferAttribute(pts, 3));
+  scene.add(new THREE.Points(pGeo, new THREE.PointsMaterial({ color: 0xeae4dc, size: .018, transparent: true, opacity: .2 })));
+
+  /* red accent cluster */
+  const N2 = 40, pts2 = new Float32Array(N2 * 3);
+  for (let i = 0; i < N2; i++) { pts2[i*3] = (Math.random()-.5)*7; pts2[i*3+1] = (Math.random()-.5)*7; pts2[i*3+2] = (Math.random()-.5)*7; }
+  const pGeo2 = new THREE.BufferGeometry();
+  pGeo2.setAttribute('position', new THREE.BufferAttribute(pts2, 3));
+  const redDots = new THREE.Points(pGeo2, new THREE.PointsMaterial({ color: 0xe03418, size: .032, transparent: true, opacity: .5 }));
+  scene.add(redDots);
+
+  window.addEventListener('resize', () => {
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+  });
+
+  let animId, t = 0;
+  (function loop() {
+    animId = requestAnimationFrame(loop);
+    t += 0.01;
+    ico.rotation.x = t * .11;
+    ico.rotation.y = t * .16;
+    small.rotation.x = t * .27;
+    small.rotation.z = t * .19;
+    redDots.rotation.y = -t * .07;
+    renderer.render(scene, camera);
+  })();
+
+  /* progress bar simulation */
+  const fill  = document.getElementById('loaderBarFill');
+  const label = document.getElementById('loaderLabel');
+  const msgs  = ['Initializing...', 'Loading assets...', 'Rendering...', 'Ready.'];
+  let prog = 0;
+  const ticker = setInterval(() => {
+    prog = Math.min(prog + Math.random() * 16, 88);
+    fill.style.width = prog + '%';
+    label.textContent = msgs[Math.min(Math.floor(prog / 30), msgs.length - 2)];
+  }, 110);
+
+  function dismiss() {
+    clearInterval(ticker);
+    fill.style.transition = 'width .3s ease';
+    fill.style.width = '100%';
+    label.textContent = 'Ready.';
+    setTimeout(() => {
+      document.getElementById('loader').classList.add('hidden');
+      setTimeout(() => { cancelAnimationFrame(animId); renderer.dispose(); }, 900);
+    }, 350);
+  }
+
+  /* dismiss on DOMContentLoaded, min 1.4s so the animation is visible */
+  const minDelay = 1400;
+  const t0 = performance.now();
+  function maybeDissmiss() {
+    const elapsed = performance.now() - t0;
+    if (elapsed >= minDelay) dismiss();
+    else setTimeout(dismiss, minDelay - elapsed);
+  }
+  if (document.readyState !== 'loading') maybeDissmiss();
+  else document.addEventListener('DOMContentLoaded', maybeDissmiss);
+})();
+</script>
+
+<!-- ===== MARQUEE + INTEL JS ===== -->
+<script>
+/* ── Marquee ──────────────────────────────────────────── */
+(function () {
+  const words = [
+    'Content Strategy', null, 'Show Production', null,
+    'Editorial Direction', null, 'RDY.gg', null,
+    'La Sopa Podcast', null, 'CS2', null, 'Dota 2', null,
+    'League of Legends', null, 'Esports Media', null,
+    'Lima, Peru', null, 'Stake Sponsored', null,
+    'Trilingual', null, 'Strategic Comms', null,
+  ];
+  const track = document.getElementById('marqueeTrack');
+  [...words, ...words].forEach(w => {
+    const s = document.createElement('span');
+    if (w === null) { s.className = 'm-dot'; s.textContent = '◆'; }
+    else            { s.textContent = w; }
+    track.appendChild(s);
+  });
+})();
+
+/* ── Intel Section ────────────────────────────────────── */
+(function () {
+  const platforms = [
+    { name: 'Esports.net',     period: '2022—23', val: '250+ articles', pct: 90 },
+    { name: 'América Esports', period: '2023—24', val: '40+ pieces',    pct: 50 },
+    { name: 'RDY.gg',          period: '2025—',   val: '30+ features',  pct: 40 },
+    { name: 'La Sopa',         period: '2021—',   val: '23 episodes',   pct: 30 },
+    { name: 'PRIMAL / Edge',   period: '2021—23', val: 'Social + Comms',pct: 20 },
+  ];
+
+  const coverage = [
+    { game: 'CS2',      pct: 42, color: '#e03418' },
+    { game: 'Dota 2',   pct: 33, color: '#8b1a1a' },
+    { game: 'Valorant', pct: 14, color: '#5C190E' },
+    { game: 'LoL',      pct:  7, color: '#3D1009' },
+    { game: 'Other',    pct:  4, color: '#241007' },
+  ];
+
+  const career = [
+    { year: 2021, q: 1, org: 'PRIMAL',      role: 'Communications Mgr.',       detail: '1000%+ growth in impressions', above: false },
+    { year: 2021, q: 4, org: 'CRP Radios',  role: 'Content & Podcasts Mgr.',   detail: 'La Sopa — 3.6M reached',       above: true  },
+    { year: 2022, q: 4, org: 'Esports.net', role: 'Journalist & Interviewer',  detail: '250+ articles · 100+ interviews', above: false },
+    { year: 2023, q: 4, org: 'Growe',       role: 'Content Manager',           detail: 'Multi-market strategy & SEO',  above: true  },
+    { year: 2025, q: 4, org: 'RDY.gg',      role: 'Content & Creative Strat.', detail: 'Current role', above: false, current: true },
+  ];
+
+  /* counters */
+  document.querySelectorAll('.m-value[data-target]').forEach(el => {
+    const target = parseInt(el.dataset.target);
+    const suffix = el.dataset.suffix;
+    const obs = new IntersectionObserver(entries => {
+      if (!entries[0].isIntersecting) return;
+      obs.disconnect();
+      const dur = 1400, t0 = performance.now();
+      (function tick(now) {
+        const p = Math.min((now - t0) / dur, 1);
+        el.textContent = Math.floor((1 - Math.pow(1 - p, 3)) * target) + suffix;
+        if (p < 1) requestAnimationFrame(tick);
+      })(t0);
+    }, { threshold: 0.5 });
+    obs.observe(el);
+  });
+
+  /* bar chart */
+  const barList = document.getElementById('barList');
+  platforms.forEach((p, i) => {
+    const row = document.createElement('div');
+    row.className = 'bar-row';
+    row.innerHTML = `
+      <div><div class="bl-name">${p.name}</div><div class="bl-period">${p.period}</div></div>
+      <div class="bl-track"><div class="bl-fill" id="bf${i}"></div></div>
+      <div class="bl-val">${p.val}</div>`;
+    barList.appendChild(row);
+  });
+  const bfObs = new IntersectionObserver(entries => {
+    if (!entries[0].isIntersecting) return;
+    bfObs.disconnect();
+    platforms.forEach((p, i) => setTimeout(() => {
+      const el = document.getElementById('bf' + i);
+      el.style.transition = 'width 1.1s cubic-bezier(.25,.46,.45,.94)';
+      el.style.width = p.pct + '%';
+    }, 100 + i * 110));
+  }, { threshold: 0.3 });
+  bfObs.observe(barList);
+
+  /* coverage chart */
+  const covStack = document.getElementById('covStack');
+  const covRows  = document.getElementById('covRows');
+  coverage.forEach((c, i) => {
+    const seg = document.createElement('div');
+    seg.className = 'cov-seg';
+    seg.style.background = c.color;
+    covStack.appendChild(seg);
+
+    const row = document.createElement('div');
+    row.className = 'cov-row';
+    row.innerHTML = `
+      <div class="cov-dot" style="background:${c.color}"></div>
+      <div class="cov-name">${c.game}</div>
+      <div class="cov-track"><div class="cov-bar-inner" id="cb${i}" style="background:${c.color}"></div></div>
+      <div class="cov-pct">${c.pct}%</div>`;
+    covRows.appendChild(row);
+  });
+  const covObs = new IntersectionObserver(entries => {
+    if (!entries[0].isIntersecting) return;
+    covObs.disconnect();
+    coverage.forEach((c, i) => setTimeout(() => {
+      const t = 'width .9s cubic-bezier(.25,.46,.45,.94)';
+      covStack.children[i].style.cssText = `width:${c.pct}%;background:${c.color};transition:${t}`;
+      document.getElementById('cb' + i).style.cssText = `width:${c.pct}%;background:${c.color};transition:${t}`;
+    }, i * 75));
+  }, { threshold: 0.3 });
+  covObs.observe(covStack);
+
+  /* career timeline */
+  function datePct(year, q) {
+    const s = 2021 * 4, e = 2026 * 4 + 3, v = year * 4 + (q - 1);
+    return ((v - s) / (e - s)) * 100;
+  }
+  const tlYears = document.getElementById('tlYears');
+  const tlDots  = document.getElementById('tlDots');
+  const tlFill  = document.getElementById('tlFill');
+  for (let y = 2021; y <= 2026; y++) {
+    const el = document.createElement('div');
+    el.className = 'tl-yr'; el.textContent = y;
+    tlYears.appendChild(el);
+  }
+  career.forEach(item => {
+    const node = document.createElement('div');
+    node.className = 'tl-node' + (item.current ? ' is-current' : '');
+    node.style.cssText = `left:${datePct(item.year, item.q)}%;opacity:0;transform:translate(-50%,-50%) scale(0)`;
+    node.innerHTML = `
+      <div class="tl-dot"></div>
+      <div class="tl-lbl ${item.above ? 'above' : 'below'}">
+        <span class="tl-org">${item.org}</span>
+        <span class="tl-yr-lbl">${item.year}</span>
+      </div>
+      <div class="tl-card">
+        <div class="tc-org">${item.org}</div>
+        <div class="tc-role">${item.role}</div>
+        <div class="tc-detail">${item.detail}</div>
+      </div>`;
+    tlDots.appendChild(node);
+  });
+  const tlObs = new IntersectionObserver(entries => {
+    if (!entries[0].isIntersecting) return;
+    tlObs.disconnect();
+    setTimeout(() => {
+      tlFill.style.cssText = 'width:100%;transition:width 1.6s cubic-bezier(.45,.05,.55,.95)';
+    }, 150);
+    Array.from(tlDots.children).forEach((node, i) => {
+      setTimeout(() => {
+        node.style.transition = 'opacity .4s, transform .45s cubic-bezier(.34,1.56,.64,1)';
+        node.style.opacity = '1';
+        node.style.transform = 'translate(-50%,-50%) scale(1)';
+      }, 700 + i * 180);
+    });
+  }, { threshold: 0.3 });
+  tlObs.observe(document.getElementById('tlOuter'));
+})();
+</script>
 
 </body>
 </html>
