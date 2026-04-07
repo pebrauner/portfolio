@@ -25,8 +25,8 @@
     '::-webkit-scrollbar-track { background: var(--bg); }',
     '::-webkit-scrollbar-thumb { background: var(--border); }',
     '::-webkit-scrollbar-thumb:hover { background: var(--red); }',
-    '.scanlines { position: fixed; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.18) 2px, rgba(0,0,0,.18) 4px); pointer-events: none; z-index: 9998; }',
-    '.vignette { position: fixed; inset: 0; background: radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,.70) 100%); pointer-events: none; z-index: 9997; }',
+    '.scanlines { position: fixed; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.03) 2px, rgba(0,0,0,.03) 4px); pointer-events: none; z-index: 9998; }',
+    '.vignette { position: fixed; inset: 0; background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,.40) 100%); pointer-events: none; z-index: 9997; }',
     '.progress-bar { position: fixed; bottom: 0; left: 0; height: 2px; background: var(--red); width: 0%; z-index: 10001; box-shadow: 0 0 8px var(--red-glow); transition: width .1s linear; }',
 
     /* nav */
@@ -51,7 +51,7 @@
 
     /* body text — single column, right-padded to make room for margin notes */
     '.article-body { position: relative; padding-right: 300px; }',
-    '.article-body p { font-size: 18px; line-height: 1.85; color: var(--text); margin-bottom: 1.5em; }',
+    '.article-body p { font-size: 20px; line-height: 1.85; color: var(--text); margin-bottom: 1.5em; }',
     '.article-body p:first-of-type::first-letter { font-size: 3.2em; font-weight: 700; line-height: 0.85; float: left; margin-right: 8px; margin-top: 4px; color: var(--red); text-shadow: 0 0 12px var(--red-glow); }',
     '.article-body h2 { font-family: \'Chakra Petch\', sans-serif; font-weight: 700; font-size: 24px; color: var(--text); margin: 2.5em 0 1em; padding-left: 14px; border-left: 3px solid var(--red); letter-spacing: 1px; text-transform: uppercase; }',
     '.article-body h3 { font-family: \'Chakra Petch\', sans-serif; font-weight: 600; font-size: 16px; color: var(--text-dim); margin: 2em 0 0.75em; padding-left: 14px; border-left: 3px solid var(--red-dark); text-transform: uppercase; letter-spacing: 2px; }',
