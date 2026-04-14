@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSdle — Identify the CS2 Pro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:           #08080a;
+      --surface:      #0e0e10;
+      --card:         #141416;
+      --card-hover:   #1b1b1f;
+      --border:       #1c1c20;
+      --border-md:    #2c2c32;
+      --text:         #f0e6d8;
+      --text-muted:   rgba(240,230,216,0.38);
+      --text-dim:     rgba(240,230,216,0.12);
+      --accent:       #e03418;
+      --accent-dim:   rgba(224,52,24,0.14);
+      --accent-glow:  rgba(224,52,24,0.22);
+      --correct:      #22C55E;
+      --correct-bg:   rgba(34,197,94,0.09);
+      --correct-bd:   rgba(34,197,94,0.28);
+      --close:        #F59E0B;
+      --close-bg:     rgba(245,158,11,0.09);
+      --close-bd:     rgba(245,158,11,0.28);
+      --wrong-bg:     rgba(255,255,255,0.015);
+      --wrong-text:   #272730;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { background: var(--bg); }
+
+    body {
+      background: transparent;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      cursor: crosshair;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    ::selection { background: var(--accent-dim); color: var(--text); }
+
+    ::-webkit-scrollbar { width: 3px; height: 3px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border-md); }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+    /* ── ATMOSPHERIC LAYERS ── */
+    .scanlines {
+      position: fixed; inset: 0;
+      background: repeating-linear-gradient(
+        0deg, transparent, transparent 2px,
+        rgba(0,0,0,.13) 2px, rgba(0,0,0,.13) 4px
+      );
+      pointer-events: none;
+      z-index: 9998;
+    }
+
+    .vignette {
+      position: fixed; inset: 0;
+      background: radial-gradient(ellipse at center, transparent 42%, rgba(0,0,0,.68) 100%);
+      pointer-events: none;
+      z-index: 9997;
+    }
+
+    /* red top bleed */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 220px;
+      background: radial-gradient(ellipse 65% 100% at 50% -15%, rgba(224,52,24,0.07), transparent);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── NETWORK BUG ── */
+    .network-bug {
+      position: fixed;
+      top: 22px; left: 28px;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .bug-logo {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 1px;
+    }
+    .bug-logo span { color: var(--accent); }
+
+    .bug-divider { width: 1px; height: 14px; background: var(--border-md); }
+
+    .on-air {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .on-air-dot {
+      width: 6px; height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse-dot 2s ease-in-out infinite;
+      box-shadow: 0 0 8px var(--accent-glow);
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.25; }
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 56px 24px 28px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo-lockup {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 10px;
+    }
+
+    .crosshair-icon { width: 34px; height: 34px; flex-shrink: 0; }
+
+    .logo-text {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 68px;
+      line-height: 0.9;
+      letter-spacing: 5px;
+      color: var(--text);
+    }
+    .logo-text .rd { color: var(--accent); }
+
+    .tagline {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 3.5px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .header-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 14px;
+    }
+
+    .day-badge {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .day-badge strong { color: var(--accent); font-style: normal; }
+
+    .ghost-btn {
+      background: none;
+      border: 1px solid var(--border-md);
+      color: var(--text-muted);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 2px;
+      padding: 5px 12px;
+      cursor: pointer;
+      transition: border-color .2s, color .2s;
+      text-transform: uppercase;
+    }
+    .ghost-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── MAIN ── */
+    main {
+      position: relative;
+      z-index: 1;
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 32px 16px 90px;
+    }
+
+    /* ── GRID ── */
+    .grid-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .grid-min { min-width: 700px; }
+
+    /* 6 cols: player | team | country | age | role | major wins */
+    .grid-cols {
+      display: grid;
+      grid-template-columns: 155px 155px 128px 72px 100px 88px;
+      gap: 4px;
+    }
+
+    .col-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 2.5px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      text-align: center;
+      padding: 8px 4px 12px;
+    }
+    .col-label:first-child { text-align: left; padding-left: 14px; }
+
+    .transmission-counter {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      text-align: right;
+      margin-bottom: 6px;
+    }
+    .transmission-counter em { color: var(--text); font-style: normal; }
+
+    #guess-grid { display: flex; flex-direction: column; gap: 4px; }
+
+    /* ── CELLS ── */
+    .cell {
+      height: 52px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0 8px;
+      overflow: hidden;
+    }
+
+    .cell.name-cell { align-items: flex-start; padding-left: 14px; }
+    .cell.empty { background: var(--surface); border-color: var(--border); }
+
+    /* reveal animation */
+    @keyframes flipReveal {
+      0%   { transform: scaleY(0.04); opacity: 0; }
+      55%  { transform: scaleY(1.03); }
+      100% { transform: scaleY(1);    opacity: 1; }
+    }
+
+    .cell.new-cell { animation: flipReveal 0.36s cubic-bezier(.4,0,.2,1) both; }
+    .cell.new-cell:nth-child(1) { animation-delay: 0.00s; }
+    .cell.new-cell:nth-child(2) { animation-delay: 0.08s; }
+    .cell.new-cell:nth-child(3) { animation-delay: 0.16s; }
+    .cell.new-cell:nth-child(4) { animation-delay: 0.24s; }
+    .cell.new-cell:nth-child(5) { animation-delay: 0.32s; }
+    .cell.new-cell:nth-child(6) { animation-delay: 0.40s; }
+
+    /* states */
+    .cell.correct { background: var(--correct-bg); border-color: var(--correct-bd); }
+    .cell.close   { background: var(--close-bg);   border-color: var(--close-bd); }
+    .cell.wrong   { background: var(--wrong-bg);    border-color: var(--border); }
+    .cell.guessed { background: rgba(240,230,216,0.025); border-color: var(--border); }
+
+    .cell.name-cell.team-correct { border-left: 2px solid var(--correct); }
+
+    .v-main {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      text-align: center;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+    .cell.name-cell .v-main {
+      font-size: 15px;
+      text-align: left;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+    }
+
+    .v-sub {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 3px;
+      line-height: 1;
+      letter-spacing: 0.5px;
+    }
+    .cell.name-cell .v-sub { text-align: left; font-size: 9px; }
+
+    /* state text colors */
+    .cell.correct .v-main  { color: #4ADE80; }
+    .cell.correct .v-sub   { color: rgba(74,222,128,.45); }
+    .cell.close   .v-main  { color: #FCD34D; }
+    .cell.close   .v-sub   { color: rgba(252,211,77,.45); }
+    .cell.wrong   .v-main  { color: var(--wrong-text); }
+    .cell.wrong   .v-sub   { color: #1e1e22; }
+    .cell.guessed .v-main  { color: rgba(240,230,216,0.45); }
+    .cell.guessed .v-sub   { color: var(--text-muted); }
+
+    /* ── INPUT AREA ── */
+    #input-area { margin-top: 24px; }
+    .input-row { display: flex; gap: 8px; }
+    .search-wrap { flex: 1; position: relative; }
+
+    #player-input {
+      width: 100%;
+      height: 52px;
+      background: var(--card);
+      border: 1px solid var(--border-md);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 18px;
+      font-weight: 400;
+      padding: 0 16px;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    #player-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-dim);
+    }
+    #player-input::placeholder {
+      color: var(--text-muted);
+      font-size: 10px;
+      font-family: 'IBM Plex Mono', monospace;
+      letter-spacing: 2.5px;
+      font-weight: 400;
+    }
+    #player-input:disabled { opacity: .3; cursor: not-allowed; }
+
+    /* ── AUTOCOMPLETE ── */
+    #autocomplete {
+      position: absolute;
+      top: calc(100% + 3px);
+      left: 0; right: 0;
+      background: var(--card);
+      border: 1px solid var(--border-md);
+      max-height: 260px;
+      overflow-y: auto;
+      z-index: 200;
+      display: none;
+    }
+    #autocomplete.open { display: block; }
+
+    .ac-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+      transition: background .1s;
+    }
+    .ac-item:last-child { border-bottom: none; }
+    .ac-item:hover, .ac-item.active { background: var(--card-hover); }
+
+    .ac-name {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--text);
+    }
+    .ac-team {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+    }
+
+    /* ── SUBMIT BTN ── */
+    #submit-btn {
+      height: 52px;
+      padding: 0 28px;
+      background: var(--accent);
+      border: none;
+      color: var(--text);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background .2s, transform .15s;
+      white-space: nowrap;
+    }
+    #submit-btn:hover { background: #ff5c2b; transform: translateY(-1px); }
+    #submit-btn:disabled {
+      background: var(--surface);
+      color: var(--text-muted);
+      cursor: not-allowed;
+      transform: none;
+      border: 1px solid var(--border);
+    }
+
+    /* ── RESULT CARD ── */
+    #message-area { margin-top: 28px; display: none; }
+    #message-area.visible { display: block; }
+
+    .msg-card {
+      background: var(--card);
+      border: 1px solid var(--border-md);
+      padding: 36px 28px;
+      text-align: center;
+    }
+
+    .msg-eyebrow {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .msg-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 52px;
+      letter-spacing: 3px;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    .msg-title.win  { color: var(--correct); }
+    .msg-title.lose { color: var(--accent); }
+
+    .msg-sub {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      margin-bottom: 20px;
+    }
+
+    .msg-player {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 56px;
+      letter-spacing: 2px;
+      color: var(--text);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .msg-detail {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      letter-spacing: 0.5px;
+    }
+
+    .share-btn {
+      background: none;
+      border: 1px solid var(--border-md);
+      color: var(--text);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      padding: 10px 28px;
+      cursor: pointer;
+      transition: background .2s, border-color .2s;
+    }
+    .share-btn:hover { background: var(--accent); border-color: var(--accent); }
+
+    .copied-note {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: var(--correct);
+      letter-spacing: 2px;
+      margin-top: 10px;
+      opacity: 0;
+      transition: opacity .3s;
+      text-transform: uppercase;
+    }
+    .copied-note.show { opacity: 1; }
+
+    /* ── LEGEND ── */
+    .legend {
+      margin-top: 28px;
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .leg-dot {
+      width: 9px; height: 9px;
+      flex-shrink: 0;
+    }
+    .leg-dot.correct { background: var(--correct); }
+    .leg-dot.close   { background: var(--close); }
+    .leg-dot.wrong   { background: #272730; border: 1px solid #38383f; }
+
+    /* ── HOW TO PLAY MODAL ── */
+    #modal-bg {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.86);
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s;
+    }
+    #modal-bg.open { opacity: 1; pointer-events: all; }
+
+    .modal {
+      background: var(--card);
+      border: 1px solid var(--border-md);
+      max-width: 460px;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .modal-hdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .modal-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .modal-brand-logo {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 1px;
+    }
+    .modal-brand-logo span { color: var(--accent); }
+
+    .modal-divider { width: 1px; height: 12px; background: var(--border-md); }
+
+    .modal-ttl {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .modal-x {
+      background: none; border: none;
+      color: var(--text-muted);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 14px;
+      cursor: pointer;
+      padding: 4px 8px;
+      transition: color .2s;
+    }
+    .modal-x:hover { color: var(--text); }
+
+    .modal-body { padding: 24px; }
+
+    .modal-body p {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      line-height: 1.65;
+    }
+    .modal-body p strong { color: var(--text); }
+
+    .modal-rule {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 11px;
+    }
+
+    .mr-dot {
+      width: 10px; height: 10px;
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+    .mr-dot.correct { background: var(--correct); }
+    .mr-dot.close   { background: var(--close); }
+    .mr-dot.wrong   { background: #272730; border: 1px solid #38383f; }
+    .modal-rule p { margin: 0; font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<div class="scanlines"></div>
+<div class="vignette"></div>
+
+<!-- NETWORK BUG -->
+<div class="network-bug">
+  <div class="bug-logo">RDY<span>.GG</span></div>
+  <div class="bug-divider"></div>
+  <div class="on-air"><div class="on-air-dot"></div>Live</div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo-lockup">
+    <svg class="crosshair-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="18" cy="18" r="15" stroke="#e03418" stroke-width="1" stroke-dasharray="2.5 2.5" opacity=".3"/>
+      <circle cx="18" cy="18" r="7.5" stroke="#e03418" stroke-width="1.2" opacity=".65"/>
+      <circle cx="18" cy="18" r="2" fill="#e03418"/>
+      <line x1="18" y1="2"  x2="18" y2="10" stroke="#e03418" stroke-width="1.2"/>
+      <line x1="18" y1="26" x2="18" y2="34" stroke="#e03418" stroke-width="1.2"/>
+      <line x1="2"  y1="18" x2="10" y2="18" stroke="#e03418" stroke-width="1.2"/>
+      <line x1="26" y1="18" x2="34" y2="18" stroke="#e03418" stroke-width="1.2"/>
+    </svg>
+    <div class="logo-text">CS<span class="rd">dle</span></div>
+  </div>
+  <div class="tagline">Identify the CS2 Professional Player</div>
+  <div class="header-meta">
+    <div class="day-badge">Transmission <strong id="day-num">—</strong></div>
+    <button class="ghost-btn" onclick="openModal()">? How to play</button>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main>
+
+  <!-- GRID -->
+  <div class="grid-scroll">
+    <div class="grid-min">
+
+      <!-- column labels -->
+      <div class="grid-cols" style="margin-bottom:2px">
+        <div class="col-label">Player</div>
+        <div class="col-label">Team</div>
+        <div class="col-label">Country</div>
+        <div class="col-label">Age</div>
+        <div class="col-label">Role</div>
+        <div class="col-label">Major Wins</div>
+      </div>
+
+      <div class="transmission-counter"><em id="guess-num">0</em> / 8 attempts</div>
+      <div id="guess-grid"></div>
+    </div>
+  </div>
+
+  <!-- INPUT -->
+  <div id="input-area">
+    <div class="input-row">
+      <div class="search-wrap">
+        <input type="text" id="player-input" placeholder="TYPE PLAYER NAME..." autocomplete="off" spellcheck="false">
+        <div id="autocomplete"></div>
+      </div>
+      <button id="submit-btn" onclick="submitGuess()">GUESS</button>
+    </div>
+  </div>
+
+  <!-- MESSAGE -->
+  <div id="message-area">
+    <div class="msg-card">
+      <div class="msg-eyebrow">Match Result</div>
+      <div class="msg-title" id="msg-title"></div>
+      <div class="msg-sub"   id="msg-sub"></div>
+      <div class="msg-player" id="msg-player"></div>
+      <div class="msg-detail" id="msg-detail"></div>
+      <button class="share-btn" onclick="shareResult()">Share Result</button>
+      <div class="copied-note" id="copied-note">Copied to clipboard</div>
+    </div>
+  </div>
+
+  <!-- LEGEND -->
+  <div class="legend">
+    <div class="legend-item"><div class="leg-dot correct"></div>Correct</div>
+    <div class="legend-item"><div class="leg-dot close"></div>Close — same region / ±2 yrs / ±1 major win</div>
+    <div class="legend-item"><div class="leg-dot wrong"></div>Incorrect</div>
+  </div>
+
+</main>
+
+<!-- HOW TO PLAY MODAL -->
+<div id="modal-bg" onclick="maybeCloseModal(event)">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-brand">
+        <div class="modal-brand-logo">RDY<span>.GG</span></div>
+        <div class="modal-divider"></div>
+        <div class="modal-ttl">How to Play</div>
+      </div>
+      <button class="modal-x" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p>Guess the mystery CS2 pro from the <strong>VRS Top 50 teams</strong>. A new player is featured every day.</p>
+      <p>Each guess reveals clues across five attributes:</p>
+      <div class="modal-rule">
+        <div class="mr-dot correct"></div>
+        <p><strong>Green</strong> — Exact match for this attribute.</p>
+      </div>
+      <div class="modal-rule">
+        <div class="mr-dot close"></div>
+        <p><strong>Amber</strong> — Close: same world region for country, within ±2 years for age, or within ±1 major win. Age and major wins also show <strong>↑ ↓</strong> direction hints.</p>
+      </div>
+      <div class="modal-rule">
+        <div class="mr-dot wrong"></div>
+        <p><strong>Gray</strong> — Incorrect.</p>
+      </div>
+      <p style="margin-top:14px;font-size:13px">You have <strong>8 guesses</strong>. Good luck.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  PLAYER DATABASE  —  VRS Top 50
+// ═══════════════════════════════════════════════
+const PLAYERS = [
+
+  // Rank 1: Team Vitality
+  { name:'apEX', fullName:'Dan Madesclaire', team:'Team Vitality', country:'France', region:'W. Europe', age:33, role:'IGL', flag:'🇫🇷', majorWins:4 },
+  { name:'ZywOo', fullName:'Mathieu Herbaut', team:'Team Vitality', country:'France', region:'W. Europe', age:25, role:'AWP', flag:'🇫🇷', majorWins:3 },
+  { name:'ropz', fullName:'Robin Kool', team:'Team Vitality', country:'Estonia', region:'Baltics', age:26, role:'Rifler', flag:'🇪🇪', majorWins:3 },
+  { name:'flameZ', fullName:'Shahar Shushan', team:'Team Vitality', country:'Israel', region:'MENA', age:22, role:'Rifler', flag:'🇮🇱', majorWins:2 },
+  { name:'mezii', fullName:'William Merriman', team:'Team Vitality', country:'UK', region:'W. Europe', age:27, role:'Support', flag:'🇬🇧', majorWins:2 },
+
+  // Rank 2: MOUZ
+  { name:'Brollan', fullName:'Ludvig Brolin', team:'MOUZ', country:'Sweden', region:'Scandinavia', age:23, role:'IGL', flag:'🇸🇪', majorWins:0 },
+  { name:'torzsi', fullName:'Ádám Torzsás', team:'MOUZ', country:'Hungary', region:'C. Europe', age:23, role:'AWP', flag:'🇭🇺', majorWins:0 },
+  { name:'xertioN', fullName:'Dorian Berman', team:'MOUZ', country:'Israel', region:'MENA', age:21, role:'Rifler', flag:'🇮🇱', majorWins:0 },
+  { name:'Jimpphat', fullName:'Jimi Salo', team:'MOUZ', country:'Finland', region:'Scandinavia', age:19, role:'Rifler', flag:'🇫🇮', majorWins:0 },
+  { name:'Spinx', fullName:'Lotan Giladi', team:'MOUZ', country:'Israel', region:'MENA', age:25, role:'Support', flag:'🇮🇱', majorWins:1 },
+
+  // Rank 3: FURIA
+  { name:'FalleN', fullName:'Gabriel Toledo', team:'FURIA', country:'Brazil', region:'S. America', age:34, role:'IGL', flag:'🇧🇷', majorWins:2 },
+  { name:'molodoy', fullName:'Danil Golubenko', team:'FURIA', country:'Russia', region:'CIS', age:21, role:'AWP', flag:'🇷🇺', majorWins:0 },
+  { name:'YEKINDAR', fullName:'Mareks Gaļinskis', team:'FURIA', country:'Latvia', region:'Baltics', age:26, role:'Rifler', flag:'🇱🇻', majorWins:1 },
+  { name:'yuurih', fullName:'Yuri Boian', team:'FURIA', country:'Brazil', region:'S. America', age:26, role:'Rifler', flag:'🇧🇷', majorWins:0 },
+  { name:'KSCERATO', fullName:'Kaike Cerato', team:'FURIA', country:'Brazil', region:'S. America', age:26, role:'Rifler', flag:'🇧🇷', majorWins:0 },
+
+  // Rank 4: PARIVISION
+  { name:'Jame', fullName:'Dzhami Ali', team:'PARIVISION', country:'Kazakhstan', region:'CIS', age:27, role:'IGL/AWP', flag:'🇰🇿', majorWins:1 },
+  { name:'BELCHONOKK', fullName:'Andrey Yasinskiy', team:'PARIVISION', country:'Russia', region:'CIS', age:22, role:'Rifler', flag:'🇷🇺', majorWins:0 },
+  { name:'xiELO', fullName:'Vladislav Lysov', team:'PARIVISION', country:'Russia', region:'CIS', age:20, role:'Rifler', flag:'🇷🇺', majorWins:0 },
+  { name:'nota', fullName:'Emil Moskvitin', team:'PARIVISION', country:'Russia', region:'CIS', age:18, role:'Support', flag:'🇷🇺', majorWins:0 },
+  { name:'zweih', fullName:'Ivan Gogin', team:'PARIVISION', country:'Russia', region:'CIS', age:18, role:'Rifler', flag:'🇷🇺', majorWins:0 },
+
+  // Rank 5: Team Falcons
+  { name:'kyxsan', fullName:'Damjan Stoilkovski', team:'Team Falcons', country:'N. Macedonia', region:'Balkans', age:25, role:'IGL', flag:'🇲🇰', majorWins:0 },
+  { name:'m0NESY', fullName:'Ilya Osipov', team:'Team Falcons', country:'Russia', region:'CIS', age:20, role:'AWP', flag:'🇷🇺', majorWins:0 },
+  { name:'NiKo', fullName:'Nikola Kovač', team:'Team Falcons', country:'Bosnia', region:'Balkans', age:29, role:'Rifler', flag:'🇧🇦', majorWins:0 },
+  { name:'TeSeS', fullName:'René Madsen', team:'Team Falcons', country:'Denmark', region:'Scandinavia', age:25, role:'Rifler', flag:'🇩🇰', majorWins:0 },
+  { name:'kyousuke', fullName:'Maksim Lukin', team:'Team Falcons', country:'Russia', region:'CIS', age:18, role:'Rifler', flag:'🇷🇺', majorWins:0 },
+
+  // Rank 6: Team Spirit
+  { name:'magixx', fullName:'Boris Vorobyev', team:'Team Spirit', country:'Russia', region:'CIS', age:22, role:'IGL', flag:'🇷🇺', majorWins:1 },
+  { name:'sh1ro', fullName:'Dmitriy Sokolov', team:'Team Spirit', country:'Russia', region:'CIS', age:24, role:'AWP', flag:'🇷🇺', majorWins:1 },
+  { name:'donk', fullName:'Danil Kryshkovets', team:'Team Spirit', country:'Russia', region:'CIS', age:19, role:'Rifler', flag:'🇷🇺', majorWins:1 },
+  { name:'zont1x', fullName:'Myroslav Plakhotia', team:'Team Spirit', country:'Ukraine', region:'CIS', age:20, role:'Rifler', flag:'🇺🇦', majorWins:1 },
+  { name:'tN1R', fullName:'Andrey Tatarinovich', team:'Team Spirit', country:'Russia', region:'CIS', age:25, role:'Support', flag:'🇷🇺', majorWins:0 },
+
+  // Rank 7: Aurora Gaming
+  { name:'MAJ3R', fullName:'Engin Küpeli', team:'Aurora Gaming', country:'Turkey', region:'MENA', age:35, role:'IGL', flag:'🇹🇷', majorWins:0 },
+  { name:'woxic', fullName:'Özgür Eker', team:'Aurora Gaming', country:'Turkey', region:'MENA', age:27, role:'AWP', flag:'🇹🇷', majorWins:0 },
+  { name:'XANTARES', fullName:'İsmailcan Dörtkardeş', team:'Aurora Gaming', country:'Turkey', region:'MENA', age:30, role:'Rifler', flag:'🇹🇷', majorWins:0 },
+  { name:'Wicadia', fullName:'Ali Haydar Yalçın', team:'Aurora Gaming', country:'Turkey', region:'MENA', age:21, role:'Rifler', flag:'🇹🇷', majorWins:0 },
+  { name:'soulfly', fullName:'Caner Kesici', team:'Aurora Gaming', country:'Turkey', region:'MENA', age:21, role:'Support', flag:'🇹🇷', majorWins:0 },
+
+  // Rank 8: Natus Vincere
+  { name:'Aleksib', fullName:'Aleksi Virolainen', team:'Natus Vincere', country:'Finland', region:'Scandinavia', age:29, role:'IGL', flag:'🇫🇮', majorWins:1 },
+  { name:'w0nderful', fullName:'Ihor Zhdanov', team:'Natus Vincere', country:'Ukraine', region:'CIS', age:21, role:'AWP', flag:'🇺🇦', majorWins:1 },
+  { name:'b1t', fullName:'Valerii Vakhovskyi', team:'Natus Vincere', country:'Ukraine', region:'CIS', age:23, role:'Rifler', flag:'🇺🇦', majorWins:2 },
+  { name:'iM', fullName:'Mihai Ivan', team:'Natus Vincere', country:'Romania', region:'Balkans', age:26, role:'Rifler', flag:'🇷🇴', majorWins:1 },
+  { name:'makazze', fullName:'Drin Shaqiri', team:'Natus Vincere', country:'Kosovo', region:'Balkans', age:18, role:'Support', flag:'🇽🇰', majorWins:0 },
+
+  // Rank 9: The MongolZ
+  { name:'bLitz', fullName:'Garidmagnai Byambasuren', team:'The MongolZ', country:'Mongolia', region:'Asia', age:24, role:'IGL', flag:'🇲🇳', majorWins:0 },
+  { name:'910', fullName:'Usukhbayar Banzragch', team:'The MongolZ', country:'Mongolia', region:'Asia', age:23, role:'AWP', flag:'🇲🇳', majorWins:0 },
+  { name:'Techno4K', fullName:'Sodbayar Munkhbold', team:'The MongolZ', country:'Mongolia', region:'Asia', age:20, role:'Rifler', flag:'🇲🇳', majorWins:0 },
+  { name:'mzinho', fullName:'Ayush Batbold', team:'The MongolZ', country:'Mongolia', region:'Asia', age:18, role:'Rifler', flag:'🇲🇳', majorWins:0 },
+  { name:'cobrazera', fullName:'Anarbileg Uuganbayar', team:'The MongolZ', country:'Mongolia', region:'Asia', age:20, role:'Rifler', flag:'🇲🇳', majorWins:0 },
+
+  // Rank 10: Astralis
+  { name:'HooXi', fullName:'Rasmus Nielsen', team:'Astralis', country:'Denmark', region:'Scandinavia', age:30, role:'IGL', flag:'🇩🇰', majorWins:0 },
+  { name:'phzy', fullName:'Love Smidebrant', team:'Astralis', country:'Sweden', region:'Scandinavia', age:23, role:'AWP', flag:'🇸🇪', majorWins:0 },
+  { name:'jabbi', fullName:'Jakob Nygaard', team:'Astralis', country:'Denmark', region:'Scandinavia', age:22, role:'Rifler', flag:'🇩🇰', majorWins:0 },
+  { name:'Staehr', fullName:'Victor Staehr', team:'Astralis', country:'Denmark', region:'Scandinavia', age:21, role:'Support', flag:'🇩🇰', majorWins:0 },
+  { name:'ryu', fullName:'Gytis Glušauskas', team:'Astralis', country:'Lithuania', region:'Baltics', age:21, role:'Rifler', flag:'🇱🇹', majorWins:0 },
+
+  // Rank 11: G2 Esports
+  { name:'huNter-', fullName:'Nemanja Kovač', team:'G2 Esports', country:'Bosnia', region:'Balkans', age:31, role:'IGL', flag:'🇧🇦', majorWins:0 },
+  { name:'SunPayus', fullName:'Álvaro García', team:'G2 Esports', country:'Spain', region:'W. Europe', age:25, role:'AWP', flag:'🇪🇸', majorWins:0 },
+  { name:'NertZ', fullName:'Guy Iluz', team:'G2 Esports', country:'Israel', region:'MENA', age:25, role:'Rifler', flag:'🇮🇱', majorWins:0 },
+  { name:'HeavyGod', fullName:'Nikita Martynenko', team:'G2 Esports', country:'Ukraine', region:'CIS', age:22, role:'Support', flag:'🇺🇦', majorWins:0 },
+  { name:'matys', fullName:'Matúš Šimko', team:'G2 Esports', country:'Slovakia', region:'C. Europe', age:22, role:'Rifler', flag:'🇸🇰', majorWins:0 },
+
+  // Rank 12: GamerLegion
+  { name:'Snax', fullName:'Janusz Pogorzelski', team:'GamerLegion', country:'Poland', region:'C. Europe', age:32, role:'IGL', flag:'🇵🇱', majorWins:1 },
+  { name:'REZ', fullName:'Fredrik Sterner', team:'GamerLegion', country:'Sweden', region:'Scandinavia', age:25, role:'Rifler', flag:'🇸🇪', majorWins:0 },
+  { name:'Tauson', fullName:'Sebastian Lindelof', team:'GamerLegion', country:'Sweden', region:'Scandinavia', age:22, role:'Rifler', flag:'🇸🇪', majorWins:0 },
+  { name:'hypex', fullName:'Milan Polowiec', team:'GamerLegion', country:'Poland', region:'C. Europe', age:22, role:'Support', flag:'🇵🇱', majorWins:0 },
+  { name:'PR', fullName:'Oldřich Nový', team:'GamerLegion', country:'Czech Rep.', region:'C. Europe', age:22, role:'Rifler', flag:'🇨🇿', majorWins:0 },
+
+  // Rank 13: FaZe Clan
+  { name:'karrigan', fullName:'Finn Andersen', team:'FaZe Clan', country:'Denmark', region:'Scandinavia', age:36, role:'IGL', flag:'🇩🇰', majorWins:1 },
+  { name:'broky', fullName:'Helvijs Saukants', team:'FaZe Clan', country:'Latvia', region:'Baltics', age:25, role:'AWP', flag:'🇱🇻', majorWins:1 },
+  { name:'frozen', fullName:'David Čerňanský', team:'FaZe Clan', country:'Slovakia', region:'C. Europe', age:25, role:'Rifler', flag:'🇸🇰', majorWins:0 },
+  { name:'Twistzz', fullName:'Russel Van Dulken', team:'FaZe Clan', country:'Canada', region:'Americas', age:26, role:'Rifler', flag:'🇨🇦', majorWins:1 },
+  { name:'jcobbb', fullName:'Jakub Pietruszewski', team:'FaZe Clan', country:'Poland', region:'C. Europe', age:20, role:'Rifler', flag:'🇵🇱', majorWins:0 },
+
+  // Rank 14: FUT Esports
+  { name:'Krabeni', fullName:'Aulon Fazlija', team:'FUT Esports', country:'Kosovo', region:'Balkans', age:22, role:'IGL', flag:'🇽🇰', majorWins:0 },
+  { name:'dem0n', fullName:'Dmytro Myroshnychenko', team:'FUT Esports', country:'Ukraine', region:'CIS', age:21, role:'Rifler', flag:'🇺🇦', majorWins:0 },
+  { name:'cmtry', fullName:'Mykyta Samolotov', team:'FUT Esports', country:'Ukraine', region:'CIS', age:21, role:'Rifler', flag:'🇺🇦', majorWins:0 },
+  { name:'lauNX', fullName:'Laurențiu Țârlea', team:'FUT Esports', country:'Romania', region:'Balkans', age:23, role:'Rifler', flag:'🇷🇴', majorWins:0 },
+  { name:'dziugss', fullName:'Džiugas Steponavičius', team:'FUT Esports', country:'Lithuania', region:'Baltics', age:20, role:'AWP', flag:'🇱🇹', majorWins:0 },
+
+  // Rank 15: 9z Team
+  { name:'max', fullName:'Maximiliano Gonzalez', team:'9z Team', country:'Argentina', region:'S. America', age:26, role:'IGL', flag:'🇦🇷', majorWins:0 },
+  { name:'meyern', fullName:'Ignacio Meyer', team:'9z Team', country:'Argentina', region:'S. America', age:24, role:'AWP', flag:'🇦🇷', majorWins:0 },
+  { name:'luchov', fullName:'Luciano Herrera', team:'9z Team', country:'Argentina', region:'S. America', age:22, role:'Rifler', flag:'🇦🇷', majorWins:0 },
+  { name:'HUASOPEEK', fullName:'Matías Ibañez', team:'9z Team', country:'Chile', region:'S. America', age:23, role:'Rifler', flag:'🇨🇱', majorWins:0 },
+  { name:'dgt', fullName:'Franco Garcia', team:'9z Team', country:'Argentina', region:'S. America', age:23, role:'Rifler', flag:'🇦🇷', majorWins:0 },
+
+  // Rank 16: Gentle Mates
+  { name:'alex', fullName:'Alejandro Masanet', team:'Gentle Mates', country:'Spain', region:'W. Europe', age:30, role:'IGL', flag:'🇪🇸', majorWins:0 },
+  { name:'mopoz', fullName:'Alejandro Fernández', team:'Gentle Mates', country:'Spain', region:'W. Europe', age:22, role:'Rifler', flag:'🇪🇸', majorWins:0 },
+  { name:'dav1g', fullName:'David Granado', team:'Gentle Mates', country:'Spain', region:'W. Europe', age:24, role:'Rifler', flag:'🇪🇸', majorWins:0 },
+  { name:'sausol', fullName:'Pere Solsona', team:'Gentle Mates', country:'Spain', region:'W. Europe', age:22, role:'AWP', flag:'🇪🇸', majorWins:0 },
+  { name:'Martinez', fullName:'Antonio Martínez', team:'Gentle Mates', country:'Spain', region:'W. Europe', age:22, role:'Rifler', flag:'🇪🇸', majorWins:0 },
+
+  // Rank 17: HEROIC
+  { name:'Chr1zN', fullName:'Christoffer Storgaard', team:'HEROIC', country:'Denmark', region:'Scandinavia', age:24, role:'IGL', flag:'🇩🇰', majorWins:0 },
+  { name:'Alkaren', fullName:'Älımjan Bıtımbai', team:'HEROIC', country:'Kazakhstan', region:'CIS', age:23, role:'AWP', flag:'🇰🇿', majorWins:0 },
+  { name:'xfl0ud', fullName:'Yasin Koç', team:'HEROIC', country:'Turkey', region:'MENA', age:25, role:'Rifler', flag:'🇹🇷', majorWins:0 },
+  { name:'nilo', fullName:'Linus Bergman', team:'HEROIC', country:'Sweden', region:'Scandinavia', age:22, role:'Rifler', flag:'🇸🇪', majorWins:0 },
+  { name:'susp', fullName:'Tim Ångström', team:'HEROIC', country:'Sweden', region:'Scandinavia', age:22, role:'Support', flag:'🇸🇪', majorWins:0 },
+
+  // Rank 18: Monte
+  { name:'Gizmy', fullName:'Jack von Spreckelsen', team:'Monte', country:'Denmark', region:'Scandinavia', age:23, role:'IGL', flag:'🇩🇰', majorWins:0 },
+  { name:'afro', fullName:'Aurélien Drapier', team:'Monte', country:'France', region:'W. Europe', age:22, role:'AWP', flag:'🇫🇷', majorWins:0 },
+  { name:'Rainwaker', fullName:'Aleks Petrov', team:'Monte', country:'France', region:'W. Europe', age:24, role:'Rifler', flag:'🇫🇷', majorWins:0 },
+  { name:'AZUWU', fullName:'Oscar Bell', team:'Monte', country:'UK', region:'W. Europe', age:20, role:'Rifler', flag:'🇬🇧', majorWins:0 },
+  { name:'Bymas', fullName:'Aurimas Pipiras', team:'Monte', country:'Lithuania', region:'Baltics', age:24, role:'Rifler', flag:'🇱🇹', majorWins:0 },
+
+  // Rank 19: NRG
+  { name:'nitr0', fullName:'Nicholas Cannella', team:'NRG', country:'USA', region:'Americas', age:31, role:'IGL', flag:'🇺🇸', majorWins:0 },
+  { name:'oSee', fullName:'Joshua Ohm', team:'NRG', country:'USA', region:'Americas', age:26, role:'AWP', flag:'🇺🇸', majorWins:0 },
+  { name:'Sonic', fullName:'Aran Groesbeek', team:'NRG', country:'USA', region:'Americas', age:24, role:'Rifler', flag:'🇺🇸', majorWins:0 },
+  { name:'Grim', fullName:'Michael Wince', team:'NRG', country:'USA', region:'Americas', age:27, role:'Rifler', flag:'🇺🇸', majorWins:0 },
+  { name:'br0', fullName:'Alexander Bro', team:'NRG', country:'USA', region:'Americas', age:24, role:'Support', flag:'🇺🇸', majorWins:0 },
+
+  // Rank 20: MIBR
+  { name:'LNZ', fullName:'Linus Holtäng', team:'MIBR', country:'Sweden', region:'Scandinavia', age:26, role:'IGL', flag:'🇸🇪', majorWins:0 },
+  { name:'kl1m', fullName:'Klimentiy Krivosheev', team:'MIBR', country:'Russia', region:'CIS', age:22, role:'AWP', flag:'🇷🇺', majorWins:0 },
+  { name:'brnz4n', fullName:'Breno Poletto', team:'MIBR', country:'Brazil', region:'S. America', age:22, role:'Rifler', flag:'🇧🇷', majorWins:0 },
+  { name:'insani', fullName:'Felipe Yuji', team:'MIBR', country:'Brazil', region:'S. America', age:26, role:'Rifler', flag:'🇧🇷', majorWins:0 },
+  { name:'venomzera', fullName:'Carlos Eduardo', team:'MIBR', country:'Brazil', region:'S. America', age:24, role:'Rifler', flag:'🇧🇷', majorWins:0 },
+
+  // Rank 21: BetBoom Team
+  { name:'Boombl4', fullName:'Kirill Mikhaylov', team:'BetBoom Team', country:'Russia', region:'CIS', age:27, role:'IGL', flag:'🇷🇺', majorWins:1 },
+  { name:'ArtFr0st', fullName:'Artem Kharitonov', team:'BetBoom Team', country:'Russia', region:'CIS', age:23, role:'AWP', flag:'🇷🇺', majorWins:0 },
+  { name:'s1ren', fullName:'Pavel Ogloblin', team:'BetBoom Team', country:'Russia', region:'CIS', age:22, role:'Rifler', flag:'🇷🇺', majorWins:0 },
+  { name:'Magnojez', fullName:'Kirill Rodnov', team:'BetBoom Team', country:'Russia', region:'CIS', age:21, role:'Rifler', flag:'🇷🇺', majorWins:0 },
+  { name:'d1Ledez', fullName:'Daniil Kustov', team:'BetBoom Team', country:'Russia', region:'CIS', age:21, role:'Rifler', flag:'🇷🇺', majorWins:0 },
+
+  // Rank 22: BIG
+  { name:'blameF', fullName:'Benjamin Bremer', team:'BIG', country:'Denmark', region:'Scandinavia', age:30, role:'IGL', flag:'🇩🇰', majorWins:0 },
+  { name:'gr1ks', fullName:'Gleb Gazin', team:'BIG', country:'Russia', region:'CIS', age:22, role:'AWP', flag:'🇷🇺', majorWins:0 },
+  { name:'tabseN', fullName:'Johannes Wodarz', team:'BIG', country:'Germany', region:'W. Europe', age:31, role:'Rifler', flag:'🇩🇪', majorWins:0 },
+  { name:'JDC', fullName:'Jon de Castro', team:'BIG', country:'Spain', region:'W. Europe', age:27, role:'Rifler', flag:'🇪🇸', majorWins:0 },
+  { name:'faveN', fullName:'Josef Baumann', team:'BIG', country:'Germany', region:'W. Europe', age:24, role:'Rifler', flag:'🇩🇪', majorWins:0 },
+
+  // Rank 23: HOTU
+  { name:'dukefissura', fullName:'Suleimen Orazaly', team:'HOTU', country:'Kazakhstan', region:'CIS', age:23, role:'IGL', flag:'🇰🇿', majorWins:0 },
+  { name:'lampada', fullName:'Mark Ivanov', team:'HOTU', country:'Russia', region:'CIS', age:22, role:'AWP', flag:'🇷🇺', majorWins:0 },
+  { name:'n0rb3r7', fullName:'David Danielyan', team:'HOTU', country:'Russia', region:'CIS', age:27, role:'Rifler', flag:'🇷🇺', majorWins:1 },
+  { name:'mizu', fullName:'Dmitriy Kondratev', team:'HOTU', country:'Russia', region:'CIS', age:22, role:'Rifler', flag:'🇷🇺', majorWins:0 },
+  { name:'frontales', fullName:'Kim Argunov', team:'HOTU', country:'Russia', region:'CIS', age:22, role:'Rifler', flag:'🇷🇺', majorWins:0 },
+
+  // Rank 24: Sharks Esports
+  { name:'gafolo', fullName:'Victor Andrade', team:'Sharks Esports', country:'Brazil', region:'S. America', age:26, role:'IGL', flag:'🇧🇷', majorWins:0 },
+  { name:'koala', fullName:'João Pedro', team:'Sharks Esports', country:'Brazil', region:'S. America', age:22, role:'AWP', flag:'🇧🇷', majorWins:0 },
+  { name:'rdnzao', fullName:'Daniel Monteiro', team:'Sharks Esports', country:'Brazil', region:'S. America', age:23, role:'Rifler', flag:'🇧🇷', majorWins:0 },
+  { name:'doc', fullName:'Danilo Moraes', team:'Sharks Esports', country:'Brazil', region:'S. America', age:24, role:'Rifler', flag:'🇧🇷', majorWins:0 },
+  { name:'maxxkor', fullName:'Máximo Cortina', team:'Sharks Esports', country:'Argentina', region:'S. America', age:23, role:'Rifler', flag:'🇦🇷', majorWins:0 },
+
+  // Rank 25: 3DMAX
+  { name:'Maka', fullName:'Bryan Canda', team:'3DMAX', country:'France', region:'W. Europe', age:25, role:'IGL', flag:'🇫🇷', majorWins:0 },
+  { name:'misutaaa', fullName:'Kévin Rabier', team:'3DMAX', country:'France', region:'W. Europe', age:24, role:'AWP', flag:'🇫🇷', majorWins:0 },
+  { name:'Lucky', fullName:'Lucas Chastang', team:'3DMAX', country:'France', region:'W. Europe', age:28, role:'Rifler', flag:'🇫🇷', majorWins:0 },
+  { name:'Ex3rcice', fullName:'Pierre Bulinge', team:'3DMAX', country:'France', region:'W. Europe', age:25, role:'Rifler', flag:'🇫🇷', majorWins:0 },
+  { name:'Graviti', fullName:'Filip Branković', team:'3DMAX', country:'Serbia', region:'Balkans', age:23, role:'Rifler', flag:'🇷🇸', majorWins:0 },
+
+  // Rank 26: B8
+  { name:'alex666', fullName:'Oleksii Yarmoshchuk', team:'B8', country:'Ukraine', region:'CIS', age:22, role:'IGL', flag:'🇺🇦', majorWins:0 },
+  { name:'npl', fullName:'Andrii Kukharskyi', team:'B8', country:'Ukraine', region:'CIS', age:24, role:'Rifler', flag:'🇺🇦', majorWins:0 },
+  { name:'esenthial', fullName:'Dmytro Tsvir', team:'B8', country:'Ukraine', region:'CIS', age:22, role:'AWP', flag:'🇺🇦', majorWins:0 },
+  { name:'kensizor', fullName:'Artem Kapran', team:'B8', country:'Ukraine', region:'CIS', age:24, role:'Rifler', flag:'🇺🇦', majorWins:0 },
+  { name:'s1zzi', fullName:'Daniil Vinnyk', team:'B8', country:'Russia', region:'CIS', age:22, role:'Rifler', flag:'🇷🇺', majorWins:0 },
+
+  // Rank 27: illwill
+  { name:'hAdji', fullName:'Ali Haïnouss', team:'illwill', country:'France', region:'W. Europe', age:32, role:'IGL', flag:'🇫🇷', majorWins:0 },
+  { name:'dycha', fullName:'Paweł Dycha', team:'illwill', country:'Poland', region:'C. Europe', age:27, role:'Rifler', flag:'🇵🇱', majorWins:0 },
+  { name:'adamS', fullName:'Adam Marian', team:'illwill', country:'France', region:'W. Europe', age:22, role:'Rifler', flag:'🇫🇷', majorWins:0 },
+  { name:'7kick', fullName:'Radu Dragos Cristian', team:'illwill', country:'Romania', region:'Balkans', age:22, role:'Rifler', flag:'🇷🇴', majorWins:0 },
+
+  // Rank 28: Team Liquid
+  { name:'siuhy', fullName:'Kamil Szkaradek', team:'Team Liquid', country:'Poland', region:'C. Europe', age:28, role:'IGL', flag:'🇵🇱', majorWins:0 },
+  { name:'ultimate', fullName:'Roland Tomkowiak', team:'Team Liquid', country:'Poland', region:'C. Europe', age:21, role:'AWP', flag:'🇵🇱', majorWins:0 },
+  { name:'NAF', fullName:'Keith Markovic', team:'Team Liquid', country:'Canada', region:'Americas', age:28, role:'Rifler', flag:'🇨🇦', majorWins:0 },
+  { name:'EliGE', fullName:'Jonathan Jablonowski', team:'Team Liquid', country:'USA', region:'Americas', age:29, role:'Rifler', flag:'🇺🇸', majorWins:0 },
+  { name:'malbsMd', fullName:'Mario Samayoa', team:'Team Liquid', country:'El Salvador', region:'Americas', age:21, role:'Support', flag:'🇸🇻', majorWins:0 },
+
+  // Rank 29: K27
+  { name:'X5G7V', fullName:'Daniil Maryshev', team:'K27', country:'Russia', region:'CIS', age:22, role:'IGL', flag:'🇷🇺', majorWins:0 },
+  { name:'kashl1d', fullName:'Danila Dronov', team:'K27', country:'Russia', region:'CIS', age:22, role:'Rifler', flag:'🇷🇺', majorWins:0 },
+  { name:'relaxxie', fullName:'Karim Miftakhov', team:'K27', country:'Russia', region:'CIS', age:21, role:'Rifler', flag:'🇷🇺', majorWins:0 },
+  { name:'xeedo', fullName:'Aleksey Mikulich', team:'K27', country:'Russia', region:'CIS', age:22, role:'Rifler', flag:'🇷🇺', majorWins:0 },
+  { name:'qw1nk1', fullName:'Daniil Kabilov', team:'K27', country:'Russia', region:'CIS', age:22, role:'AWP', flag:'🇷🇺', majorWins:0 },
+
+  // Rank 30: BC.Game Esports
+  { name:'MUTiRiS', fullName:'Christopher Fernandes', team:'BC.Game Esports', country:'Portugal', region:'W. Europe', age:30, role:'IGL', flag:'🇵🇹', majorWins:0 },
+  { name:'s1mple', fullName:'Oleksandr Kostyliev', team:'BC.Game Esports', country:'Ukraine', region:'CIS', age:28, role:'AWP', flag:'🇺🇦', majorWins:1 },
+  { name:'electroNic', fullName:'Denis Sharipov', team:'BC.Game Esports', country:'Russia', region:'CIS', age:28, role:'Rifler', flag:'🇷🇺', majorWins:2 },
+  { name:'krazy', fullName:'Adones Nobre', team:'BC.Game Esports', country:'Brazil', region:'S. America', age:24, role:'Rifler', flag:'🇧🇷', majorWins:0 },
+  { name:'aragornN', fullName:'António Barbosa', team:'BC.Game Esports', country:'Portugal', region:'W. Europe', age:25, role:'Support', flag:'🇵🇹', majorWins:0 },
+
+  // Rank 31: SINNERS Esports
+  { name:'beastik', fullName:'Sebastian Daňo', team:'SINNERS Esports', country:'Czech Rep.', region:'C. Europe', age:26, role:'IGL', flag:'🇨🇿', majorWins:0 },
+  { name:'stressarN', fullName:'Jordan Manevski', team:'SINNERS Esports', country:'N. Macedonia', region:'Balkans', age:24, role:'AWP', flag:'🇲🇰', majorWins:0 },
+  { name:'SHOCK', fullName:'Max Kvapil', team:'SINNERS Esports', country:'Czech Rep.', region:'C. Europe', age:23, role:'Rifler', flag:'🇨🇿', majorWins:0 },
+  { name:'kisserek', fullName:'Kamil Banak', team:'SINNERS Esports', country:'Czech Rep.', region:'C. Europe', age:22, role:'Rifler', flag:'🇨🇿', majorWins:0 },
+  { name:'MoDo', fullName:'Mădălin-Andrei Mirea', team:'SINNERS Esports', country:'Romania', region:'Balkans', age:22, role:'Rifler', flag:'🇷🇴', majorWins:0 },
+
+  // Rank 32: Ninjas in Pyjamas
+  { name:'Snappi', fullName:'Marco Pfeiffer', team:'Ninjas in Pyjamas', country:'Denmark', region:'Scandinavia', age:33, role:'IGL', flag:'🇩🇰', majorWins:0 },
+  { name:'r1nkle', fullName:'Artem Moroz', team:'Ninjas in Pyjamas', country:'Ukraine', region:'CIS', age:22, role:'AWP', flag:'🇺🇦', majorWins:0 },
+  { name:'sjuush', fullName:'Rasmus Beck', team:'Ninjas in Pyjamas', country:'Denmark', region:'Scandinavia', age:27, role:'Rifler', flag:'🇩🇰', majorWins:0 },
+  { name:'xKacpersky', fullName:'Kacper Gabara', team:'Ninjas in Pyjamas', country:'Poland', region:'C. Europe', age:23, role:'Rifler', flag:'🇵🇱', majorWins:0 },
+  { name:'cairne', fullName:'Artem Mushynskyi', team:'Ninjas in Pyjamas', country:'Ukraine', region:'CIS', age:22, role:'Rifler', flag:'🇺🇦', majorWins:0 },
+
+  // Rank 33: M80
+  { name:'s1n', fullName:'Elias Stein', team:'M80', country:'USA', region:'Americas', age:24, role:'IGL', flag:'🇺🇸', majorWins:0 },
+  { name:'slaxz-', fullName:'Fritz Dietrich', team:'M80', country:'USA', region:'Americas', age:22, role:'AWP', flag:'🇺🇸', majorWins:0 },
+  { name:'Swisher', fullName:'Michael Schmid', team:'M80', country:'USA', region:'Americas', age:24, role:'Rifler', flag:'🇺🇸', majorWins:0 },
+  { name:'Lake', fullName:'Mason Sanderson', team:'M80', country:'USA', region:'Americas', age:22, role:'Rifler', flag:'🇺🇸', majorWins:0 },
+  { name:'JBa', fullName:'Joshua Barutt', team:'M80', country:'USA', region:'Americas', age:23, role:'Rifler', flag:'🇺🇸', majorWins:0 },
+
+  // Rank 34: Legacy
+  { name:'arT', fullName:'Andrei Piovezan', team:'Legacy', country:'Brazil', region:'S. America', age:28, role:'IGL', flag:'🇧🇷', majorWins:0 },
+  { name:'saadzin', fullName:'Guilherme Pacheco', team:'Legacy', country:'Brazil', region:'S. America', age:22, role:'AWP', flag:'🇧🇷', majorWins:0 },
+  { name:'latto', fullName:'Bruno Rebelatto', team:'Legacy', country:'Brazil', region:'S. America', age:23, role:'Rifler', flag:'🇧🇷', majorWins:0 },
+  { name:'dumau', fullName:'Eduardo Wolkmer', team:'Legacy', country:'Brazil', region:'S. America', age:24, role:'Rifler', flag:'🇧🇷', majorWins:0 },
+  { name:'n1ssim', fullName:'Vinicius Pereira', team:'Legacy', country:'Brazil', region:'S. America', age:22, role:'Rifler', flag:'🇧🇷', majorWins:0 },
+
+  // Rank 35: Alliance
+  { name:'twist', fullName:'Simon Eliasson', team:'Alliance', country:'Sweden', region:'Scandinavia', age:32, role:'IGL', flag:'🇸🇪', majorWins:0 },
+  { name:'eraa', fullName:'Sean Knutsson', team:'Alliance', country:'Sweden', region:'Scandinavia', age:21, role:'AWP', flag:'🇸🇪', majorWins:0 },
+  { name:'avid', fullName:'Arvid Åberg', team:'Alliance', country:'Sweden', region:'Scandinavia', age:22, role:'Rifler', flag:'🇸🇪', majorWins:0 },
+  { name:'upE', fullName:'Markus Johansson', team:'Alliance', country:'Sweden', region:'Scandinavia', age:24, role:'Rifler', flag:'🇸🇪', majorWins:0 },
+  { name:'MaiL09', fullName:'Liam Tügel', team:'Alliance', country:'Germany', region:'W. Europe', age:22, role:'Rifler', flag:'🇩🇪', majorWins:0 },
+
+  // Rank 36: 100 Thieves
+  { name:'rain', fullName:'Håvard Nygaard', team:'100 Thieves', country:'Norway', region:'Scandinavia', age:31, role:'IGL', flag:'🇳🇴', majorWins:1 },
+  { name:'dev1ce', fullName:'Nicolai Reedtz', team:'100 Thieves', country:'Denmark', region:'Scandinavia', age:30, role:'AWP', flag:'🇩🇰', majorWins:4 },
+  { name:'poiii', fullName:'Alex Sundgren', team:'100 Thieves', country:'Sweden', region:'Scandinavia', age:22, role:'Rifler', flag:'🇸🇪', majorWins:0 },
+  { name:'sirah', fullName:'William Kjærsgaard', team:'100 Thieves', country:'Denmark', region:'Scandinavia', age:22, role:'Rifler', flag:'🇩🇰', majorWins:0 },
+  { name:'Ag1l', fullName:'André Gil', team:'100 Thieves', country:'Portugal', region:'W. Europe', age:23, role:'Rifler', flag:'🇵🇹', majorWins:0 },
+
+  // Rank 37: FlyQuest
+  { name:'INS', fullName:'Joshua Potter', team:'FlyQuest', country:'Australia', region:'Oceania', age:27, role:'IGL', flag:'🇦🇺', majorWins:0 },
+  { name:'story', fullName:'João Vieira', team:'FlyQuest', country:'Portugal', region:'W. Europe', age:29, role:'AWP', flag:'🇵🇹', majorWins:0 },
+  { name:'Vexite', fullName:'Declan Portelli', team:'FlyQuest', country:'Australia', region:'Oceania', age:25, role:'Rifler', flag:'🇦🇺', majorWins:0 },
+  { name:'nettik', fullName:'Corey Browne', team:'FlyQuest', country:'Australia', region:'Oceania', age:26, role:'Rifler', flag:'🇦🇺', majorWins:0 },
+  { name:'jks', fullName:'Justin Savage', team:'FlyQuest', country:'Australia', region:'Oceania', age:33, role:'Rifler', flag:'🇦🇺', majorWins:0 },
+
+  // Rank 38: ECSTATIC
+  { name:'TMB', fullName:'Thomas Bundsbæk', team:'ECSTATIC', country:'Denmark', region:'Scandinavia', age:23, role:'IGL', flag:'🇩🇰', majorWins:0 },
+  { name:'nicoodoz', fullName:'Nico Tamjidi', team:'ECSTATIC', country:'Denmark', region:'Scandinavia', age:24, role:'AWP', flag:'🇩🇰', majorWins:0 },
+  { name:'Anlelele', fullName:'Anton Huynh', team:'ECSTATIC', country:'Denmark', region:'Scandinavia', age:22, role:'Rifler', flag:'🇩🇰', majorWins:0 },
+  { name:'Buzz', fullName:'Christian Andersen', team:'ECSTATIC', country:'Denmark', region:'Scandinavia', age:22, role:'Rifler', flag:'🇩🇰', majorWins:0 },
+  { name:'nut nut', fullName:'Martin Vestergaard', team:'ECSTATIC', country:'Denmark', region:'Scandinavia', age:24, role:'Support', flag:'🇩🇰', majorWins:0 },
+
+  // Rank 39: Nemiga Gaming
+  { name:'1eeR', fullName:'Aleksandr Nahornyj', team:'Nemiga Gaming', country:'Belarus', region:'CIS', age:25, role:'IGL', flag:'🇧🇾', majorWins:0 },
+  { name:'khaN', fullName:'Beksūltan Ospan', team:'Nemiga Gaming', country:'Kazakhstan', region:'CIS', age:27, role:'AWP', flag:'🇰🇿', majorWins:0 },
+  { name:'KaiR0N-', fullName:'Aleksandr Anashkin', team:'Nemiga Gaming', country:'Russia', region:'CIS', age:24, role:'Rifler', flag:'🇷🇺', majorWins:0 },
+  { name:'Sowalio', fullName:'Maksim Beketov', team:'Nemiga Gaming', country:'Russia', region:'CIS', age:23, role:'Rifler', flag:'🇷🇺', majorWins:0 },
+  { name:'SYPH0', fullName:'Daniel Ageyev', team:'Nemiga Gaming', country:'Russia', region:'CIS', age:22, role:'Rifler', flag:'🇷🇺', majorWins:0 },
+
+  // Rank 40: paiN Gaming
+  { name:'biguzera', fullName:'Rodrigo Bittencourt', team:'paiN Gaming', country:'Brazil', region:'S. America', age:25, role:'IGL', flag:'🇧🇷', majorWins:0 },
+  { name:'nqz', fullName:'Lucas Soares', team:'paiN Gaming', country:'Brazil', region:'S. America', age:23, role:'AWP', flag:'🇧🇷', majorWins:0 },
+  { name:'v$m', fullName:'Vinicius Moreira', team:'paiN Gaming', country:'Brazil', region:'S. America', age:26, role:'Rifler', flag:'🇧🇷', majorWins:0 },
+  { name:'snow', fullName:'João Vinicius', team:'paiN Gaming', country:'Brazil', region:'S. America', age:22, role:'Rifler', flag:'🇧🇷', majorWins:0 },
+  { name:'piriajr', fullName:'Guilherme Barbosa', team:'paiN Gaming', country:'Brazil', region:'S. America', age:24, role:'Rifler', flag:'🇧🇷', majorWins:0 },
+
+  // Rank 41: WHITEBIRD
+  { name:'NickelBack', fullName:'Aleksei Trofimov', team:'WHITEBIRD', country:'Russia', region:'CIS', age:28, role:'IGL', flag:'🇷🇺', majorWins:0 },
+  { name:'Forester', fullName:'Igor Bezotecheskiy', team:'WHITEBIRD', country:'Russia', region:'CIS', age:28, role:'AWP', flag:'🇷🇺', majorWins:0 },
+  { name:'Lack1', fullName:'Viktor Boldyrev', team:'WHITEBIRD', country:'Russia', region:'CIS', age:25, role:'Rifler', flag:'🇷🇺', majorWins:0 },
+  { name:'El1an', fullName:'Aleksey Gusev', team:'WHITEBIRD', country:'Russia', region:'CIS', age:25, role:'Rifler', flag:'🇷🇺', majorWins:0 },
+  { name:'TRAVIS', fullName:'Aleksandr Timkiv', team:'WHITEBIRD', country:'Russia', region:'CIS', age:24, role:'Rifler', flag:'🇷🇺', majorWins:0 },
+
+  // Rank 42: 9INE
+  { name:'raalz', fullName:'Rasmus Steensborg', team:'9INE', country:'Denmark', region:'Scandinavia', age:23, role:'IGL', flag:'🇩🇰', majorWins:0 },
+  { name:'kraghen', fullName:'Tobias Jensen', team:'9INE', country:'Denmark', region:'Scandinavia', age:24, role:'AWP', flag:'🇩🇰', majorWins:0 },
+  { name:'cej0t', fullName:'Jan Dyl', team:'9INE', country:'Czech Rep.', region:'C. Europe', age:22, role:'Rifler', flag:'🇨🇿', majorWins:0 },
+  { name:'bnox', fullName:'Bartosz Niebisz', team:'9INE', country:'Poland', region:'C. Europe', age:22, role:'Rifler', flag:'🇵🇱', majorWins:0 },
+  { name:'Flayy', fullName:'Alan Krupa', team:'9INE', country:'Czech Rep.', region:'C. Europe', age:22, role:'Rifler', flag:'🇨🇿', majorWins:0 },
+
+  // Rank 43: Magic
+  { name:'MaSvAl', fullName:'Svyatoslav Masko', team:'Magic', country:'Ukraine', region:'CIS', age:22, role:'IGL', flag:'🇺🇦', majorWins:0 },
+  { name:'mo0N', fullName:'Abdurakhim Issa', team:'Magic', country:'Kazakhstan', region:'CIS', age:22, role:'AWP', flag:'🇰🇿', majorWins:0 },
+  { name:'sFade8', fullName:'Vitaliy Marushka', team:'Magic', country:'Ukraine', region:'CIS', age:22, role:'Rifler', flag:'🇺🇦', majorWins:0 },
+  { name:'AW', fullName:'Andrey Anisimov', team:'Magic', country:'Russia', region:'CIS', age:23, role:'Rifler', flag:'🇷🇺', majorWins:0 },
+  { name:'tENZY', fullName:'Nikita Kochenyuk', team:'Magic', country:'Russia', region:'CIS', age:22, role:'Rifler', flag:'🇷🇺', majorWins:0 },
+
+  // Rank 44: Passion UA
+  { name:'JT', fullName:'Johnny Theodosiou', team:'Passion UA', country:'Cyprus', region:'W. Europe', age:30, role:'IGL', flag:'🇨🇾', majorWins:0 },
+  { name:'try', fullName:'Santino Rigal', team:'Passion UA', country:'France', region:'W. Europe', age:25, role:'AWP', flag:'🇫🇷', majorWins:0 },
+  { name:'Senzu', fullName:'Azbayar Munkhbold', team:'Passion UA', country:'Mongolia', region:'Asia', age:22, role:'Rifler', flag:'🇲🇳', majorWins:0 },
+  { name:'Kvem', fullName:'Vladyslav Korol', team:'Passion UA', country:'Ukraine', region:'CIS', age:22, role:'Rifler', flag:'🇺🇦', majorWins:0 },
+  { name:'nicx', fullName:'Nicholas Lee', team:'Passion UA', country:'USA', region:'Americas', age:22, role:'Rifler', flag:'🇺🇸', majorWins:0 },
+
+  // Rank 45: Nuclear TigeRES
+  { name:'senka', fullName:'Arseniy Kozlovsky', team:'Nuclear TigeRES', country:'Russia', region:'CIS', age:22, role:'IGL', flag:'🇷🇺', majorWins:0 },
+  { name:'z1k4', fullName:'Timur Askhadulin', team:'Nuclear TigeRES', country:'Russia', region:'CIS', age:22, role:'AWP', flag:'🇷🇺', majorWins:0 },
+  { name:'flouzer', fullName:'Ilya Selifonov', team:'Nuclear TigeRES', country:'Russia', region:'CIS', age:22, role:'Rifler', flag:'🇷🇺', majorWins:0 },
+  { name:'m1QUSE', fullName:'Denis Karpovich', team:'Nuclear TigeRES', country:'Russia', region:'CIS', age:22, role:'Rifler', flag:'🇷🇺', majorWins:0 },
+  { name:'ayuki', fullName:'Egor Ershov', team:'Nuclear TigeRES', country:'Russia', region:'CIS', age:22, role:'Rifler', flag:'🇷🇺', majorWins:0 },
+
+  // Rank 46: Fnatic
+  { name:'fear', fullName:'Rodion Smyk', team:'Fnatic', country:'Ukraine', region:'CIS', age:22, role:'IGL', flag:'🇺🇦', majorWins:0 },
+  { name:'Br4tkO', fullName:'Viktor Kondratets', team:'Fnatic', country:'Ukraine', region:'CIS', age:22, role:'AWP', flag:'🇺🇦', majorWins:0 },
+  { name:'KRIMZ', fullName:'Freddy Johansson', team:'Fnatic', country:'Sweden', region:'Scandinavia', age:31, role:'Rifler', flag:'🇸🇪', majorWins:3 },
+  { name:'jambo', fullName:'Dmytro Semera', team:'Fnatic', country:'Ukraine', region:'CIS', age:22, role:'Rifler', flag:'🇺🇦', majorWins:0 },
+  { name:'jackasmo', fullName:'Mykyta Skyba', team:'Fnatic', country:'Ukraine', region:'CIS', age:23, role:'Rifler', flag:'🇺🇦', majorWins:0 },
+
+  // Rank 47: Team Nemesis
+  { name:'SELLTER', fullName:'Ivan Miroshnikov', team:'Team Nemesis', country:'Russia', region:'CIS', age:22, role:'IGL', flag:'🇷🇺', majorWins:0 },
+  { name:'mag1k3Y', fullName:'Alemkhan Moldakamalov', team:'Team Nemesis', country:'Kazakhstan', region:'CIS', age:22, role:'AWP', flag:'🇰🇿', majorWins:0 },
+  { name:'Sdaim', fullName:'Danyyl Tupov', team:'Team Nemesis', country:'Ukraine', region:'CIS', age:22, role:'Rifler', flag:'🇺🇦', majorWins:0 },
+  { name:'tex1y', fullName:'Philipp Moskvitin', team:'Team Nemesis', country:'Russia', region:'CIS', age:22, role:'Rifler', flag:'🇷🇺', majorWins:0 },
+  { name:'r3salt', fullName:'Evgeniy Frolov', team:'Team Nemesis', country:'Russia', region:'CIS', age:22, role:'Rifler', flag:'🇷🇺', majorWins:0 },
+
+  // Rank 48: Imperial Esports
+  { name:'VINI', fullName:'Vinicius Figueiredo', team:'Imperial Esports', country:'Brazil', region:'S. America', age:30, role:'IGL', flag:'🇧🇷', majorWins:0 },
+  { name:'noway', fullName:'Kaiky Santos', team:'Imperial Esports', country:'Brazil', region:'S. America', age:22, role:'AWP', flag:'🇧🇷', majorWins:0 },
+  { name:'chelo', fullName:'Marcelo Cespedes', team:'Imperial Esports', country:'Brazil', region:'S. America', age:28, role:'Rifler', flag:'🇧🇷', majorWins:0 },
+  { name:'levi', fullName:'Guilherme Godoy', team:'Imperial Esports', country:'Brazil', region:'S. America', age:22, role:'Rifler', flag:'🇧🇷', majorWins:0 },
+  { name:'decenty', fullName:'Lucas Bacelar', team:'Imperial Esports', country:'Brazil', region:'S. America', age:23, role:'Rifler', flag:'🇧🇷', majorWins:0 },
+
+  // Rank 49: TDK
+  { name:'Shooter', fullName:'Mustafa Kamal', team:'TDK', country:'Pakistan', region:'Asia', age:23, role:'IGL', flag:'🇵🇰', majorWins:0 },
+  { name:'Momo', fullName:'Khizar Rehman', team:'TDK', country:'Pakistan', region:'Asia', age:22, role:'Rifler', flag:'🇵🇰', majorWins:0 },
+  { name:'kmrn', fullName:'Kamron Manii', team:'TDK', country:'USA', region:'Americas', age:22, role:'Rifler', flag:'🇺🇸', majorWins:0 },
+  { name:'taggy', fullName:'Taggert Baker', team:'TDK', country:'USA', region:'Americas', age:22, role:'Rifler', flag:'🇺🇸', majorWins:0 },
+  { name:'Jonji', fullName:'Jonathan Carey', team:'TDK', country:'USA', region:'Americas', age:22, role:'Rifler', flag:'🇺🇸', majorWins:0 },
+
+  // Rank 50: RED Canids
+  { name:'drop', fullName:'André Abreu', team:'RED Canids', country:'Brazil', region:'S. America', age:28, role:'IGL', flag:'🇧🇷', majorWins:0 },
+  { name:'dav1deuS', fullName:'David Maldonado', team:'RED Canids', country:'Brazil', region:'S. America', age:24, role:'AWP', flag:'🇧🇷', majorWins:0 },
+  { name:'kauez', fullName:'Kaue Kaschuk', team:'RED Canids', country:'Brazil', region:'S. America', age:24, role:'Rifler', flag:'🇧🇷', majorWins:0 },
+  { name:'chayJESUS', fullName:'Richard Seidy', team:'RED Canids', country:'Brazil', region:'S. America', age:28, role:'Rifler', flag:'🇧🇷', majorWins:0 },
+  { name:'reNTU', fullName:'Renan Cardoso', team:'RED Canids', country:'Brazil', region:'S. America', age:22, role:'Rifler', flag:'🇧🇷', majorWins:0 },
+];
+
+const MAX_GUESSES = 8;
+
+// ═══════════════════════════════════════════════
+//  DAILY SELECTION
+// ═══════════════════════════════════════════════
+function daysSinceEpoch() {
+  return Math.floor(Date.now() / 86400000);
+}
+
+const DAY_NUMBER   = daysSinceEpoch() - Math.floor(new Date('2025-01-01').getTime() / 86400000) + 1;
+const DAILY_PLAYER = PLAYERS[daysSinceEpoch() % PLAYERS.length];
+
+// ═══════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════
+let guesses      = [];
+let selected     = null;
+let gameOver     = false;
+let acActiveIdx  = -1;
+let acFiltered   = [];
+
+// ═══════════════════════════════════════════════
+//  CLUE ENGINE
+// ═══════════════════════════════════════════════
+function getClues(guess, target) {
+  const ageDiff   = Math.abs(guess.age        - target.age);
+  const winsDiff  = Math.abs(guess.majorWins  - target.majorWins);
+
+  // role: IGL/AWP hybrid matching
+  let roleState;
+  if (guess.role === target.role) {
+    roleState = 'correct';
+  } else if (
+    (target.role === 'IGL/AWP' && (guess.role === 'IGL' || guess.role === 'AWP')) ||
+    (guess.role  === 'IGL/AWP' && (target.role === 'IGL' || target.role === 'AWP'))
+  ) {
+    roleState = 'close';
+  } else {
+    roleState = 'wrong';
+  }
+
+  return {
+    team:      guess.team    === target.team    ? 'correct' : 'wrong',
+    country:   guess.country === target.country ? 'correct' : guess.region === target.region ? 'close' : 'wrong',
+    age:       ageDiff  === 0 ? 'correct' : ageDiff  <= 2 ? 'close' : 'wrong',
+    majorWins: winsDiff === 0 ? 'correct' : winsDiff <= 1 ? 'close' : 'wrong',
+    role:      roleState,
+    ageDir:       guess.age       < target.age       ? '↑' : guess.age       > target.age       ? '↓' : '',
+    majorWinsDir: guess.majorWins < target.majorWins ? '↑' : guess.majorWins > target.majorWins ? '↓' : '',
+  };
+}
+
+function isWin(clues) {
+  return clues.team === 'correct' && clues.country   === 'correct' &&
+         clues.age  === 'correct' && clues.role      === 'correct' && clues.majorWins === 'correct';
+}
+
+// ═══════════════════════════════════════════════
+//  RENDER GRID
+// ═══════════════════════════════════════════════
+function renderGrid() {
+  const grid = document.getElementById('guess-grid');
+  grid.innerHTML = '';
+
+  for (let i = 0; i < MAX_GUESSES; i++) {
+    const row  = document.createElement('div');
+    row.className = 'grid-cols';
+
+    if (i < guesses.length) {
+      const g      = guesses[i];
+      const clues  = getClues(g, DAILY_PLAYER);
+      const isNew  = i === guesses.length - 1;
+      const nc     = isNew ? ' new-cell' : '';
+
+      // 1 — Name cell
+      const nameCell = el('div', 'cell name-cell guessed' + nc + (clues.team === 'correct' ? ' team-correct' : ''));
+      nameCell.appendChild(el('div', 'v-main', g.name));
+      nameCell.appendChild(el('div', 'v-sub', g.fullName));
+      row.appendChild(nameCell);
+
+      // 2 — Team
+      const teamCell = el('div', 'cell ' + clues.team + nc);
+      teamCell.appendChild(el('div', 'v-main', g.team));
+      row.appendChild(teamCell);
+
+      // 3 — Country
+      const ctryCell = el('div', 'cell ' + clues.country + nc);
+      ctryCell.appendChild(el('div', 'v-main', g.flag + ' ' + g.country));
+      if (clues.country === 'close') ctryCell.appendChild(el('div', 'v-sub', g.region));
+      row.appendChild(ctryCell);
+
+      // 4 — Age
+      const ageCell = el('div', 'cell ' + clues.age + nc);
+      const ageVal  = clues.age !== 'correct' ? g.age + ' ' + clues.ageDir : String(g.age);
+      ageCell.appendChild(el('div', 'v-main', ageVal));
+      ageCell.appendChild(el('div', 'v-sub', 'AGE'));
+      row.appendChild(ageCell);
+
+      // 5 — Role
+      const roleCell = el('div', 'cell ' + clues.role + nc);
+      roleCell.appendChild(el('div', 'v-main', g.role));
+      row.appendChild(roleCell);
+
+      // 6 — Major Wins
+      const winsCell = el('div', 'cell ' + clues.majorWins + nc);
+      const winsVal  = clues.majorWins !== 'correct' ? g.majorWins + ' ' + clues.majorWinsDir : String(g.majorWins);
+      winsCell.appendChild(el('div', 'v-main', winsVal));
+      winsCell.appendChild(el('div', 'v-sub', 'MAJORS'));
+      row.appendChild(winsCell);
+
+    } else {
+      for (let j = 0; j < 6; j++) row.appendChild(el('div', 'cell empty'));
+    }
+
+    grid.appendChild(row);
+  }
+
+  document.getElementById('guess-num').textContent = guesses.length;
+}
+
+function el(tag, cls, text) {
+  const d = document.createElement(tag);
+  d.className = cls;
+  if (text !== undefined) d.textContent = text;
+  return d;
+}
+
+// ═══════════════════════════════════════════════
+//  AUTOCOMPLETE
+// ═══════════════════════════════════════════════
+const inputEl = document.getElementById('player-input');
+const acEl    = document.getElementById('autocomplete');
+
+inputEl.addEventListener('input', () => {
+  const q = inputEl.value.trim();
+  acActiveIdx = -1;
+  selected    = null;
+
+  if (!q) { acEl.classList.remove('open'); return; }
+
+  const guessedNames = new Set(guesses.map(g => g.name.toLowerCase()));
+  acFiltered = PLAYERS.filter(p =>
+    !guessedNames.has(p.name.toLowerCase()) &&
+    (p.name.toLowerCase().includes(q.toLowerCase()) ||
+     p.fullName.toLowerCase().includes(q.toLowerCase()))
+  );
+
+  if (!acFiltered.length) { acEl.classList.remove('open'); return; }
+
+  acEl.innerHTML = '';
+  acFiltered.forEach((p, i) => {
+    const item = el('div', 'ac-item');
+    item.appendChild(el('span', 'ac-name', p.name));
+    item.appendChild(el('span', 'ac-team', p.team));
+    item.dataset.i = i;
+    item.addEventListener('mousedown', e => { e.preventDefault(); pickPlayer(p); });
+    acEl.appendChild(item);
+  });
+  acEl.classList.add('open');
+});
+
+inputEl.addEventListener('keydown', e => {
+  const items = acEl.querySelectorAll('.ac-item');
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    acActiveIdx = Math.min(acActiveIdx + 1, items.length - 1);
+    updateAcActive(items);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    acActiveIdx = Math.max(acActiveIdx - 1, -1);
+    updateAcActive(items);
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (acActiveIdx >= 0 && acFiltered[acActiveIdx]) {
+      pickPlayer(acFiltered[acActiveIdx]);
+    } else if (acFiltered.length === 1) {
+      pickPlayer(acFiltered[0]);
+    } else if (selected) {
+      submitGuess();
+    }
+  } else if (e.key === 'Escape') {
+    acEl.classList.remove('open');
+  }
+});
+
+inputEl.addEventListener('blur', () => setTimeout(() => acEl.classList.remove('open'), 160));
+
+function updateAcActive(items) {
+  items.forEach((item, i) => item.classList.toggle('active', i === acActiveIdx));
+}
+
+function pickPlayer(p) {
+  selected          = p;
+  inputEl.value     = p.name;
+  acEl.classList.remove('open');
+  acActiveIdx = -1;
+}
+
+// ═══════════════════════════════════════════════
+//  SUBMIT
+// ═══════════════════════════════════════════════
+function submitGuess() {
+  if (gameOver || !selected) return;
+  if (guesses.some(g => g.name === selected.name)) return;
+
+  guesses.push(selected);
+  selected      = null;
+  inputEl.value = '';
+  inputEl.focus();
+  renderGrid();
+
+  const last  = guesses[guesses.length - 1];
+  const clues = getClues(last, DAILY_PLAYER);
+
+  if (isWin(clues)) {
+    gameOver = true;
+    setTimeout(() => showResult(true), 600);
+    lockInput();
+  } else if (guesses.length >= MAX_GUESSES) {
+    gameOver = true;
+    setTimeout(() => showResult(false), 600);
+    lockInput();
+  }
+}
+
+function lockInput() {
+  inputEl.disabled = true;
+  document.getElementById('submit-btn').disabled = true;
+}
+
+// ═══════════════════════════════════════════════
+//  RESULT MESSAGE
+// ═══════════════════════════════════════════════
+function showResult(won) {
+  const area = document.getElementById('message-area');
+  area.classList.add('visible');
+
+  const p = DAILY_PLAYER;
+  document.getElementById('msg-title').textContent  = won ? 'IDENTIFIED' : 'ROUND OVER';
+  document.getElementById('msg-title').className    = 'msg-title ' + (won ? 'win' : 'lose');
+  document.getElementById('msg-sub').textContent    = won
+    ? `Target confirmed in ${guesses.length}/${MAX_GUESSES} attempts`
+    : 'The player was:';
+  document.getElementById('msg-player').textContent = p.name;
+  document.getElementById('msg-detail').textContent =
+    `${p.flag} ${p.country}  ·  ${p.team}  ·  ${p.role}  ·  Age ${p.age}`;
+}
+
+// ═══════════════════════════════════════════════
+//  SHARE
+// ═══════════════════════════════════════════════
+function shareResult() {
+  const rows = guesses.map(g => {
+    const c = getClues(g, DAILY_PLAYER);
+    const e = s => s === 'correct' ? '🟩' : s === 'close' ? '🟨' : '⬛';
+    return [e(c.team), e(c.country), e(c.age), e(c.role), e(c.majorWins)].join('');
+  });
+
+  const won = guesses.length > 0 && isWin(getClues(guesses[guesses.length - 1], DAILY_PLAYER));
+  const txt = `CSdle #${DAY_NUMBER}\n${won ? guesses.length : 'X'}/${MAX_GUESSES}\n\n${rows.join('\n')}\ncsdle.gg`;
+
+  navigator.clipboard.writeText(txt).then(() => {
+    const note = document.getElementById('copied-note');
+    note.classList.add('show');
+    setTimeout(() => note.classList.remove('show'), 2200);
+  });
+}
+
+// ═══════════════════════════════════════════════
+//  MODAL
+// ═══════════════════════════════════════════════
+function openModal()  { document.getElementById('modal-bg').classList.add('open'); }
+function closeModal() { document.getElementById('modal-bg').classList.remove('open'); }
+function maybeCloseModal(e) { if (e.target === document.getElementById('modal-bg')) closeModal(); }
+
+// ═══════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════
+document.getElementById('day-num').textContent = DAY_NUMBER;
+renderGrid();
+</script>
+</body>
+</html>
