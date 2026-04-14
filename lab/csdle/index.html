@@ -1103,7 +1103,7 @@ function daysSinceEpoch() {
 }
 
 const DAY_NUMBER   = daysSinceEpoch() - Math.floor(new Date('2025-01-01').getTime() / 86400000) + 1;
-const DAILY_PLAYER = PLAYERS[daysSinceEpoch() % PLAYERS.length];
+const DAILY_PLAYER = PLAYERS[Math.floor(Math.random() * PLAYERS.length)];
 
 // ═══════════════════════════════════════════════
 //  STATE
