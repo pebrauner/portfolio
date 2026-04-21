@@ -14,6 +14,7 @@
 <title>Pedro Brauner — Journalist & Content Strategist</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Chakra+Petch:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@mux/mux-player"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -551,7 +552,7 @@
     border-color: rgba(224,52,24,.2);
   }
   .video-card.featured:hover { border-color: var(--red); }
-  .video-card.featured .vc-thumb { border-radius: 0; aspect-ratio: 16/9; }
+  .video-card.featured .vc-thumb { border-radius: 0; aspect-ratio: 2.39 / 1; }
   .video-card.featured .vc-body {
     padding: 32px 36px;
     display: flex;
@@ -563,18 +564,49 @@
   .video-card.featured .vc-title { font-size: 22px; line-height: 1.3; }
   .video-card.featured .vc-desc  { font-size: 16px; line-height: 1.75; }
 
+  .vc-credit {
+    display: block;
+    margin-top: 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: .3px;
+  }
+  .vc-credit em { font-style: italic; color: var(--text); }
+
+  .video-tip {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-top: -28px;
+    margin-bottom: 32px;
+  }
+  .video-tip::before {
+    content: "";
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 10px;
+    border: 1.5px solid var(--red);
+    vertical-align: -1px;
+  }
+
   .vc-thumb {
     position: relative;
     aspect-ratio: 16 / 9;
     background: #000;
     overflow: hidden;
   }
-  .vc-thumb iframe {
+  .vc-thumb iframe,
+  .vc-thumb mux-player {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
     border: 0;
+    --media-object-fit: cover;
   }
 
   .vc-body { padding: 20px 22px; }
@@ -1180,9 +1212,8 @@
     section { padding: 60px 20px; }
     .video-grid { grid-template-columns: 1fr; }
     .video-card.featured { grid-template-columns: 1fr; }
-    .lever-track { width: 36px; }
-    .lever-handle { width: 24px; height: 34px; }
-    .lever-grip { width: 14px; }
+    .lever-track { display: none; }
+    .board-frame { cursor: pointer; }
     .content-grid { grid-template-columns: 1fr; }
     .contact-section { grid-template-columns: 1fr; gap: 48px; padding: 60px 20px; }
     .photo-carousel-wrap { margin: 0 -20px; }
@@ -1410,19 +1441,39 @@
     <h2 class="section-title">Video</h2>
   </div>
   <p class="section-subtitle fade-in">Produced and directed shows, interviews, and documentary-style content reaching millions across YouTube and social.</p>
+  <p class="video-tip fade-in">For the full experience, watch in full screen with sound on.</p>
 
   <div class="video-grid fade-in">
 
     <!-- Featured -->
     <div class="video-card featured">
       <div class="vc-thumb">
-        <iframe src="https://www.youtube.com/embed/1iK9MljfMhQ" title="The tournament that wanted to rule the world | EWC Experience" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+        <mux-player
+          playback-id="mqgnsojvjwduflJ1TeS1NaCMETMiw02qNXhhOrQg2h01g"
+          metadata-video-title="IEM Rio 2026, The Fan Experience: A Love Letter to Esports"
+          accent-color="#e03418"
+          stream-type="on-demand"
+          autoplay="muted"
+          muted
+          playsinline
+        ></mux-player>
       </div>
       <div class="vc-body">
         <div class="vc-badge">★ Featured</div>
         <div class="vc-source">Pedro Brauner · Documentary</div>
+        <div class="vc-title">IEM Rio 2026, The Fan Experience: A Love Letter to Esports</div>
+        <div class="vc-desc">IEM Rio was, without a doubt, the most emotional event I've ever been in. The ambience, the people, the players, everything was superb. This is more than just a video; it is a love letter to an ecosystem that I have been living in for the last 15 years.<span class="vc-credit">Song: <em>When It Lands</em> by Rainbow Kitten Surprise</span></div>
+      </div>
+    </div>
+
+    <div class="video-card">
+      <div class="vc-thumb">
+        <iframe src="https://www.youtube.com/embed/1iK9MljfMhQ" title="The tournament that wanted to rule the world | EWC Experience" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+      </div>
+      <div class="vc-body">
+        <div class="vc-source">Pedro Brauner · Documentary</div>
         <div class="vc-title">The tournament that wanted to rule the world | EWC Experience</div>
-        <div class="vc-desc">A documentary about the Esports World Cup in Riyadh — the most ambitious esports event ever attempted, and what it actually felt like to be there. Reported, produced, and directed on the ground in Saudi Arabia.</div>
+        <div class="vc-desc">A documentary about the Esports World Cup in Riyadh — the most ambitious esports event ever attempted, and what it actually felt like to be there. Reported, produced, and directed on the ground in Saudi Arabia.<span class="vc-credit">Song: <em>Fucked Up</em> by Racoma</span></div>
       </div>
     </div>
 
@@ -1433,7 +1484,7 @@
       <div class="vc-body">
         <div class="vc-source">Pedro Brauner · Cinematic</div>
         <div class="vc-title">A day in Seoul — 4K Cinematic</div>
-        <div class="vc-desc">Shot over a single day in Seoul during a tournament trip. No script, no crew — just a camera and the city.</div>
+        <div class="vc-desc">Shot over a single day in Seoul during a tournament trip. No script, no crew — just a camera and the city.<span class="vc-credit">Song: <em>Hazy Miss Daizy</em> by Kid Bloom</span></div>
       </div>
     </div>
 
@@ -1824,7 +1875,7 @@
 <script>
   const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#@&$!?+='.split('');
 
-  const LINES = ['PEDRO  BRAUNER'];
+  const LINES = [' PEDRO ', 'BRAUNER'];
   const COLS = LINES[0].length;
   const ROWS = LINES.length;
 
@@ -1895,9 +1946,31 @@
   ];
 
   function centerText(str) {
-    const pad = 14 - str.length;
-    const left = Math.floor(pad / 2);
-    return str.padStart(str.length + left).padEnd(14);
+    const C = 7;
+    function center7(s) {
+      const t = s.trim();
+      if (!t) return ' '.repeat(C);
+      const pad = C - t.length;
+      const l = Math.floor(pad / 2);
+      return t.padStart(t.length + l).padEnd(C).slice(0, C);
+    }
+    if (str.length <= C) return center7(str) + ' '.repeat(C);
+    // Try double-space split first (stylistic separator)
+    const dbl = str.indexOf('  ');
+    if (dbl !== -1) return center7(str.slice(0, dbl)) + center7(str.slice(dbl + 2));
+    // Find single space nearest to midpoint
+    const mid = Math.floor(str.length / 2);
+    let best = -1, bestDist = Infinity;
+    for (let i = 0; i < str.length; i++) {
+      if (str[i] === ' ') {
+        const d = Math.abs(i - mid);
+        if (d < bestDist) { bestDist = d; best = i; }
+      }
+    }
+    if (best !== -1) return center7(str.slice(0, best)) + center7(str.slice(best + 1));
+    // No space: split at midpoint
+    const m = Math.ceil(str.length / 2);
+    return center7(str.slice(0, m)) + center7(str.slice(m));
   }
 
   async function scrambleTo(f, finalChar, steps) {
@@ -1936,7 +2009,7 @@
     return centerText(EASTER_EGGS[idx]);
   }
 
-  const NAME = 'PEDRO  BRAUNER';
+  const NAME = ' PEDRO BRAUNER';
   const counter = document.getElementById('rollCounter');
   const leverBtn = document.getElementById('leverBtn');
   const leverHandle = document.getElementById('leverHandle');
@@ -2057,7 +2130,10 @@
     busy = false;
   }
 
+  const isMobile = () => window.innerWidth <= 768;
+
   leverBtn.addEventListener('click', pull);
+  boardFrame.addEventListener('click', () => { if (isMobile()) pull(); });
   document.addEventListener('keydown', e => {
     if (e.code === 'Space') { e.preventDefault(); pull(); }
   });
@@ -2072,7 +2148,7 @@
     document.getElementById('scrollCue').classList.add('visible');
     pullCount = 0;
     updateCounter();
-    counter.textContent = '↑ pull the lever ↑';
+    counter.textContent = isMobile() ? '↑ tap to flip ↑' : '↑ pull the lever ↑';
   }, 600);
 </script>
 
