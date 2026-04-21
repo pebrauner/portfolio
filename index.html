@@ -552,7 +552,7 @@
     border-color: rgba(224,52,24,.2);
   }
   .video-card.featured:hover { border-color: var(--red); }
-  .video-card.featured .vc-thumb { border-radius: 0; aspect-ratio: 2.39 / 1; }
+  .video-card.featured .vc-thumb { border-radius: 0; aspect-ratio: 2.39 / 1; align-self: center; }
   .video-card.featured .vc-body {
     padding: 32px 36px;
     display: flex;
@@ -606,7 +606,7 @@
     width: 100%;
     height: 100%;
     border: 0;
-    --media-object-fit: cover;
+    --media-object-fit: contain;
   }
 
   .vc-body { padding: 20px 22px; }
@@ -951,11 +951,8 @@
   .contact-section {
     padding: 80px 60px;
     border-top: 1px solid var(--border);
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 80px;
-    align-items: start;
   }
+  .contact-left { max-width: 640px; }
 
   .contact-left h2 {
     font-family: 'Chakra Petch', sans-serif;
@@ -1006,52 +1003,6 @@
   .social-link:hover {
     background: var(--red);
     color: #0a0a0a;
-    box-shadow: 0 0 16px var(--red-glow);
-  }
-
-  /* Contact form */
-  .contact-form { display: flex; flex-direction: column; gap: 14px; }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .form-group { display: flex; flex-direction: column; gap: 6px; }
-  .form-label {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--text-dim);
-  }
-  .form-input,
-  .form-textarea {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    padding: 11px 14px;
-    font-family: 'Chakra Petch', sans-serif;
-    font-size: 15px;
-    color: var(--text);
-    transition: border-color .2s;
-    resize: none;
-    outline: none;
-    width: 100%;
-  }
-  .form-input:focus, .form-textarea:focus { border-color: var(--red); }
-  .form-input::placeholder, .form-textarea::placeholder { color: var(--border); }
-  .form-textarea { min-height: 110px; }
-
-  .form-submit {
-    background: var(--red);
-    color: #fff;
-    border: none;
-    padding: 12px 28px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: background .2s, box-shadow .2s;
-    align-self: flex-start;
-  }
-  .form-submit:hover {
-    background: var(--red-hot);
     box-shadow: 0 0 16px var(--red-glow);
   }
 
@@ -1215,7 +1166,7 @@
     .lever-track { display: none; }
     .board-frame { cursor: pointer; }
     .content-grid { grid-template-columns: 1fr; }
-    .contact-section { grid-template-columns: 1fr; gap: 48px; padding: 60px 20px; }
+    .contact-section { padding: 60px 20px; }
     .photo-carousel-wrap { margin: 0 -20px; }
     .photo-carousel { padding: 0 20px; }
     .carousel-arrows { padding: 14px 20px 0; }
@@ -1223,7 +1174,6 @@
     .contact-section { padding: 60px 20px; }
     .resume-section { padding: 48px 20px; }
     .photo-item { height: 300px; }
-    .form-row { grid-template-columns: 1fr; }
     .resume-section { padding: 48px 20px; }
   }
 
@@ -1493,9 +1443,9 @@
         <iframe src="https://www.youtube.com/embed/videoseries?list=PL9d-Cyw1ir20avD0sPr-6Bc-v0UY-KlFa" title="La Sopa Podcast — Playlist" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
       </div>
       <div class="vc-body">
-        <div class="vc-source">La Sopa · Ep. 23</div>
-        <div class="vc-title">Final de temporada — con Blue, Jericho, LeoStyle y Brauner</div>
-        <div class="vc-desc">Season finale bringing together three of LATAM's biggest gaming creators for the first time on the same show.</div>
+        <div class="vc-source">La Sopa · Podcast</div>
+        <div class="vc-title">La Sopa</div>
+        <div class="vc-desc">A Spanish-language Dota 2 podcast with LATAM's biggest gaming creators.</div>
       </div>
     </div>
 
@@ -1698,7 +1648,7 @@
     </div>
     <div class="m-card fade-in">
       <span class="m-code">M-002</span>
-      <div class="m-value" data-target="250" data-suffix="+">0</div>
+      <div class="m-value" data-target="100" data-suffix="+">0</div>
       <div class="m-label">Articles Published</div>
       <div class="m-note">Esports.net + more</div>
     </div>
@@ -1762,27 +1712,6 @@
       <a href="https://www.instagram.com/pedrobrauner/" class="social-link" target="_blank" rel="noopener">Instagram</a>
     </div>
   </div>
-  <form class="contact-form fade-in" onsubmit="handleSubmit(event)">
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Name</label>
-        <input class="form-input" type="text" name="name" placeholder="Your name" required>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Email</label>
-        <input class="form-input" type="email" name="email" placeholder="your@email.com" required>
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Subject</label>
-      <input class="form-input" type="text" name="subject" placeholder="What's this about?">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Message</label>
-      <textarea class="form-textarea" name="message" placeholder="Say hello..." required></textarea>
-    </div>
-    <button type="submit" class="form-submit">Send Message</button>
-  </form>
 </div>
 
 <!-- ===== RESUME (hidden) ===== -->
@@ -1823,7 +1752,7 @@
           <span class="resume-item-date">Nov 2022 — Nov 2023</span>
         </div>
         <div class="resume-item-company">Esports.net — Remote</div>
-        <div class="resume-item-desc">Published 250+ articles and conducted 100+ interviews covering CS2, Dota 2, and Valorant Majors. Attended ESL One Berlin, Lima Major, and other tier-one events. Built one of the platform's most-read author profiles.</div>
+        <div class="resume-item-desc">Published 100+ articles and conducted 100+ interviews covering CS2, Dota 2, and Valorant Majors. Attended ESL One Berlin, Lima Major, and other tier-one events. Built one of the platform's most-read author profiles.</div>
       </div>
 
       <div class="resume-item">
@@ -2276,34 +2205,6 @@
   })();
 
   /* ─── CONTACT FORM ─── */
-  async function handleSubmit(e) {
-    e.preventDefault();
-    const form = e.target;
-    const btn = form.querySelector('.form-submit');
-    btn.textContent = 'Sending...';
-    btn.disabled = true;
-    try {
-      const res = await fetch('https://formspree.io/f/xaqpbqde', {
-        method: 'POST',
-        body: new FormData(form),
-        headers: { 'Accept': 'application/json' }
-      });
-      if (res.ok) {
-        btn.textContent = 'Sent ✓';
-        btn.style.background = '#2a6e3c';
-        form.reset();
-        setTimeout(() => { btn.textContent = 'Send Message'; btn.style.background = ''; btn.disabled = false; }, 3000);
-      } else {
-        btn.textContent = 'Error — try again';
-        btn.style.background = '#8b1a1a';
-        btn.disabled = false;
-      }
-    } catch {
-      btn.textContent = 'Error — try again';
-      btn.style.background = '#8b1a1a';
-      btn.disabled = false;
-    }
-  }
 </script>
 
 <!-- ===== DITHER BACKGROUND (WebGL2) ===== -->
@@ -2586,7 +2487,7 @@
 /* ── Intel Section ────────────────────────────────────── */
 (function () {
   const platforms = [
-    { name: 'Esports.net',     period: '2022—23', val: '250+ articles', pct: 90 },
+    { name: 'Esports.net',     period: '2022—23', val: '100+ articles', pct: 90 },
     { name: 'América Esports', period: '2023—24', val: '40+ pieces',    pct: 50 },
     { name: 'RDY.gg',          period: '2025—',   val: '30+ features',  pct: 40 },
     { name: 'La Sopa',         period: '2021—',   val: '23 episodes',   pct: 30 },
@@ -2604,7 +2505,7 @@
   const career = [
     { year: 2021, q: 1, org: 'PRIMAL',      role: 'Communications Mgr.',       detail: '1000%+ growth in impressions', above: false },
     { year: 2021, q: 4, org: 'CRP Radios',  role: 'Content & Podcasts Mgr.',   detail: 'La Sopa — 3.6M reached',       above: true  },
-    { year: 2022, q: 4, org: 'Esports.net', role: 'Journalist & Interviewer',  detail: '250+ articles · 100+ interviews', above: false },
+    { year: 2022, q: 4, org: 'Esports.net', role: 'Journalist & Interviewer',  detail: '100+ articles · 100+ interviews', above: false },
     { year: 2023, q: 4, org: 'Growe',       role: 'Content Manager',           detail: 'Multi-market strategy & SEO',  above: true  },
     { year: 2025, q: 4, org: 'RDY.gg',      role: 'Content & Creative Strat.', detail: 'Current role', above: false, current: true },
   ];
