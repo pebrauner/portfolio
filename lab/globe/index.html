@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-B770C9F7FJ"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-B770C9F7FJ');
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Linework Earth — Pedro Brauner</title>
+  <meta name="description" content="A 3D linework globe marking every city Pedro Brauner has worked in.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Chakra+Petch:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --red: #e03418;
+      --red-hot: #ff5c2b;
+      --red-glow: rgba(224,52,24,0.25);
+      --red-glow-soft: rgba(224,52,24,0.1);
+      --bg: #0a0a0a;
+      --surface: #111;
+      --border: #1e1e1e;
+      --text: #eae4dc;
+      --text-dim: #b0b0b0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: var(--bg);
+      overflow: hidden;
+    }
+
+    body {
+      color: var(--text);
+      font-family: 'Chakra Petch', sans-serif;
+      cursor: crosshair;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    ::selection {
+      background: var(--red-glow);
+      color: var(--text);
+    }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); }
+    ::-webkit-scrollbar-thumb:hover { background: var(--red); }
+
+    /* Backgrounds */
+    #dither-bg {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    #globe-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      touch-action: none;
+    }
+
+    /* CRT overlays */
+    .scanlines {
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,.18) 2px,
+        rgba(0,0,0,.18) 4px
+      );
+      pointer-events: none;
+      z-index: 9998;
+    }
+
+    .vignette {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,.70) 100%);
+      pointer-events: none;
+      z-index: 9997;
+    }
+
+    /* Nav (matches /lab/) */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 32px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(10,10,10,.88);
+      backdrop-filter: blur(6px);
+      z-index: 9999;
+    }
+
+    .nav-logo {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--red);
+      text-shadow: 0 0 8px var(--red-glow);
+      text-decoration: none;
+    }
+
+    .nav-back {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      text-decoration: none;
+      transition: color 0.2s, text-shadow 0.2s;
+    }
+
+    .nav-back:hover {
+      color: var(--red);
+      text-shadow: 0 0 6px var(--red-glow);
+    }
+
+    /* HUD */
+    .hud {
+      position: fixed;
+      z-index: 50;
+      pointer-events: none;
+      font-family: 'Press Start 2P', monospace;
+      color: var(--red);
+      font-size: 10px;
+      letter-spacing: 0.05em;
+      text-shadow: 0 0 8px var(--red-glow);
+    }
+    .hud.tl { top: 84px; left: 32px; }
+    .hud.tr { top: 84px; right: 32px; text-align: right; }
+    .hud.bl { bottom: 24px; left: 32px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-dim); letter-spacing: 0; }
+    .hud.br { bottom: 24px; right: 32px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-dim); letter-spacing: 0; text-align: right; }
+
+    .hud .label {
+      display: block;
+      color: var(--text);
+      font-size: 9px;
+      opacity: 0.5;
+      margin-bottom: 6px;
+    }
+
+    .count {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 24px;
+      color: var(--red);
+      text-shadow: 0 0 14px var(--red-glow);
+      line-height: 1;
+    }
+
+    /* Tooltip */
+    #tooltip {
+      position: fixed;
+      z-index: 60;
+      pointer-events: none;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      color: var(--text);
+      background: rgba(10, 10, 10, 0.92);
+      border: 1px solid var(--red);
+      padding: 6px 10px;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.12s ease-out;
+      transform: translate(12px, -50%);
+      box-shadow: 0 0 16px var(--red-glow);
+    }
+    #tooltip.on { opacity: 1; }
+    #tooltip .name { color: var(--red-hot); font-weight: 600; letter-spacing: 1px; }
+    #tooltip .coords { color: var(--text-dim); font-size: 10px; margin-top: 2px; }
+
+    .status-dot {
+      display: inline-block;
+      width: 6px; height: 6px;
+      background: var(--red-hot);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--red-hot);
+      margin-right: 6px;
+      vertical-align: middle;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%      { opacity: 0.4; }
+    }
+
+    @media (max-width: 768px) {
+      nav { padding: 14px 20px; }
+      .hud.tl, .hud.bl { left: 20px; }
+      .hud.tr, .hud.br { right: 20px; }
+      .hud.tl, .hud.tr { top: 78px; }
+      .count { font-size: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="dither-bg"></canvas>
+<canvas id="globe-canvas"></canvas>
+
+<nav>
+  <a href="/" class="nav-logo">PB.</a>
+  <a href="/lab/" class="nav-back">← Back to Lab</a>
+</nav>
+
+<div class="hud tl">
+  <span class="label">// LINEWORK EARTH</span>
+  <span id="variantLabel">LOADING COUNTRIES…</span>
+</div>
+
+<div class="hud tr">
+  <span class="label">// CITIES VISITED</span>
+  <span class="count" id="cityCount">36</span>
+</div>
+
+<div class="hud bl">
+  <span class="status-dot"></span><span id="statusText">AUTO-ROTATE</span>
+</div>
+
+<div class="hud br" id="hoverInfo">
+  drag to rotate · hover pins
+</div>
+
+<div class="scanlines"></div>
+<div class="vignette"></div>
+
+<div id="tooltip">
+  <div class="name"></div>
+  <div class="coords"></div>
+</div>
+
+<script src="../../writing/dither-bg.js"></script>
+<script src="./globe.js"></script>
+</body>
+</html>
