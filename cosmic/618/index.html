@@ -1,0 +1,2133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TON 618 / A Question of Distance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300..700,0..100&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #04060c;
+    --bg-2: #080b14;
+    --ink: #ecedef;
+    --muted: #6f7682;
+    --rule: rgba(236, 237, 239, 0.08);
+    --rule-strong: rgba(236, 237, 239, 0.18);
+    --amber: #ffae3d;
+    --amber-soft: #f6c577;
+    --danger: #ff5a45;
+    --safe: #8fd9a8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: "opsz" 14, "SOFT" 50;
+    font-weight: 380;
+    line-height: 1.55;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(circle at 20% 30%, rgba(255, 174, 61, 0.04), transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(80, 130, 255, 0.03), transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .grain {
+    position: fixed; inset: 0;
+    background-image:
+      repeating-linear-gradient(0deg, transparent 0, transparent 2px, rgba(255,255,255,0.012) 2px, rgba(255,255,255,0.012) 3px);
+    pointer-events: none;
+    z-index: 1;
+    mix-blend-mode: overlay;
+  }
+
+  .frame {
+    position: relative;
+    z-index: 2;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 32px 28px 80px;
+  }
+
+  /* Masthead */
+  header.masthead {
+    border-top: 1px solid var(--rule-strong);
+    border-bottom: 1px solid var(--rule);
+    padding: 16px 0 18px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: end;
+    gap: 24px;
+    margin-bottom: 36px;
+  }
+
+  .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .meta.right { text-align: right; }
+
+  .ident {
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.4em;
+    color: var(--amber);
+    text-transform: uppercase;
+  }
+
+  /* Title */
+  .title-block {
+    margin-bottom: 32px;
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 48px;
+    align-items: end;
+  }
+  .title-block h1 {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 144, "SOFT" 30, "wght" 320;
+    font-size: clamp(48px, 7vw, 96px);
+    line-height: 0.92;
+    letter-spacing: -0.025em;
+  }
+  .title-block h1 em {
+    font-style: italic;
+    font-variation-settings: "opsz" 144, "SOFT" 100, "wght" 320;
+    color: var(--amber-soft);
+  }
+  .deck {
+    color: var(--muted);
+    font-size: 15.5px;
+    line-height: 1.5;
+    border-left: 1px solid var(--rule-strong);
+    padding-left: 20px;
+  }
+  .deck strong { color: var(--ink); font-weight: 500; }
+
+  /* Viewport */
+  .sky-stage {
+    position: relative;
+    height: 520px;
+    background: radial-gradient(ellipse at 50% 60%, #0a0e1a 0%, #04060c 70%);
+    border: 1px solid var(--rule-strong);
+    overflow: hidden;
+    margin-bottom: 0;
+  }
+
+  .stars {
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 12% 22%, rgba(255,255,255,0.7), transparent),
+      radial-gradient(1px 1px at 28% 71%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 41% 14%, rgba(255,255,255,0.6), transparent),
+      radial-gradient(1px 1px at 56% 88%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1px 1px at 67% 33%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1.5px 1.5px at 73% 62%, rgba(255,255,255,0.7), transparent),
+      radial-gradient(1px 1px at 84% 18%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1px 1px at 91% 78%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 6% 49%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1px 1px at 19% 93%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 35% 41%, rgba(255,255,255,0.3), transparent),
+      radial-gradient(1px 1px at 47% 56%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1px 1px at 62% 8%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 78% 47%, rgba(255,255,255,0.3), transparent),
+      radial-gradient(1.5px 1.5px at 96% 35%, rgba(255,255,255,0.6), transparent);
+  }
+
+  /* FOV ruler */
+  .ruler {
+    position: absolute;
+    bottom: 14px; left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .ruler-line {
+    width: 60px;
+    height: 1px;
+    background: var(--muted);
+    position: relative;
+  }
+  .ruler-line::before, .ruler-line::after {
+    content: '';
+    position: absolute;
+    top: -3px;
+    width: 1px;
+    height: 7px;
+    background: var(--muted);
+  }
+  .ruler-line::before { left: 0; }
+  .ruler-line::after { right: 0; }
+
+  .fov-label {
+    position: absolute;
+    top: 14px; left: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  /* The Moon */
+  .moon-wrap {
+    position: absolute;
+    left: 22%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+  .moon {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 30% 30%, #f0e9d2 0%, #c9bfa3 35%, #8b8472 70%, #5a5446 100%);
+    box-shadow:
+      inset -6px -8px 16px rgba(0,0,0,0.5),
+      0 0 24px rgba(240, 233, 210, 0.15);
+    position: relative;
+  }
+  .moon::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background:
+      radial-gradient(2px 2px at 40% 35%, rgba(0,0,0,0.2), transparent),
+      radial-gradient(3px 3px at 65% 55%, rgba(0,0,0,0.15), transparent),
+      radial-gradient(2px 2px at 25% 65%, rgba(0,0,0,0.18), transparent);
+  }
+  .moon-label {
+    margin-top: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.18em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  /* TON 618 - positioned at right side of viewport */
+  .ton-anchor {
+    position: absolute;
+    right: 22%;
+    top: 50%;
+    width: 0;
+    height: 0;
+  }
+  .ton-halo {
+    position: absolute;
+    left: 0; top: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 200, 120, 0.35), rgba(255, 174, 61, 0.08) 40%, transparent 70%);
+    filter: blur(20px);
+    transition: width 0.5s, height 0.5s, opacity 0.5s;
+    transform: translate(-50%, -50%);
+  }
+  .ton-disk {
+    position: absolute;
+    left: 0; top: 0;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 50% 50%, transparent 18%, rgba(255, 240, 220, 0.95) 22%, #ffae3d 35%, #d76b1f 60%, #6a2a0a 85%, transparent 100%);
+    box-shadow:
+      0 0 30px rgba(255, 174, 61, 0.6),
+      inset 0 0 20px rgba(255, 220, 180, 0.4);
+    transition: width 0.5s, height 0.5s;
+    transform: translate(-50%, -50%);
+  }
+  .ton-disk::before {
+    content: '';
+    position: absolute;
+    inset: 18%;
+    border-radius: 50%;
+    background: radial-gradient(circle, #000 0%, #0a0500 60%, transparent 90%);
+  }
+  .ton-jet {
+    position: absolute;
+    left: 0;
+    width: 1.5px;
+    background: linear-gradient(to bottom, transparent, rgba(180, 200, 255, 0.6) 20%, rgba(180, 200, 255, 0.6) 80%, transparent);
+    transition: height 0.5s, opacity 0.5s;
+    filter: blur(0.5px);
+    transform: translateX(-50%);
+  }
+  .ton-jet.up { bottom: 0; }
+  .ton-jet.down { top: 0; }
+  .ton-point {
+    position: absolute;
+    left: 0; top: 0;
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 8px #fff, 0 0 16px var(--amber-soft);
+    transition: all 0.5s;
+    transform: translate(-50%, -50%);
+  }
+
+  .ton-label {
+    position: absolute;
+    right: 22%;
+    bottom: 42px;
+    transform: translateX(50%);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.18em;
+    color: var(--amber);
+    text-transform: uppercase;
+    white-space: nowrap;
+    z-index: 5;
+  }
+
+  /* Controls */
+  .controls {
+    border: 1px solid var(--rule-strong);
+    border-top: none;
+    padding: 28px 28px 24px;
+    background: var(--bg-2);
+  }
+
+  .control-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 14px;
+  }
+  .control-header h2 {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 36, "wght" 400;
+    font-size: 22px;
+    letter-spacing: -0.01em;
+  }
+  .control-header .hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 22px;
+  }
+
+  .distance-display {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--ink);
+    min-width: 200px;
+  }
+  .distance-display .label {
+    color: var(--muted);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 4px;
+  }
+  .distance-display .val {
+    font-size: 17px;
+    color: var(--amber);
+  }
+
+  input[type="range"] {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 2px;
+    background: var(--rule-strong);
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--amber);
+    cursor: pointer;
+    box-shadow: 0 0 0 4px rgba(255, 174, 61, 0.15);
+    transition: box-shadow 0.2s;
+  }
+  input[type="range"]::-webkit-slider-thumb:hover {
+    box-shadow: 0 0 0 8px rgba(255, 174, 61, 0.2);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--amber);
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 0 0 4px rgba(255, 174, 61, 0.15);
+  }
+
+  /* Presets */
+  .presets {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+  }
+  .preset {
+    background: transparent;
+    border: 1px solid var(--rule-strong);
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 10px 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    line-height: 1.4;
+  }
+  .preset:hover {
+    border-color: var(--amber);
+    color: var(--ink);
+    background: rgba(255, 174, 61, 0.04);
+  }
+  .preset.active {
+    border-color: var(--amber);
+    color: var(--amber);
+    background: rgba(255, 174, 61, 0.08);
+  }
+  .preset .preset-d {
+    display: block;
+    color: rgba(236, 237, 239, 0.5);
+    font-size: 8.5px;
+    margin-top: 3px;
+    letter-spacing: 0.05em;
+  }
+  .preset.active .preset-d { color: var(--amber-soft); }
+
+  /* Data panel */
+  .data {
+    margin-top: 36px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border: 1px solid var(--rule-strong);
+  }
+  .stat {
+    padding: 22px 22px 24px;
+    border-right: 1px solid var(--rule);
+    position: relative;
+  }
+  .stat:last-child { border-right: none; }
+  .stat .k {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .stat .v {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 72, "wght" 350;
+    font-size: 32px;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .stat .v .unit {
+    font-size: 14px;
+    color: var(--muted);
+    margin-left: 4px;
+    font-variation-settings: "opsz" 14, "wght" 400;
+  }
+  .stat .sub {
+    margin-top: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--muted);
+  }
+
+  .stat.danger .v { color: var(--danger); }
+  .stat.warn .v { color: var(--amber); }
+  .stat.safe .v { color: var(--safe); }
+
+  /* Verdict */
+  .verdict {
+    margin-top: 32px;
+    border: 1px solid var(--rule-strong);
+    padding: 28px 32px;
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 36px;
+    align-items: start;
+  }
+  .verdict-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .verdict-tag .badge {
+    display: block;
+    margin-top: 12px;
+    padding: 8px 12px;
+    border: 1px solid currentColor;
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+  }
+  .verdict-tag.danger .badge { color: var(--danger); }
+  .verdict-tag.warn .badge { color: var(--amber); }
+  .verdict-tag.safe .badge { color: var(--safe); }
+
+  #verdictText {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 24, "wght" 380;
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--ink);
+  }
+  #verdictText em {
+    font-style: italic;
+    color: var(--amber-soft);
+  }
+
+  /* Sources */
+  .sources {
+    margin-top: 56px;
+  }
+  .sources-header {
+    border-bottom: 1px solid var(--rule-strong);
+    padding-bottom: 16px;
+    margin-bottom: 32px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 24px;
+  }
+  .sources-header h2 {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 96, "SOFT" 30, "wght" 320;
+    font-size: clamp(36px, 5vw, 56px);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+  }
+  .sources-header h2 em {
+    font-style: italic;
+    color: var(--amber-soft);
+    font-variation-settings: "opsz" 96, "SOFT" 100, "wght" 320;
+  }
+  .sources-header .meta-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .sources-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 0;
+    border: 1px solid var(--rule-strong);
+  }
+
+  .sources-list {
+    padding: 28px 32px;
+    border-right: 1px solid var(--rule);
+  }
+  .sources-list h4 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 18px;
+  }
+  .src-item {
+    padding: 14px 0;
+    border-bottom: 1px dashed var(--rule);
+  }
+  .src-item:last-child { border-bottom: none; }
+  .src-claim {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 16, "wght" 420;
+    font-size: 14px;
+    color: var(--ink);
+    margin-bottom: 4px;
+    line-height: 1.4;
+  }
+  .src-claim .val {
+    color: var(--amber);
+    font-variation-settings: "opsz" 16, "wght" 500;
+  }
+  .src-attr {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .src-attr a {
+    color: var(--muted);
+    text-decoration: underline;
+    text-decoration-color: var(--rule-strong);
+    text-underline-offset: 2px;
+    transition: color 0.2s;
+  }
+  .src-attr a:hover { color: var(--amber-soft); }
+
+  .sources-notes {
+    padding: 28px 32px;
+    background: rgba(255, 174, 61, 0.02);
+  }
+  .sources-notes h4 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 18px;
+  }
+  .note {
+    margin-bottom: 18px;
+    padding-bottom: 18px;
+    border-bottom: 1px dashed var(--rule);
+  }
+  .note:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+  .note-title {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-variation-settings: "opsz" 16, "wght" 420, "SOFT" 80;
+    font-size: 14px;
+    color: var(--amber-soft);
+    margin-bottom: 6px;
+  }
+  .note-body {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 14, "wght" 380;
+    font-size: 13.5px;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+
+  @media (max-width: 880px) {
+    .sources-grid { grid-template-columns: 1fr; }
+    .sources-list { border-right: none; border-bottom: 1px solid var(--rule); }
+    .sources-header { grid-template-columns: 1fr; gap: 8px; }
+  }
+
+  /* Footer */
+  footer {
+    margin-top: 48px;
+    padding-top: 18px;
+    border-top: 1px solid var(--rule);
+    display: flex;
+    justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+    margin-top: 48px;
+    padding-top: 18px;
+    border-top: 1px solid var(--rule);
+    display: flex;
+    justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  /* Mathematics section */
+  .maths {
+    margin-top: 56px;
+  }
+  .maths-header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 24px;
+    border-bottom: 1px solid var(--rule-strong);
+    padding-bottom: 16px;
+    margin-bottom: 32px;
+  }
+  .maths-header h2 {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 96, "SOFT" 30, "wght" 320;
+    font-size: clamp(36px, 5vw, 56px);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+  }
+  .maths-header h2 em {
+    font-style: italic;
+    color: var(--amber-soft);
+    font-variation-settings: "opsz" 96, "SOFT" 100, "wght" 320;
+  }
+  .maths-header .live {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .maths-header .live .live-d {
+    color: var(--amber);
+    margin-left: 8px;
+  }
+
+  .formula-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border: 1px solid var(--rule-strong);
+  }
+  .formula {
+    padding: 28px 32px 30px;
+    border-right: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+  .formula:nth-child(2n) { border-right: none; }
+  .formula:nth-last-child(-n+2) { border-bottom: none; }
+
+  .formula-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.2em;
+    color: var(--amber);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .formula-title {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 36, "wght" 400;
+    font-size: 22px;
+    letter-spacing: -0.005em;
+    margin-bottom: 18px;
+  }
+
+  .formula-eq {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 24, "wght" 380;
+    font-size: 22px;
+    letter-spacing: -0.005em;
+    padding: 14px 18px;
+    background: rgba(255, 174, 61, 0.04);
+    border-left: 2px solid var(--amber);
+    margin-bottom: 18px;
+    color: var(--ink);
+  }
+  .formula-eq i {
+    font-style: italic;
+    color: var(--amber-soft);
+  }
+  .formula-eq sub, .formula-eq sup {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .formula-eq sub i, .formula-eq sup i {
+    color: var(--amber-soft);
+  }
+
+  .formula-desc {
+    color: var(--muted);
+    font-size: 14.5px;
+    line-height: 1.55;
+    margin-bottom: 20px;
+  }
+  .formula-desc strong {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .formula-work {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.85;
+    color: var(--ink);
+    border-top: 1px dashed var(--rule);
+    padding-top: 14px;
+  }
+  .formula-work .label {
+    color: var(--muted);
+    font-size: 9.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .formula-work .step {
+    display: block;
+    padding-left: 14px;
+    color: var(--muted);
+  }
+  .formula-work .step.eq-line {
+    padding-left: 0;
+    color: var(--ink);
+  }
+  .formula-work .live-num {
+    color: var(--amber);
+  }
+  .formula-work .result {
+    color: var(--ink);
+    font-weight: 500;
+    background: rgba(255, 174, 61, 0.1);
+    padding: 1px 6px;
+    border-radius: 2px;
+  }
+
+  @media (max-width: 880px) {
+    .formula-grid { grid-template-columns: 1fr; }
+    .formula { border-right: none; }
+    .formula:nth-last-child(-n+2) { border-bottom: 1px solid var(--rule); }
+    .formula:last-child { border-bottom: none; }
+    .maths-header { grid-template-columns: 1fr; gap: 8px; }
+  }
+
+  /* Context section */
+  .context {
+    margin-top: 64px;
+  }
+  .context-header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 24px;
+    border-bottom: 1px solid var(--rule-strong);
+    padding-bottom: 16px;
+    margin-bottom: 32px;
+  }
+  .context-header h2 {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 96, "SOFT" 30, "wght" 320;
+    font-size: clamp(36px, 5vw, 56px);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+  }
+  .context-header h2 em {
+    font-style: italic;
+    color: var(--amber-soft);
+    font-variation-settings: "opsz" 96, "SOFT" 100, "wght" 320;
+  }
+  .context-header .meta-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .context-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border: 1px solid var(--rule-strong);
+    margin-bottom: 64px;
+  }
+  .context-block {
+    padding: 28px 32px 32px;
+    border-right: 1px solid var(--rule);
+  }
+  .context-block:last-child { border-right: none; }
+  .context-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--amber);
+    margin-bottom: 12px;
+  }
+  .context-block h3 {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 36, "wght" 400, "SOFT" 50;
+    font-size: 22px;
+    letter-spacing: -0.01em;
+    margin-bottom: 14px;
+    line-height: 1.2;
+  }
+  .context-block p {
+    color: var(--muted);
+    font-size: 14.5px;
+    line-height: 1.6;
+  }
+  .context-block p strong {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .context-block p em {
+    color: var(--amber-soft);
+    font-style: italic;
+  }
+
+  /* Cosmic atlas */
+  .cosmic-map {
+    border: 1px solid var(--rule-strong);
+    padding: 0;
+    background: linear-gradient(180deg, #06080f 0%, #04060c 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  .cosmic-map::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(0.5px 0.5px at 8% 12%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(0.5px 0.5px at 19% 78%, rgba(255,255,255,0.3), transparent),
+      radial-gradient(1px 1px at 33% 24%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(0.5px 0.5px at 47% 88%, rgba(255,255,255,0.3), transparent),
+      radial-gradient(0.5px 0.5px at 62% 18%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1px 1px at 78% 71%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(0.5px 0.5px at 92% 33%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(0.5px 0.5px at 14% 54%, rgba(255,255,255,0.3), transparent),
+      radial-gradient(0.5px 0.5px at 41% 61%, rgba(255,255,255,0.3), transparent),
+      radial-gradient(0.5px 0.5px at 73% 41%, rgba(255,255,255,0.4), transparent);
+    pointer-events: none;
+  }
+
+  /* Atlas heraldic header */
+  .atlas-header {
+    text-align: center;
+    padding: 36px 32px 20px;
+    border-bottom: 1px solid var(--rule);
+    position: relative;
+    z-index: 1;
+  }
+  .atlas-glyph {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    color: var(--amber);
+    letter-spacing: 0.8em;
+    margin-bottom: 14px;
+    padding-left: 0.8em;
+  }
+  .atlas-header h3 {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 144, "wght" 320, "SOFT" 30;
+    font-size: clamp(28px, 4vw, 44px);
+    letter-spacing: -0.01em;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .atlas-header h3 em {
+    font-style: italic;
+    color: var(--amber-soft);
+    font-variation-settings: "opsz" 144, "wght" 320, "SOFT" 100;
+  }
+  .atlas-subtitle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .atlas-rule {
+    width: 80px;
+    height: 1px;
+    background: var(--amber);
+    margin: 16px auto 0;
+    opacity: 0.5;
+  }
+
+  /* Atlas route */
+  .atlas-route {
+    display: flex;
+    align-items: stretch;
+    overflow-x: auto;
+    padding: 32px 24px 32px;
+    position: relative;
+    z-index: 1;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+    scrollbar-color: var(--rule-strong) transparent;
+  }
+  .atlas-route::-webkit-scrollbar { height: 4px; }
+  .atlas-route::-webkit-scrollbar-track { background: transparent; }
+  .atlas-route::-webkit-scrollbar-thumb { background: var(--rule-strong); }
+
+  .waypoint {
+    flex: 0 0 auto;
+    width: 130px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: center;
+    scroll-snap-align: center;
+    position: relative;
+  }
+
+  .wp-illust {
+    width: 110px;
+    height: 110px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 18px;
+    position: relative;
+  }
+  .wp-illust svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .wp-name {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 24, "wght" 420, "SOFT" 60;
+    font-size: 15px;
+    letter-spacing: 0.01em;
+    color: var(--ink);
+    line-height: 1.15;
+    margin-bottom: 4px;
+  }
+  .wp-name em {
+    font-style: italic;
+    color: var(--amber-soft);
+  }
+  .wp-distance {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .waypoint.you .wp-name { color: var(--amber); font-style: italic; }
+  .waypoint.you .wp-distance { color: var(--amber-soft); }
+
+  .waypoint.ton .wp-illust {
+    width: 130px;
+    height: 130px;
+    margin-top: -10px;
+    filter: drop-shadow(0 0 18px rgba(255, 174, 61, 0.5));
+  }
+  .waypoint.ton .wp-name { color: var(--amber); }
+  .waypoint.ton .wp-distance { color: var(--amber-soft); }
+
+  /* Void segment between waypoints */
+  .void {
+    flex: 1 1 auto;
+    min-width: 70px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 50px;
+    position: relative;
+  }
+  .void-line {
+    width: 100%;
+    height: 1px;
+    background-image: linear-gradient(90deg, var(--rule-strong) 50%, transparent 50%);
+    background-size: 6px 1px;
+    background-repeat: repeat-x;
+    position: relative;
+  }
+  .void-line::before {
+    content: '·';
+    position: absolute;
+    left: 50%;
+    top: -7px;
+    transform: translateX(-50%);
+    color: var(--amber);
+    font-size: 14px;
+  }
+  .void-distance {
+    margin-top: 18px;
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-variation-settings: "opsz" 14, "wght" 380, "SOFT" 80;
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+    line-height: 1.3;
+  }
+  .void-distance .v-num {
+    color: var(--ink);
+    font-style: normal;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    display: block;
+    margin-top: 2px;
+  }
+
+  /* Warning before TON 618 */
+  .void.dragons .void-distance {
+    color: var(--amber);
+  }
+  .void.dragons .void-line::before {
+    content: '✦';
+    color: var(--amber);
+  }
+
+  /* Footer of atlas */
+  .atlas-footer {
+    border-top: 1px solid var(--rule);
+    padding: 16px 32px;
+    display: flex;
+    justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    position: relative;
+    z-index: 1;
+  }
+  .atlas-footer .corner {
+    color: var(--amber);
+  }
+
+  @media (max-width: 880px) {
+    .context-grid { grid-template-columns: 1fr; }
+    .context-block { border-right: none; border-bottom: 1px solid var(--rule); }
+    .context-block:last-child { border-bottom: none; }
+    .context-header { grid-template-columns: 1fr; gap: 8px; }
+    .cosmic-map-header { flex-direction: column; gap: 8px; align-items: flex-start; }
+    .waypoint { width: 110px; }
+    .wp-illust { width: 90px; height: 90px; }
+    .waypoint.ton .wp-illust { width: 110px; height: 110px; }
+    .void { min-width: 50px; }
+  }
+
+  /* Responsive */
+  @media (max-width: 880px) {
+    .title-block { grid-template-columns: 1fr; gap: 24px; }
+    .data { grid-template-columns: repeat(2, 1fr); }
+    .stat:nth-child(2) { border-right: none; }
+    .stat:nth-child(1), .stat:nth-child(2) { border-bottom: 1px solid var(--rule); }
+    .verdict { grid-template-columns: 1fr; gap: 18px; }
+    .presets { grid-template-columns: repeat(2, 1fr); }
+    .sky-stage { height: 380px; }
+    header.masthead { grid-template-columns: 1fr; gap: 8px; }
+    .meta.right { text-align: left; }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.95; }
+    50% { opacity: 1; }
+  }
+  .ton-disk, .ton-halo, .ton-point { animation: pulse 4s ease-in-out infinite; }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<div class="frame">
+
+  <header class="masthead">
+    <div class="meta">Observational Bulletin / No. 618</div>
+    <div class="ident">Cosmic Hypothetical</div>
+    <div class="meta right">Hypercompact Quasar / 4 × 10¹⁰ M☉</div>
+  </header>
+
+  <div class="title-block">
+    <h1>A question of <em>distance</em>.</h1>
+    <p class="deck">
+      <strong>TON 618</strong> sits 10.4 billion light-years away and still registers in modest telescopes. Bring it closer and the calculus inverts: at some point the view is sublime, then it cooks the planet, then it eats us. Move the dial.
+    </p>
+  </div>
+
+  <!-- The sky -->
+  <div class="sky-stage">
+    <div class="stars"></div>
+    <div class="fov-label">Field of view: 4°</div>
+
+    <div class="moon-wrap">
+      <div class="moon" id="moon"></div>
+      <div class="moon-label">Moon · 0.5° · for scale</div>
+    </div>
+
+    <div class="ton-anchor">
+      <div class="ton-jet up" id="jetUp"></div>
+      <div class="ton-jet down" id="jetDown"></div>
+      <div class="ton-halo" id="tonHalo"></div>
+      <div class="ton-disk" id="tonDisk"></div>
+      <div class="ton-point" id="tonPoint" style="display:none"></div>
+    </div>
+    <div class="ton-label" id="tonLabel">TON 618</div>
+
+    <div class="ruler">
+      <span>1°</span>
+      <div class="ruler-line"></div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <div class="control-header">
+      <h2>Distance</h2>
+      <span class="hint">Drag the slider · Tap a landmark</span>
+    </div>
+
+    <div class="slider-row">
+      <div class="distance-display">
+        <span class="label">Distance from Earth</span>
+        <span class="val" id="distVal">3,000 ly</span>
+      </div>
+      <input type="range" id="slider" min="0" max="1000" value="500">
+    </div>
+
+    <div class="presets" id="presets"></div>
+  </div>
+
+  <!-- Stats -->
+  <div class="data">
+    <div class="stat" id="stat-mag">
+      <div class="k">Apparent Magnitude</div>
+      <div class="v" id="magVal">−16.8</div>
+      <div class="sub" id="magSub">brighter than the full moon</div>
+    </div>
+    <div class="stat" id="stat-size">
+      <div class="k">Angular Diameter</div>
+      <div class="v" id="sizeVal">6.9<span class="unit">″</span></div>
+      <div class="sub" id="sizeSub">resolvable in binoculars</div>
+    </div>
+    <div class="stat" id="stat-vs-moon">
+      <div class="k">Brightness vs. Moon</div>
+      <div class="v" id="vsMoonVal">63×</div>
+      <div class="sub" id="vsMoonSub">casts hard shadows</div>
+    </div>
+    <div class="stat" id="stat-status">
+      <div class="k">Habitability</div>
+      <div class="v" id="statusVal">Tense</div>
+      <div class="sub" id="statusSub">solar system intact</div>
+    </div>
+  </div>
+
+  <!-- Verdict -->
+  <div class="verdict">
+    <div class="verdict-tag warn" id="verdictTag">
+      Verdict
+      <span class="badge" id="verdictBadge">Spectacular</span>
+    </div>
+    <p id="verdictText">
+      A glowing disk pinned to the night sky, brighter than the moon, faintly resolved as a structure rather than a point. The accretion ring is visible. Two pencil-thin jets extend perpendicular for arc-minutes. Earth is fine. The Oort cloud is being slowly stripped, but on geological timescales.
+    </p>
+  </div>
+
+  <!-- Mathematics -->
+  <section class="maths">
+    <div class="maths-header">
+      <h2>Working it <em>out</em>.</h2>
+      <div class="live">Live values at <span class="live-d" id="liveDist">3,000 ly</span></div>
+    </div>
+
+    <div class="formula-grid">
+
+      <!-- 1. Apparent Magnitude -->
+      <div class="formula">
+        <div class="formula-num">01 / Brightness</div>
+        <div class="formula-title">Apparent magnitude</div>
+        <div class="formula-eq">
+          <i>m</i> &nbsp;=&nbsp; <i>m</i><sub>0</sub> &nbsp;+&nbsp; 5&nbsp;log<sub>10</sub>&thinsp;(<i>d</i>&thinsp;/&thinsp;<i>d</i><sub>0</sub>)
+        </div>
+        <p class="formula-desc">
+          A logarithmic scale where every 5 magnitudes is a factor of 100 in brightness, and lower numbers are brighter. The Sun is <strong>−26.7</strong>, the full moon <strong>−12.7</strong>, the faintest naked-eye star <strong>+6</strong>. Starting from TON 618's measured magnitude at its real distance, we just rescale by inverse-square dimming.
+        </p>
+        <div class="formula-work">
+          <div class="label">Worked out</div>
+          <span class="step eq-line"><i>m</i> = 15.9 + 5·log<sub>10</sub>(<span class="live-num" id="m-step1-d">3,000</span> / 1.04×10¹⁰)</span>
+          <span class="step">= 15.9 + 5·(<span class="live-num" id="m-step2">−6.54</span>)</span>
+          <span class="step">= 15.9 + (<span class="live-num" id="m-step3">−32.69</span>)</span>
+          <span class="step eq-line">= <span class="result" id="m-result">−16.79</span></span>
+        </div>
+      </div>
+
+      <!-- 2. Angular Diameter -->
+      <div class="formula">
+        <div class="formula-num">02 / Apparent size</div>
+        <div class="formula-title">Angular diameter</div>
+        <div class="formula-eq">
+          θ &nbsp;=&nbsp; (<i>D</i>&thinsp;/&thinsp;<i>d</i>) &times; 206,265&nbsp;″
+        </div>
+        <p class="formula-desc">
+          The disk's physical diameter divided by its distance gives an angle in radians. The constant <strong>206,265</strong> just converts radians to arcseconds, the unit astronomers use for tiny angles. The full moon spans about <strong>1,800″</strong> (half a degree). Naked-eye resolution maxes out around <strong>60″</strong>.
+        </p>
+        <div class="formula-work">
+          <div class="label">Worked out</div>
+          <span class="step eq-line">θ = (0.1 ly / <span class="live-num" id="a-step1-d">3,000</span> ly) × 206,265</span>
+          <span class="step">= <span class="live-num" id="a-step2">3.33×10⁻⁵</span> × 206,265</span>
+          <span class="step eq-line">= <span class="result" id="a-result">6.88″</span></span>
+        </div>
+      </div>
+
+      <!-- 3. Brightness Ratio -->
+      <div class="formula">
+        <div class="formula-num">03 / Comparison</div>
+        <div class="formula-title">Brightness vs. the Moon</div>
+        <div class="formula-eq">
+          <i>R</i> &nbsp;=&nbsp; 10<sup>(<i>m</i><sub>moon</sub> − <i>m</i><sub>TON</sub>)&thinsp;/&thinsp;2.5</sup>
+        </div>
+        <p class="formula-desc">
+          The Pogson relation, which inverts the magnitude scale into a flux ratio. A 5-magnitude difference is exactly 100×. Negative ratios don't exist; the formula is built so that <strong>brighter wins</strong>, regardless of which side has the lower number.
+        </p>
+        <div class="formula-work">
+          <div class="label">Worked out</div>
+          <span class="step eq-line"><i>R</i> = 10^((−12.7 − <span class="live-num" id="r-step1">(−16.79)</span>) / 2.5)</span>
+          <span class="step">= 10^(<span class="live-num" id="r-step2">4.09</span> / 2.5)</span>
+          <span class="step">= 10^<span class="live-num" id="r-step3">1.64</span></span>
+          <span class="step eq-line">= <span class="result" id="r-result">≈ 43×</span></span>
+        </div>
+      </div>
+
+      <!-- 4. Hill Sphere -->
+      <div class="formula">
+        <div class="formula-num">04 / Gravity</div>
+        <div class="formula-title">The Sun's Hill sphere</div>
+        <div class="formula-eq">
+          <i>r</i><sub>H</sub> &nbsp;=&nbsp; <i>a</i> · (<i>m</i>&thinsp;/&thinsp;3<i>M</i>)<sup>1/3</sup>
+        </div>
+        <p class="formula-desc">
+          The radius around the Sun where its gravity still wins against TON 618's. Beyond this, an object is no longer bound to us. The cube-root scaling makes this the <strong>most forgiving</strong> of the gravitational effects, but it shrinks fast as TON 618 gets closer. Today's value (against the galactic potential) is roughly <strong>4 ly</strong>.
+        </p>
+        <div class="formula-work">
+          <div class="label">Worked out</div>
+          <span class="step eq-line"><i>r</i><sub>H</sub> = <span class="live-num" id="h-step1-d">3,000 ly</span> × (1 / (3·4×10¹⁰))<sup>1/3</sup></span>
+          <span class="step">= <span class="live-num" id="h-step2">1.90×10⁸</span> AU × 2.03×10⁻⁴</span>
+          <span class="step eq-line">= <span class="result" id="h-result">≈ 38,500 AU</span></span>
+          <span class="step" id="h-context" style="margin-top:4px; font-size:11px;">Oort cloud reaches ~100,000 AU. Kuiper belt ends near 1,000 AU.</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- For Context -->
+  <section class="context">
+    <div class="context-header">
+      <h2>For <em>context</em>.</h2>
+      <div class="meta-tag">An aside / Why we're here</div>
+    </div>
+
+    <div class="context-grid">
+      <div class="context-block">
+        <div class="context-num">A / What it is</div>
+        <h3>A black hole, a disk, and a lot of light</h3>
+        <p>
+          TON 618 is a <strong>quasar</strong>, an active galactic nucleus powered by one of the most massive black holes ever measured at roughly <strong>40 billion solar masses</strong>. The "TON" comes from the Tonantzintla catalogue, compiled at a Mexican observatory in the late 1950s, where it was first noted as a faint blue object. Decades later, spectroscopy revealed the absurdity of the thing. Its accretion disk outshines the entire Milky Way by a factor of about 140 trillion to one.
+        </p>
+      </div>
+      <div class="context-block">
+        <div class="context-num">B / How far</div>
+        <h3>Near the edge of what we can see</h3>
+        <p>
+          Roughly <strong>10.4 billion light-years away</strong>, with a redshift of <em>z = 2.219</em>. The photons reaching telescopes today left TON 618 when the universe was less than a third of its current age. Because space has been expanding the whole time, its present location has drifted to about <strong>18 billion light-years</strong> from us. It is one of the most distant individual objects easily picked up by amateur astronomy.
+        </p>
+      </div>
+      <div class="context-block">
+        <div class="context-num">C / Where this came from</div>
+        <h3>A tweet, basically</h3>
+        <p>
+          The premise of this page was a tweet that pointed out: if TON 618 sat where <strong>Alpha Centauri</strong> does (4.37 ly), the night sky would be unrecognizable. That is correct, and a wild understatement. The conversation that followed worked through gravity, then radiation, then the math. This page is the visual version. <em>Move the slider. Watch the universe break.</em>
+        </p>
+      </div>
+    </div>
+
+    <!-- Cosmic Atlas -->
+    <div class="cosmic-map">
+      <div class="atlas-header">
+        <div class="atlas-glyph">✦ · ✦ · ✦</div>
+        <h3>From Sol to <em>TON 618</em></h3>
+        <div class="atlas-subtitle">A chart of the void · waypoints not to scale</div>
+        <div class="atlas-rule"></div>
+      </div>
+
+      <div class="atlas-route" id="atlasRoute">
+        <!-- Built dynamically by JS -->
+      </div>
+
+      <div class="atlas-footer">
+        <span class="corner">↑ Sol</span>
+        <span>Light-travel distance · z = 2.219 at terminus</span>
+        <span class="corner">TON 618 ↑</span>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- Sources & Notes -->
+  <section class="sources">
+    <div class="sources-header">
+      <h2>The <em>receipts</em>.</h2>
+      <div class="meta-tag">References & assumptions</div>
+    </div>
+
+    <div class="sources-grid">
+
+      <div class="sources-list">
+        <h4>Numbers used</h4>
+
+        <div class="src-item">
+          <div class="src-claim">Black hole mass: <span class="val">~40 billion M☉</span></div>
+          <div class="src-attr">
+            Estimates range from 40 to 66 billion solar masses. Lower figure: Xue Ge et al. (2019) using C IV emission lines. Higher: Shemmer et al. (2004) via Hβ. The math here uses 40B; recompute with 66B and the Hill sphere shrinks by ~16%.
+            <br><a href="https://en.wikipedia.org/wiki/TON_618" target="_blank" rel="noopener">en.wikipedia.org/wiki/TON_618</a>
+          </div>
+        </div>
+
+        <div class="src-item">
+          <div class="src-claim">Distance: <span class="val">10.4 Gly light-travel</span></div>
+          <div class="src-attr">
+            Redshift z = 2.219. Light-travel time ~10.8 Gyr; comoving distance ~18.2 Gly. Standard ΛCDM cosmology (H₀ ≈ 70 km/s/Mpc).
+            <br><a href="https://en.wikipedia.org/wiki/TON_618" target="_blank" rel="noopener">en.wikipedia.org/wiki/TON_618</a>
+          </div>
+        </div>
+
+        <div class="src-item">
+          <div class="src-claim">Bolometric luminosity: <span class="val">4 × 10⁴⁰ W</span></div>
+          <div class="src-attr">
+            Roughly 140 trillion solar luminosities. Absolute magnitude −30.7. Apparent magnitude V = 15.9.
+            <br><a href="https://en.wikipedia.org/wiki/TON_618" target="_blank" rel="noopener">en.wikipedia.org/wiki/TON_618</a>
+          </div>
+        </div>
+
+        <div class="src-item">
+          <div class="src-claim">Discovery: <span class="val">1957 / 1970</span></div>
+          <div class="src-attr">
+            First catalogued 1957 (Tonantzintla Observatory, Mexico) by Iriarte and Chavira as a faint blue object. Identified as a quasar in 1970 after radio detection.
+            <br><a href="https://www.skyatnightmagazine.com/space-science/ton-618" target="_blank" rel="noopener">skyatnightmagazine.com/space-science/ton-618</a>
+          </div>
+        </div>
+
+        <div class="src-item">
+          <div class="src-claim">Standard formulas: <span class="val">textbook physics</span></div>
+          <div class="src-attr">
+            Distance modulus, Pogson relation (1856), angular diameter, and Hill sphere are all classical astrodynamics. Any introductory astrophysics text. Inverse-square dimming assumes negligible interstellar extinction at these scales.
+          </div>
+        </div>
+      </div>
+
+      <div class="sources-notes">
+        <h4>Honest caveats</h4>
+
+        <div class="note">
+          <div class="note-title">On the disk size.</div>
+          <div class="note-body">
+            The 0.1 ly figure is an order-of-magnitude approximation for the visible accretion structure. The Schwarzschild radius alone is 0.02 ly (1,300 AU), and the broad-line region extends well beyond that. The disk's true diameter is poorly constrained by direct observation. If you object, halve or double it; the angular sizes scale linearly.
+          </div>
+        </div>
+
+        <div class="note">
+          <div class="note-title">On the habitability thresholds.</div>
+          <div class="note-body">
+            The "Lethal", "Tense", "Vivid" verdicts are gut-feel translations of radiation flux and gravitational influence, not rigorous astrobiology. The orders of magnitude are right; the exact distance boundaries are interpretive.
+          </div>
+        </div>
+
+        <div class="note">
+          <div class="note-title">On the Hill sphere math.</div>
+          <div class="note-body">
+            Treats both Sol and TON 618 as point masses with TON 618 stationary, which is the standard idealization. Real perturbations would also depend on relative motion, the galactic potential, and the structure of TON 618's host galaxy. Useful for intuition, not for plotting cometary trajectories.
+          </div>
+        </div>
+
+        <div class="note">
+          <div class="note-title">For the curious, not the rigorous.</div>
+          <div class="note-body">
+            This page is editorial science writing. Where the literature disagreed, the friendlier or more familiar number was preferred. Where assumptions were necessary, they're stated. Corrections welcome; pretensions to peer review, not.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <footer>
+    <span>Cosmic Hypothetical · No. 618</span>
+    <span>See receipts above for citations & assumptions</span>
+  </footer>
+
+</div>
+
+<script>
+  // Constants
+  const TON_DISK_LY = 0.1;           // accretion disk diameter in light-years
+  const TON_REF_DIST = 1.04e10;       // 10.4 billion ly (actual)
+  const TON_REF_MAG = 15.9;            // apparent magnitude at actual distance
+  const MOON_MAG = -12.7;
+  const SUN_MAG = -26.7;
+  const FOV_DEG = 4;                   // viewport FOV in degrees
+  const FOV_ARCSEC = FOV_DEG * 3600;
+  const VIEWPORT_WIDTH = 1280;          // logical viewport reference
+
+  const presets = [
+    { label: "Alpha Centauri", d: 4.37, sub: "4.37 ly" },
+    { label: "Sirius", d: 8.6, sub: "8.6 ly" },
+    { label: "Polaris", d: 433, sub: "433 ly" },
+    { label: "Orion Nebula", d: 1344, sub: "1.3 kly" },
+    { label: "Galactic Core", d: 26000, sub: "26 kly" },
+    { label: "Andromeda", d: 2.5e6, sub: "2.5 Mly" },
+    { label: "Actual", d: 1.04e10, sub: "10.4 Gly" }
+  ];
+
+  // Build presets
+  const presetsEl = document.getElementById('presets');
+  presets.forEach((p, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'preset';
+    btn.dataset.dist = p.d;
+    btn.innerHTML = `${p.label}<span class="preset-d">${p.sub}</span>`;
+    btn.addEventListener('click', () => {
+      setDistance(p.d);
+      sliderToDist(p.d);
+    });
+    presetsEl.appendChild(btn);
+  });
+
+  // Slider mapping: log scale from 4 ly to 10.4 Gly
+  const D_MIN = 4;
+  const D_MAX = 1.04e10;
+  const logMin = Math.log10(D_MIN);
+  const logMax = Math.log10(D_MAX);
+
+  function sliderToDist(d) {
+    const t = (Math.log10(d) - logMin) / (logMax - logMin);
+    document.getElementById('slider').value = Math.round(t * 1000);
+  }
+
+  function distFromSlider(v) {
+    const t = v / 1000;
+    return Math.pow(10, logMin + t * (logMax - logMin));
+  }
+
+  // Formatting
+  function fmtDist(d) {
+    if (d < 1000) return `${d.toFixed(d < 10 ? 2 : 0)} ly`;
+    if (d < 1e6) return `${(d/1000).toFixed(1)} kly`;
+    if (d < 1e9) return `${(d/1e6).toFixed(1)} Mly`;
+    return `${(d/1e9).toFixed(2)} Gly`;
+  }
+
+  function fmtAngular(arcsec) {
+    if (arcsec >= 3600) return { v: (arcsec/3600).toFixed(2), u: '°' };
+    if (arcsec >= 60) return { v: (arcsec/60).toFixed(1), u: '′' };
+    if (arcsec >= 1) return { v: arcsec.toFixed(1), u: '″' };
+    if (arcsec >= 0.001) return { v: arcsec.toFixed(3), u: '″' };
+    return { v: arcsec.toExponential(1), u: '″' };
+  }
+
+  function fmtMag(m) {
+    return (m >= 0 ? '+' : '−') + Math.abs(m).toFixed(1);
+  }
+
+  function fmtRatio(r) {
+    if (r >= 1e9) return `${(r/1e9).toFixed(1)} B×`;
+    if (r >= 1e6) return `${(r/1e6).toFixed(1)} M×`;
+    if (r >= 1e3) return `${(r/1000).toFixed(1)} K×`;
+    if (r >= 1) return `${r.toFixed(r < 10 ? 1 : 0)}×`;
+    if (r >= 0.001) return `${r.toFixed(3)}×`;
+    return `${r.toExponential(1)}×`;
+  }
+
+  // Physics
+  function computeMag(d) {
+    return TON_REF_MAG + 5 * Math.log10(d / TON_REF_DIST);
+  }
+
+  function computeAngular(d) {
+    // arcsec = (size_ly / dist_ly) * 206265
+    return (TON_DISK_LY / d) * 206265;
+  }
+
+  function brightnessRatio(magA, magB) {
+    return Math.pow(10, (magB - magA) / 2.5);
+  }
+
+  // Verdict logic
+  function getVerdict(d, mag, arcsec) {
+    if (d <= 50) {
+      return {
+        tag: 'danger',
+        badge: 'Lethal',
+        statusWord: 'Lethal',
+        text: 'TON 618 fills the sky like a second sun, only it never sets. Earth is sterilized within seconds by X-rays and gamma rays from the accretion disk. The solar system is gravitationally captured. Nothing biological survives. Nothing structural survives long after.',
+        sub: { mag: 'brighter than the sun', size: 'fills the sky', vs: 'apocalyptic', status: 'sterilized' },
+        statKey: 'danger'
+      };
+    }
+    if (d <= 500) {
+      return {
+        tag: 'danger',
+        badge: 'Civilization Ends',
+        statusWord: 'Doomed',
+        text: 'A second blazing object dominates one half of the sky, easily resolvable as a glowing disk with visible jets. Sustained X-ray and UV exposure cooks the upper atmosphere; surface life is doomed within years. The Oort cloud and outer planets are stripped. Beautiful for a moment, then over.',
+        sub: { mag: 'brighter than the sun', size: 'naked-eye disk', vs: 'lethal radiation', status: 'biosphere collapse' },
+        statKey: 'danger'
+      };
+    }
+    if (d <= 3000) {
+      return {
+        tag: 'warn',
+        badge: 'Sublime, Tense',
+        statusWord: 'Tense',
+        text: 'A small glowing disk hangs in the sky, brighter than the full moon, faintly resolved as a structure rather than a point. The accretion ring is visible. Two pencil-thin jets extend perpendicular for arc-minutes. Earth is fine. The Oort cloud is slowly stripped, but on geological timescales.',
+        sub: { mag: 'brighter than the moon', size: 'resolvable disk', vs: 'casts shadows', status: 'solar system intact' },
+        statKey: 'warn'
+      };
+    }
+    if (d <= 30000) {
+      return {
+        tag: 'warn',
+        badge: 'Naked-eye',
+        statusWord: 'Vivid',
+        text: 'Visible as a brilliant point, brighter than Venus, possibly bright enough to be seen during the day. Too far to resolve as a disk with the naked eye, but a small telescope reveals the accretion structure. Gravitationally negligible at our scale. The most striking object in the sky after the sun and moon.',
+        sub: { mag: 'rivals Venus', size: 'pointlike to naked eye', vs: 'daytime visible', status: 'no effect' },
+        statKey: 'warn'
+      };
+    }
+    if (d <= 1e6) {
+      return {
+        tag: 'safe',
+        badge: 'Bright Star',
+        statusWord: 'Visible',
+        text: 'A conspicuous star in the night sky, comparable to or outshining the brightest known stars. No visible structure. No effect on Earth. Astronomers in this hypothetical would have a field day with the closest active galactic nucleus by orders of magnitude.',
+        sub: { mag: 'naked-eye star', size: 'pointlike', vs: 'unmistakable', status: 'no effect' },
+        statKey: 'safe'
+      };
+    }
+    if (d <= 1e8) {
+      return {
+        tag: 'safe',
+        badge: 'Faint Point',
+        statusWord: 'Subtle',
+        text: 'A faint point requiring binoculars or a small telescope. The accretion disk is impossibly small from this distance, but its sheer luminosity keeps it observable. Effectively a curiosity.',
+        sub: { mag: 'binoculars range', size: 'pointlike', vs: 'subtle', status: 'no effect' },
+        statKey: 'safe'
+      };
+    }
+    return {
+      tag: 'safe',
+      badge: 'Telescope Only',
+      statusWord: 'Distant',
+      text: 'TON 618 as we actually see it, or close to it: a faint smudge requiring a serious telescope, photons that left when the universe was less than a third its current age. The fact that we can see it at all is the entire point.',
+      sub: { mag: 'telescope only', size: 'unresolvable', vs: 'imperceptible', status: 'no effect' },
+      statKey: 'safe'
+    };
+  }
+
+  // Visual rendering
+  function render(d) {
+    const mag = computeMag(d);
+    const arcsec = computeAngular(d);
+    const verdict = getVerdict(d, mag, arcsec);
+
+    // Distance display
+    document.getElementById('distVal').textContent = fmtDist(d);
+
+    // Stats
+    document.getElementById('magVal').textContent = fmtMag(mag);
+    const sz = fmtAngular(arcsec);
+    document.getElementById('sizeVal').innerHTML = `${sz.v}<span class="unit">${sz.u}</span>`;
+
+    const moonRatio = brightnessRatio(mag, MOON_MAG);
+    document.getElementById('vsMoonVal').textContent = fmtRatio(moonRatio);
+
+    document.getElementById('statusVal').textContent = verdict.statusWord;
+
+    // Stat colors
+    ['stat-mag','stat-size','stat-vs-moon','stat-status'].forEach(id => {
+      const el = document.getElementById(id);
+      el.classList.remove('danger','warn','safe');
+      el.classList.add(verdict.statKey);
+    });
+
+    document.getElementById('magSub').textContent = verdict.sub.mag;
+    document.getElementById('sizeSub').textContent = verdict.sub.size;
+    document.getElementById('vsMoonSub').textContent = verdict.sub.vs;
+    document.getElementById('statusSub').textContent = verdict.sub.status;
+
+    // Verdict panel
+    const verdictTag = document.getElementById('verdictTag');
+    verdictTag.classList.remove('danger','warn','safe');
+    verdictTag.classList.add(verdict.tag);
+    document.getElementById('verdictBadge').textContent = verdict.badge;
+    document.getElementById('verdictText').textContent = verdict.text;
+
+    // Update active preset
+    document.querySelectorAll('.preset').forEach(b => {
+      const bd = parseFloat(b.dataset.dist);
+      const ratio = d / bd;
+      b.classList.toggle('active', ratio > 0.85 && ratio < 1.18);
+    });
+
+    // Visual rendering of TON 618
+    const stage = document.querySelector('.sky-stage');
+    const stageWidth = stage.clientWidth || 1200;
+    const stageHeight = stage.clientHeight || 520;
+
+    // pixels per arcsec
+    const pxPerArcsec = stageWidth / FOV_ARCSEC;
+
+    // Scale the moon to match the same FOV
+    // Moon is ~1800 arcsec (0.5°) in diameter
+    const moonPx = Math.max(40, Math.min(200, 1800 * pxPerArcsec));
+    const moon = document.getElementById('moon');
+    moon.style.width = moonPx + 'px';
+    moon.style.height = moonPx + 'px';
+
+    // Disk size in pixels
+    let diskPx = arcsec * pxPerArcsec;
+
+    const disk = document.getElementById('tonDisk');
+    const halo = document.getElementById('tonHalo');
+    const point = document.getElementById('tonPoint');
+    const jetUp = document.getElementById('jetUp');
+    const jetDown = document.getElementById('jetDown');
+
+    // Brightness scale: how much it "blooms"
+    // Reference: full moon mag -12.7
+    const bloomRatio = brightnessRatio(mag, MOON_MAG);
+    // Cap and log-scale the bloom
+    const bloomScale = Math.max(0, Math.log10(Math.max(bloomRatio, 0.001)) + 3); // ~0 to 12
+
+    // Halo size
+    const haloSize = Math.min(stageWidth * 1.5, Math.max(50, diskPx * 4 + bloomScale * 60));
+    halo.style.width = haloSize + 'px';
+    halo.style.height = haloSize + 'px';
+    halo.style.opacity = Math.min(1, 0.15 + bloomScale * 0.08);
+
+    if (diskPx >= 6) {
+      // Render as disk
+      const visiblePx = Math.min(diskPx, stageWidth * 1.5);
+      disk.style.display = 'block';
+      disk.style.width = visiblePx + 'px';
+      disk.style.height = visiblePx + 'px';
+      point.style.display = 'none';
+
+      // Jets: extend ~3x disk diameter
+      const jetLen = Math.min(stageHeight * 0.9, visiblePx * 3);
+      jetUp.style.height = jetLen + 'px';
+      jetUp.style.opacity = Math.min(0.8, 0.3 + bloomScale * 0.05);
+      jetDown.style.height = jetLen + 'px';
+      jetDown.style.opacity = Math.min(0.8, 0.3 + bloomScale * 0.05);
+    } else {
+      // Render as point
+      disk.style.display = 'none';
+      point.style.display = 'block';
+
+      // Point glow scales with brightness
+      const glowSize = Math.max(6, 6 + bloomScale * 4);
+      const glowSpread = Math.max(8, 8 + bloomScale * 12);
+      point.style.width = Math.max(2, Math.min(8, 2 + bloomScale * 0.5)) + 'px';
+      point.style.height = point.style.width;
+      point.style.boxShadow = `0 0 ${glowSize}px #fff, 0 0 ${glowSpread}px var(--amber-soft), 0 0 ${glowSpread*2}px rgba(255,174,61,0.4)`;
+      point.style.opacity = bloomScale > 0 ? Math.min(1, 0.4 + bloomScale * 0.1) : 0.6;
+
+      jetUp.style.opacity = 0;
+      jetDown.style.opacity = 0;
+    }
+
+    // Background tint based on TON 618 brightness
+    const tintStrength = Math.max(0, Math.min(0.4, (bloomScale - 4) * 0.05));
+    stage.style.background = `radial-gradient(ellipse at 75% 50%, rgba(255, 174, 61, ${tintStrength}) 0%, #0a0e1a 30%, #04060c 70%)`;
+
+    // Live math values
+    updateMath(d, mag, arcsec, moonRatio);
+  }
+
+  // Number formatting for math
+  function fmtNum(n, decimals = 2) {
+    if (n === 0) return '0';
+    const abs = Math.abs(n);
+    if (abs >= 1e6 || abs < 0.001) {
+      // Scientific notation
+      const exp = Math.floor(Math.log10(abs));
+      const mant = n / Math.pow(10, exp);
+      return `${mant.toFixed(2)}×10${supDigits(exp)}`;
+    }
+    if (abs >= 1000) {
+      return Math.round(n).toLocaleString('en-US');
+    }
+    return n.toFixed(decimals);
+  }
+
+  function supDigits(n) {
+    const map = { '0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻','−':'⁻' };
+    return String(n).split('').map(c => map[c] || c).join('');
+  }
+
+  function fmtSigned(n, decimals = 2) {
+    const sign = n < 0 ? '−' : '';
+    return sign + Math.abs(n).toFixed(decimals);
+  }
+
+  function fmtDistShort(d) {
+    if (d < 1000) return `${d.toFixed(d < 10 ? 2 : 0)}`;
+    if (d < 1e6) return `${(d/1000).toFixed(1)}k`;
+    if (d < 1e9) return `${(d/1e6).toFixed(1)}M`;
+    return `${(d/1e9).toFixed(2)}G`;
+  }
+
+  function fmtAU(au) {
+    if (au < 1000) return `${Math.round(au)} AU`;
+    if (au < 1e6) return `${Math.round(au).toLocaleString()} AU`;
+    if (au < 1e9) return `${(au/1e6).toFixed(2)}M AU`;
+    return `${(au/1e9).toFixed(2)}B AU`;
+  }
+
+  function updateMath(d, mag, arcsec, moonRatio) {
+    // Live header
+    document.getElementById('liveDist').textContent = fmtDist(d);
+
+    // 1. Magnitude formula
+    const distRatio = d / TON_REF_DIST;
+    const logRatio = Math.log10(distRatio);
+    document.getElementById('m-step1-d').textContent = fmtDist(d);
+    document.getElementById('m-step2').textContent = fmtSigned(logRatio, 2);
+    document.getElementById('m-step3').textContent = fmtSigned(5 * logRatio, 2);
+    document.getElementById('m-result').textContent = fmtSigned(mag, 2);
+
+    // 2. Angular diameter
+    const angularRad = TON_DISK_LY / d;
+    document.getElementById('a-step1-d').textContent = fmtDist(d);
+    document.getElementById('a-step2').textContent = fmtNum(angularRad);
+    const sz = fmtAngular(arcsec);
+    document.getElementById('a-result').textContent = `${sz.v}${sz.u}`;
+
+    // 3. Brightness ratio
+    const magDiff = MOON_MAG - mag;
+    document.getElementById('r-step1').textContent = `(${fmtSigned(mag, 2)})`;
+    document.getElementById('r-step2').textContent = fmtSigned(magDiff, 2);
+    document.getElementById('r-step3').textContent = (magDiff / 2.5).toFixed(2);
+    document.getElementById('r-result').textContent = `≈ ${fmtRatio(moonRatio)}`;
+
+    // 4. Hill sphere
+    const M_TON = 4e10; // solar masses
+    const massRatio = 1 / (3 * M_TON);
+    const cubeRoot = Math.pow(massRatio, 1/3);
+    const aAU = d * 63241; // ly to AU
+    const rH = aAU * cubeRoot;
+
+    document.getElementById('h-step1-d').textContent = fmtDist(d);
+    document.getElementById('h-step2').textContent = fmtNum(aAU);
+    document.getElementById('h-result').textContent = `≈ ${fmtAU(rH)}`;
+
+    // Context for Hill sphere
+    let ctx;
+    if (rH < 30) ctx = 'Smaller than Neptune\'s orbit. Inner planets are imperilled.';
+    else if (rH < 100) ctx = 'Cuts off the Kuiper belt entirely. Pluto is no longer ours.';
+    else if (rH < 1000) ctx = 'Kuiper belt mostly stripped. Outer scattered disc gone.';
+    else if (rH < 10000) ctx = 'Most of the Oort cloud is no longer bound to the Sun.';
+    else if (rH < 100000) ctx = 'Outer Oort cloud being eroded. Inner system safe.';
+    else ctx = 'Larger than the Oort cloud. The system holds together.';
+    document.getElementById('h-context').textContent = ctx;
+  }
+
+  function setDistance(d) {
+    render(d);
+  }
+
+  // Slider events
+  const slider = document.getElementById('slider');
+  slider.addEventListener('input', (e) => {
+    const d = distFromSlider(parseFloat(e.target.value));
+    render(d);
+  });
+
+  // Initial render at 3,000 ly
+  sliderToDist(3000);
+  render(3000);
+
+  // Re-render on resize
+  window.addEventListener('resize', () => {
+    const d = distFromSlider(parseFloat(slider.value));
+    render(d);
+  });
+
+  // ====================================================================
+  // Cosmic Atlas - From Sol to TON 618
+  // ====================================================================
+
+  // Larger, more illustrated SVG icons for each waypoint
+  const ILLUST = {
+    sol: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="solCore">
+          <stop offset="0%" stop-color="#fff5d6"/>
+          <stop offset="40%" stop-color="#ffae3d"/>
+          <stop offset="100%" stop-color="#d76b1f"/>
+        </radialGradient>
+      </defs>
+      <g stroke="#ffae3d" stroke-width="0.7" stroke-linecap="round" opacity="0.65">
+        <line x1="50" y1="8" x2="50" y2="20"/>
+        <line x1="50" y1="80" x2="50" y2="92"/>
+        <line x1="8" y1="50" x2="20" y2="50"/>
+        <line x1="80" y1="50" x2="92" y2="50"/>
+        <line x1="20" y1="20" x2="28" y2="28"/>
+        <line x1="72" y1="72" x2="80" y2="80"/>
+        <line x1="80" y1="20" x2="72" y2="28"/>
+        <line x1="28" y1="72" x2="20" y2="80"/>
+      </g>
+      <circle cx="50" cy="50" r="18" fill="url(#solCore)"/>
+      <circle cx="50" cy="50" r="12" fill="#ffe2b3" opacity="0.7"/>
+      <!-- Earth as a small dot in orbit -->
+      <ellipse cx="50" cy="50" rx="32" ry="32" fill="none" stroke="#8a9099" stroke-width="0.4" stroke-dasharray="1,3" opacity="0.4"/>
+      <circle cx="82" cy="50" r="2" fill="#5b8fc7"/>
+    </svg>`,
+
+    binaryStar: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <!-- Twinkles/spikes -->
+      <g stroke="#f6c577" stroke-width="0.4" opacity="0.5">
+        <line x1="36" y1="20" x2="36" y2="62"/>
+        <line x1="14" y1="41" x2="58" y2="41"/>
+      </g>
+      <g stroke="#c9d4e8" stroke-width="0.4" opacity="0.5">
+        <line x1="68" y1="50" x2="68" y2="86"/>
+        <line x1="50" y1="68" x2="86" y2="68"/>
+      </g>
+      <!-- Star A: bigger, warmer -->
+      <circle cx="36" cy="41" r="10" fill="#ffae3d" opacity="0.4"/>
+      <circle cx="36" cy="41" r="6" fill="#ffe2b3"/>
+      <circle cx="36" cy="41" r="2.5" fill="#fff"/>
+      <!-- Star B: smaller, cooler -->
+      <circle cx="68" cy="68" r="7" fill="#b4c8ff" opacity="0.4"/>
+      <circle cx="68" cy="68" r="4" fill="#dde6f5"/>
+      <circle cx="68" cy="68" r="1.5" fill="#fff"/>
+      <!-- Proxima: distant red dwarf -->
+      <circle cx="82" cy="22" r="2" fill="#ff7a5a" opacity="0.7"/>
+      <circle cx="82" cy="22" r="0.8" fill="#fff"/>
+    </svg>`,
+
+    nebula: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="nebGrad" cx="55%" cy="50%">
+          <stop offset="0%" stop-color="#ffae3d" stop-opacity="0.5"/>
+          <stop offset="40%" stop-color="#d76b1f" stop-opacity="0.3"/>
+          <stop offset="100%" stop-color="#3a1a1a" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="nebGrad2" cx="40%" cy="60%">
+          <stop offset="0%" stop-color="#b4c8ff" stop-opacity="0.4"/>
+          <stop offset="100%" stop-color="#1a2a5a" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <ellipse cx="55" cy="50" rx="38" ry="30" fill="url(#nebGrad)"/>
+      <ellipse cx="40" cy="60" rx="28" ry="22" fill="url(#nebGrad2)"/>
+      <!-- Embedded stars -->
+      <circle cx="50" cy="48" r="1.4" fill="#fff"/>
+      <circle cx="62" cy="52" r="1" fill="#fff"/>
+      <circle cx="44" cy="58" r="0.9" fill="#fff"/>
+      <circle cx="58" cy="38" r="0.7" fill="#fff" opacity="0.7"/>
+      <circle cx="38" cy="44" r="0.6" fill="#fff" opacity="0.6"/>
+      <circle cx="68" cy="62" r="0.8" fill="#fff" opacity="0.7"/>
+    </svg>`,
+
+    galacticCore: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="coreGrad">
+          <stop offset="0%" stop-color="#fff" stop-opacity="0.95"/>
+          <stop offset="20%" stop-color="#ffe2b3" stop-opacity="0.8"/>
+          <stop offset="60%" stop-color="#d76b1f" stop-opacity="0.4"/>
+          <stop offset="100%" stop-color="#3a1a0a" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <!-- Glow -->
+      <circle cx="50" cy="50" r="42" fill="url(#coreGrad)"/>
+      <!-- Dense star cluster -->
+      <g fill="#fff">
+        <circle cx="50" cy="50" r="2.5"/>
+        <circle cx="46" cy="48" r="1"/>
+        <circle cx="54" cy="52" r="1.2"/>
+        <circle cx="48" cy="54" r="0.9"/>
+        <circle cx="53" cy="46" r="0.8"/>
+        <circle cx="42" cy="52" r="0.7" opacity="0.8"/>
+        <circle cx="58" cy="48" r="0.7" opacity="0.8"/>
+        <circle cx="50" cy="42" r="0.6" opacity="0.7"/>
+        <circle cx="50" cy="58" r="0.7" opacity="0.8"/>
+        <circle cx="40" cy="46" r="0.5" opacity="0.6"/>
+        <circle cx="60" cy="54" r="0.6" opacity="0.7"/>
+      </g>
+      <!-- Sgr A* hint -->
+      <circle cx="50" cy="50" r="1.2" fill="#000"/>
+    </svg>`,
+
+    milkyWay: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="mwGlow">
+          <stop offset="0%" stop-color="#ffe2b3" stop-opacity="0.9"/>
+          <stop offset="40%" stop-color="#c9bfa3" stop-opacity="0.4"/>
+          <stop offset="100%" stop-color="#3a3a4a" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <!-- Faint outer halo -->
+      <circle cx="50" cy="50" r="44" fill="none" stroke="#8a9099" stroke-width="0.3" opacity="0.3"/>
+      <!-- Spiral arms drawn as curves -->
+      <g fill="none" stroke="#c9bfa3" stroke-width="1" stroke-linecap="round" opacity="0.7">
+        <path d="M 50 50 Q 32 30, 18 42 Q 12 50, 18 60"/>
+        <path d="M 50 50 Q 68 70, 82 58 Q 88 50, 82 40"/>
+        <path d="M 50 50 Q 38 64, 30 72"/>
+        <path d="M 50 50 Q 62 36, 70 28"/>
+      </g>
+      <!-- Inner disc -->
+      <ellipse cx="50" cy="50" rx="24" ry="22" fill="url(#mwGlow)" opacity="0.6"/>
+      <!-- Bright core -->
+      <circle cx="50" cy="50" r="5" fill="#ffe2b3"/>
+      <circle cx="50" cy="50" r="2" fill="#fff"/>
+      <!-- Sun marker -->
+      <circle cx="68" cy="44" r="1.5" fill="#ffae3d"/>
+      <circle cx="68" cy="44" r="3" fill="none" stroke="#ffae3d" stroke-width="0.4" opacity="0.6"/>
+    </svg>`,
+
+    andromeda: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="andromGlow">
+          <stop offset="0%" stop-color="#ffe2b3" stop-opacity="0.85"/>
+          <stop offset="50%" stop-color="#c9bfa3" stop-opacity="0.3"/>
+          <stop offset="100%" stop-color="#3a3a4a" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <g transform="rotate(-22 50 50)">
+        <!-- Outer halo -->
+        <ellipse cx="50" cy="50" rx="42" ry="13" fill="none" stroke="#8a9099" stroke-width="0.3" opacity="0.4"/>
+        <!-- Disc with arms -->
+        <ellipse cx="50" cy="50" rx="38" ry="11" fill="url(#andromGlow)" opacity="0.6"/>
+        <ellipse cx="50" cy="50" rx="32" ry="8" fill="none" stroke="#c9bfa3" stroke-width="0.7" opacity="0.6"/>
+        <ellipse cx="50" cy="50" rx="22" ry="5.5" fill="#c9bfa3" opacity="0.4"/>
+        <!-- Bright bulge -->
+        <ellipse cx="50" cy="50" rx="9" ry="6" fill="#ffe2b3"/>
+        <circle cx="50" cy="50" r="2.5" fill="#fff"/>
+        <!-- Satellite galaxy hint -->
+        <ellipse cx="20" cy="46" rx="3" ry="1.2" fill="#c9bfa3" opacity="0.6"/>
+      </g>
+    </svg>`,
+
+    cluster: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <!-- Big central elliptical -->
+      <ellipse cx="50" cy="50" rx="14" ry="11" fill="#ffe2b3" opacity="0.7"/>
+      <ellipse cx="50" cy="50" rx="8" ry="6" fill="#fff" opacity="0.8"/>
+      <!-- Surrounding galaxies -->
+      <g>
+        <ellipse cx="22" cy="32" rx="7" ry="2" fill="#c9bfa3" opacity="0.7" transform="rotate(15 22 32)"/>
+        <circle cx="22" cy="32" r="1.5" fill="#fff"/>
+
+        <ellipse cx="78" cy="28" rx="6" ry="3" fill="#c9bfa3" opacity="0.6" transform="rotate(-30 78 28)"/>
+        <circle cx="78" cy="28" r="1.2" fill="#ffe2b3"/>
+
+        <ellipse cx="20" cy="72" rx="5" ry="4" fill="#c9bfa3" opacity="0.7"/>
+        <circle cx="20" cy="72" r="1.5" fill="#fff"/>
+
+        <ellipse cx="80" cy="76" rx="8" ry="2.5" fill="#c9bfa3" opacity="0.6" transform="rotate(20 80 76)"/>
+        <circle cx="80" cy="76" r="1.3" fill="#ffe2b3"/>
+
+        <ellipse cx="50" cy="18" rx="4" ry="2" fill="#c9bfa3" opacity="0.5"/>
+        <circle cx="50" cy="18" r="1" fill="#fff"/>
+
+        <ellipse cx="48" cy="84" rx="3.5" ry="1.5" fill="#c9bfa3" opacity="0.5"/>
+        <circle cx="48" cy="84" r="0.9" fill="#ffe2b3"/>
+
+        <circle cx="32" cy="52" r="0.8" fill="#fff" opacity="0.5"/>
+        <circle cx="68" cy="48" r="0.8" fill="#fff" opacity="0.5"/>
+        <circle cx="14" cy="50" r="0.6" fill="#fff" opacity="0.4"/>
+        <circle cx="86" cy="52" r="0.7" fill="#fff" opacity="0.4"/>
+      </g>
+    </svg>`,
+
+    quasar: `<svg viewBox="0 0 130 130" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="qHalo">
+          <stop offset="0%" stop-color="#fff" stop-opacity="0.8"/>
+          <stop offset="20%" stop-color="#ffe2b3" stop-opacity="0.6"/>
+          <stop offset="50%" stop-color="#ffae3d" stop-opacity="0.3"/>
+          <stop offset="100%" stop-color="#d76b1f" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="qJet" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#b4c8ff" stop-opacity="0"/>
+          <stop offset="50%" stop-color="#dde6f5" stop-opacity="0.85"/>
+          <stop offset="100%" stop-color="#b4c8ff" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <!-- Massive halo glow -->
+      <circle cx="65" cy="65" r="62" fill="url(#qHalo)"/>
+      <!-- Relativistic jets -->
+      <rect x="63.5" y="2" width="3" height="126" fill="url(#qJet)"/>
+      <!-- Accretion disk (edge-on, slightly tilted) -->
+      <g transform="rotate(-8 65 65)">
+        <ellipse cx="65" cy="65" rx="42" ry="9" fill="#ffae3d" opacity="0.3"/>
+        <ellipse cx="65" cy="65" rx="38" ry="7" fill="#ffae3d" opacity="0.6"/>
+        <ellipse cx="65" cy="65" rx="32" ry="5.5" fill="#ffe2b3" opacity="0.85"/>
+        <ellipse cx="65" cy="65" rx="24" ry="4" fill="#fff" opacity="0.9"/>
+      </g>
+      <!-- Black hole shadow -->
+      <ellipse cx="65" cy="65" rx="9" ry="9" fill="#000"/>
+      <ellipse cx="65" cy="65" rx="6" ry="6" fill="#000" opacity="0.95"/>
+      <!-- Inner ring -->
+      <ellipse cx="65" cy="65" rx="11" ry="11" fill="none" stroke="#fff" stroke-width="0.8" opacity="0.9"/>
+    </svg>`
+  };
+
+  const ATLAS_STOPS = [
+    { illust: 'sol',           name: 'Sol',            dist: 'You are here',     special: 'you' },
+    { illust: 'binaryStar',    name: 'Alpha Centauri', dist: '4.37 light-years' },
+    { illust: 'nebula',        name: 'Orion Nebula',   dist: '1,344 light-years' },
+    { illust: 'galacticCore',  name: 'Sagittarius A★', dist: '26,000 light-years' },
+    { illust: 'milkyWay',      name: 'The Milky Way',  dist: 'Edge: 50,000 ly' },
+    { illust: 'andromeda',     name: 'Andromeda',      dist: '2.5 million ly' },
+    { illust: 'cluster',       name: 'Virgo Cluster',  dist: '54 million ly' },
+    { illust: 'quasar',        name: 'TON 618',        dist: '10.4 billion ly', special: 'ton' }
+  ];
+
+  const VOIDS = [
+    { gap: '4.37 ly',          flavor: 'across the local void' },
+    { gap: '~1,300 ly',        flavor: 'into the spiral arm' },
+    { gap: '~25,000 ly',       flavor: 'inward to the core' },
+    { gap: '~25,000 ly',       flavor: 'outward to the rim' },
+    { gap: '~2.5 million ly',  flavor: 'across the local group' },
+    { gap: '~50 million ly',   flavor: 'into the supercluster' },
+    { gap: '~10 billion ly',   flavor: 'here be dragons', dragons: true }
+  ];
+
+  function buildAtlas() {
+    const route = document.getElementById('atlasRoute');
+    route.innerHTML = '';
+
+    ATLAS_STOPS.forEach((stop, i) => {
+      // Waypoint
+      const wp = document.createElement('div');
+      wp.className = 'waypoint';
+      if (stop.special) wp.classList.add(stop.special);
+      wp.innerHTML = `
+        <div class="wp-illust">${ILLUST[stop.illust]}</div>
+        <div class="wp-name">${stop.name}</div>
+        <div class="wp-distance">${stop.dist}</div>
+      `;
+      route.appendChild(wp);
+
+      // Void segment after each stop except the last
+      if (i < ATLAS_STOPS.length - 1) {
+        const v = VOIDS[i];
+        const segment = document.createElement('div');
+        segment.className = 'void';
+        if (v.dragons) segment.classList.add('dragons');
+        segment.innerHTML = `
+          <div class="void-line"></div>
+          <div class="void-distance">
+            <em>${v.flavor}</em>
+            <span class="v-num">${v.gap}</span>
+          </div>
+        `;
+        route.appendChild(segment);
+      }
+    });
+  }
+
+  buildAtlas();
+</script>
+</body>
+</html>

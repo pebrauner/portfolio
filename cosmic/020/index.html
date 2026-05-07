@@ -1,0 +1,2463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>An Ancestry of Dice / Cosmic Hypothetical No. 002</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..700,0..100;1,9..144,300..700,0..100&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #04060c;
+    --bg-2: #080b14;
+    --bg-3: #0c1018;
+    --ink: #ecedef;
+    --muted: #6f7682;
+    --muted-2: #4a5160;
+    --rule: rgba(236, 237, 239, 0.08);
+    --rule-strong: rgba(236, 237, 239, 0.18);
+    --amber: #ffae3d;
+    --amber-soft: #f6c577;
+    --amber-deep: #d76b1f;
+    --bone: #ddd1b3;
+    --bone-soft: #f0e6d0;
+    --danger: #ff5a45;
+    --safe: #8fd9a8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: "opsz" 14, "SOFT" 50;
+    font-weight: 380;
+    line-height: 1.55;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(255, 174, 61, 0.04), transparent 45%),
+      radial-gradient(circle at 85% 80%, rgba(80, 130, 255, 0.025), transparent 55%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .grain {
+    position: fixed; inset: 0;
+    background-image:
+      repeating-linear-gradient(0deg, transparent 0, transparent 2px, rgba(255,255,255,0.012) 2px, rgba(255,255,255,0.012) 3px);
+    pointer-events: none;
+    z-index: 100;
+    mix-blend-mode: overlay;
+  }
+
+  .frame {
+    position: relative;
+    z-index: 2;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 28px;
+  }
+
+  /* Masthead */
+  header.masthead {
+    border-top: 1px solid var(--rule-strong);
+    border-bottom: 1px solid var(--rule);
+    padding: 16px 0 18px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: end;
+    gap: 24px;
+    margin: 32px 0 0;
+  }
+
+  .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .meta.right { text-align: right; }
+
+  .ident {
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.4em;
+    color: var(--amber);
+    text-transform: uppercase;
+  }
+
+  /* HERO */
+  .hero {
+    position: relative;
+    min-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px 0 80px;
+  }
+
+  #hero-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 3;
+    pointer-events: none;
+  }
+  .hero-content > * { pointer-events: auto; }
+
+  .hero-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .hero-tag::before, .hero-tag::after {
+    content: '';
+    flex: 0 0 auto;
+    width: 24px;
+    height: 1px;
+    background: var(--amber);
+    opacity: 0.6;
+  }
+  .hero-tag::before { width: 40px; }
+
+  .hero h1 {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 144, "SOFT" 30, "wght" 320;
+    font-size: clamp(54px, 9vw, 120px);
+    line-height: 0.9;
+    letter-spacing: -0.03em;
+    margin-bottom: 28px;
+    max-width: 11ch;
+  }
+  .hero h1 em {
+    font-style: italic;
+    font-variation-settings: "opsz" 144, "SOFT" 100, "wght" 320;
+    color: var(--amber-soft);
+  }
+
+  .hero-deck {
+    color: var(--muted);
+    font-size: 17px;
+    line-height: 1.55;
+    max-width: 52ch;
+    margin-bottom: 56px;
+    border-left: 1px solid var(--rule-strong);
+    padding-left: 22px;
+  }
+  .hero-deck strong { color: var(--ink); font-weight: 500; }
+  .hero-deck em { color: var(--amber-soft); font-style: italic; }
+
+  .throw-area {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    flex-wrap: wrap;
+  }
+
+  .throw-btn {
+    background: transparent;
+    border: 1px solid var(--amber);
+    color: var(--amber);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    padding: 18px 38px;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .throw-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--amber);
+    transform: translateX(-100%);
+    transition: transform 0.3s;
+    z-index: -1;
+  }
+  .throw-btn:hover {
+    color: var(--bg);
+    box-shadow: 0 0 24px rgba(255, 174, 61, 0.3);
+  }
+  .throw-btn:hover::before { transform: translateX(0); }
+  .throw-btn:disabled { opacity: 0.4; cursor: wait; }
+
+  .throw-result {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    opacity: 0;
+    transition: opacity 0.6s;
+  }
+  .throw-result.visible { opacity: 1; }
+  .throw-result .nums { color: var(--amber); font-size: 14px; margin-right: 6px; }
+
+  .scroll-cue {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--muted);
+    opacity: 0;
+    transition: opacity 0.6s;
+    z-index: 4;
+  }
+  .scroll-cue.visible { opacity: 1; }
+  .scroll-cue .arrow {
+    width: 1px;
+    height: 28px;
+    background: var(--amber);
+    animation: scroll-cue 2.5s infinite ease-in-out;
+    transform-origin: top;
+  }
+  @keyframes scroll-cue {
+    0%, 100% { transform: scaleY(0.4); opacity: 0.4; }
+    50% { transform: scaleY(1); opacity: 1; }
+  }
+
+  /* INTRO */
+  .intro { padding: 80px 0 60px; border-top: 1px solid var(--rule-strong); margin-top: 40px; }
+  .intro-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; }
+  .intro-lede {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 36, "wght" 400;
+    font-size: 28px;
+    line-height: 1.35;
+    letter-spacing: -0.01em;
+  }
+  .intro-lede em { font-style: italic; color: var(--amber-soft); }
+  .intro-body { color: var(--muted); font-size: 15.5px; line-height: 1.7; }
+  .intro-body p + p { margin-top: 14px; }
+  .intro-body strong { color: var(--ink); font-weight: 500; }
+
+  /* SPINE / ERAS */
+  .spine { padding: 60px 0; position: relative; }
+  .spine-header {
+    border-bottom: 1px solid var(--rule-strong);
+    padding-bottom: 16px;
+    margin-bottom: 64px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 24px;
+  }
+  .spine-header h2 {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 96, "SOFT" 30, "wght" 320;
+    font-size: clamp(36px, 5vw, 56px);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+  }
+  .spine-header h2 em {
+    font-style: italic;
+    color: var(--amber-soft);
+    font-variation-settings: "opsz" 96, "SOFT" 100, "wght" 320;
+  }
+  .spine-header .meta-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .era {
+    display: grid;
+    grid-template-columns: 100px 1fr 1fr;
+    gap: 48px;
+    padding: 48px 0;
+    border-bottom: 1px solid var(--rule);
+    align-items: start;
+    position: relative;
+  }
+  .era:last-of-type { border-bottom: none; }
+
+  .era-marker {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--amber);
+    text-align: left;
+    padding-top: 6px;
+    position: relative;
+  }
+  .era-marker .num { display: block; font-size: 11px; color: var(--amber); margin-bottom: 8px; }
+  .era-marker .when {
+    display: block;
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 24, "wght" 380;
+    font-size: 22px;
+    color: var(--ink);
+    margin-bottom: 4px;
+    letter-spacing: -0.01em;
+    text-transform: none;
+  }
+  .era-marker .where {
+    display: block;
+    color: var(--muted);
+    font-size: 9.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+
+  .era-illust {
+    aspect-ratio: 1;
+    background: var(--bg-2);
+    border: 1px solid var(--rule);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+  .era-illust svg { width: 100%; height: 100%; display: block; }
+  .era-illust::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 100%, transparent 60%, rgba(0,0,0,0.4) 100%);
+    pointer-events: none;
+  }
+
+  .era-text { padding-top: 6px; }
+  .era-text h3 {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 48, "wght" 380, "SOFT" 30;
+    font-size: 32px;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+  }
+  .era-text h3 em { font-style: italic; color: var(--amber-soft); }
+  .era-text .lede {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 18, "wght" 420;
+    font-size: 16px;
+    color: var(--ink);
+    line-height: 1.5;
+    margin-bottom: 18px;
+  }
+  .era-text p { color: var(--muted); font-size: 14.5px; line-height: 1.65; }
+  .era-text p + p { margin-top: 12px; }
+  .era-text strong { color: var(--ink); font-weight: 500; }
+  .era-text em.term { color: var(--amber-soft); font-style: italic; }
+  .era-text .pull {
+    margin-top: 18px;
+    padding: 10px 16px;
+    border-left: 2px solid var(--amber);
+    background: rgba(255, 174, 61, 0.04);
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-variation-settings: "opsz" 18, "wght" 420, "SOFT" 80;
+    font-size: 14.5px;
+    color: var(--amber-soft);
+    line-height: 1.55;
+  }
+
+  /* CALENDAR */
+  .calendar-section { padding: 96px 0; border-top: 1px solid var(--rule-strong); }
+  .calendar-header {
+    border-bottom: 1px solid var(--rule-strong);
+    padding-bottom: 16px;
+    margin-bottom: 48px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 24px;
+  }
+  .calendar-header h2 {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 96, "SOFT" 30, "wght" 320;
+    font-size: clamp(36px, 5vw, 56px);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+  }
+  .calendar-header h2 em {
+    font-style: italic;
+    color: var(--amber-soft);
+    font-variation-settings: "opsz" 96, "SOFT" 100, "wght" 320;
+  }
+  .calendar-header .meta-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .calendar-lede {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 36, "wght" 380;
+    font-size: 22px;
+    line-height: 1.45;
+    color: var(--ink);
+    max-width: 64ch;
+    margin-bottom: 56px;
+  }
+  .calendar-lede em { font-style: italic; color: var(--amber-soft); }
+  .calendar-lede .anchor {
+    color: var(--muted);
+    font-size: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.05em;
+    margin-top: 14px;
+    display: block;
+  }
+
+  .cal-grid {
+    border: 1px solid var(--rule-strong);
+    background: var(--bg-2);
+    padding: 32px 32px 100px;
+    margin-bottom: 28px;
+  }
+
+  .cal-months {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 0;
+    margin-bottom: 16px;
+    height: 36px;
+    position: relative;
+  }
+  .cal-month {
+    border-left: 1px solid var(--rule-strong);
+    position: relative;
+    padding: 6px 0 0 6px;
+  }
+  .cal-month:first-child { border-left: 1px solid var(--rule-strong); }
+  .cal-months::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 0;
+    width: 1px; height: 100%;
+    background: var(--rule-strong);
+  }
+  .cal-month-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .cal-track {
+    height: 3px;
+    background: linear-gradient(to right,
+      rgba(255, 174, 61, 0.1),
+      rgba(255, 174, 61, 0.2) 70%,
+      rgba(255, 174, 61, 0.5) 95%,
+      var(--amber) 100%);
+    position: relative;
+    margin-bottom: 70px;
+    box-shadow: 0 0 24px rgba(255, 174, 61, 0.15);
+  }
+
+  .cal-marker {
+    position: absolute;
+    top: -7px;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .cal-marker .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--amber);
+    box-shadow: 0 0 10px rgba(255, 174, 61, 0.8);
+  }
+  .cal-marker .stem {
+    width: 1px;
+    height: 14px;
+    background: var(--amber);
+    opacity: 0.5;
+  }
+  .cal-marker .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink);
+    white-space: nowrap;
+    text-align: center;
+    line-height: 1.4;
+  }
+  .cal-marker .label .game { color: var(--amber); display: block; font-size: 9.5px; }
+  .cal-marker .label .date { color: var(--muted); font-size: 8.5px; margin-top: 2px; }
+  .cal-marker.below { top: auto; bottom: -7px; flex-direction: column-reverse; }
+
+  .cal-zoom {
+    margin-top: 0;
+    border: 1px solid var(--rule-strong);
+    padding: 32px 32px 80px;
+    background: rgba(255, 174, 61, 0.03);
+  }
+  .cal-zoom-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 32px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .cal-zoom h3 {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 36, "wght" 400, "SOFT" 30;
+    font-size: 24px;
+    letter-spacing: -0.01em;
+  }
+  .cal-zoom h3 em { font-style: italic; color: var(--amber-soft); }
+  .cal-zoom-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .cal-zoom-track {
+    height: 3px;
+    background: var(--amber);
+    position: relative;
+    margin-bottom: 70px;
+    box-shadow: 0 0 16px rgba(255, 174, 61, 0.4);
+  }
+
+  .cal-takeaway {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 36, "wght" 380;
+    font-size: 22px;
+    line-height: 1.45;
+    color: var(--ink);
+    margin-top: 32px;
+    padding: 24px 28px;
+    border-left: 2px solid var(--amber);
+    background: rgba(255, 174, 61, 0.04);
+  }
+  .cal-takeaway em { font-style: italic; color: var(--amber-soft); }
+
+  /* ATLAS */
+  .atlas-section { padding: 96px 0; border-top: 1px solid var(--rule-strong); }
+  .atlas-header {
+    border-bottom: 1px solid var(--rule-strong);
+    padding-bottom: 16px;
+    margin-bottom: 48px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 24px;
+  }
+  .atlas-header h2 {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 96, "SOFT" 30, "wght" 320;
+    font-size: clamp(36px, 5vw, 56px);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+  }
+  .atlas-header h2 em {
+    font-style: italic;
+    color: var(--amber-soft);
+    font-variation-settings: "opsz" 96, "SOFT" 100, "wght" 320;
+  }
+  .atlas-header .meta-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .atlas-lede { color: var(--muted); font-size: 16px; line-height: 1.6; max-width: 62ch; margin-bottom: 48px; }
+  .atlas-lede strong { color: var(--ink); }
+
+  .atlas-map {
+    border: 1px solid var(--rule-strong);
+    background: linear-gradient(180deg, #06080f 0%, #04060c 100%);
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .atlas-map::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(0.5px 0.5px at 12% 22%, rgba(255,255,255,0.3), transparent),
+      radial-gradient(0.8px 0.8px at 38% 78%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(0.5px 0.5px at 62% 18%, rgba(255,255,255,0.3), transparent),
+      radial-gradient(0.5px 0.5px at 81% 64%, rgba(255,255,255,0.3), transparent),
+      radial-gradient(0.5px 0.5px at 24% 51%, rgba(255,255,255,0.3), transparent);
+    pointer-events: none;
+    opacity: 0.5;
+  }
+  .atlas-map svg { display: block; width: 100%; height: auto; position: relative; z-index: 1; }
+
+  .atlas-legend {
+    display: flex;
+    gap: 32px;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--rule);
+    flex-wrap: wrap;
+  }
+  .atlas-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .atlas-legend-line { width: 28px; height: 1.5px; background: var(--amber); }
+  .atlas-legend-line.indigenous { background: var(--bone); }
+  .atlas-legend-line.fantasy { background: #b4c8ff; }
+  .atlas-legend-line.warmaking { background: var(--amber); }
+
+  /* SOURCES */
+  .sources { padding: 80px 0 48px; border-top: 1px solid var(--rule-strong); }
+  .sources-header {
+    border-bottom: 1px solid var(--rule-strong);
+    padding-bottom: 16px;
+    margin-bottom: 32px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 24px;
+  }
+  .sources-header h2 {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 96, "SOFT" 30, "wght" 320;
+    font-size: clamp(36px, 5vw, 56px);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+  }
+  .sources-header h2 em {
+    font-style: italic;
+    color: var(--amber-soft);
+    font-variation-settings: "opsz" 96, "SOFT" 100, "wght" 320;
+  }
+  .sources-header .meta-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .sources-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 0;
+    border: 1px solid var(--rule-strong);
+  }
+  .sources-list { padding: 28px 32px; border-right: 1px solid var(--rule); }
+  .sources-list h4, .sources-notes h4 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 18px;
+  }
+  .src-item { padding: 14px 0; border-bottom: 1px dashed var(--rule); }
+  .src-item:last-child { border-bottom: none; }
+  .src-claim {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 16, "wght" 420;
+    font-size: 14px;
+    color: var(--ink);
+    margin-bottom: 4px;
+    line-height: 1.4;
+  }
+  .src-claim .val { color: var(--amber); font-variation-settings: "opsz" 16, "wght" 500; }
+  .src-attr {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .src-attr a {
+    color: var(--muted);
+    text-decoration: underline;
+    text-decoration-color: var(--rule-strong);
+    text-underline-offset: 2px;
+    transition: color 0.2s;
+  }
+  .src-attr a:hover { color: var(--amber-soft); }
+
+  .sources-notes { padding: 28px 32px; background: rgba(255, 174, 61, 0.02); }
+  .note { margin-bottom: 18px; padding-bottom: 18px; border-bottom: 1px dashed var(--rule); }
+  .note:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+  .note-title {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-variation-settings: "opsz" 16, "wght" 420, "SOFT" 80;
+    font-size: 14px;
+    color: var(--amber-soft);
+    margin-bottom: 6px;
+  }
+  .note-body {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 14, "wght" 380;
+    font-size: 13.5px;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+
+  footer.foot {
+    padding: 24px 0;
+    border-top: 1px solid var(--rule);
+    display: flex;
+    justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 32px;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 880px) {
+    header.masthead { grid-template-columns: 1fr; gap: 8px; }
+    .meta.right { text-align: left; }
+    .intro-grid { grid-template-columns: 1fr; gap: 32px; }
+    .intro-lede { font-size: 22px; }
+    .era { grid-template-columns: 1fr; gap: 24px; padding: 36px 0; }
+    .era-marker { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+    .era-marker .num { display: inline; margin: 0; }
+    .era-marker .when { display: inline; font-size: 18px; margin: 0; }
+    .era-marker .where { display: inline; }
+    .era-illust { aspect-ratio: 16/9; max-width: 360px; }
+    .spine-header, .calendar-header, .atlas-header, .sources-header { grid-template-columns: 1fr; gap: 8px; }
+    .sources-grid { grid-template-columns: 1fr; }
+    .sources-list { border-right: none; border-bottom: 1px solid var(--rule); }
+    .cal-grid { padding: 20px 20px 80px; }
+    .cal-zoom { padding: 20px 20px 80px; }
+    footer.foot { flex-direction: column; gap: 8px; }
+    .hero h1 { font-size: clamp(40px, 11vw, 80px); max-width: none; }
+    .hero-deck { font-size: 15px; }
+    .throw-area { gap: 16px; }
+  }
+
+  @media (max-width: 600px) {
+    .frame { padding: 0 18px; }
+    .hero { min-height: 88vh; padding: 40px 0 60px; }
+  }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<canvas id="hero-canvas"></canvas>
+
+<div class="frame">
+
+  <header class="masthead">
+    <div class="meta">Edition / No. 002</div>
+    <div class="ident">Cosmic Hypothetical</div>
+    <div class="meta right">Tabletop Cosmology / 5,126 Years</div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-tag">A Throw, Uncovered</div>
+      <h1>An ancestry of <em>dice</em>.</h1>
+      <p class="hero-deck">
+        The <strong>d20</strong> you rolled on Tuesday has a 5,126-year ancestry. Polyhedral dice from <strong>Ptolemaic Egypt</strong>. Race games written in cuneiform. A Prussian artillery officer in 1812. A pulp novelist in 1950. Throw the dice. <em>Watch the lineage assemble.</em>
+      </p>
+      <div class="throw-area">
+        <button class="throw-btn" id="throwBtn">Throw the Dice</button>
+        <span class="throw-result" id="throwResult"></span>
+      </div>
+    </div>
+    <div class="scroll-cue" id="scrollCue">
+      <span>Scroll</span>
+      <span class="arrow"></span>
+    </div>
+  </section>
+
+  <section class="intro">
+    <div class="intro-grid">
+      <div class="intro-lede">
+        Most things humans invent <em>die</em>. Tabletop games don't. They mutate, they cross-pollinate, they get adopted and renamed by new empires, but the core ritual stays. Sit at a flat surface. Agree on rules. Introduce randomness. Take turns. See what happens.
+      </div>
+      <div class="intro-body">
+        <p>What follows is a <strong>spine of nine ancestors</strong>: a single line of descent from the oldest known board game to the boxed set Gary Gygax printed in 1974. Each ancestor contributed something to your modern D&amp;D session that wasn't there before.</p>
+        <p>The line isn't tidy. There are gaps of two thousand years between some entries. There are parallel branches not shown. But every game on this list directly handed something to the next, and the last one in the chain handed it to <strong>you</strong>.</p>
+        <p>Begin at 3,100 BCE. End in your living room.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="spine">
+    <div class="spine-header">
+      <h2>The <em>spine</em>.</h2>
+      <div class="meta-tag">Nine ancestors / 5,126 years</div>
+    </div>
+
+    <article class="era">
+      <div class="era-marker">
+        <span class="num">01</span>
+        <span class="when">~3100 BCE</span>
+        <span class="where">Pre-dynastic Egypt</span>
+      </div>
+      <div class="era-illust">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="senet-board" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#ddd1b3" stop-opacity="0.9"/>
+              <stop offset="100%" stop-color="#a8966a" stop-opacity="0.8"/>
+            </linearGradient>
+          </defs>
+          <g transform="translate(20 70)">
+            <rect width="160" height="60" fill="url(#senet-board)" stroke="#8b7a4a" stroke-width="0.8"/>
+            <g stroke="#8b7a4a" stroke-width="0.6" opacity="0.7">
+              <line x1="16" y1="0" x2="16" y2="60"/>
+              <line x1="32" y1="0" x2="32" y2="60"/>
+              <line x1="48" y1="0" x2="48" y2="60"/>
+              <line x1="64" y1="0" x2="64" y2="60"/>
+              <line x1="80" y1="0" x2="80" y2="60"/>
+              <line x1="96" y1="0" x2="96" y2="60"/>
+              <line x1="112" y1="0" x2="112" y2="60"/>
+              <line x1="128" y1="0" x2="128" y2="60"/>
+              <line x1="144" y1="0" x2="144" y2="60"/>
+              <line x1="0" y1="20" x2="160" y2="20"/>
+              <line x1="0" y1="40" x2="160" y2="40"/>
+            </g>
+            <g fill="#8b7a4a" opacity="0.85">
+              <g transform="translate(88 50)">
+                <circle cx="0" cy="-3" r="2" fill="none" stroke="#8b7a4a" stroke-width="1"/>
+                <line x1="0" y1="-1" x2="0" y2="4" stroke="#8b7a4a" stroke-width="1"/>
+                <line x1="-2" y1="1" x2="2" y2="1" stroke="#8b7a4a" stroke-width="1"/>
+              </g>
+              <g transform="translate(104 50)">
+                <path d="M -3 -1 q 1.5 -2 3 0 q 1.5 2 3 0" stroke="#8b7a4a" stroke-width="0.8" fill="none"/>
+                <path d="M -3 1 q 1.5 -2 3 0 q 1.5 2 3 0" stroke="#8b7a4a" stroke-width="0.8" fill="none"/>
+                <path d="M -3 3 q 1.5 -2 3 0 q 1.5 2 3 0" stroke="#8b7a4a" stroke-width="0.8" fill="none"/>
+              </g>
+              <g transform="translate(120 50)">
+                <path d="M -3 0 q 0 -3 3 -3 q 3 0 3 2" fill="none" stroke="#8b7a4a" stroke-width="0.8"/>
+                <line x1="0" y1="0" x2="0" y2="3" stroke="#8b7a4a" stroke-width="0.8"/>
+              </g>
+            </g>
+            <circle cx="8" cy="10" r="3.5" fill="#3a2a1a"/>
+            <circle cx="24" cy="10" r="3.5" fill="#3a2a1a"/>
+            <circle cx="40" cy="10" r="3.5" fill="#f0e6d0" stroke="#3a2a1a" stroke-width="0.6"/>
+            <circle cx="56" cy="30" r="3.5" fill="#3a2a1a"/>
+            <circle cx="72" cy="30" r="3.5" fill="#f0e6d0" stroke="#3a2a1a" stroke-width="0.6"/>
+            <circle cx="88" cy="10" r="3.5" fill="#f0e6d0" stroke="#3a2a1a" stroke-width="0.6"/>
+          </g>
+          <g transform="translate(60 30) rotate(-15)" fill="#c9b88a" stroke="#8b7a4a" stroke-width="0.5">
+            <rect x="0" y="0" width="36" height="3.5" rx="1.5"/>
+            <circle cx="6" cy="1.7" r="0.8" fill="#3a2a1a"/>
+            <circle cx="18" cy="1.7" r="0.8" fill="#3a2a1a"/>
+            <circle cx="30" cy="1.7" r="0.8" fill="#3a2a1a"/>
+          </g>
+          <g transform="translate(110 25) rotate(8)" fill="#c9b88a" stroke="#8b7a4a" stroke-width="0.5">
+            <rect x="0" y="0" width="36" height="3.5" rx="1.5"/>
+            <circle cx="6" cy="1.7" r="0.8" fill="#3a2a1a"/>
+            <circle cx="30" cy="1.7" r="0.8" fill="#3a2a1a"/>
+          </g>
+        </svg>
+      </div>
+      <div class="era-text">
+        <h3>Senet, the <em>game of passing</em>.</h3>
+        <div class="lede">The oldest tabletop game we know existed. Played for two and a half millennia, then forgotten.</div>
+        <p>Senet appears in Egyptian tomb paintings as early as <strong>3100 BCE</strong>, where pharaohs are shown playing it against unseen opponents. Boards have been pulled from tombs across three thousand years, including Tutankhamun's. A racing game on thirty squares, three rows of ten, decided by tossing four flat sticks instead of dice.</p>
+        <p>The full rules are lost. We have boards, we have pieces, we have paintings of people playing, but no surviving instruction manual. Reconstructions are educated guesses. The name itself, <em class="term">zenet</em>, means roughly "the game of passing": a journey through the afterlife, played out in miniature.</p>
+        <div class="pull">
+          The deep root. Before this, no game. After this, every game.
+        </div>
+      </div>
+    </article>
+
+    <article class="era">
+      <div class="era-marker">
+        <span class="num">02</span>
+        <span class="when">~2600 BCE</span>
+        <span class="where">Sumer (modern Iraq)</span>
+      </div>
+      <div class="era-illust">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="ur-board" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#3a2a4a" stop-opacity="0.95"/>
+              <stop offset="100%" stop-color="#1a1426" stop-opacity="0.95"/>
+            </linearGradient>
+          </defs>
+          <g transform="translate(20 60)">
+            <rect width="64" height="48" fill="url(#ur-board)" stroke="#9985a8" stroke-width="0.8"/>
+            <g stroke="#9985a8" stroke-width="0.5" opacity="0.7">
+              <line x1="16" y1="0" x2="16" y2="48"/>
+              <line x1="32" y1="0" x2="32" y2="48"/>
+              <line x1="48" y1="0" x2="48" y2="48"/>
+              <line x1="0" y1="16" x2="64" y2="16"/>
+              <line x1="0" y1="32" x2="64" y2="32"/>
+            </g>
+            <rect x="64" y="16" width="32" height="16" fill="url(#ur-board)" stroke="#9985a8" stroke-width="0.8"/>
+            <line x1="80" y1="16" x2="80" y2="32" stroke="#9985a8" stroke-width="0.5" opacity="0.7"/>
+            <rect x="96" y="0" width="32" height="48" fill="url(#ur-board)" stroke="#9985a8" stroke-width="0.8"/>
+            <g stroke="#9985a8" stroke-width="0.5" opacity="0.7">
+              <line x1="112" y1="0" x2="112" y2="48"/>
+              <line x1="96" y1="16" x2="128" y2="16"/>
+              <line x1="96" y1="32" x2="128" y2="32"/>
+            </g>
+            <g>
+              <g transform="translate(8 8)"><circle r="3" fill="none" stroke="#ffae3d" stroke-width="0.6"/><circle r="1" fill="#ffae3d"/><line x1="0" y1="-3" x2="0" y2="3" stroke="#ffae3d" stroke-width="0.5"/><line x1="-3" y1="0" x2="3" y2="0" stroke="#ffae3d" stroke-width="0.5"/><line x1="-2.1" y1="-2.1" x2="2.1" y2="2.1" stroke="#ffae3d" stroke-width="0.5"/><line x1="-2.1" y1="2.1" x2="2.1" y2="-2.1" stroke="#ffae3d" stroke-width="0.5"/></g>
+              <g transform="translate(56 8)"><circle r="3" fill="none" stroke="#ffae3d" stroke-width="0.6"/><circle r="1" fill="#ffae3d"/><line x1="0" y1="-3" x2="0" y2="3" stroke="#ffae3d" stroke-width="0.5"/><line x1="-3" y1="0" x2="3" y2="0" stroke="#ffae3d" stroke-width="0.5"/></g>
+              <g transform="translate(40 24)"><circle r="3" fill="none" stroke="#ffae3d" stroke-width="0.6"/><circle r="1" fill="#ffae3d"/><line x1="-2.1" y1="-2.1" x2="2.1" y2="2.1" stroke="#ffae3d" stroke-width="0.5"/><line x1="-2.1" y1="2.1" x2="2.1" y2="-2.1" stroke="#ffae3d" stroke-width="0.5"/></g>
+              <g transform="translate(8 40)"><circle r="3" fill="none" stroke="#ffae3d" stroke-width="0.6"/><circle r="1" fill="#ffae3d"/><line x1="0" y1="-3" x2="0" y2="3" stroke="#ffae3d" stroke-width="0.5"/><line x1="-3" y1="0" x2="3" y2="0" stroke="#ffae3d" stroke-width="0.5"/></g>
+              <g transform="translate(120 24)"><circle r="3" fill="none" stroke="#ffae3d" stroke-width="0.6"/><circle r="1" fill="#ffae3d"/><line x1="0" y1="-3" x2="0" y2="3" stroke="#ffae3d" stroke-width="0.5"/><line x1="-3" y1="0" x2="3" y2="0" stroke="#ffae3d" stroke-width="0.5"/></g>
+            </g>
+            <circle cx="24" cy="24" r="3.5" fill="#f0e6d0" stroke="#3a2a1a" stroke-width="0.6"/>
+            <circle cx="72" cy="24" r="3.5" fill="#3a2a1a"/>
+            <circle cx="104" cy="40" r="3.5" fill="#f0e6d0" stroke="#3a2a1a" stroke-width="0.6"/>
+          </g>
+          <g transform="translate(72 22)">
+            <polygon points="0,12 8,0 16,12" fill="#c9b88a" stroke="#3a2a1a" stroke-width="0.6"/>
+            <circle cx="5" cy="9" r="0.8" fill="#3a2a1a"/>
+            <circle cx="11" cy="6" r="0.8" fill="#3a2a1a"/>
+          </g>
+          <g transform="translate(96 18)">
+            <polygon points="0,12 8,0 16,12" fill="#c9b88a" stroke="#3a2a1a" stroke-width="0.6"/>
+            <circle cx="8" cy="6" r="0.8" fill="#3a2a1a"/>
+          </g>
+          <g transform="translate(120 28)">
+            <polygon points="0,12 8,0 16,12" fill="#c9b88a" stroke="#3a2a1a" stroke-width="0.6"/>
+          </g>
+        </svg>
+      </div>
+      <div class="era-text">
+        <h3>The <em>Royal Game</em> of Ur.</h3>
+        <div class="lede">The oldest game whose rules we have actually deciphered. Cuneiform receipts, tetrahedral dice, the rosettes that gave you safety.</div>
+        <p>Sir Leonard Woolley pulled five lavish boards out of the royal cemetery at Ur in the 1920s, made of <strong>wood, lapis lazuli, and inlaid shell</strong>. They were beautiful and useless: nobody knew how the game was played. The rules had been lost for two thousand years.</p>
+        <p>Then in the early 1980s, a curator at the British Museum named <strong>Irving Finkel</strong> translated a clay tablet that had been sitting in the collection since 1880. It had been carved in <strong>177 BCE by a Babylonian scribe named Itti-Marduk-balatu</strong>, and it described how to play. A race game for two players, seven pieces each, dice rolls determined by <strong>four-sided knucklebones</strong>. Land on a rosette and you were safe.</p>
+        <div class="pull">
+          The first dice in this story aren't six-sided. They're tetrahedral. Half of you would call them d4s.
+        </div>
+      </div>
+    </article>
+
+    <article class="era">
+      <div class="era-marker">
+        <span class="num">03</span>
+        <span class="when">~200 BCE</span>
+        <span class="where">Ptolemaic Egypt</span>
+      </div>
+      <div class="era-illust">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="d20-faience" cx="40%" cy="35%">
+              <stop offset="0%" stop-color="#9fb8c9" stop-opacity="0.95"/>
+              <stop offset="50%" stop-color="#5a7a8c" stop-opacity="0.95"/>
+              <stop offset="100%" stop-color="#2a3a48" stop-opacity="1"/>
+            </radialGradient>
+          </defs>
+          <g transform="translate(100 100)">
+            <circle r="62" fill="url(#d20-faience)" opacity="0.15"/>
+            <g stroke="#1a2530" stroke-width="0.8" stroke-linejoin="round">
+              <polygon points="0,-50 28,-15 -28,-15" fill="url(#d20-faience)"/>
+              <polygon points="0,-50 28,-15 50,-30" fill="#3a5060"/>
+              <polygon points="0,-50 -28,-15 -50,-30" fill="#3a5060"/>
+              <polygon points="28,-15 -28,-15 0,30" fill="url(#d20-faience)" opacity="0.95"/>
+              <polygon points="28,-15 50,-30 55,8" fill="#2c3e4c"/>
+              <polygon points="-28,-15 -50,-30 -55,8" fill="#2c3e4c"/>
+              <polygon points="28,-15 55,8 0,30" fill="#3a5060"/>
+              <polygon points="-28,-15 -55,8 0,30" fill="#3a5060"/>
+              <polygon points="50,-30 55,8 28,30" fill="#1f2a35"/>
+              <polygon points="-50,-30 -55,8 -28,30" fill="#1f2a35"/>
+              <polygon points="0,30 55,8 28,30" fill="#2c3e4c"/>
+              <polygon points="0,30 -55,8 -28,30" fill="#2c3e4c"/>
+              <polygon points="0,30 28,30 0,55" fill="url(#d20-faience)" opacity="0.85"/>
+              <polygon points="0,30 -28,30 0,55" fill="url(#d20-faience)" opacity="0.85"/>
+            </g>
+            <g fill="#dde7f0" font-family="Fraunces, serif" font-size="11" text-anchor="middle" font-style="italic" opacity="0.9">
+              <text x="0" y="-25">Α</text>
+              <text x="0" y="5">Κ</text>
+              <text x="0" y="44">Ξ</text>
+            </g>
+            <g fill="#9fb8c9" font-family="Fraunces, serif" font-size="9" text-anchor="middle" font-style="italic" opacity="0.6">
+              <text x="33" y="-22">Δ</text>
+              <text x="-33" y="-22">Β</text>
+              <text x="38" y="3">Π</text>
+              <text x="-38" y="3">Λ</text>
+              <text x="14" y="33">Ν</text>
+              <text x="-14" y="33">Μ</text>
+            </g>
+            <ellipse cx="-12" cy="-30" rx="10" ry="6" fill="#fff" opacity="0.3"/>
+          </g>
+        </svg>
+      </div>
+      <div class="era-text">
+        <h3>The <em>icosahedron</em>, already.</h3>
+        <div class="lede">Two thousand years before Gygax, somebody in Egypt carved a d20 out of green serpentine.</div>
+        <p>It sits in the Metropolitan Museum of Art, gallery 138. <strong>Twenty triangular faces</strong>, each inscribed with a Greek letter doubling as a number. Dated somewhere between the 2nd century BCE and the 4th century CE: late Ptolemaic into Roman Egypt. Made of faience or serpentine, both materials Egyptians used for amulets.</p>
+        <p>Nobody is entirely sure what it was for. The Met thinks <strong>divination</strong>: cast the die, look up the corresponding line on an oracle stone in a public square. One unique example from Dakhleh Oasis has the names of Egyptian gods on each face instead of numbers. Casting the die was casting a question to the divine.</p>
+        <p>The geometry of the modern d20 is not a 1970s invention. The plastic is. The shape is older than the New Testament, the Quran, and the entire history of Christendom.</p>
+        <div class="pull">
+          You are rolling a Platonic solid that Euclid described in <em class="term">Elements</em>. There are only five regular polyhedra. Twenty is the most.
+        </div>
+      </div>
+    </article>
+
+    <article class="era">
+      <div class="era-marker">
+        <span class="num">04</span>
+        <span class="when">~600 CE</span>
+        <span class="where">Gupta India</span>
+      </div>
+      <div class="era-illust">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="chess-board" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#c9b88a" stop-opacity="0.9"/>
+              <stop offset="100%" stop-color="#8a7549" stop-opacity="0.9"/>
+            </linearGradient>
+          </defs>
+          <g transform="translate(100 110)">
+            <g transform="skewX(-12) translate(-72 -36)">
+              <rect width="144" height="72" fill="url(#chess-board)" stroke="#5a4828" stroke-width="0.8"/>
+              <g fill="#3a2a14" opacity="0.7">
+                <rect x="18" y="0" width="18" height="9"/><rect x="54" y="0" width="18" height="9"/><rect x="90" y="0" width="18" height="9"/><rect x="126" y="0" width="18" height="9"/>
+                <rect x="0" y="9" width="18" height="9"/><rect x="36" y="9" width="18" height="9"/><rect x="72" y="9" width="18" height="9"/><rect x="108" y="9" width="18" height="9"/>
+                <rect x="18" y="18" width="18" height="9"/><rect x="54" y="18" width="18" height="9"/><rect x="90" y="18" width="18" height="9"/><rect x="126" y="18" width="18" height="9"/>
+                <rect x="0" y="27" width="18" height="9"/><rect x="36" y="27" width="18" height="9"/><rect x="72" y="27" width="18" height="9"/><rect x="108" y="27" width="18" height="9"/>
+                <rect x="18" y="36" width="18" height="9"/><rect x="54" y="36" width="18" height="9"/><rect x="90" y="36" width="18" height="9"/><rect x="126" y="36" width="18" height="9"/>
+                <rect x="0" y="45" width="18" height="9"/><rect x="36" y="45" width="18" height="9"/><rect x="72" y="45" width="18" height="9"/><rect x="108" y="45" width="18" height="9"/>
+                <rect x="18" y="54" width="18" height="9"/><rect x="54" y="54" width="18" height="9"/><rect x="90" y="54" width="18" height="9"/><rect x="126" y="54" width="18" height="9"/>
+                <rect x="0" y="63" width="18" height="9"/><rect x="36" y="63" width="18" height="9"/><rect x="72" y="63" width="18" height="9"/><rect x="108" y="63" width="18" height="9"/>
+              </g>
+            </g>
+          </g>
+          <g transform="translate(70 80)">
+            <ellipse cx="0" cy="20" rx="6" ry="2" fill="#1a1410" opacity="0.5"/>
+            <path d="M -4 18 L -4 8 L -2 6 L -2 0 L 2 0 L 2 6 L 4 8 L 4 18 Z" fill="#3a2a1a" stroke="#1a1410" stroke-width="0.4"/>
+            <circle cx="0" cy="-3" r="2" fill="#3a2a1a" stroke="#1a1410" stroke-width="0.4"/>
+          </g>
+          <g transform="translate(95 95)">
+            <ellipse cx="0" cy="14" rx="6" ry="2" fill="#1a1410" opacity="0.5"/>
+            <path d="M -4 12 L -4 4 L -3 2 L 3 2 L 4 4 L 4 12 Z" fill="#f0e6d0" stroke="#3a2a1a" stroke-width="0.4"/>
+            <circle cx="0" cy="0" r="2" fill="#f0e6d0" stroke="#3a2a1a" stroke-width="0.4"/>
+            <path d="M 0 1 q -2 1 -2 3" stroke="#3a2a1a" stroke-width="0.6" fill="none"/>
+          </g>
+          <g transform="translate(120 90)">
+            <ellipse cx="0" cy="14" rx="6" ry="2" fill="#1a1410" opacity="0.5"/>
+            <path d="M -4 12 L -4 4 L -2 2 L -2 -2 L 2 -2 L 4 0 L 4 12 Z" fill="#3a2a1a" stroke="#1a1410" stroke-width="0.4"/>
+          </g>
+          <g transform="translate(135 75)">
+            <ellipse cx="0" cy="14" rx="6" ry="2" fill="#1a1410" opacity="0.5"/>
+            <path d="M -4 12 L -4 2 L -3 0 L 3 0 L 4 2 L 4 12 Z" fill="#f0e6d0" stroke="#3a2a1a" stroke-width="0.4"/>
+            <rect x="-3" y="-2" width="6" height="2" fill="#f0e6d0" stroke="#3a2a1a" stroke-width="0.4"/>
+          </g>
+          <g transform="translate(85 130)">
+            <ellipse cx="0" cy="10" rx="3.5" ry="1" fill="#1a1410" opacity="0.5"/>
+            <circle cx="0" cy="0" r="2" fill="#3a2a1a"/>
+            <path d="M -2 1 L -2 8 L 2 8 L 2 1 Z" fill="#3a2a1a"/>
+          </g>
+          <g transform="translate(105 135)">
+            <ellipse cx="0" cy="10" rx="3.5" ry="1" fill="#1a1410" opacity="0.5"/>
+            <circle cx="0" cy="0" r="2" fill="#f0e6d0" stroke="#3a2a1a" stroke-width="0.3"/>
+            <path d="M -2 1 L -2 8 L 2 8 L 2 1 Z" fill="#f0e6d0" stroke="#3a2a1a" stroke-width="0.3"/>
+          </g>
+          <g transform="translate(125 130)">
+            <ellipse cx="0" cy="10" rx="3.5" ry="1" fill="#1a1410" opacity="0.5"/>
+            <circle cx="0" cy="0" r="2" fill="#3a2a1a"/>
+            <path d="M -2 1 L -2 8 L 2 8 L 2 1 Z" fill="#3a2a1a"/>
+          </g>
+        </svg>
+      </div>
+      <div class="era-text">
+        <h3>Chaturanga, the <em>four-armed</em> game.</h3>
+        <div class="lede">War as abstraction. The first time you simulated an army on a grid.</div>
+        <p>The Sanskrit name means "four limbs," for the four divisions of an Indian army: <strong>infantry, cavalry, elephants, and chariots</strong>. Played on an 8&times;8 grid that was already centuries old. Each piece moved differently. The goal was to capture the opposing king, called the raja.</p>
+        <p>Chaturanga didn't stay in India. Persian merchants took it west, where it became <em class="term">shatranj</em>. Arab traders carried that into the Mediterranean. By the 15th century, European court culture had renamed every piece: the vizier became the queen, the elephant became the bishop, the chariot became the rook. <strong>The same game, four different empires of metaphor pasted on top.</strong></p>
+        <p>The bones of every modern wargame, miniatures game, and tactical strategy game start here. A board, asymmetric pieces with different rules, an objective to capture. Chaturanga is the proof of concept.</p>
+        <div class="pull">
+          A war game with no dice. The mutation that adds back randomness comes thirteen centuries later, in Prussia.
+        </div>
+      </div>
+    </article>
+
+    <article class="era">
+      <div class="era-marker">
+        <span class="num">05</span>
+        <span class="when">1812</span>
+        <span class="where">Berlin</span>
+      </div>
+      <div class="era-illust">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="topo" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+              <path d="M 0 10 q 5 -5 10 0 t 10 0" stroke="#6f7682" stroke-width="0.4" fill="none" opacity="0.4"/>
+            </pattern>
+          </defs>
+          <rect x="20" y="30" width="160" height="140" fill="#1a1814" stroke="#6f7682" stroke-width="0.6"/>
+          <rect x="20" y="30" width="160" height="140" fill="url(#topo)"/>
+          <g stroke="#a89668" stroke-width="0.6" fill="none" opacity="0.7">
+            <path d="M 28 60 q 30 -10 60 0 t 60 0 q 14 4 24 12"/>
+            <path d="M 28 80 q 30 -10 60 0 t 60 0 q 14 4 24 12"/>
+            <path d="M 28 100 q 30 -8 60 2 t 60 0 q 14 4 24 12"/>
+            <path d="M 28 120 q 30 -6 60 2 t 60 0 q 14 4 24 12"/>
+            <path d="M 28 140 q 30 -6 60 2 t 60 0 q 14 4 24 12"/>
+          </g>
+          <path d="M 30 140 q 20 -8 35 -4 q 15 4 32 -8 q 18 -10 32 4 q 14 14 30 -2 q 12 -10 22 0" stroke="#5a7a9a" stroke-width="2" fill="none" opacity="0.7"/>
+          <g stroke="#6f7682" stroke-width="0.3" opacity="0.25">
+            <line x1="60" y1="30" x2="60" y2="170"/>
+            <line x1="100" y1="30" x2="100" y2="170"/>
+            <line x1="140" y1="30" x2="140" y2="170"/>
+            <line x1="20" y1="70" x2="180" y2="70"/>
+            <line x1="20" y1="110" x2="180" y2="110"/>
+            <line x1="20" y1="150" x2="180" y2="150"/>
+          </g>
+          <g>
+            <rect x="50" y="55" width="14" height="9" fill="#2a4a7a" stroke="#dde6f5" stroke-width="0.6"/>
+            <line x1="50" y1="55" x2="64" y2="64" stroke="#dde6f5" stroke-width="0.4"/>
+            <line x1="64" y1="55" x2="50" y2="64" stroke="#dde6f5" stroke-width="0.4"/>
+          </g>
+          <g>
+            <rect x="70" y="60" width="14" height="9" fill="#2a4a7a" stroke="#dde6f5" stroke-width="0.6"/>
+            <line x1="70" y1="60" x2="84" y2="69" stroke="#dde6f5" stroke-width="0.4"/>
+            <line x1="84" y1="60" x2="70" y2="69" stroke="#dde6f5" stroke-width="0.4"/>
+          </g>
+          <rect x="58" y="78" width="14" height="9" fill="#2a4a7a" stroke="#dde6f5" stroke-width="0.6"/>
+          <g>
+            <rect x="125" y="98" width="14" height="9" fill="#7a2a2a" stroke="#f0d0d0" stroke-width="0.6"/>
+            <circle cx="132" cy="102.5" r="2" fill="#f0d0d0"/>
+          </g>
+          <g>
+            <rect x="145" y="103" width="14" height="9" fill="#7a2a2a" stroke="#f0d0d0" stroke-width="0.6"/>
+            <circle cx="152" cy="107.5" r="2" fill="#f0d0d0"/>
+          </g>
+          <g transform="translate(70 130)">
+            <rect x="0" y="0" width="10" height="3" fill="#3a2a14" stroke="#dde6f5" stroke-width="0.4"/>
+            <circle cx="2" cy="3" r="1.5" fill="#3a2a14"/>
+            <circle cx="8" cy="3" r="1.5" fill="#3a2a14"/>
+          </g>
+          <g transform="translate(165 50)" opacity="0.7">
+            <circle r="7" fill="none" stroke="#a89668" stroke-width="0.5"/>
+            <line x1="0" y1="-7" x2="0" y2="7" stroke="#a89668" stroke-width="0.5"/>
+            <line x1="-7" y1="0" x2="7" y2="0" stroke="#a89668" stroke-width="0.5"/>
+            <text x="0" y="-9" font-family="Fraunces, serif" font-size="6" fill="#a89668" text-anchor="middle">N</text>
+          </g>
+          <g transform="translate(150 145)">
+            <rect width="10" height="10" fill="#dde6f5" stroke="#3a2a14" stroke-width="0.4" rx="1"/>
+            <circle cx="3" cy="3" r="0.8" fill="#3a2a14"/>
+            <circle cx="7" cy="3" r="0.8" fill="#3a2a14"/>
+            <circle cx="3" cy="7" r="0.8" fill="#3a2a14"/>
+            <circle cx="7" cy="7" r="0.8" fill="#3a2a14"/>
+          </g>
+        </svg>
+      </div>
+      <div class="era-text">
+        <h3><em>Kriegsspiel</em>, the war game.</h3>
+        <div class="lede">Prussian artillery officer invents the simulationist wargame. Real maps. Real distances. A referee. Dice for friction.</div>
+        <p>Georg von Reisswitz developed it to train army officers. Played on an actual military topographical map at <strong>1:8,000 scale</strong>, with wooden blocks for units, rules for movement based on real road speeds, and a third player called <em class="term">der Vertrauter</em>, the trusted referee, who adjudicated combat results using custom dice tables.</p>
+        <p>The Prussian general staff adopted it formally in <strong>1824</strong>. After Prussia humiliated France in 1871, every army in Europe started playing kriegsspiel. They were quietly playing it the entire run-up to World War I, which is partly why World War I was so terrible: they had simulated the war, and they thought they knew how it would go.</p>
+        <p>For our purposes, the relevant breakthrough is small but enormous: <strong>a referee</strong>. A neutral third party who knows information the players don't, and who tells them what happens when they take an action. In 1812, that referee adjudicates artillery dispersion. In 1974, that referee describes a dragon.</p>
+        <div class="pull">
+          The Dungeon Master is two centuries old, and his first job was managing cavalry charges along the Vistula.
+        </div>
+      </div>
+    </article>
+
+    <article class="era">
+      <div class="era-marker">
+        <span class="num">06</span>
+        <span class="when">1913</span>
+        <span class="where">London</span>
+      </div>
+      <div class="era-illust">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0" y="120" width="200" height="80" fill="#3a2a1a" opacity="0.5"/>
+          <g stroke="#5a4828" stroke-width="0.4" opacity="0.3">
+            <line x1="0" y1="135" x2="200" y2="138"/>
+            <line x1="0" y1="155" x2="200" y2="158"/>
+            <line x1="0" y1="175" x2="200" y2="178"/>
+          </g>
+          <g transform="translate(40 100)">
+            <rect x="-1.5" y="-12" width="3" height="14" fill="#7a2a2a"/>
+            <circle cx="0" cy="-14" r="2" fill="#f0d0a0"/>
+            <line x1="-3" y1="-10" x2="6" y2="-16" stroke="#3a2a14" stroke-width="0.6"/>
+            <ellipse cx="0" cy="3" rx="3" ry="1" fill="#1a1410" opacity="0.5"/>
+          </g>
+          <g transform="translate(58 100)">
+            <rect x="-1.5" y="-12" width="3" height="14" fill="#7a2a2a"/>
+            <circle cx="0" cy="-14" r="2" fill="#f0d0a0"/>
+            <line x1="-3" y1="-10" x2="6" y2="-16" stroke="#3a2a14" stroke-width="0.6"/>
+            <ellipse cx="0" cy="3" rx="3" ry="1" fill="#1a1410" opacity="0.5"/>
+          </g>
+          <g transform="translate(76 100)">
+            <rect x="-1.5" y="-12" width="3" height="14" fill="#7a2a2a"/>
+            <circle cx="0" cy="-14" r="2" fill="#f0d0a0"/>
+            <line x1="-3" y1="-10" x2="6" y2="-16" stroke="#3a2a14" stroke-width="0.6"/>
+            <ellipse cx="0" cy="3" rx="3" ry="1" fill="#1a1410" opacity="0.5"/>
+          </g>
+          <g transform="translate(135 95)">
+            <circle cx="-8" cy="6" r="5" fill="none" stroke="#5a4828" stroke-width="1.5"/>
+            <circle cx="-8" cy="6" r="2" fill="#3a2a14"/>
+            <circle cx="8" cy="6" r="5" fill="none" stroke="#5a4828" stroke-width="1.5"/>
+            <circle cx="8" cy="6" r="2" fill="#3a2a14"/>
+            <rect x="-10" y="0" width="20" height="6" fill="#3a2a14" stroke="#1a1410" stroke-width="0.5"/>
+            <rect x="-14" y="-4" width="20" height="4" fill="#5a5a5a" stroke="#1a1410" stroke-width="0.4"/>
+            <circle cx="-15" cy="-2" r="1.5" fill="#1a1410"/>
+            <ellipse cx="-8" cy="13" rx="14" ry="2" fill="#1a1410" opacity="0.4"/>
+          </g>
+          <g transform="translate(115 70)">
+            <line x1="0" y1="0" x2="-12" y2="-3" stroke="#dde6f5" stroke-width="0.6" opacity="0.6"/>
+            <circle cx="-12" cy="-3" r="0.8" fill="#dde6f5"/>
+          </g>
+          <g transform="translate(165 100)">
+            <rect x="-12" y="-3" width="14" height="3" fill="#2a4a7a" transform="rotate(-15)"/>
+            <circle cx="-13" cy="-5" r="2" fill="#f0d0a0" transform="rotate(-15)"/>
+            <ellipse cx="0" cy="3" rx="6" ry="1" fill="#1a1410" opacity="0.5"/>
+          </g>
+          <g transform="translate(20 145)">
+            <rect width="32" height="22" fill="#dde6f5" stroke="#3a2a14" stroke-width="0.5"/>
+            <line x1="16" y1="0" x2="16" y2="22" stroke="#3a2a14" stroke-width="0.4"/>
+            <g stroke="#6f7682" stroke-width="0.3">
+              <line x1="2" y1="4" x2="14" y2="4"/>
+              <line x1="2" y1="7" x2="14" y2="7"/>
+              <line x1="2" y1="10" x2="13" y2="10"/>
+              <line x1="2" y1="13" x2="14" y2="13"/>
+              <line x1="2" y1="16" x2="11" y2="16"/>
+              <line x1="18" y1="4" x2="30" y2="4"/>
+              <line x1="18" y1="7" x2="30" y2="7"/>
+              <line x1="18" y1="10" x2="29" y2="10"/>
+              <line x1="18" y1="13" x2="30" y2="13"/>
+            </g>
+          </g>
+          <g transform="translate(80 148)">
+            <rect width="40" height="4" fill="#f0e6d0" stroke="#3a2a14" stroke-width="0.4"/>
+            <g stroke="#3a2a14" stroke-width="0.4">
+              <line x1="4" y1="0" x2="4" y2="2"/><line x1="8" y1="0" x2="8" y2="2"/><line x1="12" y1="0" x2="12" y2="3"/>
+              <line x1="16" y1="0" x2="16" y2="2"/><line x1="20" y1="0" x2="20" y2="2"/><line x1="24" y1="0" x2="24" y2="3"/>
+              <line x1="28" y1="0" x2="28" y2="2"/><line x1="32" y1="0" x2="32" y2="2"/><line x1="36" y1="0" x2="36" y2="3"/>
+            </g>
+          </g>
+        </svg>
+      </div>
+      <div class="era-text">
+        <h3>H. G. Wells, on the <em>parlor floor</em>.</h3>
+        <div class="lede">Wargaming becomes a hobby. Toy soldiers and a spring-loaded cannon. The first published recreational miniatures rules.</div>
+        <p>The man who wrote <em class="term">The War of the Worlds</em> and <em class="term">The Time Machine</em> also wrote a 96-page book in 1913 called <em class="term">Little Wars</em>, with the subtitle <em>a game for boys from twelve years of age to one hundred and fifty and for that more intelligent sort of girl who likes boys' games and books</em>. Wells was a pacifist, and he believed the book proved his point: if grown men played at war on the floor with toy soldiers, they would not need to do it for real.</p>
+        <p>The mechanics were simple. Each player commanded an army of tin soldiers. Movement was measured with a tape measure. Combat was resolved by firing a small spring-loaded toy cannon and counting which figures it knocked over. Wells called this part "<strong>fair shooting</strong>," and the principle survives: a real-world physical action determines a game outcome.</p>
+        <p>This is the first time wargaming was published as <strong>recreation, not training</strong>. By the 1950s, American hobbyists had picked up where Wells left off. Avalon Hill started publishing hex-and-counter wargames in 1958. By the late 1960s, there was a whole subculture of tabletop wargamers in the American Midwest, organizing conventions, swapping rules, modding each other's systems.</p>
+        <div class="pull">
+          One of those Midwesterners, in Lake Geneva, Wisconsin, was named Gary Gygax.
+        </div>
+      </div>
+    </article>
+
+    <article class="era">
+      <div class="era-marker">
+        <span class="num">07</span>
+        <span class="when">1950</span>
+        <span class="where">California</span>
+      </div>
+      <div class="era-illust">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="book-glow" cx="50%" cy="40%">
+              <stop offset="0%" stop-color="#ffae3d" stop-opacity="0.4"/>
+              <stop offset="100%" stop-color="#ffae3d" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <circle cx="100" cy="100" r="80" fill="url(#book-glow)"/>
+          <g transform="translate(100 100)">
+            <g transform="rotate(-6)">
+              <path d="M -50 -55 L -2 -50 L -2 50 L -50 55 Z" fill="#f0e6d0" stroke="#3a2a1a" stroke-width="0.6"/>
+              <path d="M 2 -50 L 50 -55 L 50 55 L 2 50 Z" fill="#f0e6d0" stroke="#3a2a1a" stroke-width="0.6"/>
+              <g stroke="#6f7682" stroke-width="0.3" opacity="0.7">
+                <line x1="-46" y1="-38" x2="-6" y2="-36"/>
+                <line x1="-46" y1="-30" x2="-6" y2="-28"/>
+                <line x1="-46" y1="-22" x2="-6" y2="-20"/>
+                <line x1="-46" y1="-14" x2="-6" y2="-12"/>
+                <line x1="-46" y1="-6" x2="-6" y2="-4"/>
+                <line x1="-46" y1="2" x2="-6" y2="4"/>
+                <line x1="-46" y1="10" x2="-6" y2="12"/>
+                <line x1="-46" y1="18" x2="-6" y2="20"/>
+                <line x1="-46" y1="26" x2="-6" y2="28"/>
+                <line x1="-46" y1="34" x2="-6" y2="36"/>
+                <line x1="6" y1="-36" x2="46" y2="-38"/>
+                <line x1="6" y1="-28" x2="46" y2="-30"/>
+                <line x1="6" y1="-20" x2="46" y2="-22"/>
+                <line x1="6" y1="-12" x2="46" y2="-14"/>
+                <line x1="6" y1="-4" x2="46" y2="-6"/>
+                <line x1="6" y1="4" x2="46" y2="2"/>
+                <line x1="6" y1="12" x2="46" y2="10"/>
+                <line x1="6" y1="20" x2="46" y2="18"/>
+                <line x1="6" y1="28" x2="46" y2="26"/>
+                <line x1="6" y1="36" x2="46" y2="34"/>
+              </g>
+              <g transform="translate(26 0)" fill="none" stroke="#ffae3d" stroke-width="1">
+                <circle r="11" opacity="0.7"/>
+                <path d="M 0 -10 L 6 8 L -10 -3 L 10 -3 L -6 8 Z" stroke-width="0.8" opacity="0.85"/>
+                <circle r="2" fill="#ffae3d" stroke="none"/>
+              </g>
+              <g transform="translate(-26 -10)" fill="none" stroke="#f6c577" stroke-width="0.7" opacity="0.6">
+                <path d="M -6 0 L 0 -8 L 6 0 L 0 8 Z"/>
+                <line x1="-6" y1="0" x2="6" y2="0"/>
+                <line x1="0" y1="-8" x2="0" y2="8"/>
+              </g>
+            </g>
+          </g>
+          <g fill="#ffae3d" opacity="0.7">
+            <circle cx="125" cy="68" r="1"/>
+            <circle cx="135" cy="60" r="0.7"/>
+            <circle cx="118" cy="55" r="0.8"/>
+            <circle cx="142" cy="50" r="0.6"/>
+            <circle cx="130" cy="42" r="1"/>
+          </g>
+          <g fill="#f6c577" opacity="0.5">
+            <circle cx="155" cy="70" r="0.5"/>
+            <circle cx="148" cy="35" r="0.5"/>
+            <circle cx="115" cy="38" r="0.5"/>
+          </g>
+        </svg>
+      </div>
+      <div class="era-text">
+        <h3>Jack Vance and the <em>Dying Earth</em>.</h3>
+        <div class="lede">A pulp novelist invents a magic system. Twenty-four years later, D&amp;D copies it without crediting him.</div>
+        <p>Jack Vance published <em class="term">The Dying Earth</em> in 1950. It's a collection of short stories set in the unimaginably distant future, when our sun has gone red and is about to wink out, and a small remnant of humanity practices magic learned from grimoires they barely understand.</p>
+        <p>Vance's wizards have a strange limitation. <strong>Spells take up space in your mind.</strong> Each one is so dense and unnatural that holding it in memory requires hours of preparation. Once you cast it, it's gone, scrubbed from your mind, and you have to study it again from the book. A wizard can hold maybe four or five at any one time. The choice of which to memorize that morning is everything.</p>
+        <p>This is the magic system in every edition of D&amp;D since 1974. Hobbyists call it <em class="term">Vancian magic</em>, and it has been used in every Final Fantasy, every Magic: The Gathering deck restriction, every video game with a "spell slot" mechanic. Vance was paid for none of it during his lifetime in any meaningful sense.</p>
+        <div class="pull">
+          The most-played fantasy game in the world has an uncredited 1950s pulp novelist as a rules co-author.
+        </div>
+      </div>
+    </article>
+
+    <article class="era">
+      <div class="era-marker">
+        <span class="num">08</span>
+        <span class="when">1971</span>
+        <span class="where">Lake Geneva &amp; Minneapolis</span>
+      </div>
+      <div class="era-illust">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <g transform="translate(50 100)">
+            <ellipse cx="0" cy="34" rx="34" ry="3" fill="#1a1410" opacity="0.5"/>
+            <path d="M -6 24 L -6 8 L -8 4 L -8 -4 L -6 -8 L -2 -10 L 2 -10 L 6 -8 L 8 -4 L 8 4 L 6 8 L 6 24 Z" fill="#a89aa8" stroke="#3a2a14" stroke-width="0.5"/>
+            <ellipse cx="0" cy="-12" rx="4.5" ry="5" fill="#7a7a85" stroke="#3a2a14" stroke-width="0.5"/>
+            <line x1="-3" y1="-12" x2="3" y2="-12" stroke="#1a1410" stroke-width="0.6"/>
+            <path d="M 0 -16 q -2 -4 -1 -8 q 1 -3 3 -2" stroke="#7a2a2a" stroke-width="1.4" fill="none"/>
+            <line x1="9" y1="0" x2="14" y2="-12" stroke="#dde6f5" stroke-width="1.2"/>
+            <line x1="7" y1="2" x2="11" y2="2" stroke="#3a2a14" stroke-width="1"/>
+            <path d="M -10 -2 L -14 0 L -14 8 Q -14 12 -10 14 Q -6 12 -6 8 Z" fill="#7a2a2a" stroke="#3a2a14" stroke-width="0.5"/>
+            <line x1="-10" y1="0" x2="-10" y2="13" stroke="#f0d0a0" stroke-width="0.4"/>
+            <g transform="translate(28 8)">
+              <path d="M 0 0 q 6 -8 12 -2 q 4 4 2 8 q -2 4 -8 4 q -8 0 -10 -4 q -1 -3 4 -6 z" fill="#5a3a1a" stroke="#3a2a14" stroke-width="0.4"/>
+              <path d="M 8 -2 q 4 -4 8 -2 q 2 2 0 4 q -3 1 -8 -2 z" fill="#3a2a14" stroke="#1a1410" stroke-width="0.3"/>
+              <circle cx="10" cy="2" r="0.6" fill="#ffae3d"/>
+              <path d="M 0 4 q -3 0 -5 -3" stroke="#5a3a1a" stroke-width="1" fill="none"/>
+            </g>
+          </g>
+          <line x1="100" y1="40" x2="100" y2="160" stroke="#6f7682" stroke-width="0.4" stroke-dasharray="2,3" opacity="0.4"/>
+          <g transform="translate(140 100)">
+            <rect x="-32" y="-44" width="64" height="84" fill="#d8c8a4" stroke="#3a2a14" stroke-width="0.5" opacity="0.95"/>
+            <path d="M -32 -44 q 4 2 0 6 q -4 4 0 8" stroke="#8b7549" stroke-width="0.4" fill="none" opacity="0.5"/>
+            <g stroke="#3a2a14" stroke-width="0.7" fill="none">
+              <rect x="-22" y="-32" width="20" height="14"/>
+              <rect x="4" y="-32" width="12" height="10"/>
+              <line x1="-2" y1="-25" x2="4" y2="-27"/>
+              <rect x="-22" y="-12" width="38" height="6"/>
+              <line x1="-12" y1="-6" x2="-12" y2="6"/>
+              <line x1="-8" y1="-6" x2="-8" y2="6"/>
+              <rect x="-22" y="6" width="20" height="20"/>
+              <line x1="-2" y1="-9" x2="14" y2="6"/>
+              <line x1="0" y1="-12" x2="16" y2="3"/>
+              <rect x="6" y="6" width="14" height="20"/>
+            </g>
+            <g stroke="#3a2a14" stroke-width="0.5">
+              <line x1="-12" y1="-2" x2="-8" y2="-2"/>
+              <line x1="-12" y1="0" x2="-8" y2="0"/>
+              <line x1="-12" y1="2" x2="-8" y2="2"/>
+              <line x1="-12" y1="4" x2="-8" y2="4"/>
+            </g>
+            <g stroke="#7a2a2a" stroke-width="0.8" fill="none">
+              <line x1="-13" y1="-27" x2="-9" y2="-23"/>
+              <line x1="-13" y1="-23" x2="-9" y2="-27"/>
+            </g>
+            <g transform="translate(-25 32)" opacity="0.7">
+              <circle r="3.5" fill="none" stroke="#3a2a14" stroke-width="0.4"/>
+              <line x1="0" y1="-3" x2="0" y2="3" stroke="#3a2a14" stroke-width="0.3"/>
+              <text x="0" y="-4.5" font-size="3" fill="#3a2a14" text-anchor="middle">N</text>
+            </g>
+            <g transform="translate(20 -38)">
+              <rect width="9" height="9" fill="#f0e6d0" stroke="#3a2a14" stroke-width="0.4" rx="1"/>
+              <circle cx="2.5" cy="2.5" r="0.7" fill="#3a2a14"/>
+              <circle cx="6.5" cy="6.5" r="0.7" fill="#3a2a14"/>
+            </g>
+          </g>
+        </svg>
+      </div>
+      <div class="era-text">
+        <h3>The <em>parents</em>: Chainmail and Blackmoor.</h3>
+        <div class="lede">Same year, two states, two missing pieces. One adds the fantasy. The other adds the persistent character.</div>
+        <p>In <strong>1971, Gary Gygax and Jeff Perren published Chainmail in Lake Geneva, Wisconsin</strong>. It was a medieval miniatures wargame, but it included a small fantasy supplement: rules for adding wizards, dragons, and trolls to the battlefield. The supplement was an afterthought. It would prove to be the entire point.</p>
+        <p>The same year, three hundred miles away in Minneapolis, <strong>Dave Arneson</strong> was running a wargaming group experimenting with a freeform game called Braunstein, where instead of commanding armies each player controlled a single individual. Arneson grafted Braunstein onto Chainmail's fantasy rules and started running a campaign called <em class="term">Blackmoor</em>: players each had one character, who came back week after week, leveled up, and explored a dungeon under a castle that Arneson described from behind a screen.</p>
+        <p>Persistent characters. A dungeon. A referee describing the world. <strong>That was the leap.</strong> Arneson showed it to Gygax in late 1972. They spent a year writing it down together.</p>
+        <div class="pull">
+          The mutation that creates the role-playing game happens in 1971, in two cities, in two heads, and converges on a single tabletop in 1973.
+        </div>
+      </div>
+    </article>
+
+    <article class="era">
+      <div class="era-marker">
+        <span class="num">09</span>
+        <span class="when">January 1974</span>
+        <span class="where">Lake Geneva, Wisconsin</span>
+      </div>
+      <div class="era-illust">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="dnd-box" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#dad5cc" stop-opacity="0.95"/>
+              <stop offset="100%" stop-color="#a8a298" stop-opacity="0.95"/>
+            </linearGradient>
+            <radialGradient id="dnd-glow" cx="50%" cy="50%">
+              <stop offset="0%" stop-color="#ffae3d" stop-opacity="0.5"/>
+              <stop offset="100%" stop-color="#ffae3d" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <circle cx="100" cy="100" r="78" fill="url(#dnd-glow)"/>
+          <g transform="translate(100 100) rotate(-3)">
+            <ellipse cx="0" cy="36" rx="50" ry="4" fill="#1a1410" opacity="0.5"/>
+            <rect x="-50" y="-36" width="100" height="72" fill="url(#dnd-box)" stroke="#3a2a14" stroke-width="0.6"/>
+            <g fill="#3a2a14" font-family="Fraunces, serif" text-anchor="middle">
+              <text x="0" y="-18" font-size="11" font-style="italic" font-weight="500">Dungeons</text>
+              <text x="0" y="-6" font-size="6" letter-spacing="0.2em">&amp;</text>
+              <text x="0" y="6" font-size="11" font-style="italic" font-weight="500">Dragons</text>
+            </g>
+            <rect x="-46" y="12" width="92" height="14" fill="none" stroke="#3a2a14" stroke-width="0.4"/>
+            <text x="0" y="22" font-family="JetBrains Mono, monospace" font-size="4" fill="#3a2a14" text-anchor="middle" letter-spacing="0.15em">RULES FOR FANTASTIC MEDIEVAL WARGAMES</text>
+            <g stroke="#8b7549" stroke-width="0.3" opacity="0.5">
+              <line x1="-50" y1="-32" x2="-46" y2="-32"/>
+              <line x1="46" y1="32" x2="50" y2="32"/>
+            </g>
+          </g>
+          <g transform="translate(40 150) rotate(-12)">
+            <rect width="32" height="22" fill="#dad5cc" stroke="#3a2a14" stroke-width="0.4"/>
+            <line x1="3" y1="6" x2="29" y2="6" stroke="#3a2a14" stroke-width="0.3"/>
+            <text x="16" y="14" font-family="Fraunces, serif" font-size="3.5" fill="#3a2a14" text-anchor="middle" font-style="italic">Men &amp; Magic</text>
+          </g>
+          <g transform="translate(160 145)">
+            <g stroke="#1a2530" stroke-width="0.5" stroke-linejoin="round">
+              <polygon points="0,-14 8,-4 -8,-4" fill="#ffae3d"/>
+              <polygon points="0,-14 8,-4 14,-8" fill="#d76b1f"/>
+              <polygon points="0,-14 -8,-4 -14,-8" fill="#d76b1f"/>
+              <polygon points="8,-4 -8,-4 0,8" fill="#ffae3d" opacity="0.95"/>
+              <polygon points="8,-4 14,-8 16,2" fill="#a85020"/>
+              <polygon points="-8,-4 -14,-8 -16,2" fill="#a85020"/>
+              <polygon points="8,-4 16,2 0,8" fill="#d76b1f"/>
+              <polygon points="-8,-4 -16,2 0,8" fill="#d76b1f"/>
+            </g>
+            <text x="0" y="-3" font-family="Fraunces, serif" font-size="5" fill="#3a2a14" text-anchor="middle" font-weight="500">20</text>
+          </g>
+        </svg>
+      </div>
+      <div class="era-text">
+        <h3><em>Dungeons &amp; Dragons</em>, Three Booklets in a White Box.</h3>
+        <div class="lede">Tactical Studies Rules, Lake Geneva. First print run: 1,000 copies, hand-collated. Sold out almost immediately.</div>
+        <p>Gygax printed it himself in January 1974, after every established game publisher had passed on it. Three thin booklets in a wood-grain-printed white box: <em class="term">Men &amp; Magic</em>, <em class="term">Monsters &amp; Treasure</em>, and <em class="term">The Underworld &amp; Wilderness Adventures</em>. Total page count, about 110.</p>
+        <p>Everything was in there. Hit points, armor class, character classes, levels, alignment, the d20 to hit, the saving throw, Vancian spell slots, the dungeon master, the campaign that continues across sessions. The synthesis of every ancestor on this list, plus the literary debts to Tolkien, Howard, Leiber, and Vance.</p>
+        <p>It sold a thousand copies fast, then ten thousand, then a hundred thousand. The 50th anniversary was in <strong>2024</strong>. Wizards of the Coast estimates that more people are playing D&amp;D today than at any point in the game's history. The lineage that started in pre-dynastic Egypt is, for the first time in 5,126 years, still <em class="term">accelerating</em>.</p>
+        <div class="pull">
+          You roll the d20. Five thousand years of mutation collapses onto a single number, and the dungeon master tells you what happens next.
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <section class="calendar-section">
+    <div class="calendar-header">
+      <h2>If you compressed all of it into a single <em>year</em>.</h2>
+      <div class="meta-tag">The cosmic calendar trick</div>
+    </div>
+
+    <div class="calendar-lede">
+      Take the 5,126 years from Senet to today. Compress them into a single calendar year. <em>Senet is January 1, 00:00. Today is December 31, 23:59.</em> The seasons of the year are now the seasons of human gaming.
+      <span class="anchor">3,100 BCE → 2026 CE / 5,126 yr → 365 days / 1 day = 14.04 yr</span>
+    </div>
+
+    <div class="cal-grid">
+      <div class="cal-months">
+        <div class="cal-month"><span class="cal-month-name">Jan</span></div>
+        <div class="cal-month"><span class="cal-month-name">Feb</span></div>
+        <div class="cal-month"><span class="cal-month-name">Mar</span></div>
+        <div class="cal-month"><span class="cal-month-name">Apr</span></div>
+        <div class="cal-month"><span class="cal-month-name">May</span></div>
+        <div class="cal-month"><span class="cal-month-name">Jun</span></div>
+        <div class="cal-month"><span class="cal-month-name">Jul</span></div>
+        <div class="cal-month"><span class="cal-month-name">Aug</span></div>
+        <div class="cal-month"><span class="cal-month-name">Sep</span></div>
+        <div class="cal-month"><span class="cal-month-name">Oct</span></div>
+        <div class="cal-month"><span class="cal-month-name">Nov</span></div>
+        <div class="cal-month"><span class="cal-month-name">Dec</span></div>
+      </div>
+      <div class="cal-track" id="calTrack"></div>
+    </div>
+
+    <div class="cal-zoom">
+      <div class="cal-zoom-header">
+        <h3>Zooming into the last <em>five days</em>.</h3>
+        <div class="cal-zoom-meta">Dec 27 → Dec 31 / 1 day = 14 yr</div>
+      </div>
+      <div class="cal-zoom-track" id="calZoomTrack"></div>
+    </div>
+
+    <div class="cal-takeaway">
+      Almost everything you'd recognize as a tabletop game arrives <em>in the last week of December</em>. Kriegsspiel on the 16th. H. G. Wells on the 23rd. Vance on the 26th. <strong>Chainmail and D&amp;D both fall on the 27th</strong>, born hours apart on the cosmic calendar. Magic: The Gathering on the evening of the 28th. You are reading this on the last day of the year.
+    </div>
+  </section>
+
+  <section class="atlas-section">
+    <div class="atlas-header">
+      <h2>How it <em>traveled</em>.</h2>
+      <div class="meta-tag">Geographic transmission map</div>
+    </div>
+
+    <p class="atlas-lede">
+      Each game in the spine was invented somewhere specific, then transmitted somewhere else. The lineage you've just read is also a series of <strong>journeys</strong>, mostly westward, mostly along trade routes, with one final hop across the Atlantic to a small wargaming scene in the upper Midwest.
+    </p>
+
+    <div class="atlas-map">
+      <svg viewBox="0 0 1200 540" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <pattern id="land" x="0" y="0" width="6" height="6" patternUnits="userSpaceOnUse">
+            <circle cx="3" cy="3" r="0.4" fill="#4a5160" opacity="0.6"/>
+          </pattern>
+          <marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#ffae3d"/>
+          </marker>
+          <marker id="arrowhead-bone" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#ddd1b3"/>
+          </marker>
+          <marker id="arrowhead-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#b4c8ff"/>
+          </marker>
+        </defs>
+
+        <g fill="url(#land)" stroke="#4a5160" stroke-width="0.6" opacity="0.7">
+          <path d="M 280 150 L 380 130 L 480 145 L 560 130 L 660 140 L 760 150 L 860 135 L 940 155 L 1010 175 L 1080 220 L 1090 270 L 1050 300 L 1000 290 L 950 305 L 880 310 L 820 290 L 760 300 L 700 285 L 640 295 L 600 275 L 540 285 L 480 280 L 420 265 L 360 260 L 320 240 L 290 215 Z"/>
+          <path d="M 540 285 L 600 275 L 640 295 L 660 340 L 640 400 L 600 450 L 560 470 L 520 465 L 490 430 L 470 380 L 460 340 L 480 305 Z"/>
+          <path d="M 50 150 L 130 130 L 220 140 L 270 160 L 280 200 L 260 240 L 220 270 L 170 290 L 120 285 L 70 260 L 40 220 L 30 190 Z"/>
+          <path d="M 200 320 L 250 330 L 270 380 L 260 430 L 230 470 L 200 470 L 180 430 L 175 370 Z"/>
+          <path d="M 530 175 L 555 170 L 565 195 L 545 215 L 525 200 Z"/>
+          <path d="M 1080 230 L 1100 245 L 1095 280 L 1075 270 Z"/>
+          <path d="M 1020 410 L 1100 405 L 1130 440 L 1090 470 L 1020 460 L 1000 430 Z"/>
+        </g>
+
+        <g stroke="#4a5160" stroke-width="0.3" opacity="0.2">
+          <line x1="0" y1="270" x2="1200" y2="270"/>
+          <line x1="0" y1="180" x2="1200" y2="180"/>
+          <line x1="0" y1="360" x2="1200" y2="360"/>
+          <line x1="200" y1="0" x2="200" y2="540"/>
+          <line x1="400" y1="0" x2="400" y2="540"/>
+          <line x1="600" y1="0" x2="600" y2="540"/>
+          <line x1="800" y1="0" x2="800" y2="540"/>
+          <line x1="1000" y1="0" x2="1000" y2="540"/>
+        </g>
+
+        <path d="M 620 320 Q 670 290 720 280" stroke="#ddd1b3" stroke-width="1.5" stroke-dasharray="4,3" fill="none" marker-end="url(#arrowhead-bone)" opacity="0.8"/>
+        <path d="M 660 230 Q 640 270 620 290" stroke="#ddd1b3" stroke-width="1.5" stroke-dasharray="4,3" fill="none" marker-end="url(#arrowhead-bone)" opacity="0.8"/>
+        <path d="M 870 305 Q 800 285 740 275" stroke="#ddd1b3" stroke-width="1.5" fill="none" marker-end="url(#arrowhead-bone)" opacity="0.85"/>
+        <path d="M 730 270 Q 670 230 580 200" stroke="#ddd1b3" stroke-width="1.5" fill="none" marker-end="url(#arrowhead-bone)" opacity="0.85"/>
+        <path d="M 600 200 Q 580 195 555 195" stroke="#ffae3d" stroke-width="1.5" fill="none" marker-end="url(#arrowhead)" opacity="0.9"/>
+        <path d="M 555 195 Q 380 190 220 200" stroke="#ffae3d" stroke-width="1.5" fill="none" marker-end="url(#arrowhead)" opacity="0.9"/>
+        <path d="M 110 230 Q 165 215 220 200" stroke="#b4c8ff" stroke-width="1.2" fill="none" marker-end="url(#arrowhead-blue)" opacity="0.85"/>
+
+        <g transform="translate(620 320)">
+          <circle r="5" fill="#ddd1b3" stroke="#04060c" stroke-width="1.5"/>
+          <circle r="2" fill="#04060c"/>
+          <text x="0" y="22" font-family="JetBrains Mono, monospace" font-size="9" fill="#ddd1b3" text-anchor="middle" letter-spacing="0.05em">SENET</text>
+          <text x="0" y="34" font-family="Fraunces, serif" font-size="9" fill="#6f7682" text-anchor="middle" font-style="italic">~3100 BCE</text>
+        </g>
+        <g transform="translate(720 280)">
+          <circle r="5" fill="#ddd1b3" stroke="#04060c" stroke-width="1.5"/>
+          <circle r="2" fill="#04060c"/>
+          <text x="0" y="-12" font-family="JetBrains Mono, monospace" font-size="9" fill="#ddd1b3" text-anchor="middle" letter-spacing="0.05em">UR</text>
+          <text x="0" y="-22" font-family="Fraunces, serif" font-size="9" fill="#6f7682" text-anchor="middle" font-style="italic">~2600 BCE</text>
+        </g>
+        <g transform="translate(660 230)">
+          <circle r="4" fill="#ddd1b3" stroke="#04060c" stroke-width="1.2" opacity="0.7"/>
+          <text x="-2" y="-8" font-family="JetBrains Mono, monospace" font-size="8" fill="#ddd1b3" text-anchor="end">EUCLID</text>
+        </g>
+        <g transform="translate(620 295)">
+          <circle r="4" fill="#ffae3d" stroke="#04060c" stroke-width="1.5"/>
+          <circle r="1.5" fill="#04060c"/>
+          <text x="-12" y="-6" font-family="JetBrains Mono, monospace" font-size="9" fill="#ffae3d" text-anchor="end" letter-spacing="0.05em">D20</text>
+        </g>
+        <g transform="translate(870 305)">
+          <circle r="5" fill="#ddd1b3" stroke="#04060c" stroke-width="1.5"/>
+          <circle r="2" fill="#04060c"/>
+          <text x="0" y="22" font-family="JetBrains Mono, monospace" font-size="9" fill="#ddd1b3" text-anchor="middle" letter-spacing="0.05em">CHATURANGA</text>
+          <text x="0" y="34" font-family="Fraunces, serif" font-size="9" fill="#6f7682" text-anchor="middle" font-style="italic">~600 CE</text>
+        </g>
+        <g transform="translate(770 280)">
+          <circle r="3" fill="none" stroke="#ddd1b3" stroke-width="0.8" opacity="0.6"/>
+          <text x="0" y="-8" font-family="JetBrains Mono, monospace" font-size="7" fill="#ddd1b3" text-anchor="middle" opacity="0.7">PERSIA</text>
+        </g>
+        <g transform="translate(600 200)">
+          <circle r="5" fill="#ffae3d" stroke="#04060c" stroke-width="1.5"/>
+          <circle r="2" fill="#04060c"/>
+          <text x="0" y="-12" font-family="JetBrains Mono, monospace" font-size="9" fill="#ffae3d" text-anchor="middle" letter-spacing="0.05em">KRIEGSSPIEL</text>
+          <text x="0" y="-24" font-family="Fraunces, serif" font-size="9" fill="#6f7682" text-anchor="middle" font-style="italic">1812</text>
+        </g>
+        <g transform="translate(545 195)">
+          <circle r="5" fill="#ffae3d" stroke="#04060c" stroke-width="1.5"/>
+          <circle r="2" fill="#04060c"/>
+          <text x="-10" y="-6" font-family="JetBrains Mono, monospace" font-size="9" fill="#ffae3d" text-anchor="end" letter-spacing="0.05em">WELLS</text>
+          <text x="-10" y="6" font-family="Fraunces, serif" font-size="9" fill="#6f7682" text-anchor="end" font-style="italic">1913</text>
+        </g>
+        <g transform="translate(110 230)">
+          <circle r="5" fill="#b4c8ff" stroke="#04060c" stroke-width="1.5"/>
+          <circle r="2" fill="#04060c"/>
+          <text x="0" y="22" font-family="JetBrains Mono, monospace" font-size="9" fill="#b4c8ff" text-anchor="middle" letter-spacing="0.05em">VANCE</text>
+          <text x="0" y="34" font-family="Fraunces, serif" font-size="9" fill="#6f7682" text-anchor="middle" font-style="italic">1950</text>
+        </g>
+        <g transform="translate(220 200)">
+          <circle r="6" fill="#ffae3d" stroke="#04060c" stroke-width="1.5"/>
+          <circle r="2.5" fill="#04060c"/>
+          <text x="0" y="-12" font-family="JetBrains Mono, monospace" font-size="10" fill="#ffae3d" text-anchor="middle" letter-spacing="0.08em" font-weight="500">LAKE GENEVA</text>
+          <text x="0" y="-26" font-family="Fraunces, serif" font-size="10" fill="#ffae3d" text-anchor="middle" font-style="italic">1974</text>
+        </g>
+        <g transform="translate(195 192)">
+          <circle r="3.5" fill="#ffae3d" stroke="#04060c" stroke-width="1" opacity="0.8"/>
+          <text x="-8" y="-4" font-family="JetBrains Mono, monospace" font-size="7" fill="#ffae3d" text-anchor="end" opacity="0.85">ARNESON</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="atlas-legend">
+      <div class="atlas-legend-item">
+        <span class="atlas-legend-line indigenous"></span>
+        Ancient transmission (boards, dice, geometry)
+      </div>
+      <div class="atlas-legend-item">
+        <span class="atlas-legend-line warmaking"></span>
+        War-game lineage (Kriegsspiel onward)
+      </div>
+      <div class="atlas-legend-item">
+        <span class="atlas-legend-line fantasy"></span>
+        Literary contribution (Vance)
+      </div>
+    </div>
+  </section>
+
+  <section class="sources">
+    <div class="sources-header">
+      <h2>The <em>receipts</em>.</h2>
+      <div class="meta-tag">References &amp; assumptions</div>
+    </div>
+
+    <div class="sources-grid">
+
+      <div class="sources-list">
+        <h4>Numbers and artifacts</h4>
+
+        <div class="src-item">
+          <div class="src-claim">Senet, oldest known board game: <span class="val">~3100 BCE</span></div>
+          <div class="src-attr">
+            Oldest surviving examples date to the late Predynastic period in Egypt. Boards have been found in tombs across nearly three millennia, including Tutankhamun's. Full rules were never written down and are reconstructed.
+            <br><a href="https://en.wikipedia.org/wiki/Senet" target="_blank" rel="noopener">en.wikipedia.org/wiki/Senet</a>
+          </div>
+        </div>
+
+        <div class="src-item">
+          <div class="src-claim">Royal Game of Ur boards: <span class="val">~2600 BCE</span></div>
+          <div class="src-attr">
+            Excavated 1926 to 1930 by Sir Leonard Woolley at the Royal Cemetery of Ur (modern Iraq). Boards date to circa 2600 to 2400 BCE.
+            <br><a href="https://en.wikipedia.org/wiki/Royal_Game_of_Ur" target="_blank" rel="noopener">en.wikipedia.org/wiki/Royal_Game_of_Ur</a>
+          </div>
+        </div>
+
+        <div class="src-item">
+          <div class="src-claim">Cuneiform rules tablet: <span class="val">177 BCE</span></div>
+          <div class="src-attr">
+            Tablet BM 33333B in the British Museum, written by the Babylonian scribe Itti-Marduk-balatu. Decoded by curator Irving Finkel in the early 1980s. Based on an earlier description by another scribe, Iddin-Bel.
+            <br><a href="https://www.britishmuseum.org/collection/object/W_1880-0617-1932" target="_blank" rel="noopener">britishmuseum.org · BM 33333B</a>
+          </div>
+        </div>
+
+        <div class="src-item">
+          <div class="src-claim">Met Museum d20: <span class="val">2nd c. BCE to 4th c. CE</span></div>
+          <div class="src-attr">
+            Twenty-sided faience die from Ptolemaic / Roman Egypt, inscribed with Greek letters. Held in the Egyptian collection at the Metropolitan Museum of Art. A serpentine variant is on display in Gallery 138.
+            <br><a href="https://www.metmuseum.org/art/collection/search/551072" target="_blank" rel="noopener">metmuseum.org · accession 10.130.1158</a>
+          </div>
+        </div>
+
+        <div class="src-item">
+          <div class="src-claim">Chaturanga: <span class="val">Gupta-era India, ~600 CE</span></div>
+          <div class="src-attr">
+            Direct ancestor of chess, shogi, makruk, and xiangqi. Earliest references in Sanskrit literature date to the 6th century CE; transmitted west via Persia (where it became <em>shatranj</em>) and the Islamic world.
+            <br><a href="https://en.wikipedia.org/wiki/Chaturanga" target="_blank" rel="noopener">en.wikipedia.org/wiki/Chaturanga</a>
+          </div>
+        </div>
+
+        <div class="src-item">
+          <div class="src-claim">Kriegsspiel: <span class="val">Berlin, 1812</span></div>
+          <div class="src-attr">
+            Developed by Georg Leopold von Reisswitz (and refined by his son in the 1820s). Adopted formally by the Prussian general staff in 1824.
+            <br><a href="https://en.wikipedia.org/wiki/Kriegsspiel" target="_blank" rel="noopener">en.wikipedia.org/wiki/Kriegsspiel</a>
+          </div>
+        </div>
+
+        <div class="src-item">
+          <div class="src-claim">Little Wars (H. G. Wells): <span class="val">1913</span></div>
+          <div class="src-attr">
+            Full title: <em>Little Wars: A Game for Boys from twelve years of age to one hundred and fifty and for that more intelligent sort of girl who likes boys' games and books</em>. Published by Frank Palmer, London.
+            <br><a href="https://en.wikipedia.org/wiki/Little_Wars" target="_blank" rel="noopener">en.wikipedia.org/wiki/Little_Wars</a>
+          </div>
+        </div>
+
+        <div class="src-item">
+          <div class="src-claim">Jack Vance, The Dying Earth: <span class="val">1950</span></div>
+          <div class="src-attr">
+            Hillman Periodicals, paperback original. The "memorize and forget" magic system has been called Vancian magic in tabletop literature since the 1970s.
+            <br><a href="https://en.wikipedia.org/wiki/The_Dying_Earth" target="_blank" rel="noopener">en.wikipedia.org/wiki/The_Dying_Earth</a>
+          </div>
+        </div>
+
+        <div class="src-item">
+          <div class="src-claim">Chainmail / Blackmoor: <span class="val">1971</span></div>
+          <div class="src-attr">
+            Chainmail by Gary Gygax and Jeff Perren, published 1971 by Guidon Games. Blackmoor campaign developed by Dave Arneson the same year, never formally published in its original form. Both shown to each other in late 1972.
+            <br><a href="https://en.wikipedia.org/wiki/Chainmail_(game)" target="_blank" rel="noopener">en.wikipedia.org/wiki/Chainmail</a>
+          </div>
+        </div>
+
+        <div class="src-item">
+          <div class="src-claim">D&amp;D, first edition: <span class="val">January 1974</span></div>
+          <div class="src-attr">
+            Tactical Studies Rules, Lake Geneva, Wisconsin. First print run reportedly 1,000 hand-collated copies, sold out in less than a year. Listed retail $10.
+            <br><a href="https://en.wikipedia.org/wiki/Dungeons_%26_Dragons" target="_blank" rel="noopener">en.wikipedia.org/wiki/Dungeons_%26_Dragons</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="sources-notes">
+        <h4>Honest caveats</h4>
+
+        <div class="note">
+          <div class="note-title">On the word "ancestor."</div>
+          <div class="note-body">
+            The chain is presented as linear. It isn't, exactly. The Met d20 is contemporary with chaturanga's predecessors; Kriegsspiel and chess coexisted in 19th-century parlors. "Spine" means the line that, in retrospect, hands off the most relevant features to the next stop. Many cousins are not shown.
+          </div>
+        </div>
+
+        <div class="note">
+          <div class="note-title">On the d20 connection.</div>
+          <div class="note-body">
+            The Egyptian d20 is not a direct ancestor of the modern D&amp;D d20. Polyhedral dice were repeatedly invented and forgotten across cultures. The geometric shape, however, is identical, and the icosahedron's mathematical canonization (Euclid's Elements, c. 300 BCE) precedes both objects.
+          </div>
+        </div>
+
+        <div class="note">
+          <div class="note-title">On the cosmic calendar math.</div>
+          <div class="note-body">
+            Anchors: Senet to today as 5,126 years compressed into 365 calendar days. 1 day equals 14.04 years. Date positions are computed from this ratio; rounded to whole days where shown. Today's anchor is the date this page was published.
+          </div>
+        </div>
+
+        <div class="note">
+          <div class="note-title">On Vance's payment.</div>
+          <div class="note-body">
+            Vance was eventually credited and even contributed minor material to D&amp;D-adjacent projects, and his estate has been honored by the hobby. The "uncredited" framing reflects the original 1974 publication, which made no formal arrangement with him.
+          </div>
+        </div>
+
+        <div class="note">
+          <div class="note-title">For the curious, not the rigorous.</div>
+          <div class="note-body">
+            This is editorial science writing about the history of play. Where the literature disagreed, the friendlier or more familiar number was preferred. Corrections welcome; pretensions to peer review, not.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <footer class="foot">
+    <span>Cosmic Hypothetical · No. 002 · An Ancestry of Dice</span>
+    <span>Throw the dice. Watch the lineage assemble.</span>
+  </footer>
+
+</div>
+
+<!-- ====================================================================
+     THREE.JS + CANNON-ES DICE SCENE
+     ==================================================================== -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "cannon-es": "https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import * as CANNON from 'cannon-es';
+
+// ====================================================================
+// Scene setup
+// ====================================================================
+const canvas = document.getElementById('hero-canvas');
+const heroSection = document.querySelector('.hero');
+
+const scene = new THREE.Scene();
+
+const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
+camera.position.set(0, 7.5, 12);
+camera.lookAt(0, 0.5, 0);
+
+const renderer = new THREE.WebGLRenderer({
+  canvas,
+  alpha: true,
+  antialias: true,
+  powerPreference: 'high-performance'
+});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+
+function resizeRenderer() {
+  const rect = heroSection.getBoundingClientRect();
+  const w = rect.width;
+  const h = rect.height;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+resizeRenderer();
+window.addEventListener('resize', resizeRenderer);
+
+// ====================================================================
+// Lighting (warm, cinematic)
+// ====================================================================
+const ambient = new THREE.AmbientLight(0x6a4a2a, 0.45);
+scene.add(ambient);
+
+const keyLight = new THREE.DirectionalLight(0xffd9a0, 1.5);
+keyLight.position.set(5, 10, 6);
+keyLight.castShadow = true;
+keyLight.shadow.mapSize.width = 1024;
+keyLight.shadow.mapSize.height = 1024;
+keyLight.shadow.camera.near = 1;
+keyLight.shadow.camera.far = 28;
+keyLight.shadow.camera.left = -10;
+keyLight.shadow.camera.right = 10;
+keyLight.shadow.camera.top = 10;
+keyLight.shadow.camera.bottom = -10;
+keyLight.shadow.bias = -0.0008;
+keyLight.shadow.radius = 4;
+scene.add(keyLight);
+
+const rimLight = new THREE.DirectionalLight(0xff8c3d, 0.7);
+rimLight.position.set(-6, 4, -4);
+scene.add(rimLight);
+
+const fillLight = new THREE.PointLight(0xffae3d, 0.6, 22);
+fillLight.position.set(0, 3, 5);
+scene.add(fillLight);
+
+// ====================================================================
+// Floor (invisible plane that catches shadows)
+// ====================================================================
+const floorMat = new THREE.ShadowMaterial({ opacity: 0.5 });
+const floorMesh = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), floorMat);
+floorMesh.rotation.x = -Math.PI / 2;
+floorMesh.position.y = 0;
+floorMesh.receiveShadow = true;
+scene.add(floorMesh);
+
+// ====================================================================
+// Physics world
+// ====================================================================
+const world = new CANNON.World({ gravity: new CANNON.Vec3(0, -22, 0) });
+world.broadphase = new CANNON.SAPBroadphase(world);
+world.allowSleep = true;
+world.solver.iterations = 14;
+
+const floorPhysMat = new CANNON.Material('floor');
+const diceMat = new CANNON.Material('dice');
+
+const floorBody = new CANNON.Body({ mass: 0, shape: new CANNON.Plane(), material: floorPhysMat });
+floorBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
+world.addBody(floorBody);
+
+// Invisible walls so dice don't escape
+function addWall(x, y, z, axis, angle) {
+  const body = new CANNON.Body({ mass: 0, shape: new CANNON.Plane(), material: floorPhysMat });
+  body.position.set(x, y, z);
+  body.quaternion.setFromAxisAngle(axis, angle);
+  world.addBody(body);
+}
+addWall(0, 0, -7,  new CANNON.Vec3(0, 1, 0), 0);
+addWall(0, 0, 7,   new CANNON.Vec3(0, 1, 0), Math.PI);
+addWall(-9, 0, 0,  new CANNON.Vec3(0, 1, 0), Math.PI / 2);
+addWall(9, 0, 0,   new CANNON.Vec3(0, 1, 0), -Math.PI / 2);
+
+world.addContactMaterial(new CANNON.ContactMaterial(diceMat, floorPhysMat, {
+  friction: 0.5, restitution: 0.3
+}));
+world.addContactMaterial(new CANNON.ContactMaterial(diceMat, diceMat, {
+  friction: 0.4, restitution: 0.2
+}));
+
+// ====================================================================
+// Texture generators
+// ====================================================================
+function makeD20Atlas() {
+  // 5x4 grid, each cell = 256px, total 1280 x 1024
+  const cellSize = 256;
+  const cols = 5, rows = 4;
+  const c = document.createElement('canvas');
+  c.width = cols * cellSize;
+  c.height = rows * cellSize;
+  const ctx = c.getContext('2d');
+
+  for (let i = 0; i < 20; i++) {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    const x = col * cellSize;
+    const y = row * cellSize;
+    const num = i + 1;
+
+    // Amber gradient background
+    const grad = ctx.createRadialGradient(
+      x + cellSize/2, y + cellSize/2, 20,
+      x + cellSize/2, y + cellSize/2, cellSize / 1.3
+    );
+    grad.addColorStop(0, '#ffe2b3');
+    grad.addColorStop(0.55, '#ffae3d');
+    grad.addColorStop(1, '#a85020');
+    ctx.fillStyle = grad;
+    ctx.fillRect(x, y, cellSize, cellSize);
+
+    // Number
+    ctx.fillStyle = '#2a1505';
+    ctx.font = `500 ${cellSize * 0.5}px Fraunces, Georgia, serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(String(num), x + cellSize/2, y + cellSize/2 + cellSize * 0.03);
+
+    // Underline 6 and 9 to disambiguate
+    if (num === 6 || num === 9) {
+      ctx.beginPath();
+      ctx.moveTo(x + cellSize * 0.34, y + cellSize * 0.78);
+      ctx.lineTo(x + cellSize * 0.66, y + cellSize * 0.78);
+      ctx.strokeStyle = '#2a1505';
+      ctx.lineWidth = 8;
+      ctx.stroke();
+    }
+  }
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 8;
+  return tex;
+}
+
+function makeD6FaceTexture(num) {
+  const size = 256;
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const ctx = c.getContext('2d');
+
+  // Bone gradient
+  const bg = ctx.createLinearGradient(0, 0, size, size);
+  bg.addColorStop(0, '#f0e6d0');
+  bg.addColorStop(1, '#c9b88a');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, size, size);
+
+  // Aged speckles
+  ctx.fillStyle = 'rgba(80, 60, 30, 0.18)';
+  for (let i = 0; i < 36; i++) {
+    const px = Math.random() * size;
+    const py = Math.random() * size;
+    const r = Math.random() * 1.4 + 0.3;
+    ctx.beginPath();
+    ctx.arc(px, py, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Pips
+  const pipPositions = {
+    1: [[0.5, 0.5]],
+    2: [[0.27, 0.27], [0.73, 0.73]],
+    3: [[0.27, 0.27], [0.5, 0.5], [0.73, 0.73]],
+    4: [[0.27, 0.27], [0.73, 0.27], [0.27, 0.73], [0.73, 0.73]],
+    5: [[0.27, 0.27], [0.73, 0.27], [0.5, 0.5], [0.27, 0.73], [0.73, 0.73]],
+    6: [[0.27, 0.25], [0.73, 0.25], [0.27, 0.5], [0.73, 0.5], [0.27, 0.75], [0.73, 0.75]],
+  };
+
+  const pips = pipPositions[num];
+  const pipR = size * 0.06;
+
+  for (const [u, v] of pips) {
+    const cx = u * size;
+    const cy = v * size;
+    // Drilled pip: dark center, lighter ring (to look carved)
+    const pipGrad = ctx.createRadialGradient(cx - pipR * 0.3, cy - pipR * 0.3, pipR * 0.1, cx, cy, pipR);
+    pipGrad.addColorStop(0, '#3a2a1a');
+    pipGrad.addColorStop(1, '#1a1208');
+    ctx.fillStyle = pipGrad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, pipR, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 8;
+  return tex;
+}
+
+// ====================================================================
+// D20 UV mapping: assign each face its number cell from the atlas
+// ====================================================================
+function assignD20UVs(geometry) {
+  const cols = 5, rows = 4;
+  const cellW = 1 / cols;
+  const cellH = 1 / rows;
+  const margin = 0.07; // shrink the inscribed triangle slightly
+
+  const uv = geometry.attributes.uv;
+
+  // The geometry is non-indexed: every 3 consecutive vertices = 1 face.
+  // 20 faces total.
+  for (let face = 0; face < 20; face++) {
+    const col = face % cols;
+    const row = Math.floor(face / cols);
+
+    const u0 = col * cellW;
+    const v0 = 1 - (row + 1) * cellH;
+
+    // Center of the cell
+    const cx = u0 + cellW / 2;
+    const cy = v0 + cellH / 2;
+
+    // Inscribed equilateral triangle in the cell.
+    // Triangle pointing up: apex at top-center, base on bottom.
+    const r = (Math.min(cellW, cellH) / 2) * (1 - margin);
+    const apexU = cx;
+    const apexV = cy + r;
+    const blU = cx - r * 0.866;
+    const blV = cy - r * 0.5;
+    const brU = cx + r * 0.866;
+    const brV = cy - r * 0.5;
+
+    const baseIdx = face * 3;
+    uv.setXY(baseIdx,     apexU, apexV);
+    uv.setXY(baseIdx + 1, blU,   blV);
+    uv.setXY(baseIdx + 2, brU,   brV);
+  }
+
+  uv.needsUpdate = true;
+}
+
+// ====================================================================
+// Build dice
+// ====================================================================
+
+// d20: icosahedron
+const d20Geom = new THREE.IcosahedronGeometry(0.95, 0);
+assignD20UVs(d20Geom);
+// Flat-shading on edges
+d20Geom.computeVertexNormals();
+
+const d20Tex = makeD20Atlas();
+const d20Material = new THREE.MeshStandardMaterial({
+  map: d20Tex,
+  metalness: 0.18,
+  roughness: 0.42,
+  flatShading: true,
+  emissive: 0x3a1a05,
+  emissiveIntensity: 0.18
+});
+
+const d20Mesh = new THREE.Mesh(d20Geom, d20Material);
+d20Mesh.castShadow = true;
+d20Mesh.receiveShadow = false;
+scene.add(d20Mesh);
+
+// d20 physics: approximate with sphere of equivalent radius
+const d20Body = new CANNON.Body({
+  mass: 0.32,
+  shape: new CANNON.Sphere(0.85),
+  material: diceMat,
+  linearDamping: 0.12,
+  angularDamping: 0.18,
+  sleepSpeedLimit: 0.18,
+  sleepTimeLimit: 0.5
+});
+world.addBody(d20Body);
+
+// d6: cube
+const d6Size = 1.0;
+const d6Geom = new THREE.BoxGeometry(d6Size, d6Size, d6Size);
+// Standard die: opposite faces sum to 7
+// Three.js BoxGeometry material order: [+x, -x, +y, -y, +z, -z]
+// Conventional die: top=1, bottom=6, front=2, back=5, right=3, left=4 (varies)
+// Choose: +x=3, -x=4, +y=1, -y=6, +z=2, -z=5
+const d6Materials = [3, 4, 1, 6, 2, 5].map(n => new THREE.MeshStandardMaterial({
+  map: makeD6FaceTexture(n),
+  metalness: 0.06,
+  roughness: 0.55
+}));
+const d6Mesh = new THREE.Mesh(d6Geom, d6Materials);
+d6Mesh.castShadow = true;
+scene.add(d6Mesh);
+
+const d6Body = new CANNON.Body({
+  mass: 0.28,
+  shape: new CANNON.Box(new CANNON.Vec3(d6Size/2, d6Size/2, d6Size/2)),
+  material: diceMat,
+  linearDamping: 0.12,
+  angularDamping: 0.18,
+  sleepSpeedLimit: 0.18,
+  sleepTimeLimit: 0.5
+});
+world.addBody(d6Body);
+
+// Position the dice for the resting state
+function placeDiceAtRest() {
+  d20Body.position.set(-1.5, 0.95, 0.4);
+  d20Body.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0.4, 0).unit(), 0.5);
+  d20Body.velocity.set(0, 0, 0);
+  d20Body.angularVelocity.set(0, 0, 0);
+  d20Body.sleep();
+
+  d6Body.position.set(1.4, 0.5, -0.2);
+  d6Body.quaternion.setFromAxisAngle(new CANNON.Vec3(0.2, 1, 0.3).unit(), 0.4);
+  d6Body.velocity.set(0, 0, 0);
+  d6Body.angularVelocity.set(0, 0, 0);
+  d6Body.sleep();
+}
+placeDiceAtRest();
+
+// ====================================================================
+// Throw mechanic
+// ====================================================================
+let isThrowing = false;
+let settleTimer = 0;
+const SETTLE_DELAY = 600; // ms after both dice sleep before reading result
+
+function throwDice() {
+  if (isThrowing) return;
+  isThrowing = true;
+  settleTimer = 0;
+
+  // Reset positions: dice start above-back of the scene
+  d20Body.wakeUp();
+  d6Body.wakeUp();
+
+  // d20: starts upper-left
+  d20Body.position.set(-3 + (Math.random() - 0.5) * 0.6, 5.5 + Math.random() * 0.8, -2 + Math.random() * 0.5);
+  d20Body.quaternion.setFromEuler(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+  d20Body.velocity.set(
+    3 + Math.random() * 2,                    // forward push to the right
+    1 + Math.random() * 2,                    // slight upward
+    2 + Math.random() * 1.5                   // forward toward camera
+  );
+  d20Body.angularVelocity.set(
+    (Math.random() - 0.5) * 14,
+    (Math.random() - 0.5) * 14,
+    (Math.random() - 0.5) * 14
+  );
+
+  // d6: starts upper-right
+  d6Body.position.set(3 - Math.random() * 0.6, 5.2 + Math.random() * 0.8, -2 + Math.random() * 0.5);
+  d6Body.quaternion.setFromEuler(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+  d6Body.velocity.set(
+    -(3 + Math.random() * 2),
+    1 + Math.random() * 2,
+    2 + Math.random() * 1.5
+  );
+  d6Body.angularVelocity.set(
+    (Math.random() - 0.5) * 14,
+    (Math.random() - 0.5) * 14,
+    (Math.random() - 0.5) * 14
+  );
+}
+
+// ====================================================================
+// Reading face values when dice come to rest
+// ====================================================================
+
+// d20 face values = face index + 1 (for our atlas mapping above).
+// To find the up-facing face: find the face whose normal in world space
+// is closest to (0, 1, 0).
+function readD20Value() {
+  const positions = d20Geom.attributes.position;
+  let bestFace = 0;
+  let bestDot = -Infinity;
+  const v0 = new THREE.Vector3();
+  const v1 = new THREE.Vector3();
+  const v2 = new THREE.Vector3();
+  const e1 = new THREE.Vector3();
+  const e2 = new THREE.Vector3();
+  const normal = new THREE.Vector3();
+  const worldUp = new THREE.Vector3(0, 1, 0);
+  const meshQuat = d20Mesh.quaternion;
+
+  for (let face = 0; face < 20; face++) {
+    const baseIdx = face * 3;
+    v0.fromBufferAttribute(positions, baseIdx);
+    v1.fromBufferAttribute(positions, baseIdx + 1);
+    v2.fromBufferAttribute(positions, baseIdx + 2);
+    e1.subVectors(v1, v0);
+    e2.subVectors(v2, v0);
+    normal.crossVectors(e1, e2).normalize();
+    // Rotate normal into world space
+    normal.applyQuaternion(meshQuat);
+    const d = normal.dot(worldUp);
+    if (d > bestDot) {
+      bestDot = d;
+      bestFace = face;
+    }
+  }
+  return bestFace + 1; // numbers 1-20
+}
+
+// d6: BoxGeometry has 6 face groups; we need to know which is "up".
+// Local normals for each face material: +x, -x, +y, -y, +z, -z
+// Material order maps to die values: [3, 4, 1, 6, 2, 5]
+const D6_FACE_NORMALS = [
+  new THREE.Vector3(1, 0, 0),
+  new THREE.Vector3(-1, 0, 0),
+  new THREE.Vector3(0, 1, 0),
+  new THREE.Vector3(0, -1, 0),
+  new THREE.Vector3(0, 0, 1),
+  new THREE.Vector3(0, 0, -1)
+];
+const D6_FACE_VALUES = [3, 4, 1, 6, 2, 5];
+
+function readD6Value() {
+  const meshQuat = d6Mesh.quaternion;
+  const worldUp = new THREE.Vector3(0, 1, 0);
+  let bestIdx = 0;
+  let bestDot = -Infinity;
+  const tmp = new THREE.Vector3();
+  for (let i = 0; i < 6; i++) {
+    tmp.copy(D6_FACE_NORMALS[i]).applyQuaternion(meshQuat);
+    const d = tmp.dot(worldUp);
+    if (d > bestDot) { bestDot = d; bestIdx = i; }
+  }
+  return D6_FACE_VALUES[bestIdx];
+}
+
+// ====================================================================
+// Animation loop
+// ====================================================================
+const FIXED_TIMESTEP = 1 / 60;
+let lastTime = performance.now();
+
+function animate() {
+  const now = performance.now();
+  const delta = Math.min((now - lastTime) / 1000, 0.1);
+  lastTime = now;
+
+  world.step(FIXED_TIMESTEP, delta, 3);
+
+  // Sync meshes to physics bodies
+  d20Mesh.position.copy(d20Body.position);
+  d20Mesh.quaternion.copy(d20Body.quaternion);
+  d6Mesh.position.copy(d6Body.position);
+  d6Mesh.quaternion.copy(d6Body.quaternion);
+
+  // Detect settle
+  if (isThrowing) {
+    const d20Settled = d20Body.sleepState === CANNON.Body.SLEEPING || d20Body.velocity.length() < 0.05;
+    const d6Settled = d6Body.sleepState === CANNON.Body.SLEEPING || d6Body.velocity.length() < 0.05;
+    if (d20Settled && d6Settled && d20Body.position.y < 1.5 && d6Body.position.y < 1.0) {
+      settleTimer += delta * 1000;
+      if (settleTimer > SETTLE_DELAY) {
+        onDiceSettled();
+        isThrowing = false;
+      }
+    } else {
+      settleTimer = 0;
+    }
+  }
+
+  renderer.render(scene, camera);
+  requestAnimationFrame(animate);
+}
+animate();
+
+// ====================================================================
+// Throw button + result display
+// ====================================================================
+const throwBtn = document.getElementById('throwBtn');
+const throwResult = document.getElementById('throwResult');
+const scrollCue = document.getElementById('scrollCue');
+let hasThrown = false;
+
+throwBtn.addEventListener('click', () => {
+  throwBtn.disabled = true;
+  throwResult.classList.remove('visible');
+  scrollCue.classList.remove('visible');
+  throwDice();
+});
+
+function onDiceSettled() {
+  const d20Val = readD20Value();
+  const d6Val = readD6Value();
+
+  throwResult.innerHTML = `<span class="nums">${d20Val} · ${d6Val}</span> Two dice. Five thousand years. <span style="color: var(--amber-soft); font-style: italic;">Scroll on.</span>`;
+  throwResult.classList.add('visible');
+  scrollCue.classList.add('visible');
+
+  hasThrown = true;
+  // Re-enable button after a beat so user can roll again
+  setTimeout(() => {
+    throwBtn.disabled = false;
+    throwBtn.textContent = 'Throw Again';
+  }, 800);
+}
+
+// Auto-throw on load after a small delay so the page settles first
+setTimeout(() => {
+  scrollCue.classList.add('visible');
+}, 600);
+
+// ====================================================================
+// COSMIC CALENDAR MARKERS — generated from precise math
+// 5,126 years compressed into 365 days. 1 day = 14.044 yr.
+// ====================================================================
+const TOTAL_YEARS = 5126;
+const SENET_YEAR = -3100;
+const TODAY_YEAR = 2026;
+function yearToDay(y) { return ((y - SENET_YEAR) / TOTAL_YEARS) * 365; }
+function dayToDate(day) {
+  // Convert day-of-year (0-365) to "Mon DD"
+  const months = [
+    ['Jan', 31], ['Feb', 28], ['Mar', 31], ['Apr', 30],
+    ['May', 31], ['Jun', 30], ['Jul', 31], ['Aug', 31],
+    ['Sep', 30], ['Oct', 31], ['Nov', 30], ['Dec', 31]
+  ];
+  let d = Math.max(1, Math.min(365, Math.round(day)));
+  for (const [m, len] of months) {
+    if (d <= len) return `${m} ${d}`;
+    d -= len;
+  }
+  return 'Dec 31';
+}
+
+// Era data with real years
+const eras = [
+  { name: 'Senet',         year: -3100, side: 'top'    },
+  { name: 'Ur',            year: -2600, side: 'bottom' },
+  { name: 'D20 (Met)',     year:  -200, side: 'top'    },
+  { name: 'Chaturanga',    year:   600, side: 'bottom' },
+  { name: 'Kriegsspiel',   year:  1812, side: 'top'    },
+  { name: 'Wells',         year:  1913, side: 'bottom' },
+  { name: 'Vance',         year:  1950, side: 'top'    },
+  { name: 'Chainmail',     year:  1971, side: 'bottom' },
+  { name: 'D&D',           year:  1974, side: 'top'    },
+  { name: 'Today',         year:  2026, side: 'bottom' }
+];
+
+// ----- YEAR TRACK -----
+const calTrack = document.getElementById('calTrack');
+eras.forEach(era => {
+  const day = yearToDay(era.year);
+  const pct = (day / 365) * 100;
+  const m = document.createElement('div');
+  m.className = 'cal-marker' + (era.side === 'bottom' ? ' below' : '');
+  m.style.left = pct + '%';
+
+  const dot = document.createElement('div'); dot.className = 'dot';
+  const stem = document.createElement('div'); stem.className = 'stem';
+  const label = document.createElement('div'); label.className = 'label';
+  label.innerHTML = `<span class="game">${era.name}</span><span class="date">${dayToDate(day)}</span>`;
+
+  if (era.side === 'bottom') {
+    m.appendChild(label); m.appendChild(stem); m.appendChild(dot);
+  } else {
+    m.appendChild(dot); m.appendChild(stem); m.appendChild(label);
+  }
+  calTrack.appendChild(m);
+});
+
+// ----- ZOOM TRACK: Dec 27 → Dec 31 (~1970 → 2026) -----
+const ZOOM_START_YEAR = SENET_YEAR + (361 / 365) * TOTAL_YEARS;  // ≈1970
+const ZOOM_END_YEAR = TODAY_YEAR;                                 // 2026
+const ZOOM_SPAN = ZOOM_END_YEAR - ZOOM_START_YEAR;
+
+const zoomEvents = [
+  { name: 'Chainmail / Blackmoor', year: 1971, when: 'Dec 27',           side: 'top'    },
+  { name: 'Dungeons & Dragons',    year: 1974, when: 'Dec 27 · evening', side: 'bottom' },
+  { name: 'Magic: The Gathering',  year: 1993, when: 'Dec 28 · evening', side: 'top'    },
+  { name: 'Critical Role debut',   year: 2015, when: 'Dec 30',           side: 'bottom' },
+  { name: 'Today',                 year: 2026, when: 'Dec 31',           side: 'top'    }
+];
+
+const calZoomTrack = document.getElementById('calZoomTrack');
+zoomEvents.forEach(ev => {
+  const pct = ((ev.year - ZOOM_START_YEAR) / ZOOM_SPAN) * 100;
+  const m = document.createElement('div');
+  m.className = 'cal-marker' + (ev.side === 'bottom' ? ' below' : '');
+  m.style.left = pct + '%';
+
+  const dot = document.createElement('div'); dot.className = 'dot';
+  const stem = document.createElement('div'); stem.className = 'stem';
+  const label = document.createElement('div'); label.className = 'label';
+  label.innerHTML = `<span class="game">${ev.name}</span><span class="date">${ev.when}</span>`;
+
+  if (ev.side === 'bottom') {
+    m.appendChild(label); m.appendChild(stem); m.appendChild(dot);
+  } else {
+    m.appendChild(dot); m.appendChild(stem); m.appendChild(label);
+  }
+  calZoomTrack.appendChild(m);
+});
+</script>
+</body>
+</html>

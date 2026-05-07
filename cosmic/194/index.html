@@ -1,0 +1,2347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Air's Ceiling / A Question of Loudness</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #ece2cb;
+    --paper-2: #e2d6bb;
+    --paper-3: #d8caaa;
+    --ink: #1a1d24;
+    --ink-soft: #3a3e48;
+    --muted: #8a7d62;
+    --muted-2: #b3a787;
+    --rule: rgba(26, 29, 36, 0.16);
+    --rule-strong: rgba(26, 29, 36, 0.34);
+    --oxblood: #8a2418;
+    --oxblood-soft: #b04a32;
+    --olive: #5a6234;
+    --shock: #c5301a;
+    --gold: #b58c2a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Newsreader', Georgia, serif;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* Paper texture */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      radial-gradient(circle at 20% 20%, rgba(138, 36, 24, 0.025), transparent 40%),
+      radial-gradient(circle at 80% 60%, rgba(90, 98, 52, 0.02), transparent 50%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.1 0 0 0 0 0.08 0 0 0 0 0.04 0 0 0 0.08 0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.7;
+  }
+
+  .frame {
+    position: relative;
+    z-index: 2;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 36px 36px 80px;
+  }
+
+  /* ====================================================
+     MASTHEAD - newspaper journal feel, double rule
+     ==================================================== */
+  header.masthead {
+    border-top: 4px double var(--ink);
+    border-bottom: 1px solid var(--ink);
+    padding: 14px 0 12px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: end;
+    gap: 24px;
+    margin-bottom: 12px;
+  }
+  .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .meta.right { text-align: right; }
+  .ident {
+    text-align: center;
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 22px;
+    letter-spacing: 0.04em;
+    color: var(--oxblood);
+    line-height: 1;
+  }
+  .submasthead {
+    border-bottom: 1px solid var(--rule);
+    padding: 8px 0 10px;
+    display: flex;
+    justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 32px;
+  }
+
+  /* ====================================================
+     TITLE BLOCK
+     ==================================================== */
+  .title-block {
+    margin-bottom: 36px;
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 56px;
+    align-items: end;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .title-block h1 {
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+    font-size: clamp(56px, 9vw, 124px);
+    line-height: 0.93;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+  }
+  .title-block h1 em {
+    font-style: italic;
+    color: var(--oxblood);
+  }
+  .deck {
+    font-family: 'Newsreader', serif;
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    padding-left: 22px;
+    border-left: 2px solid var(--oxblood);
+    font-weight: 380;
+  }
+  .deck strong { color: var(--ink); font-weight: 540; }
+  .deck em { color: var(--oxblood); font-style: italic; }
+
+  /* ====================================================
+     INSTRUMENT PANEL (the wave stage)
+     ==================================================== */
+  .instrument {
+    background: var(--paper-2);
+    border: 1px solid var(--ink);
+    margin-bottom: 0;
+    position: relative;
+  }
+  .instrument-head {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    border-bottom: 1px solid var(--ink);
+  }
+  .ihead-cell {
+    padding: 14px 18px;
+    border-right: 1px solid var(--ink);
+  }
+  .ihead-cell:last-child { border-right: none; }
+  .ihead-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .ihead-value {
+    font-family: 'Instrument Serif', serif;
+    font-size: 22px;
+    line-height: 1.1;
+    color: var(--ink);
+    letter-spacing: 0.005em;
+  }
+  .ihead-value .unit {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-left: 4px;
+    letter-spacing: 0.05em;
+  }
+  .ihead-value.shock { color: var(--shock); font-style: italic; }
+
+  /* The scope */
+  .scope-frame {
+    padding: 22px 24px 10px;
+    background: var(--paper-2);
+  }
+  .scope {
+    background: #ebdfc4;
+    background-image:
+      radial-gradient(ellipse at 30% 40%, rgba(255, 250, 230, 0.4), transparent 60%),
+      radial-gradient(ellipse at 80% 80%, rgba(150, 110, 60, 0.08), transparent 50%);
+    aspect-ratio: 1180 / 380;
+    border: 1px solid var(--ink);
+    position: relative;
+    overflow: hidden;
+    box-shadow: inset 0 1px 4px rgba(60, 40, 20, 0.18), inset 0 -1px 4px rgba(60, 40, 20, 0.12);
+  }
+  .scope svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .scope-corner {
+    position: absolute;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(60, 40, 20, 0.55);
+    pointer-events: none;
+    z-index: 3;
+  }
+  .scope-corner.tl { top: 8px; left: 80px; }
+  .scope-corner.tr { top: 8px; right: 12px; text-align: right; }
+  .scope-corner.bl { bottom: 8px; left: 80px; }
+  .scope-corner.br { bottom: 8px; right: 12px; text-align: right; }
+  .scope-corner.tr .indicator-dot {
+    display: inline-block;
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--oxblood);
+    margin-right: 5px;
+    vertical-align: 1px;
+  }
+  .scope-corner.tr.shock .indicator-dot {
+    background: var(--shock);
+    animation: shockPulse 0.5s ease-in-out infinite;
+  }
+  @keyframes shockPulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 4px var(--shock); }
+    50% { opacity: 0.3; box-shadow: 0 0 0 var(--shock); }
+  }
+
+  /* Pulsing red border when in shock mode */
+  .scope {
+    transition: box-shadow 0.2s ease-out;
+  }
+  .scope.shock {
+    animation: scopeShockPulse 0.7s ease-in-out infinite;
+  }
+  @keyframes scopeShockPulse {
+    0%, 100% {
+      box-shadow:
+        inset 0 0 0 1.5px rgba(197, 48, 26, 0.7),
+        0 0 14px rgba(197, 48, 26, 0.25);
+    }
+    50% {
+      box-shadow:
+        inset 0 0 0 2.5px var(--shock),
+        0 0 28px rgba(197, 48, 26, 0.55);
+    }
+  }
+
+  /* One-frame red flash when crossing the ceiling */
+  .scope.flash::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--shock);
+    pointer-events: none;
+    animation: scopeFlash 0.45s ease-out forwards;
+  }
+  @keyframes scopeFlash {
+    0%   { opacity: 0.55; }
+    100% { opacity: 0; }
+  }
+
+  /* Centered overload warning */
+  .overload-warning {
+    position: absolute;
+    top: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 7px 16px 6px;
+    border: 1.5px solid var(--shock);
+    background: rgba(20, 23, 28, 0.78);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.32em;
+    color: var(--shock);
+    pointer-events: none;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.15s;
+    z-index: 5;
+  }
+  .overload-warning.active {
+    visibility: visible;
+    animation: warnBlink 0.55s steps(2, end) infinite;
+  }
+  .overload-warning .chevron {
+    color: var(--shock);
+    font-size: 12px;
+    line-height: 1;
+  }
+  @keyframes warnBlink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0.18; }
+  }
+
+  /* Secondary corner alert */
+  .corner-alert {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    color: rgba(197, 48, 26, 0.85);
+    text-transform: uppercase;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.15s;
+  }
+  .corner-alert.active {
+    visibility: visible;
+    animation: warnBlink 0.55s steps(2, end) infinite;
+    animation-delay: 0.275s;
+  }
+
+  /* Scope footer with calibration */
+  .scope-cal {
+    padding: 8px 24px 18px;
+    display: flex;
+    justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--ink);
+  }
+
+  /* Slider section */
+  .controls {
+    padding: 24px 24px 18px;
+    background: var(--paper-2);
+    border-top: 1px solid var(--rule);
+  }
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    margin-bottom: 4px;
+  }
+  .slider-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    min-width: 80px;
+  }
+  .slider-readout {
+    font-family: 'Instrument Serif', serif;
+    font-size: 26px;
+    color: var(--oxblood);
+    min-width: 110px;
+    line-height: 1;
+  }
+  .slider-readout.shock { color: var(--shock); font-style: italic; }
+  .slider-track {
+    flex: 1;
+    position: relative;
+  }
+
+  input[type="range"] {
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 1px;
+    background: var(--ink);
+    outline: none;
+    margin: 0;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px; height: 22px;
+    background: var(--oxblood);
+    cursor: pointer;
+    border-radius: 0;
+    border: 1px solid var(--ink);
+    transition: background 0.15s;
+  }
+  input[type="range"]::-webkit-slider-thumb:hover {
+    background: var(--shock);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 12px; height: 22px;
+    background: var(--oxblood);
+    cursor: pointer;
+    border-radius: 0;
+    border: 1px solid var(--ink);
+  }
+
+  /* Slider tick marks */
+  .slider-ticks {
+    position: relative;
+    height: 18px;
+    margin-top: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8.5px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+  }
+  .slider-ticks .tick {
+    position: absolute;
+    transform: translateX(-50%);
+    text-align: center;
+    line-height: 1;
+  }
+  .slider-ticks .tick::before {
+    content: '';
+    display: block;
+    width: 1px;
+    height: 5px;
+    background: var(--ink);
+    margin: 0 auto 3px;
+  }
+  .slider-ticks .tick.major::before {
+    height: 8px;
+    width: 1.5px;
+    background: var(--oxblood);
+  }
+  .slider-ticks .tick.major {
+    color: var(--ink);
+  }
+
+  /* Presets - now styled as instrument labels */
+  .presets {
+    border-top: 1px solid var(--ink);
+    background: var(--paper-2);
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+  }
+  .preset {
+    background: transparent;
+    border: none;
+    border-right: 1px solid var(--rule);
+    color: var(--ink-soft);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 14px 6px 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    line-height: 1.4;
+    text-align: center;
+  }
+  .preset:last-child { border-right: none; }
+  .preset:hover {
+    background: var(--paper-3);
+    color: var(--ink);
+  }
+  .preset.active {
+    background: var(--oxblood);
+    color: var(--paper);
+  }
+  .preset.active .preset-d { color: var(--paper); opacity: 0.75; }
+  .preset .preset-d {
+    display: block;
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 14px;
+    letter-spacing: 0;
+    margin-top: 4px;
+    text-transform: none;
+    color: var(--oxblood);
+  }
+
+  /* ====================================================
+     STATS - instrument readouts in a row
+     ==================================================== */
+  .data {
+    margin-top: 36px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border: 1px solid var(--ink);
+    background: var(--paper-2);
+  }
+  .stat {
+    padding: 22px 22px 24px;
+    border-right: 1px solid var(--ink);
+    position: relative;
+  }
+  .stat:last-child { border-right: none; }
+  .stat-num {
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    color: var(--muted-2);
+  }
+  .stat .k {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  .stat .v {
+    font-family: 'Instrument Serif', serif;
+    font-size: 38px;
+    line-height: 1;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+  }
+  .stat .v .unit {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    margin-left: 4px;
+    font-weight: 400;
+  }
+  .stat .sub {
+    margin-top: 10px;
+    font-family: 'Newsreader', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.4;
+  }
+  .stat.danger .v { color: var(--oxblood); }
+  .stat.warn .v { color: var(--gold); }
+  .stat.safe .v { color: var(--olive); }
+  .stat.shock .v { color: var(--shock); font-style: italic; }
+
+  /* ====================================================
+     VERDICT - magazine-style call-out
+     ==================================================== */
+  .verdict {
+    margin-top: 32px;
+    background: var(--paper-2);
+    border: 1px solid var(--ink);
+    padding: 28px 36px;
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 36px;
+    align-items: start;
+  }
+  .verdict-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .verdict-tag .badge {
+    display: block;
+    margin-top: 14px;
+    padding: 10px 14px;
+    border: 1px solid currentColor;
+    text-align: center;
+    font-size: 11.5px;
+    letter-spacing: 0.18em;
+    background: var(--paper);
+  }
+  .verdict-tag.danger .badge { color: var(--oxblood); }
+  .verdict-tag.warn .badge { color: var(--gold); }
+  .verdict-tag.safe .badge { color: var(--olive); }
+  .verdict-tag.shock .badge { color: var(--shock); }
+
+  #verdictText {
+    font-family: 'Newsreader', serif;
+    font-size: 18px;
+    line-height: 1.55;
+    color: var(--ink);
+    font-weight: 400;
+  }
+  #verdictText em { font-style: italic; color: var(--oxblood); }
+  #verdictText strong { font-weight: 600; }
+
+  /* ====================================================
+     SECTION HEADERS (shared)
+     ==================================================== */
+  .sec-header {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: end;
+    gap: 24px;
+    border-bottom: 1px solid var(--ink);
+    padding-bottom: 14px;
+    margin: 64px 0 32px;
+  }
+  .sec-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--oxblood);
+    letter-spacing: 0.05em;
+  }
+  .sec-header h2 {
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+    font-size: clamp(36px, 5.5vw, 62px);
+    line-height: 0.95;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .sec-header h2 em {
+    font-style: italic;
+    color: var(--oxblood);
+  }
+  .sec-header .meta-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ====================================================
+     MATHS - journal-style equations
+     ==================================================== */
+  .formula-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border: 1px solid var(--ink);
+    background: var(--paper-2);
+  }
+  .formula {
+    padding: 30px 32px 32px;
+    border-right: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+  }
+  .formula:nth-child(2n) { border-right: none; }
+  .formula:nth-last-child(-n+2) { border-bottom: none; }
+  .formula-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.22em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .formula-num .roman {
+    color: var(--oxblood);
+    font-style: italic;
+    font-family: 'Instrument Serif', serif;
+    font-size: 13px;
+    margin-right: 8px;
+    letter-spacing: 0.02em;
+  }
+  .formula-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 28px;
+    line-height: 1.05;
+    margin-bottom: 18px;
+    color: var(--ink);
+  }
+  .formula-title em { font-style: italic; color: var(--oxblood); }
+
+  .formula-eq {
+    font-family: 'Instrument Serif', serif;
+    font-size: 26px;
+    line-height: 1.3;
+    padding: 16px 0 18px;
+    margin: 0 0 18px;
+    color: var(--ink);
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    text-align: center;
+  }
+  .formula-eq i { font-style: italic; color: var(--oxblood); }
+  .formula-eq sub, .formula-eq sup { font-size: 13px; color: var(--ink-soft); }
+  .formula-eq sub i, .formula-eq sup i { color: var(--oxblood); }
+
+  .formula-desc {
+    font-family: 'Newsreader', serif;
+    color: var(--ink-soft);
+    font-size: 15px;
+    line-height: 1.55;
+    margin-bottom: 22px;
+  }
+  .formula-desc strong { color: var(--ink); font-weight: 600; }
+  .formula-desc em { color: var(--oxblood); font-style: italic; }
+
+  .formula-work {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.85;
+    color: var(--ink);
+    border-top: 1px dashed var(--rule-strong);
+    padding-top: 14px;
+  }
+  .formula-work .label {
+    color: var(--muted);
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .formula-work .step {
+    display: block;
+    padding-left: 14px;
+    color: var(--ink-soft);
+  }
+  .formula-work .step.eq-line {
+    padding-left: 0;
+    color: var(--ink);
+  }
+  .formula-work .live-num {
+    color: var(--oxblood);
+    font-weight: 500;
+  }
+  .formula-work .result {
+    color: var(--ink);
+    font-weight: 500;
+    background: rgba(138, 36, 24, 0.1);
+    padding: 1px 6px;
+    border-bottom: 1px solid var(--oxblood);
+  }
+  .formula-work .step.note {
+    margin-top: 4px;
+    font-size: 11.5px;
+    padding-left: 14px;
+    color: var(--muted);
+    font-family: 'Newsreader', serif;
+    font-style: italic;
+  }
+
+  /* ====================================================
+     CONTEXT - magazine-style with drop caps
+     ==================================================== */
+  .context-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border: 1px solid var(--ink);
+    background: var(--paper-2);
+    margin-bottom: 64px;
+  }
+  .context-block {
+    padding: 30px 32px 34px;
+    border-right: 1px solid var(--ink);
+  }
+  .context-block:last-child { border-right: none; }
+  .context-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    color: var(--oxblood);
+    margin-bottom: 14px;
+  }
+  .context-block h3 {
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+    font-size: 24px;
+    letter-spacing: -0.005em;
+    margin-bottom: 16px;
+    line-height: 1.18;
+    color: var(--ink);
+  }
+  .context-block h3 em { font-style: italic; color: var(--oxblood); }
+  .context-block p {
+    font-family: 'Newsreader', serif;
+    color: var(--ink-soft);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .context-block p::first-letter {
+    font-family: 'Instrument Serif', serif;
+    font-size: 56px;
+    line-height: 0.9;
+    float: left;
+    color: var(--oxblood);
+    padding: 4px 8px 0 0;
+    font-style: italic;
+  }
+  .context-block p strong { color: var(--ink); font-weight: 600; }
+  .context-block p em { color: var(--oxblood); font-style: italic; }
+
+  /* ====================================================
+     SPECTRUM CHART (replacing the atlas)
+     ==================================================== */
+  .spectrum {
+    border: 1px solid var(--ink);
+    background: var(--paper-2);
+    padding: 0;
+  }
+  .spectrum-head {
+    text-align: center;
+    padding: 30px 32px 22px;
+    border-bottom: 1px solid var(--ink);
+  }
+  .spectrum-head .glyph {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    color: var(--oxblood);
+    font-size: 24px;
+    letter-spacing: 0.4em;
+    margin-bottom: 12px;
+    padding-left: 0.4em;
+  }
+  .spectrum-head h3 {
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+    font-size: clamp(28px, 4vw, 44px);
+    line-height: 1;
+    margin-bottom: 8px;
+    color: var(--ink);
+  }
+  .spectrum-head h3 em { font-style: italic; color: var(--oxblood); }
+  .spectrum-head .sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .spectrum-head .rule-mark {
+    width: 64px; height: 1px;
+    background: var(--oxblood);
+    margin: 14px auto 0;
+  }
+
+  .spectrum-chart {
+    padding: 36px 36px 24px;
+    position: relative;
+  }
+  /* Bands */
+  .spectrum-bands {
+    display: grid;
+    grid-template-columns: 12fr 10fr 6fr;
+    border: 1px solid var(--ink);
+    margin-bottom: 30px;
+    background: var(--paper);
+  }
+  .band {
+    padding: 14px 18px 10px;
+    border-right: 1px solid var(--ink);
+    text-align: center;
+  }
+  .band:last-child { border-right: none; }
+  .band-name {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--oxblood);
+    margin-bottom: 4px;
+    line-height: 1;
+  }
+  .band-range {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .band.audible { background: rgba(181, 140, 42, 0.08); }
+  .band.audible .band-name { color: var(--olive); }
+
+  /* The actual chart */
+  .chart-axis {
+    position: relative;
+    height: 320px;
+    margin: 0 0 8px;
+  }
+  .chart-axis::before {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    top: 50%;
+    height: 1px;
+    background: var(--ink);
+  }
+  .chart-axis::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    top: 50%;
+    margin-top: -3px;
+    height: 7px;
+    border-left: 1px solid var(--ink);
+    border-right: 1px solid var(--ink);
+  }
+
+  .freq-tick {
+    position: absolute;
+    top: 50%;
+    transform: translateX(-50%);
+    width: 1px;
+    height: 8px;
+    background: var(--ink);
+    margin-top: -4px;
+  }
+  .freq-tick.major {
+    height: 14px;
+    width: 1.5px;
+    background: var(--oxblood);
+    margin-top: -7px;
+  }
+
+  .freq-marker {
+    position: absolute;
+    transform: translateX(-50%);
+    text-align: center;
+    width: 110px;
+  }
+  .freq-marker.above { bottom: 50%; padding-bottom: 12px; }
+  .freq-marker.below { top: 50%; padding-top: 14px; }
+  .freq-marker .stem {
+    position: absolute;
+    left: 50%;
+    width: 1px;
+    background: var(--ink);
+  }
+  .freq-marker.above .stem { top: 100%; height: 0; }
+  .freq-marker.below .stem { bottom: 100%; height: 0; }
+
+  .marker-glyph {
+    width: 38px;
+    height: 38px;
+    margin: 0 auto 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .marker-glyph svg { width: 100%; height: 100%; }
+  .freq-marker.below .marker-glyph { margin: 8px auto 0; order: 2; }
+  .freq-marker.below { display: flex; flex-direction: column; }
+
+  .marker-label {
+    font-family: 'Instrument Serif', serif;
+    font-size: 14px;
+    line-height: 1.2;
+    color: var(--ink);
+    margin-bottom: 2px;
+  }
+  .marker-label em { font-style: italic; color: var(--oxblood); }
+  .marker-freq {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+  }
+  .freq-marker.terminus .marker-label { color: var(--oxblood); font-style: italic; }
+  .freq-marker.terminus .marker-freq { color: var(--oxblood-soft); }
+
+  /* Octave labels along the axis */
+  .octave-labels {
+    position: relative;
+    height: 18px;
+    margin-top: 0;
+  }
+  .octave-labels .olabel {
+    position: absolute;
+    transform: translateX(-50%);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    top: 0;
+  }
+
+  .spectrum-foot {
+    border-top: 1px solid var(--ink);
+    padding: 14px 32px;
+    display: flex;
+    justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .spectrum-foot .corner { color: var(--oxblood); }
+
+  /* ====================================================
+     SOURCES
+     ==================================================== */
+  .sources-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    border: 1px solid var(--ink);
+    background: var(--paper-2);
+  }
+  .sources-list {
+    padding: 30px 32px;
+    border-right: 1px solid var(--ink);
+  }
+  .sources-list h4 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--oxblood);
+    margin-bottom: 22px;
+  }
+  .src-item {
+    padding: 14px 0;
+    border-bottom: 1px dashed var(--rule);
+  }
+  .src-item:last-child { border-bottom: none; }
+  .src-claim {
+    font-family: 'Newsreader', serif;
+    font-size: 15px;
+    color: var(--ink);
+    margin-bottom: 4px;
+    line-height: 1.4;
+    font-weight: 500;
+  }
+  .src-claim .val {
+    color: var(--oxblood);
+    font-style: italic;
+    font-family: 'Instrument Serif', serif;
+    font-size: 17px;
+  }
+  .src-attr {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+  .src-attr a {
+    color: var(--ink-soft);
+    text-decoration: underline;
+    text-decoration-color: var(--rule-strong);
+    text-underline-offset: 2px;
+  }
+  .src-attr a:hover { color: var(--oxblood); }
+
+  .sources-notes {
+    padding: 30px 32px;
+    background: var(--paper);
+  }
+  .sources-notes h4 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--oxblood);
+    margin-bottom: 22px;
+  }
+  .note {
+    margin-bottom: 18px;
+    padding-bottom: 18px;
+    border-bottom: 1px dashed var(--rule);
+  }
+  .note:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+  .note-title {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 16px;
+    color: var(--oxblood);
+    margin-bottom: 6px;
+  }
+  .note-body {
+    font-family: 'Newsreader', serif;
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.55;
+  }
+  .note-body em { color: var(--oxblood); font-style: italic; }
+
+  /* ====================================================
+     FOOTER
+     ==================================================== */
+  footer {
+    margin-top: 48px;
+    padding-top: 14px;
+    border-top: 4px double var(--ink);
+    display: flex;
+    justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  footer .colophon {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    text-transform: none;
+    letter-spacing: 0.02em;
+    font-size: 13px;
+    color: var(--oxblood);
+  }
+
+  /* ====================================================
+     RESPONSIVE
+     ==================================================== */
+  @media (max-width: 880px) {
+    .frame { padding: 24px 20px 60px; }
+    .title-block { grid-template-columns: 1fr; gap: 24px; }
+    .data { grid-template-columns: repeat(2, 1fr); }
+    .stat:nth-child(2) { border-right: none; }
+    .stat:nth-child(1), .stat:nth-child(2) { border-bottom: 1px solid var(--ink); }
+    .verdict { grid-template-columns: 1fr; gap: 18px; padding: 22px 24px; }
+    .presets { grid-template-columns: repeat(4, 1fr); }
+    .preset:nth-child(4) { border-right: none; }
+    .preset:nth-child(-n+4) { border-bottom: 1px solid var(--rule); }
+    .formula-grid { grid-template-columns: 1fr; }
+    .formula { border-right: none; }
+    .formula:nth-last-child(-n+2) { border-bottom: 1px solid var(--ink); }
+    .formula:last-child { border-bottom: none; }
+    .context-grid { grid-template-columns: 1fr; }
+    .context-block { border-right: none; border-bottom: 1px solid var(--ink); }
+    .context-block:last-child { border-bottom: none; }
+    .sources-grid { grid-template-columns: 1fr; }
+    .sources-list { border-right: none; border-bottom: 1px solid var(--ink); }
+    .sec-header { grid-template-columns: 1fr; gap: 8px; }
+    .scope { aspect-ratio: 4 / 3; }
+    .ihead-cell:nth-child(1), .ihead-cell:nth-child(2) { border-bottom: 1px solid var(--ink); }
+    .instrument-head { grid-template-columns: 1fr 1fr; }
+    .ihead-cell:nth-child(2) { border-right: none; }
+    .ihead-cell:nth-child(3) { grid-column: span 2; border-right: none; }
+    header.masthead { grid-template-columns: 1fr; gap: 10px; text-align: left; }
+    .meta.right { text-align: left; }
+    .ident { text-align: left; }
+    .submasthead { flex-direction: column; gap: 4px; }
+    .chart-axis { height: 280px; }
+    .freq-marker { width: 80px; }
+    .marker-label { font-size: 11px; }
+    .marker-freq { font-size: 8px; }
+    .marker-glyph { width: 28px; height: 28px; }
+    .spectrum-bands { grid-template-columns: 1fr; }
+    .band { border-right: none; border-bottom: 1px solid var(--ink); }
+    .band:last-child { border-bottom: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="frame">
+
+  <!-- MASTHEAD -->
+  <header class="masthead">
+    <div class="meta">No. 194 · Acoustic Bulletin</div>
+    <div class="ident">Cosmic Hypothetical</div>
+    <div class="meta right">Pressure Ceiling · 101.3 kPa</div>
+  </header>
+  <div class="submasthead">
+    <span>Series · Edition Two</span>
+    <span>Filed under: Acoustics, Atmospheres, Catastrophe</span>
+    <span>One sheet · Hand-made</span>
+  </div>
+
+  <!-- TITLE -->
+  <div class="title-block">
+    <h1>A question of <em>loudness</em>.</h1>
+    <p class="deck">
+      A whisper is 30 dB. A jet engine is 140 dB. <strong>Krakatoa</strong> in 1883 was 310 dB at the source, heard 3,000 miles away. But there's a hard ceiling at 194 dB where the wave stops moving and starts <em>breaking</em>. Move the dial. Watch air give up.
+    </p>
+  </div>
+
+  <!-- INSTRUMENT -->
+  <div class="instrument">
+    <div class="instrument-head">
+      <div class="ihead-cell">
+        <div class="ihead-label">Sound Pressure Level</div>
+        <div class="ihead-value" id="ihSpl">110 <span class="unit">dB</span></div>
+      </div>
+      <div class="ihead-cell">
+        <div class="ihead-label">Peak Pressure (Pa)</div>
+        <div class="ihead-value" id="ihPa">6.32 <span class="unit">Pa</span></div>
+      </div>
+      <div class="ihead-cell">
+        <div class="ihead-label">Mode</div>
+        <div class="ihead-value" id="ihMode">Wave</div>
+      </div>
+    </div>
+
+    <div class="scope-frame">
+      <div class="scope">
+        <svg id="waveSvg" viewBox="0 0 1180 380" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="graticuleMinor" x="0" y="0" width="29.5" height="19" patternUnits="userSpaceOnUse">
+              <path d="M 29.5 0 L 0 0 0 19" fill="none" stroke="rgba(120, 80, 40, 0.13)" stroke-width="0.5"/>
+            </pattern>
+            <pattern id="graticuleMajor" x="0" y="0" width="118" height="76" patternUnits="userSpaceOnUse">
+              <path d="M 118 0 L 0 0 0 76" fill="none" stroke="rgba(80, 50, 25, 0.28)" stroke-width="1"/>
+            </pattern>
+            <linearGradient id="wfill" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stop-color="#a02818" stop-opacity="0.16"/>
+              <stop offset="100%" stop-color="#a02818" stop-opacity="0"/>
+            </linearGradient>
+            <linearGradient id="wfillShock" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stop-color="#c5301a" stop-opacity="0.28"/>
+              <stop offset="100%" stop-color="#c5301a" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+
+          <!-- Graph paper grid: minor + major -->
+          <rect width="1180" height="380" fill="url(#graticuleMinor)"/>
+          <rect width="1180" height="380" fill="url(#graticuleMajor)"/>
+
+          <!-- Vacuum floor: dashed dark red -->
+          <line id="floorLine" x1="80" x2="1180" y1="290" y2="290" stroke="rgba(140, 40, 20, 0.55)" stroke-width="1" stroke-dasharray="6 5"/>
+          <text x="86" y="282" font-family="JetBrains Mono, monospace" font-size="9" letter-spacing="2" fill="rgba(140, 40, 20, 0.85)">VACUUM · 0 Pa abs</text>
+
+          <!-- Atmospheric baseline -->
+          <line id="baseLine" x1="80" x2="1180" y1="160" y2="160" stroke="rgba(60, 40, 20, 0.45)" stroke-width="1"/>
+          <text x="86" y="153" font-family="JetBrains Mono, monospace" font-size="9" letter-spacing="2" fill="rgba(60, 40, 20, 0.6)">ATMOSPHERIC · 101.3 kPa</text>
+
+          <!-- Trace -->
+          <path id="waveFillPath" d="" fill="url(#wfill)"/>
+          <path id="wavePath" d="" fill="none" stroke="#a02818" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/>
+
+          <!-- Stylus mechanism + decorations -->
+          <g id="shockDecorations"></g>
+        </svg>
+
+        <div class="scope-corner tl">REC · 4s history · 180 sps</div>
+        <div class="scope-corner tr" id="modeIndicator"><span class="indicator-dot"></span><span id="modeText">RECORDING · WAVE</span></div>
+        <div class="scope-corner bl">y: pressure · x: time</div>
+        <div class="scope-corner br" id="ampReadout">amp: 6.32 Pa</div>
+
+        <div class="overload-warning" id="overloadWarning">
+          <span class="chevron">▲</span>
+          <span>OVERPRESSURE · WAVE BROKEN</span>
+          <span class="chevron">▲</span>
+        </div>
+        <div class="corner-alert" id="cornerAlert">⚠ Air has exceeded its acoustic limit ⚠</div>
+      </div>
+    </div>
+
+    <div class="scope-cal">
+      <span>· · · 1 atm above</span>
+      <span>continuous record · pen at right</span>
+      <span>1 atm below · · ·</span>
+    </div>
+
+    <!-- Slider -->
+    <div class="controls">
+      <div class="slider-row">
+        <span class="slider-label">Drive</span>
+        <span class="slider-readout" id="sliderRead">110.0 dB</span>
+        <div class="slider-track">
+          <input type="range" id="slider" min="0" max="320" value="110" step="0.5">
+          <div class="slider-ticks" id="sliderTicks"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Presets -->
+    <div class="presets" id="presets"></div>
+  </div>
+
+  <!-- STATS -->
+  <div class="data">
+    <div class="stat" id="stat-db">
+      <div class="stat-num">i</div>
+      <div class="k">Sound Pressure Level</div>
+      <div class="v" id="dbVal">110 <span class="unit">dB</span></div>
+      <div class="sub" id="dbSub">a rock concert</div>
+    </div>
+    <div class="stat" id="stat-pressure">
+      <div class="stat-num">ii</div>
+      <div class="k">Peak Pressure</div>
+      <div class="v" id="pressureVal">6.32 <span class="unit">Pa</span></div>
+      <div class="sub" id="pressureSub">62 ppm of atmospheric</div>
+    </div>
+    <div class="stat" id="stat-vs">
+      <div class="stat-num">iii</div>
+      <div class="k">Intensity vs. Speech</div>
+      <div class="v" id="vsVal">100,000×</div>
+      <div class="sub" id="vsSub">five orders of magnitude</div>
+    </div>
+    <div class="stat" id="stat-status">
+      <div class="stat-num">iv</div>
+      <div class="k">Effect on a Body</div>
+      <div class="v" id="statusVal">Painful</div>
+      <div class="sub" id="statusSub">damage in minutes</div>
+    </div>
+  </div>
+
+  <!-- VERDICT -->
+  <div class="verdict">
+    <div class="verdict-tag warn" id="verdictTag">
+      Diagnosis
+      <span class="badge" id="verdictBadge">Damaging</span>
+    </div>
+    <p id="verdictText">
+      A rock concert from the floor. Your ears will recover from one night, mostly. Three nights in a row and they won't. The wave is still a wave, the air is still air, and the math is still benign. We are nowhere near the ceiling.
+    </p>
+  </div>
+
+  <!-- MATHEMATICS -->
+  <div class="sec-header">
+    <div class="sec-num">§ I</div>
+    <h2>Working it <em>out</em>.</h2>
+    <div class="meta-tag">Live values · <span id="liveDb">110 dB</span></div>
+  </div>
+
+  <div class="formula-grid">
+
+    <div class="formula">
+      <div class="formula-num"><span class="roman">i.</span>The Scale</div>
+      <div class="formula-title">The <em>decibel</em></div>
+      <div class="formula-eq">
+        <i>L</i> &nbsp;=&nbsp; 20&nbsp;log<sub>10</sub>&thinsp;(<i>P</i>&thinsp;/&thinsp;<i>P</i><sub>0</sub>)
+      </div>
+      <p class="formula-desc">
+        A logarithm of pressure ratios. The reference <i>P</i><sub>0</sub> = <strong>20 µPa</strong> is the quietest pressure a healthy young human ear can detect at 1 kHz, defined in the 1930s. Every 20 dB is a <strong>10× increase in pressure</strong>; every 10 dB, a <strong>10× increase in intensity</strong>. The scale is logarithmic because human hearing is.
+      </p>
+      <div class="formula-work">
+        <div class="label">Worked out (current)</div>
+        <span class="step eq-line"><i>P</i> = 20&nbsp;µPa × 10<sup>(<span class="live-num" id="m-step1">110</span>/20)</sup></span>
+        <span class="step">= 20&nbsp;µPa × <span class="live-num" id="m-step2">316,228</span></span>
+        <span class="step eq-line">= <span class="result" id="m-result">6.32 Pa</span></span>
+      </div>
+    </div>
+
+    <div class="formula">
+      <div class="formula-num"><span class="roman">ii.</span>The Ceiling</div>
+      <div class="formula-title">Why air breaks at <em>194</em></div>
+      <div class="formula-eq">
+        <i>L</i><sub>max</sub> &nbsp;=&nbsp; 20&nbsp;log<sub>10</sub>&thinsp;(<i>P</i><sub>atm</sub>&thinsp;/&thinsp;<i>P</i><sub>0</sub>)
+      </div>
+      <p class="formula-desc">
+        A sound wave oscillates above and below atmospheric pressure (<strong>101,325 Pa</strong> at sea level). The trough cannot dip below <strong>zero</strong>, because there is no such thing as negative absolute pressure. So the maximum amplitude a real wave can have is exactly one atmosphere. Plug that in, and the answer comes out a hair above 194.
+      </p>
+      <div class="formula-work">
+        <div class="label">Worked out (the ceiling)</div>
+        <span class="step eq-line"><i>L</i><sub>max</sub> = 20&nbsp;log<sub>10</sub>(101,325 / 20×10⁻⁶)</span>
+        <span class="step">= 20&nbsp;log<sub>10</sub>(5.07 × 10⁹)</span>
+        <span class="step eq-line">= <span class="result">194.09 dB</span></span>
+        <span class="step note" id="m2-status">currently 84.1 dB below ceiling</span>
+      </div>
+    </div>
+
+    <div class="formula">
+      <div class="formula-num"><span class="roman">iii.</span>Comparison</div>
+      <div class="formula-title">Intensity vs. <em>conversation</em></div>
+      <div class="formula-eq">
+        <i>R</i> &nbsp;=&nbsp; 10<sup>(<i>L</i> − <i>L</i><sub>conv</sub>)&thinsp;/&thinsp;10</sup>
+      </div>
+      <p class="formula-desc">
+        Sound intensity is power per unit area, proportional to the square of pressure. So a 10 dB jump is exactly <strong>10× the intensity</strong>; a 60 dB jump (whisper to chainsaw) is one million times. The reference here is normal speech at <strong>60 dB</strong>. The scale is unforgiving once you start counting orders of magnitude.
+      </p>
+      <div class="formula-work">
+        <div class="label">Worked out (current)</div>
+        <span class="step eq-line"><i>R</i> = 10<sup>(<span class="live-num" id="r-step1">110</span> − 60)/10</sup></span>
+        <span class="step">= 10<sup><span class="live-num" id="r-step2">5.0</span></sup></span>
+        <span class="step eq-line">= <span class="result" id="r-result">100,000×</span></span>
+      </div>
+    </div>
+
+    <div class="formula">
+      <div class="formula-num"><span class="roman">iv.</span>Distance</div>
+      <div class="formula-title">How far before it's <em>safe</em></div>
+      <div class="formula-eq">
+        <i>d</i><sub>safe</sub> &nbsp;=&nbsp; <i>d</i><sub>0</sub> · 10<sup>(<i>L</i> − 85) / 20</sup>
+      </div>
+      <p class="formula-desc">
+        A point source spreads energy over a sphere, so intensity falls as <strong>1/r²</strong>. That means the level drops 6 dB for every doubling of distance. Solving for when it falls to <strong>85 dB</strong> (the OSHA 8-hour exposure limit) gives the radius of permanent hearing damage. Atmospheric absorption isn't included, so this is a <em>lower bound</em>.
+      </p>
+      <div class="formula-work">
+        <div class="label">Worked out (from 1 m)</div>
+        <span class="step eq-line"><i>d</i><sub>safe</sub> = 1 m × 10<sup>(<span class="live-num" id="d-step1">110</span> − 85)/20</sup></span>
+        <span class="step">= 10<sup><span class="live-num" id="d-step2">1.25</span></sup> m</span>
+        <span class="step eq-line">= <span class="result" id="d-result">≈ 17.8 m</span></span>
+        <span class="step note" id="d-note">stand back about 18 m to be safe long-term</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CONTEXT -->
+  <div class="sec-header">
+    <div class="sec-num">§ II</div>
+    <h2>For <em>context</em>.</h2>
+    <div class="meta-tag">An aside / Why we're here</div>
+  </div>
+
+  <div class="context-grid">
+    <div class="context-block">
+      <div class="context-num">A · What sound is</div>
+      <h3>A pressure wave that needs a <em>medium</em></h3>
+      <p>
+        Sound is a <strong>longitudinal compression wave</strong> in some material: gas, liquid, solid. Air at sea level carries it at <strong>343 m/s</strong>. The molecules don't travel; they jiggle, bumping their neighbors, and the disturbance propagates. Loudness is the size of those jiggles, frequency is how fast. Without a medium, no jiggling, no sound. Space is silent because space is empty. This is why the ceiling exists at all: <em>the medium has limits</em>.
+      </p>
+    </div>
+    <div class="context-block">
+      <div class="context-num">B · The decibel</div>
+      <h3>Named for <em>Alexander Graham Bell</em></h3>
+      <p>
+        Engineers at <strong>Bell Labs</strong> needed a unit for telephone signal loss in the 1920s. They settled on the bel, base-10 log of a power ratio, then divided it by ten because whole bels were too coarse. The reference 20 µPa was chosen because that's what the average healthy ear can just detect at 1 kHz. So <em>0 dB isn't silence</em>; it's the threshold of human perception. Negative dB exists, you just can't hear it.
+      </p>
+    </div>
+    <div class="context-block">
+      <div class="context-num">C · Where this came from</div>
+      <h3>A question about <em>sonic booms</em></h3>
+      <p>
+        The page started with a thread that wandered: <em>what's the loudest possible sound</em>, then <em>do sonic booms count</em>, then <em>what about a nuclear bomb</em>. Two answers emerged. There is in fact a hard ceiling, set by the pressure of the atmosphere itself. And there are several ways past it, but none of them are sound anymore. The dial above is the conversation, made visible. <em>Move it. Watch air give up.</em>
+      </p>
+    </div>
+  </div>
+
+  <!-- SPECTRUM CHART -->
+  <div class="sec-header">
+    <div class="sec-num">§ III</div>
+    <h2>Across the <em>spectrum</em>.</h2>
+    <div class="meta-tag">Pitch, plotted · 28 octaves end to end</div>
+  </div>
+
+  <div class="spectrum">
+    <div class="spectrum-head">
+      <div class="glyph">∿ · ∿ · ∿</div>
+      <h3>Pitch has its own <em>ceilings</em></h3>
+      <div class="sub">Loudness is bounded by atmospheric pressure · Pitch is bounded by black holes and atoms</div>
+      <div class="rule-mark"></div>
+    </div>
+
+    <!-- Frequency bands -->
+    <div class="spectrum-chart">
+      <div class="spectrum-bands">
+        <div class="band">
+          <div class="band-name">Infrasound</div>
+          <div class="band-range">below 20 Hz</div>
+        </div>
+        <div class="band audible">
+          <div class="band-name">Audible</div>
+          <div class="band-range">20 — 20,000 Hz</div>
+        </div>
+        <div class="band">
+          <div class="band-name">Ultrasound &amp; beyond</div>
+          <div class="band-range">above 20 kHz</div>
+        </div>
+      </div>
+
+      <!-- The chart itself -->
+      <div class="chart-axis" id="chartAxis">
+        <!-- Tick marks and markers built dynamically -->
+      </div>
+      <div class="octave-labels" id="octaveLabels"></div>
+    </div>
+
+    <div class="spectrum-foot">
+      <span class="corner">↑ Cosmic floor</span>
+      <span>Logarithmic frequency · 28 octaves</span>
+      <span class="corner">Atomic ceiling ↑</span>
+    </div>
+  </div>
+
+  <!-- SOURCES -->
+  <div class="sec-header">
+    <div class="sec-num">§ IV</div>
+    <h2>The <em>receipts</em>.</h2>
+    <div class="meta-tag">References &amp; assumptions</div>
+  </div>
+
+  <div class="sources-grid">
+    <div class="sources-list">
+      <h4>Numbers used</h4>
+
+      <div class="src-item">
+        <div class="src-claim">Atmospheric ceiling: <span class="val">194.09 dB</span></div>
+        <div class="src-attr">
+          P_ref = 20 µPa, P_atm = 101,325 Pa. 20·log₁₀(101325 / 20×10⁻⁶) = 194.09. Standard atmospheric acoustics. Above this, the rarefaction phase would require negative absolute pressure, which is unphysical.
+          <br><a href="https://en.wikipedia.org/wiki/Sound_pressure" target="_blank" rel="noopener">en.wikipedia.org/wiki/Sound_pressure</a>
+        </div>
+      </div>
+
+      <div class="src-item">
+        <div class="src-claim">Krakatoa: <span class="val">~310 dB at source</span></div>
+        <div class="src-attr">
+          Inferred from worldwide barograph readings and documented overpressure: ~172 dB at 100 miles, audible 3,000 miles away in Mauritius. Pressure wave circled Earth 3-4 times. Modern reconstructions place source intensity well above the acoustic ceiling, meaning it was a propagating shock for the first hundreds of km.
+          <br><a href="https://en.wikipedia.org/wiki/1883_eruption_of_Krakatoa" target="_blank" rel="noopener">en.wikipedia.org/wiki/1883_eruption_of_Krakatoa</a>
+        </div>
+      </div>
+
+      <div class="src-item">
+        <div class="src-claim">Tsar Bomba: <span class="val">~224 dB at 1 km</span></div>
+        <div class="src-attr">
+          50-megaton thermonuclear test, USSR, 30 October 1961. Largest weapon ever detonated. Source overpressure inferred from blast data; the precise dB value depends on distance and direction and is itself a shock measurement.
+          <br><a href="https://en.wikipedia.org/wiki/Tsar_Bomba" target="_blank" rel="noopener">en.wikipedia.org/wiki/Tsar_Bomba</a>
+        </div>
+      </div>
+
+      <div class="src-item">
+        <div class="src-claim">Perseus B-flat: <span class="val">~10⁻¹⁵ Hz</span></div>
+        <div class="src-attr">
+          Discovered 2003 by Andrew Fabian's team using Chandra X-ray imagery of pressure ripples in the Perseus cluster's hot intracluster gas, driven by the central black hole. Period ~10 million years; pitch 57 octaves below middle C. NASA description names the note B-flat.
+          <br><a href="https://chandra.harvard.edu/photo/2003/perseus/" target="_blank" rel="noopener">chandra.harvard.edu/photo/2003/perseus</a>
+        </div>
+      </div>
+
+      <div class="src-item">
+        <div class="src-claim">Atomic ceiling: <span class="val">~10¹³ Hz</span></div>
+        <div class="src-attr">
+          A wave can't have a wavelength shorter than the spacing between the particles carrying it. In typical solids that's ~0.2 nm at speed-of-sound ~5 km/s, giving ~25 THz max. Above this, "sound" stops being meaningful and you're describing thermal phonons.
+        </div>
+      </div>
+
+      <div class="src-item">
+        <div class="src-claim">Speech reference: <span class="val">60 dB at 1 m</span></div>
+        <div class="src-attr">
+          Standard reference value for normal conversational speech at conversational distance. ANSI/IEEE conventions. Pain threshold: ~120 dB. OSHA 8-hour exposure limit: 85 dB. NIOSH recommendations are similar.
+          <br><a href="https://www.osha.gov/noise" target="_blank" rel="noopener">osha.gov/noise</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="sources-notes">
+      <h4>Honest caveats</h4>
+
+      <div class="note">
+        <div class="note-title">On the wave clipping.</div>
+        <div class="note-body">
+          The visualization simplifies. A real shock wave isn't a clipped sine; it's an asymmetric pressure pulse with a steep leading front and a gradual tail. The <em>moment of breakage</em> at 194 dB is real, but what the wave looks like above the ceiling depends on the source. The clipped sine here is a teaching diagram, not a measurement.
+        </div>
+      </div>
+
+      <div class="note">
+        <div class="note-title">On values above 194 dB.</div>
+        <div class="note-body">
+          Decibel readings beyond the acoustic ceiling are reported as overpressure, which is mathematically still a logarithm of a pressure ratio but no longer describes a wave. Strictly, you've left acoustics. The eardrum doesn't care about the distinction.
+        </div>
+      </div>
+
+      <div class="note">
+        <div class="note-title">On the inverse-square distance.</div>
+        <div class="note-body">
+          Treats the source as a point and the air as lossless. Real sound also undergoes <em>atmospheric absorption</em>, which is frequency-dependent and significant for high pitches over distance. For the kinds of low-frequency, high-amplitude events at the top of the scale, shock decay also kicks in much faster than 1/r². Use the formula for a vibe, not a survey.
+        </div>
+      </div>
+
+      <div class="note">
+        <div class="note-title">For the curious, not the rigorous.</div>
+        <div class="note-body">
+          Editorial science writing. Where the literature disagreed, the friendlier or more familiar number was preferred. Where assumptions were necessary, they're stated. Corrections welcome; pretensions to peer review, not.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span>Cosmic Hypothetical · No. 194</span>
+    <span class="colophon">Set in Instrument Serif &amp; Newsreader</span>
+    <span>See receipts above</span>
+  </footer>
+
+</div>
+
+<script>
+  // ====================================================================
+  // Constants
+  // ====================================================================
+  const P_REF = 20e-6;
+  const P_ATM = 101325;
+  const CEILING_DB = 20 * Math.log10(P_ATM / P_REF);
+  const SPEECH_DB = 60;
+
+  // SVG geometry (matches viewBox)
+  const SVG_W = 1180;
+  const SVG_H = 380;
+  const BASELINE_Y = 160;
+  const FLOOR_Y = 290;
+  const FLOOR_DIST = FLOOR_Y - BASELINE_Y; // 130 px
+
+  const NUM_SAMPLES = 320;
+  const NUM_CYCLES = 3;
+
+  // Animation state
+  let currentDb = 110;
+  let phase = 0;
+  let time = 0;             // accumulated seconds since start
+  let lastT = 0;
+  let scopeVisible = true;
+  let lastDbForFlash = 110; // tracks crossings of the ceiling
+  let activeSpikes = [];    // active in-line spike glitches
+  const SCROLL_RATE = Math.PI; // radians per second; ~one cycle every 2 sec
+
+  // ====================================================================
+  // Presets
+  // ====================================================================
+  const presets = [
+    { label: "Whisper", db: 30, sub: "30 dB" },
+    { label: "Talk", db: 60, sub: "60 dB" },
+    { label: "Concert", db: 110, sub: "110 dB" },
+    { label: "Pain", db: 120, sub: "120 dB" },
+    { label: "Jet", db: 140, sub: "140 dB" },
+    { label: "Saturn V", db: 180, sub: "180 dB" },
+    { label: "Ceiling", db: 194, sub: "194 dB" },
+    { label: "Krakatoa", db: 310, sub: "310 dB" }
+  ];
+
+  const presetsEl = document.getElementById('presets');
+  presets.forEach((p) => {
+    const btn = document.createElement('button');
+    btn.className = 'preset';
+    btn.dataset.db = p.db;
+    btn.innerHTML = `${p.label}<span class="preset-d">${p.sub}</span>`;
+    btn.addEventListener('click', () => {
+      setDb(p.db);
+      document.getElementById('slider').value = p.db;
+    });
+    presetsEl.appendChild(btn);
+  });
+
+  // ====================================================================
+  // Slider tick marks
+  // ====================================================================
+  const TICKS = [
+    { db: 0,   label: '0' },
+    { db: 60,  label: '60' },
+    { db: 120, label: '120' },
+    { db: 194, label: '194', major: true },
+    { db: 250, label: '250' },
+    { db: 320, label: '320' }
+  ];
+  const ticksEl = document.getElementById('sliderTicks');
+  TICKS.forEach(t => {
+    const div = document.createElement('div');
+    div.className = 'tick' + (t.major ? ' major' : '');
+    div.style.left = `${(t.db / 320) * 100}%`;
+    div.textContent = t.label;
+    ticksEl.appendChild(div);
+  });
+
+  // ====================================================================
+  // Physics
+  // ====================================================================
+  function dbToPa(db) { return P_REF * Math.pow(10, db / 20); }
+  function intensityRatio(db1, db2) { return Math.pow(10, (db1 - db2) / 10); }
+  function safeDistance(db, sourceDist = 1) {
+    if (db <= 85) return 0;
+    return sourceDist * Math.pow(10, (db - 85) / 20);
+  }
+
+  // ====================================================================
+  // Formatting
+  // ====================================================================
+  function fmtPressure(pa) {
+    if (pa < 0.001) return { v: (pa * 1e6).toFixed(1), u: 'µPa' };
+    if (pa < 1) return { v: (pa * 1000).toFixed(1), u: 'mPa' };
+    if (pa < 1000) return { v: pa.toFixed(2), u: 'Pa' };
+    if (pa < 1e6) return { v: (pa / 1000).toFixed(1), u: 'kPa' };
+    if (pa < 1e9) return { v: (pa / 1e6).toFixed(1), u: 'MPa' };
+    if (pa < 1e12) return { v: (pa / 1e9).toFixed(1), u: 'GPa' };
+    return { v: pa.toExponential(2), u: 'Pa' };
+  }
+
+  function fmtRatio(r) {
+    if (r >= 1e15) return `${(r/1e15).toFixed(1)}×10¹⁵`;
+    if (r >= 1e12) return `${(r/1e12).toFixed(1)}T×`;
+    if (r >= 1e9) return `${(r/1e9).toFixed(1)}B×`;
+    if (r >= 1e6) return `${(r/1e6).toFixed(1)}M×`;
+    if (r >= 1000) return `${Math.round(r).toLocaleString()}×`;
+    if (r >= 1) return `${r.toFixed(r < 10 ? 1 : 0)}×`;
+    if (r >= 0.001) return `${r.toFixed(3)}×`;
+    return r.toExponential(1) + '×';
+  }
+
+  function fmtDistance(m) {
+    if (m === 0) return 'already safe';
+    if (m < 1) return `${(m * 100).toFixed(0)} cm`;
+    if (m < 1000) return `${m.toFixed(m < 10 ? 1 : 0)} m`;
+    if (m < 1e6) return `${(m/1000).toFixed(m < 1e4 ? 1 : 0)} km`;
+    if (m < 1.5e8) return `${(m/1000).toFixed(0)} km`;
+    const earthRadius = 6.371e6;
+    if (m < earthRadius * 100) return `${(m/earthRadius).toFixed(1)} Earth radii`;
+    const AU = 1.496e11;
+    if (m < 1e15) return `${(m/AU).toFixed(2)} AU`;
+    const ly = 9.461e15;
+    return `${(m/ly).toFixed(2)} ly`;
+  }
+
+  function fmtPressureFraction(pa) {
+    const ratio = pa / P_ATM;
+    if (ratio < 1e-9) return `${(ratio * 1e9).toFixed(1)} ppb of atm`;
+    if (ratio < 1e-6) return `${(ratio * 1e6).toFixed(1)} ppm of atm`;
+    if (ratio < 0.01) return `${(ratio * 100).toFixed(3)}% of atmospheric`;
+    if (ratio < 1) return `${(ratio * 100).toFixed(1)}% of atmospheric`;
+    if (ratio < 1.05) return `equal to atmospheric (the ceiling)`;
+    return `${ratio.toFixed(1)}× atmospheric pressure`;
+  }
+
+  // ====================================================================
+  // Verdict
+  // ====================================================================
+  function getVerdict(db) {
+    if (db < 20) {
+      return { tag: 'safe', badge: 'Sub-Audible', status: 'Inaudible',
+        text: 'Below the threshold of human hearing. The wave is real but you can\'t register it. Bats, elephants, and microphones notice; you don\'t.',
+        sub: { db: 'below threshold', p: 'fractional µPa', vs: 'imperceptible', s: 'silent to us' }, statKey: 'safe' };
+    }
+    if (db < 50) {
+      return { tag: 'safe', badge: 'Quiet', status: 'Calm',
+        text: 'A whisper, a quiet room, a library at night. The pressure swings are tiny, a few thousandths of an atmosphere\'s worth of variation. The air is barely doing anything.',
+        sub: { db: db < 35 ? 'whisper-quiet' : 'a quiet room', p: 'tiny pressure swings', vs: 'sub-conversation', s: 'no damage' }, statKey: 'safe' };
+    }
+    if (db < 75) {
+      return { tag: 'safe', badge: 'Conversational', status: 'Safe',
+        text: 'Normal speech, the texture of an ordinary day. You could spend forever at this level and your ears wouldn\'t notice. The pressure variation is about <em>one part in five million</em> of the air around you.',
+        sub: { db: 'conversation range', p: 'fraction of a Pascal', vs: 'baseline', s: 'no damage' }, statKey: 'safe' };
+    }
+    if (db < 90) {
+      return { tag: 'safe', badge: 'Loud, Safe', status: 'Tolerable',
+        text: 'A vacuum cleaner, a busy restaurant, traffic from the curb. You\'re fine for hours. OSHA draws the line at 85 dB for an 8-hour shift; below that, no protection needed.',
+        sub: { db: 'busy environment', p: 'fraction of a Pascal', vs: '~10× speech', s: 'safe long-term' }, statKey: 'safe' };
+    }
+    if (db < 115) {
+      return { tag: 'warn', badge: 'Risky', status: 'Damaging',
+        text: 'A motorcycle, a power saw, a rock concert. Pleasant in moderation, harmful with exposure. Sustained time here costs you hearing in years; protect your ears at concerts unless you have an unusual amount of cartilage to spare.',
+        sub: { db: 'motorcycle, concert', p: 'a few Pascals', vs: '~thousands× speech', s: 'damage in hours' }, statKey: 'warn' };
+    }
+    if (db < 135) {
+      return { tag: 'danger', badge: 'Painful', status: 'Painful',
+        text: 'The threshold of pain sits at 120 dB. Ambulance sirens, gunshots, thunderclaps directly overhead. Damage stops being cumulative and starts being immediate. Every minute here is a tax on your future hearing.',
+        sub: { db: 'pain threshold', p: 'tens of Pascals', vs: 'massive', s: 'instant damage' }, statKey: 'danger' };
+    }
+    if (db < 165) {
+      return { tag: 'danger', badge: 'Lethal Range', status: 'Damaging',
+        text: 'A jet engine at takeoff, a rifle at the muzzle. Eardrums begin to rupture; vibration becomes physical pressure on the body. Single exposures cause permanent hearing loss. The wave is still a wave but it\'s carrying a lot of energy.',
+        sub: { db: 'jet engine, gunshot', p: 'hundreds of Pascals', vs: 'extreme', s: 'eardrums rupture' }, statKey: 'danger' };
+    }
+    if (db < 188) {
+      return { tag: 'danger', badge: 'Strain', status: 'Catastrophic',
+        text: 'A Saturn V at the pad. The vibration alone can be lethal at close range. We\'re approaching the ceiling; the trough of every cycle is already most of the way to vacuum. The medium is straining.',
+        sub: { db: 'rocket pad', p: 'thousands of Pascals', vs: 'astronomical', s: 'lethal vibration' }, statKey: 'danger' };
+    }
+    if (db < CEILING_DB - 0.5) {
+      return { tag: 'danger', badge: 'On The Edge', status: 'Limit',
+        text: 'The wave is straining against vacuum. Every trough now drops the absolute pressure to a small fraction of normal atmospheric. A little more amplitude and the trough hits zero. The medium is at its limit.',
+        sub: { db: 'just below ceiling', p: 'approaching 1 atm', vs: '~10¹³× speech', s: 'wave at limit' }, statKey: 'danger' };
+    }
+    if (db < CEILING_DB + 0.5) {
+      return { tag: 'shock', badge: 'The Ceiling', status: 'The Ceiling',
+        text: '<em>This is it.</em> The trough touches vacuum at every cycle. The wave\'s amplitude exactly equals atmospheric pressure. Push any harder and it stops being a wave: the bottom has nowhere left to go. <strong>194 dB is where air gives up</strong>.',
+        sub: { db: 'ceiling', p: '101 kPa = 1 atm', vs: '~5×10¹³× speech', s: 'wave breaks' }, statKey: 'shock' };
+    }
+    if (db < 230) {
+      return { tag: 'shock', badge: 'Shock Wave', status: 'Shock Wave',
+        text: 'The wave has broken. The trough is flat at vacuum, the peaks compress harder than the air can recover from, and what propagates outward is no longer an oscillation but a <em>shock front</em>: a one-way pressure step. This is sonic-boom physics, scaled up by orders of magnitude. Tsar Bomba registered here at 1 km.',
+        sub: { db: 'past the ceiling', p: 'multi-atm overpressure', vs: 'off the chart', s: 'ballistic, not acoustic' }, statKey: 'shock' };
+    }
+    if (db < 290) {
+      return { tag: 'shock', badge: 'Cataclysmic', status: 'Cataclysmic',
+        text: 'The atmosphere is being punched, not stroked. A nuclear fireball, a meteor entering at hypersonic speeds, a supervolcanic outburst. The shock front travels faster than sound and decays as it goes; what eventually arrives at human ears is the relaxed remnant of a far more violent event.',
+        sub: { db: 'planetary scale', p: 'tens of atmospheres', vs: 'meaningless', s: 'continental damage' }, statKey: 'shock' };
+    }
+    return { tag: 'shock', badge: 'Krakatoa', status: 'Krakatoa',
+      text: 'Krakatoa, 27 August 1883. <em>310 dB at the source</em>. Ruptured eardrums 40 miles away, audible 3,000 miles away in Mauritius. The atmospheric pressure pulse circled the planet at least four times. Nothing about this is acoustic anymore. It\'s a planetary event that happens to make a noise.',
+      sub: { db: 'Krakatoa, 1883', p: 'hundreds of thousands of atm', vs: 'unphysical as sound', s: 'circles the Earth' }, statKey: 'shock' };
+  }
+
+  // ====================================================================
+  // Seismograph: the pen writes the line continuously
+  // ====================================================================
+  // The instrument records a real, sequential history of pressure samples.
+  // No formula being replayed; each sample is generated once at its moment
+  // in time and then scrolls leftward as new samples emerge from the right.
+  // The line is naturally alive because every moment is unique.
+
+  // Buffer geometry: how dense the trace is, how much history we show.
+  const SAMPLE_RATE = 180;             // samples per second
+  const BUFFER_SIZE = 720;             // ~4 seconds of trace visible
+  const TRACE_X_START = 80;            // x-coord where the paper begins (right of stylus housing)
+  const TRACE_W = SVG_W - TRACE_X_START;
+  const PIX_PER_SAMPLE = TRACE_W / (BUFFER_SIZE - 1);
+
+  // Sample generator state (persists across calls so the signal has memory).
+  let pressureBuffer = new Array(BUFFER_SIZE).fill(0);
+  let signalT = 0;                     // accumulated seconds since start
+  let driftState = 0;                  // slow random-walk component
+  let lastSample = 0;                  // for one-pole smoothing
+  let sampleAccum = 0;                 // fractional samples carried between frames
+  let transientCountdown = 0;          // current transient burst length
+  let transientMagnitude = 0;          // current transient burst magnitude
+
+  // How agitated the signal is at this dB (drives carrier and noise scaling).
+  // Even at 0 dB it returns nonzero so the trace always has some life.
+  function agitationLevel(db) {
+    if (db < 50)  return 0.40;
+    if (db < 100) return 0.40 + (db - 50)  * 0.012;        // 0.40 → 1.00
+    if (db < 140) return 1.00 + (db - 100) * 0.022;        // 1.00 → 1.88
+    if (db < 180) return 1.88 + (db - 140) * 0.045;        // 1.88 → 3.68
+    if (db < CEILING_DB) return 3.68 + (db - 180) * 0.16;  // 3.68 → ~5.94
+    return 5.94 + (db - CEILING_DB) * 0.12;
+  }
+
+  // Pen displacement amplitude in pixels at a given dB.
+  // Calibrated so 194 dB exactly fills the floor distance, matching the
+  // physical fact that the trough touches vacuum at the ceiling.
+  function ampForDb(db) {
+    const norm = (db - 0) / CEILING_DB;
+    let amp = Math.max(0, norm) * FLOOR_DIST;
+    // Floor: even silence has tiny life
+    if (amp < 1.5) amp = 1.5;
+    return amp;
+  }
+
+  // Probability per sample of starting a transient burst.
+  function transientRate(db) {
+    if (db < 80) return 0.0005;
+    if (db < 130) return 0.0005 + (db - 80) * 0.00006;
+    if (db < 180) return 0.0035 + (db - 130) * 0.00010;
+    if (db < CEILING_DB) return 0.0085 + (db - 180) * 0.00040;
+    return 0.014 + (db - CEILING_DB) * 0.00050;
+  }
+
+  // Generate one new pen sample: a pressure value (in pixels above baseline,
+  // positive = compression). Combines a few "natural" frequency components,
+  // slow random drift, white jitter, and occasional transient bursts.
+  function generateSample(db, dt) {
+    signalT += dt;
+
+    const ag = agitationLevel(db);
+    const ampF = ampForDb(db);
+
+    // Carrier: 4 incommensurate sinusoids at audio-rate-ish frequencies,
+    // mixed at varying weights. Gives "wave-like" character without being
+    // a single visible cycle.
+    const carrier = (
+      Math.sin(signalT * 13.7) * 0.55 +
+      Math.sin(signalT * 22.3 + 1.1) * 0.40 +
+      Math.sin(signalT * 37.9 + 2.4) * 0.28 +
+      Math.sin(signalT * 8.1 + 0.6) * 0.45 +
+      Math.sin(signalT * 51.2 + 3.7) * 0.18
+    ) / 1.86; // normalize to ~[-1, 1]
+
+    // Slow random walk for baseline drift
+    driftState += (Math.random() - 0.5) * (0.4 + ag * 0.25);
+    driftState *= 0.987; // bleed back toward zero
+    driftState = Math.max(-FLOOR_DIST * 0.6, Math.min(FLOOR_DIST * 0.6, driftState));
+
+    // White jitter, scaled by amplitude (louder = noisier)
+    const jitter = (Math.random() - 0.5) * (1.0 + ag * 1.4);
+    const jitterScale = Math.sqrt(ampF + 2);
+
+    // Transient bursts: occasional brief excursions
+    if (transientCountdown <= 0 && Math.random() < transientRate(db)) {
+      transientCountdown = 2 + Math.floor(Math.random() * 6);
+      transientMagnitude = (0.6 + Math.random() * 1.3) * (Math.random() > 0.5 ? 1 : -1);
+    }
+    let transient = 0;
+    if (transientCountdown > 0) {
+      transient = transientMagnitude * ampF * (transientCountdown / 8);
+      transientCountdown--;
+    }
+
+    // Combine all components
+    let raw = carrier * ampF * 0.85 + jitter * jitterScale + driftState * 0.45 + transient;
+
+    // One-pole low-pass smoothing for temporal correlation between samples
+    const smoothed = lastSample * 0.30 + raw * 0.70;
+    lastSample = smoothed;
+
+    return smoothed;
+  }
+
+  // Advance the buffer by however many samples should have been recorded
+  // since the last frame, then redraw the trace.
+  function tickSamples(dt, db) {
+    sampleAccum += dt * SAMPLE_RATE;
+    let n = Math.floor(sampleAccum);
+    sampleAccum -= n;
+    // Cap to avoid huge backlogs after tab-switch
+    if (n > 60) n = 60;
+    for (let i = 0; i < n; i++) {
+      const sample = generateSample(db, 1 / SAMPLE_RATE);
+      pressureBuffer.shift();
+      pressureBuffer.push(sample);
+    }
+  }
+
+  // Render the buffer as a single continuous path. The pen tip lives at
+  // the LEFT edge (just right of the stylus housing); newest data emerges
+  // from under the stylus and the paper "feeds" rightward, carrying the
+  // historical record toward the right edge.
+  function drawTrace(db) {
+    const wavePath = document.getElementById('wavePath');
+    const fillPath = document.getElementById('waveFillPath');
+    const decorations = document.getElementById('shockDecorations');
+    const floorLine = document.getElementById('floorLine');
+    const isShock = db > CEILING_DB;
+
+    let pathStr = '';
+    let fillStr = '';
+    let lastY = BASELINE_Y;
+
+    // Iterate buffer in reverse: newest sample (BUFFER_SIZE-1) goes at
+    // TRACE_X_START (left edge); oldest (0) goes at SVG_W (right edge).
+    for (let i = 0; i < BUFFER_SIZE; i++) {
+      const sampleIdx = BUFFER_SIZE - 1 - i;
+      const x = TRACE_X_START + i * PIX_PER_SAMPLE;
+      let y = BASELINE_Y - pressureBuffer[sampleIdx];
+      if (y > FLOOR_Y) y = FLOOR_Y;
+      if (y < 4) y = 4;
+
+      if (i === 0) {
+        pathStr += `M ${x.toFixed(1)} ${y.toFixed(1)} `;
+        fillStr += `M ${x.toFixed(1)} ${BASELINE_Y} L ${x.toFixed(1)} ${y.toFixed(1)} `;
+        lastY = y; // newest sample = pen position
+      } else {
+        pathStr += `L ${x.toFixed(1)} ${y.toFixed(1)} `;
+        fillStr += `L ${x.toFixed(1)} ${y.toFixed(1)} `;
+      }
+    }
+    fillStr += `L ${SVG_W} ${BASELINE_Y} L ${TRACE_X_START} ${BASELINE_Y} Z`;
+
+    wavePath.setAttribute('d', pathStr);
+    fillPath.setAttribute('d', fillStr);
+
+    // Trace styling: ALL ink red (like a real seismograph), with intensity by zone
+    let stroke, width, fillRef, floorStroke;
+    if (isShock) {
+      stroke = '#c5301a'; width = '1.6'; fillRef = 'url(#wfillShock)';
+      floorStroke = 'rgba(140, 30, 15, 0.85)';
+    } else if (db > 130) {
+      stroke = '#a02818'; width = '1.5'; fillRef = 'url(#wfill)';
+      floorStroke = 'rgba(140, 40, 20, 0.65)';
+    } else if (db > 85) {
+      stroke = '#992114'; width = '1.4'; fillRef = 'url(#wfill)';
+      floorStroke = 'rgba(140, 40, 20, 0.55)';
+    } else {
+      stroke = '#8a2418'; width = '1.3'; fillRef = 'url(#wfill)';
+      floorStroke = 'rgba(140, 40, 20, 0.5)';
+    }
+    wavePath.setAttribute('stroke', stroke);
+    wavePath.setAttribute('stroke-width', width);
+    fillPath.setAttribute('fill', fillRef);
+    floorLine.setAttribute('stroke', floorStroke);
+
+    // Decorations: stylus assembly, time markers, paper edge
+    let decor = '';
+
+    // Time tick marks (now growing rightward into the past from the pen)
+    const secondsVisible = BUFFER_SIZE / SAMPLE_RATE;
+    for (let s = 1; s <= Math.floor(secondsVisible); s++) {
+      const x = TRACE_X_START + (s * SAMPLE_RATE) * PIX_PER_SAMPLE;
+      if (x > SVG_W - 30) continue;
+      decor += `<line x1="${x.toFixed(1)}" y1="${SVG_H - 8}" x2="${x.toFixed(1)}" y2="${SVG_H - 2}" stroke="rgba(60, 40, 20, 0.4)" stroke-width="1"/>`;
+      decor += `<text x="${x.toFixed(1)}" y="${SVG_H - 12}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" letter-spacing="1" fill="rgba(60, 40, 20, 0.5)">−${s}s</text>`;
+    }
+
+    // Paper edge line (subtle vertical line marking where paper begins, just right of stylus)
+    decor += `<line x1="${TRACE_X_START - 0.5}" y1="0" x2="${TRACE_X_START - 0.5}" y2="${SVG_H}" stroke="rgba(60, 40, 20, 0.18)" stroke-width="1"/>`;
+
+    // ──────────────────────────────────────────────────────────────────
+    // Analog stylus assembly mounted on the LEFT side of the paper
+    // ──────────────────────────────────────────────────────────────────
+    // Components:
+    //   • Cables curling out the top of the housing
+    //   • Mounting plate attached to the left edge of the paper
+    //   • Black metallic housing block with bolts
+    //   • Articulated needle arm extending from housing to writing tip
+    //   • Pen nib at the contact point with wet ink mark
+    const STEEL_LIGHT = '#a8a098';
+    const STEEL_MID   = '#62584c';
+    const STEEL_DARK  = '#2a241e';
+    const HOUSING_BLK = '#1a1612';
+    const BOLT        = '#4a4036';
+    const BOLT_HI     = '#988c78';
+    const NEEDLE_BR   = '#b8a070';
+    const NIB_BLK     = '#0a0806';
+
+    // Housing block geometry
+    const HX = 18;            // left edge of housing
+    const HW = 50;            // housing width
+    const HY = 95;            // top of housing
+    const HH = 130;           // housing height
+    const HCY = HY + HH / 2;  // vertical center of housing
+
+    // Mounting plate behind the housing (extends slightly above and below)
+    decor += `<rect x="${HX - 6}" y="${HY - 8}" width="${HW + 12}" height="${HH + 16}" fill="${STEEL_DARK}" stroke="${STEEL_MID}" stroke-width="0.6"/>`;
+    // Plate bolts (corners)
+    [[HX - 2, HY - 4], [HX + HW + 2, HY - 4], [HX - 2, HY + HH + 4], [HX + HW + 2, HY + HH + 4]].forEach(([bx, by]) => {
+      decor += `<circle cx="${bx}" cy="${by}" r="2.2" fill="${BOLT}" stroke="${STEEL_DARK}" stroke-width="0.5"/>`;
+      decor += `<circle cx="${bx - 0.6}" cy="${by - 0.6}" r="0.8" fill="${BOLT_HI}" opacity="0.7"/>`;
+    });
+
+    // Cables (rubber-coated wires) emerging from top of housing, curving up and out
+    decor += `<path d="M ${HX + 14} ${HY + 4} C ${HX + 5} ${HY - 30}, ${HX - 18} ${HY - 60}, ${HX - 22} -10" stroke="${HOUSING_BLK}" stroke-width="3.5" fill="none" stroke-linecap="round"/>`;
+    decor += `<path d="M ${HX + 14} ${HY + 4} C ${HX + 5} ${HY - 30}, ${HX - 18} ${HY - 60}, ${HX - 22} -10" stroke="${STEEL_MID}" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.6"/>`;
+
+    decor += `<path d="M ${HX + 30} ${HY + 4} C ${HX + 38} ${HY - 25}, ${HX + 22} ${HY - 65}, ${HX + 6} -10" stroke="${HOUSING_BLK}" stroke-width="3.5" fill="none" stroke-linecap="round"/>`;
+    decor += `<path d="M ${HX + 30} ${HY + 4} C ${HX + 38} ${HY - 25}, ${HX + 22} ${HY - 65}, ${HX + 6} -10" stroke="${STEEL_MID}" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.6"/>`;
+
+    // Main housing block (the body of the stylus mechanism)
+    decor += `<rect x="${HX}" y="${HY}" width="${HW}" height="${HH}" fill="${HOUSING_BLK}" stroke="${STEEL_DARK}" stroke-width="1"/>`;
+    // Housing highlight/edge for 3D feel
+    decor += `<line x1="${HX}" y1="${HY}" x2="${HX + HW}" y2="${HY}" stroke="${STEEL_LIGHT}" stroke-width="1" opacity="0.35"/>`;
+    decor += `<line x1="${HX}" y1="${HY}" x2="${HX}" y2="${HY + HH}" stroke="${STEEL_LIGHT}" stroke-width="1" opacity="0.25"/>`;
+    decor += `<line x1="${HX + HW - 1}" y1="${HY + 2}" x2="${HX + HW - 1}" y2="${HY + HH - 2}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
+
+    // Housing bolts (4 corners of the visible face)
+    [[HX + 5, HY + 6], [HX + HW - 5, HY + 6], [HX + 5, HY + HH - 6], [HX + HW - 5, HY + HH - 6]].forEach(([bx, by]) => {
+      decor += `<circle cx="${bx}" cy="${by}" r="2.5" fill="${BOLT}" stroke="${HOUSING_BLK}" stroke-width="0.5"/>`;
+      decor += `<line x1="${bx - 1.5}" y1="${by}" x2="${bx + 1.5}" y2="${by}" stroke="${HOUSING_BLK}" stroke-width="0.8"/>`;
+      decor += `<circle cx="${bx - 0.7}" cy="${by - 0.7}" r="0.6" fill="${BOLT_HI}" opacity="0.7"/>`;
+    });
+
+    // Small label plate on housing
+    decor += `<rect x="${HX + 8}" y="${HCY - 5}" width="${HW - 16}" height="10" fill="${STEEL_DARK}" stroke="${STEEL_MID}" stroke-width="0.4"/>`;
+    decor += `<text x="${HX + HW / 2}" y="${HCY + 2.5}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6.5" letter-spacing="1.5" fill="${STEEL_LIGHT}" opacity="0.55">SPL-194</text>`;
+
+    // Articulated needle arm: from housing right edge (vertical center) to pen tip
+    const armBaseX = HX + HW;
+    const armBaseY = HCY;
+    const penX = TRACE_X_START + 1;       // pen sits just inside the trace area
+    const penY = lastY;
+    // Arm angle for nib orientation
+    const adx = penX - armBaseX;
+    const ady = penY - armBaseY;
+    const aLen = Math.sqrt(adx * adx + ady * ady) || 1;
+    const aux = adx / aLen, auy = ady / aLen;
+    const apx = -auy, apy = aux;
+
+    // Wet ink halo (drawn first, behind nib)
+    decor += `<circle cx="${penX}" cy="${penY.toFixed(1)}" r="6" fill="${stroke}" opacity="0.30"/>`;
+    decor += `<circle cx="${penX}" cy="${penY.toFixed(1)}" r="2.2" fill="${stroke}"/>`;
+
+    // Arm shadow
+    decor += `<line x1="${armBaseX + 0.6}" y1="${armBaseY + 0.8}" x2="${(penX + 0.6).toFixed(1)}" y2="${(penY + 0.8).toFixed(1)}" stroke="rgba(0,0,0,0.5)" stroke-width="3.5" stroke-linecap="round"/>`;
+
+    // Arm body: dark base, brass top, thin highlight
+    decor += `<line x1="${armBaseX}" y1="${armBaseY}" x2="${penX}" y2="${penY.toFixed(1)}" stroke="${STEEL_DARK}" stroke-width="2.8" stroke-linecap="round"/>`;
+    decor += `<line x1="${armBaseX}" y1="${armBaseY}" x2="${penX}" y2="${penY.toFixed(1)}" stroke="${NEEDLE_BR}" stroke-width="1.6" stroke-linecap="round"/>`;
+    decor += `<line x1="${(armBaseX + apx * 0.4).toFixed(1)}" y1="${(armBaseY + apy * 0.4).toFixed(1)}" x2="${(penX + apx * 0.4).toFixed(1)}" y2="${(penY + apy * 0.4).toFixed(1)}" stroke="rgba(255,232,190,0.6)" stroke-width="0.5" stroke-linecap="round"/>`;
+
+    // Pivot joint at base of needle (where it meets the housing)
+    decor += `<circle cx="${armBaseX}" cy="${armBaseY}" r="4.5" fill="${STEEL_DARK}" stroke="${NEEDLE_BR}" stroke-width="0.8"/>`;
+    decor += `<circle cx="${armBaseX}" cy="${armBaseY}" r="1.8" fill="${NEEDLE_BR}"/>`;
+    decor += `<circle cx="${armBaseX - 0.8}" cy="${armBaseY - 0.8}" r="0.6" fill="${BOLT_HI}" opacity="0.7"/>`;
+
+    // Nib at the writing tip: small dark drop-shape oriented along the arm
+    const nibBaseX = penX - aux * 5;
+    const nibBaseY = penY - auy * 5;
+    const nibTipX  = penX + aux * 1;
+    const nibTipY  = penY + auy * 1;
+    const nW = 2.2; // half width of the nib base
+    const nb1x = nibBaseX - apx * nW;
+    const nb1y = nibBaseY - apy * nW;
+    const nb2x = nibBaseX + apx * nW;
+    const nb2y = nibBaseY + apy * nW;
+    decor += `<path d="M ${nb1x.toFixed(1)} ${nb1y.toFixed(1)} L ${nb2x.toFixed(1)} ${nb2y.toFixed(1)} L ${nibTipX.toFixed(1)} ${nibTipY.toFixed(1)} Z" fill="${NIB_BLK}" stroke="${NEEDLE_BR}" stroke-width="0.4"/>`;
+
+    // Tiny ink point at the actual contact
+    decor += `<circle cx="${penX}" cy="${penY.toFixed(1)}" r="1" fill="${NIB_BLK}"/>`;
+
+    // "NOW" marker at left, just under the pen
+    decor += `<text x="${TRACE_X_START + 2}" y="${SVG_H - 12}" font-family="JetBrains Mono, monospace" font-size="8" letter-spacing="2" fill="${stroke}" opacity="0.85">NOW</text>`;
+
+    decorations.innerHTML = decor;
+  }
+
+  // ====================================================================
+  // Master render
+  // ====================================================================
+  function render(db) {
+    const verdict = getVerdict(db);
+    const peakPa = dbToPa(db);
+    const intensity = intensityRatio(db, SPEECH_DB);
+    const safeDist = safeDistance(db);
+
+    const dbStr = `${db.toFixed(db < 100 ? 1 : 0)} dB`;
+    const dbValStr = db.toFixed(db < 100 ? 1 : 0);
+
+    // Slider readout
+    const sr = document.getElementById('sliderRead');
+    sr.textContent = dbStr;
+    sr.classList.toggle('shock', db > CEILING_DB);
+
+    // Instrument head
+    document.getElementById('ihSpl').innerHTML = `${dbValStr} <span class="unit">dB</span>`;
+    const p = fmtPressure(peakPa);
+    document.getElementById('ihPa').innerHTML = `${p.v} <span class="unit">${p.u}</span>`;
+    const ihMode = document.getElementById('ihMode');
+    if (db > CEILING_DB) {
+      ihMode.textContent = 'Shock';
+      ihMode.classList.add('shock');
+    } else if (db > CEILING_DB - 1) {
+      ihMode.textContent = 'Limit';
+      ihMode.classList.remove('shock');
+    } else {
+      ihMode.textContent = 'Wave';
+      ihMode.classList.remove('shock');
+    }
+
+    // Mode indicator (scope corner)
+    const modeInd = document.getElementById('modeIndicator');
+    const modeText = document.getElementById('modeText');
+    if (db > CEILING_DB) {
+      modeInd.classList.add('shock');
+      modeText.textContent = 'BROKEN · SHOCK';
+    } else if (db > CEILING_DB - 1) {
+      modeInd.classList.remove('shock');
+      modeText.textContent = 'LIMIT · STRAINING';
+    } else {
+      modeInd.classList.remove('shock');
+      modeText.textContent = 'RECORDING · WAVE';
+    }
+
+    // Amp readout
+    document.getElementById('ampReadout').textContent = `amp: ${p.v} ${p.u}`;
+
+    // Stats
+    document.getElementById('dbVal').innerHTML = `${dbValStr} <span class="unit">dB</span>`;
+    document.getElementById('dbSub').textContent = verdict.sub.db;
+    document.getElementById('pressureVal').innerHTML = `${p.v} <span class="unit">${p.u}</span>`;
+    document.getElementById('pressureSub').textContent = fmtPressureFraction(peakPa);
+    document.getElementById('vsVal').textContent = fmtRatio(intensity);
+    document.getElementById('vsSub').textContent = verdict.sub.vs;
+    document.getElementById('statusVal').textContent = verdict.status;
+    document.getElementById('statusSub').textContent = verdict.sub.s;
+
+    ['stat-db','stat-pressure','stat-vs','stat-status'].forEach(id => {
+      const el = document.getElementById(id);
+      el.classList.remove('danger','warn','safe','shock');
+      el.classList.add(verdict.statKey);
+    });
+
+    const verdictTag = document.getElementById('verdictTag');
+    verdictTag.classList.remove('danger','warn','safe','shock');
+    verdictTag.classList.add(verdict.tag);
+    document.getElementById('verdictBadge').textContent = verdict.badge;
+    document.getElementById('verdictText').innerHTML = verdict.text;
+
+    document.querySelectorAll('.preset').forEach(b => {
+      const bd = parseFloat(b.dataset.db);
+      b.classList.toggle('active', Math.abs(db - bd) < 1);
+    });
+
+    // The wave is drawn by the animation loop, not here.
+    currentDb = db;
+
+    // Warning system: blink overload, pulse scope border, flash on crossing
+    const overloadEl = document.getElementById('overloadWarning');
+    const cornerAlertEl = document.getElementById('cornerAlert');
+    const scopeEl = document.querySelector('.scope');
+    const isShockNow = db >= CEILING_DB;
+    const wasShock = lastDbForFlash >= CEILING_DB;
+    if (overloadEl) overloadEl.classList.toggle('active', isShockNow);
+    if (cornerAlertEl) cornerAlertEl.classList.toggle('active', isShockNow);
+    if (scopeEl) scopeEl.classList.toggle('shock', isShockNow);
+    // One-shot flash when CROSSING the ceiling (in either direction)
+    if (scopeEl && (isShockNow !== wasShock)) {
+      scopeEl.classList.remove('flash');
+      // Force reflow to restart the animation
+      void scopeEl.offsetWidth;
+      scopeEl.classList.add('flash');
+      setTimeout(() => scopeEl.classList.remove('flash'), 480);
+    }
+    lastDbForFlash = db;
+
+    updateMath(db, peakPa, intensity, safeDist);
+  }
+
+  function updateMath(db, peakPa, intensity, safeDist) {
+    document.getElementById('liveDb').textContent = `${db.toFixed(db < 100 ? 1 : 0)} dB`;
+
+    document.getElementById('m-step1').textContent = db.toFixed(db < 100 ? 1 : 0);
+    const factor = Math.pow(10, db / 20);
+    document.getElementById('m-step2').textContent = factor < 1 ? factor.toExponential(2) : (factor < 1e6 ? Math.round(factor).toLocaleString() : factor.toExponential(2));
+    const p = fmtPressure(peakPa);
+    document.getElementById('m-result').textContent = `${p.v} ${p.u}`;
+
+    const m2status = document.getElementById('m2-status');
+    const distance = db - CEILING_DB;
+    if (Math.abs(distance) < 0.5) {
+      m2status.textContent = 'currently at the ceiling';
+      m2status.style.color = 'var(--shock)';
+    } else if (distance < 0) {
+      m2status.textContent = `currently ${Math.abs(distance).toFixed(1)} dB below ceiling`;
+      m2status.style.color = '';
+    } else {
+      m2status.textContent = `currently ${distance.toFixed(1)} dB above ceiling, in shock territory`;
+      m2status.style.color = 'var(--shock)';
+    }
+
+    document.getElementById('r-step1').textContent = db.toFixed(db < 100 ? 1 : 0);
+    document.getElementById('r-step2').textContent = ((db - SPEECH_DB) / 10).toFixed(2);
+    document.getElementById('r-result').textContent = fmtRatio(intensity);
+
+    document.getElementById('d-step1').textContent = db.toFixed(db < 100 ? 1 : 0);
+    document.getElementById('d-step2').textContent = ((db - 85) / 20).toFixed(2);
+    document.getElementById('d-result').textContent = `≈ ${fmtDistance(safeDist)}`;
+    const dnote = document.getElementById('d-note');
+    if (safeDist === 0) {
+      dnote.textContent = 'already below the OSHA limit';
+    } else if (safeDist < 100) {
+      dnote.textContent = `stand back about ${fmtDistance(safeDist)} for long-term safety`;
+    } else if (safeDist < 1e4) {
+      dnote.textContent = `you would need to be ${fmtDistance(safeDist)} away to be safe`;
+    } else {
+      dnote.textContent = `inverse-square breaks down long before this; real attenuation is faster`;
+    }
+  }
+
+  function setDb(db) { render(db); }
+
+  const slider = document.getElementById('slider');
+  slider.addEventListener('input', (e) => render(parseFloat(e.target.value)));
+  window.addEventListener('resize', () => render(parseFloat(slider.value)));
+
+  // ====================================================================
+  // Spectrum chart (frequency)
+  // ====================================================================
+  // Log frequency: from 10^-15 to 10^14 Hz (29 orders of magnitude)
+  const FREQ_MIN_LOG = -15.5;
+  const FREQ_MAX_LOG = 14;
+
+  function freqToPercent(hz) {
+    const logF = Math.log10(hz);
+    return ((logF - FREQ_MIN_LOG) / (FREQ_MAX_LOG - FREQ_MIN_LOG)) * 100;
+  }
+
+  // Major octave/decade ticks for the axis
+  const OCTAVE_TICKS = [];
+  for (let exp = -15; exp <= 14; exp += 3) {
+    OCTAVE_TICKS.push({ hz: Math.pow(10, exp), label: `10${supDigits(exp)}` });
+  }
+
+  function supDigits(n) {
+    const map = { '0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻','−':'⁻' };
+    return String(n).split('').map(c => map[c] || c).join('');
+  }
+
+  // Frequency markers (real sounds)
+  const MARKERS = [
+    { hz: 3e-15, label: 'Perseus B♭', freq: '~10⁻¹⁵ Hz', glyph: 'spiral', side: 'above', special: true },
+    { hz: 1e-3,  label: 'Earth ringing', freq: '~10⁻³ Hz', glyph: 'globe', side: 'below' },
+    { hz: 1.2,   label: 'A heartbeat', freq: '1 Hz', glyph: 'heart', side: 'above' },
+    { hz: 27.5,  label: 'Lowest piano', freq: '27 Hz', glyph: 'piano', side: 'below' },
+    { hz: 261.6, label: 'Middle C', freq: '261 Hz', glyph: 'note', side: 'above' },
+    { hz: 20000, label: 'Hearing ceiling', freq: '20 kHz', glyph: 'ear', side: 'below' },
+    { hz: 1e5,   label: 'Bat sonar', freq: '~10⁵ Hz', glyph: 'bat', side: 'above' },
+    { hz: 1e13,  label: 'Atomic limit', freq: '~10¹³ Hz', glyph: 'atom', side: 'below', special: true }
+  ];
+
+  const GLYPHS = {
+    spiral: `<svg viewBox="0 0 40 40"><path d="M 20 20 m -10 0 a 10 10 0 1 0 10 -10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="20" cy="20" r="2" fill="currentColor"/></svg>`,
+    globe: `<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="13" fill="none" stroke="currentColor" stroke-width="1.5"/><ellipse cx="20" cy="20" rx="13" ry="5" fill="none" stroke="currentColor" stroke-width="1"/><line x1="7" y1="20" x2="33" y2="20" stroke="currentColor" stroke-width="1"/><line x1="20" y1="7" x2="20" y2="33" stroke="currentColor" stroke-width="1"/></svg>`,
+    heart: `<svg viewBox="0 0 40 40"><path d="M 20 14 C 16 8, 8 10, 10 18 C 12 26, 20 30, 20 30 C 20 30, 28 26, 30 18 C 32 10, 24 8, 20 14 Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>`,
+    piano: `<svg viewBox="0 0 40 40"><rect x="6" y="14" width="28" height="14" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="13" y1="14" x2="13" y2="28" stroke="currentColor" stroke-width="1"/><line x1="20" y1="14" x2="20" y2="28" stroke="currentColor" stroke-width="1"/><line x1="27" y1="14" x2="27" y2="28" stroke="currentColor" stroke-width="1"/><rect x="10" y="14" width="3" height="9" fill="currentColor"/><rect x="17" y="14" width="3" height="9" fill="currentColor"/><rect x="24" y="14" width="3" height="9" fill="currentColor"/></svg>`,
+    note: `<svg viewBox="0 0 40 40"><ellipse cx="14" cy="28" rx="5" ry="3.5" fill="currentColor"/><line x1="19" y1="28" x2="19" y2="10" stroke="currentColor" stroke-width="1.8"/><path d="M 19 10 Q 28 14, 28 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`,
+    ear: `<svg viewBox="0 0 40 40"><path d="M 18 8 C 12 8, 9 14, 9 22 C 9 30, 14 33, 18 33 C 22 33, 24 30, 24 26 C 24 22, 21 21, 21 18 C 21 15, 24 14, 24 11 C 24 9, 21 8, 18 8 Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M 17 18 Q 14 18, 15 22 Q 16 24, 18 22" fill="none" stroke="currentColor" stroke-width="1"/></svg>`,
+    bat: `<svg viewBox="0 0 40 40"><path d="M 20 20 L 8 16 L 4 12 L 8 14 L 4 10 L 10 14 L 12 12 L 14 18 L 20 20 Z" fill="currentColor"/><path d="M 20 20 L 32 16 L 36 12 L 32 14 L 36 10 L 30 14 L 28 12 L 26 18 L 20 20 Z" fill="currentColor"/><circle cx="20" cy="22" r="3" fill="currentColor"/><path d="M 18 19 L 17 15 M 22 19 L 23 15" stroke="currentColor" stroke-width="1"/></svg>`,
+    atom: `<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="2" fill="currentColor"/><ellipse cx="20" cy="20" rx="13" ry="5" fill="none" stroke="currentColor" stroke-width="1.2"/><ellipse cx="20" cy="20" rx="13" ry="5" fill="none" stroke="currentColor" stroke-width="1.2" transform="rotate(60 20 20)"/><ellipse cx="20" cy="20" rx="13" ry="5" fill="none" stroke="currentColor" stroke-width="1.2" transform="rotate(120 20 20)"/></svg>`
+  };
+
+  function buildSpectrum() {
+    const axis = document.getElementById('chartAxis');
+    const labels = document.getElementById('octaveLabels');
+
+    // Major decade ticks
+    OCTAVE_TICKS.forEach(t => {
+      const left = freqToPercent(t.hz);
+      if (left < 0 || left > 100) return;
+      const tick = document.createElement('div');
+      tick.className = 'freq-tick major';
+      tick.style.left = `${left}%`;
+      axis.appendChild(tick);
+
+      const lab = document.createElement('div');
+      lab.className = 'olabel';
+      lab.style.left = `${left}%`;
+      lab.textContent = t.label;
+      labels.appendChild(lab);
+    });
+
+    // Markers
+    MARKERS.forEach(m => {
+      const left = freqToPercent(m.hz);
+      const wrap = document.createElement('div');
+      wrap.className = `freq-marker ${m.side}` + (m.special ? ' terminus' : '');
+      wrap.style.left = `${left}%`;
+
+      // Tick on the axis itself
+      const tick = document.createElement('div');
+      tick.className = 'freq-tick' + (m.special ? ' major' : '');
+      tick.style.left = `${left}%`;
+      axis.appendChild(tick);
+
+      // Glyph
+      const g = document.createElement('div');
+      g.className = 'marker-glyph';
+      g.style.color = m.special ? 'var(--oxblood)' : 'var(--ink)';
+      g.innerHTML = GLYPHS[m.glyph] || '';
+
+      const lab = document.createElement('div');
+      lab.className = 'marker-label';
+      lab.textContent = m.label;
+
+      const fr = document.createElement('div');
+      fr.className = 'marker-freq';
+      fr.textContent = m.freq;
+
+      if (m.side === 'above') {
+        wrap.appendChild(g);
+        wrap.appendChild(lab);
+        wrap.appendChild(fr);
+        wrap.style.bottom = '50%';
+        wrap.style.paddingBottom = '14px';
+      } else {
+        wrap.appendChild(lab);
+        wrap.appendChild(fr);
+        wrap.appendChild(g);
+        wrap.style.top = '50%';
+        wrap.style.paddingTop = '14px';
+      }
+
+      axis.appendChild(wrap);
+    });
+  }
+
+  buildSpectrum();
+
+  // ====================================================================
+  // Animation loop: pen writes new samples, trace scrolls left
+  // ====================================================================
+  function tickWave(now) {
+    if (lastT === 0) lastT = now;
+    const dt = Math.min(0.05, (now - lastT) / 1000);
+    lastT = now;
+    if (scopeVisible) {
+      time += dt;
+      tickSamples(dt, currentDb);
+      drawTrace(currentDb);
+    }
+    requestAnimationFrame(tickWave);
+  }
+
+  // Pause animation when scope is offscreen for performance
+  if ('IntersectionObserver' in window) {
+    const scopeEl = document.querySelector('.scope');
+    if (scopeEl) {
+      const obs = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          scopeVisible = e.isIntersecting;
+          if (scopeVisible) lastT = 0;
+        });
+      }, { threshold: 0 });
+      obs.observe(scopeEl);
+    }
+  }
+
+  render(110);
+  requestAnimationFrame(tickWave);
+</script>
+
+</body>
+</html>
