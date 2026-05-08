@@ -1,0 +1,2057 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pedro Brauner Quarterly · Issue №26</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,100..900,0..100;1,9..144,100..900,0..100&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap">
+<script>
+  // Set theme before first paint to avoid flash. Reads localStorage, falls back to system preference.
+  (function() {
+    try {
+      var saved = localStorage.getItem('pbq-theme');
+      var sysDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      var theme = saved || (sysDark ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+    } catch (e) {
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+  })();
+</script>
+<style>
+  /* ============ DESIGN TOKENS ============ */
+  :root, [data-theme="light"] {
+    --paper: #F2EBDD;
+    --paper-deep: #EBE3D0;
+    --ink: #1A1612;
+    --ink-soft: #3A312A;
+    --ink-faded: #6B5F52;
+    --red: #D62828;
+    --red-deep: #9D1B1F;
+    --hair: #B5A993;
+    --hair-soft: #D4C9B3;
+    --redwash: rgba(214, 40, 40, 0.05);
+    --surface: rgba(235, 227, 208, 0.82);
+    --mascot-glow: 0 4px 8px rgba(26, 22, 18, 0.18);
+    --noise: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.1 0 0 0 0 0.08 0 0 0 0 0.07 0 0 0 0.04 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+
+  [data-theme="dark"] {
+    --paper: #14110D;
+    --paper-deep: #1E1812;
+    --ink: #ECE3D2;
+    --ink-soft: #B8AC97;
+    --ink-faded: #7E7565;
+    --red: #EF4444;
+    --red-deep: #DC2626;
+    --hair: #3A332B;
+    --hair-soft: #2A241D;
+    --redwash: rgba(239, 68, 68, 0.08);
+    --surface: rgba(30, 24, 18, 0.85);
+    --mascot-glow: 0 0 12px rgba(239, 68, 68, 0.35), 0 6px 14px rgba(0, 0, 0, 0.55);
+    --noise: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.92 0 0 0 0 0.86 0 0 0 0 0.78 0 0 0 0.05 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+
+  /* ============ RESET ============ */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; scroll-behavior: smooth; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Newsreader', Georgia, serif;
+    font-size: 17px;
+    line-height: 1.55;
+    overflow-x: hidden;
+    position: relative;
+    background-image: var(--noise);
+    transition: background-color 0.35s ease, color 0.35s ease;
+  }
+  body, .sidenav, .stat, .tool, .feature, .ticker, .numbers, .konami-banner, .speech, .study, .back-issue, .cert, .section-head {
+    transition: background-color 0.35s ease, color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+  }
+  a { color: inherit; text-decoration: none; }
+  img { max-width: 100%; display: block; }
+  ::selection { background: var(--red); color: var(--paper); }
+
+  /* ============ AMBIENT GLYPHS ============ */
+  .ambient {
+    position: fixed; inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .glyph {
+    position: absolute;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--red);
+    opacity: 0;
+    user-select: none;
+    will-change: transform, opacity;
+    animation: drift linear forwards;
+  }
+  .glyph.serif {
+    font-family: 'Fraunces', 'Newsreader', Georgia, serif;
+    font-style: italic;
+    color: var(--ink);
+  }
+  @keyframes drift {
+    0%   { opacity: 0; transform: translate3d(0, 0, 0) rotate(0deg); }
+    10%  { opacity: var(--peak, 0.16); }
+    90%  { opacity: var(--peak, 0.16); }
+    100% { opacity: 0; transform: translate3d(var(--dx, 0px), -120vh, 0) rotate(var(--rot, 0deg)); }
+  }
+
+  /* ============ CURSOR-FOLLOWING ORBS ============ */
+  .orbs {
+    position: fixed; inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    will-change: transform;
+    transform: translate3d(50vw, 50vh, 0);
+    transition: opacity 0.6s ease;
+  }
+  .orb-1 {
+    width: 480px; height: 480px;
+    background: radial-gradient(circle, var(--red) 0%, transparent 60%);
+    filter: blur(40px);
+    opacity: 0.40;
+  }
+  .orb-2 {
+    width: 700px; height: 700px;
+    background: radial-gradient(circle, #E89A4D 0%, transparent 65%);
+    filter: blur(70px);
+    opacity: 0.32;
+  }
+  .orb-3 {
+    width: 880px; height: 880px;
+    background: radial-gradient(circle, var(--red-deep) 0%, transparent 65%);
+    filter: blur(100px);
+    opacity: 0.22;
+  }
+  [data-theme="dark"] .orb-1 {
+    background: radial-gradient(circle, var(--red) 0%, transparent 60%);
+    opacity: 0.55;
+    filter: blur(50px);
+  }
+  [data-theme="dark"] .orb-2 {
+    background: radial-gradient(circle, #C97A2E 0%, transparent 65%);
+    opacity: 0.42;
+  }
+  [data-theme="dark"] .orb-3 {
+    background: radial-gradient(circle, var(--red-deep) 0%, transparent 65%);
+    opacity: 0.50;
+  }
+  body.cursor-active .orb-1 { opacity: 0.55; }
+  body.cursor-active[data-theme="dark"] .orb-1,
+  [data-theme="dark"] body.cursor-active .orb-1 { opacity: 0.72; }
+
+  /* ============ SIDENAV ============ */
+  .sidenav {
+    position: fixed;
+    left: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 50;
+    background: var(--surface);
+    backdrop-filter: blur(8px) saturate(120%);
+    -webkit-backdrop-filter: blur(8px) saturate(120%);
+    border: 1px solid var(--hair);
+    border-radius: 2px;
+    padding: 16px 14px;
+    width: 168px;
+    box-shadow: 0 2px 14px rgba(26, 22, 18, 0.06);
+    animation: fadeIn 0.8s 1s both ease-out;
+  }
+  .sidenav .sn-mark {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--red);
+    font-weight: 600;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--hair);
+    display: flex;
+    justify-content: space-between;
+  }
+  .sidenav .sn-mark .live {
+    color: var(--red);
+    animation: blink-live 1.6s ease-in-out infinite;
+  }
+  @keyframes blink-live { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+  .sidenav ul { list-style: none; }
+  .sidenav li {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+    padding: 4px 0 4px 14px;
+    cursor: pointer;
+    transition: color 0.18s, padding 0.18s;
+    position: relative;
+    line-height: 1.55;
+  }
+  .sidenav li::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 50%;
+    width: 6px; height: 1px;
+    background: var(--hair);
+    transition: width 0.2s, background 0.2s;
+  }
+  .sidenav li:hover { color: var(--ink); padding-left: 18px; }
+  .sidenav li:hover::before { background: var(--red); width: 10px; }
+  .sidenav li.active { color: var(--red); font-weight: 600; padding-left: 18px; }
+  .sidenav li.active::before { background: var(--red); width: 10px; height: 2px; }
+
+  .sidenav .sn-progress {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--hair);
+  }
+  .sn-progress .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+    margin-bottom: 6px;
+    display: flex; justify-content: space-between;
+  }
+  .sn-progress .bar {
+    height: 2px;
+    background: var(--hair);
+    overflow: hidden;
+    position: relative;
+  }
+  .sn-progress .bar span {
+    display: block;
+    height: 100%;
+    background: var(--red);
+    width: 0;
+    transition: width 0.2s ease-out;
+  }
+
+  @media (max-width: 1180px) { .sidenav { display: none; } }
+
+  /* ============ LAYOUT ============ */
+  .page {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 48px 64px 96px;
+    position: relative;
+    z-index: 1;
+  }
+  /* When sidenav is visible, shift content right so it doesn't overlap */
+  @media (min-width: 1181px) {
+    body { padding-left: 200px; }
+    .page { max-width: 1180px; }
+  }
+  @media (min-width: 1500px) {
+    body { padding-left: 220px; }
+  }
+  @media (max-width: 800px) {
+    .page { padding: 28px 22px 64px; }
+    body { font-size: 15.5px; }
+  }
+
+  /* ============ TYPOGRAPHY UTILS ============ */
+  .display { font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'opsz' 144, 'SOFT' 30; }
+  .body-serif { font-family: 'Newsreader', Georgia, serif; }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+  .smallcaps { font-variant: small-caps; letter-spacing: 0.06em; }
+  .upper { text-transform: uppercase; letter-spacing: 0.14em; }
+  .red { color: var(--red); }
+  .ink-faded { color: var(--ink-faded); }
+
+  /* link styling */
+  a.link {
+    border-bottom: 1px solid var(--hair-soft);
+    transition: border-color 0.18s, color 0.18s;
+  }
+  a.link:hover { color: var(--red); border-bottom-color: var(--red); }
+
+  /* ============ EDITION (THEME) TOGGLE ============ */
+  .edition {
+    background: none;
+    border: 1px solid var(--hair);
+    padding: 4px 10px 4px 12px;
+    cursor: default;
+    font: inherit;
+    color: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    line-height: 1.2;
+    transition: border-color 0.25s ease;
+  }
+  .edition:hover { border-color: var(--red); }
+  .edition .edition-label {
+    color: var(--ink-faded);
+    margin-right: 4px;
+  }
+  .edition .edition-opt {
+    color: var(--ink-faded);
+    cursor: pointer;
+    padding: 0 2px;
+    transition: color 0.18s;
+    background: none;
+    border: 0;
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+  }
+  .edition .edition-opt:hover { color: var(--ink); }
+  [data-theme="light"] .edition .edition-opt[data-set="light"],
+  :root:not([data-theme]) .edition .edition-opt[data-set="light"] {
+    color: var(--red); font-weight: 700;
+  }
+  [data-theme="dark"] .edition .edition-opt[data-set="dark"] {
+    color: var(--red); font-weight: 700;
+  }
+  .edition .edition-divider {
+    color: var(--hair);
+    pointer-events: none;
+    user-select: none;
+  }
+
+  /* ============ DATELINE ============ */
+  .dateline {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--hair);
+    animation: fadeUp 0.7s 0s both ease-out;
+  }
+  .dateline .red { color: var(--red); font-weight: 600; }
+  .dateline .center { color: var(--ink); font-weight: 600; letter-spacing: 0.18em; }
+  .dateline .price {
+    text-align: right;
+  }
+  .dateline .price .big {
+    font-weight: 600; color: var(--red); letter-spacing: 0.2em;
+  }
+
+  /* ============ MASTHEAD ============ */
+  .masthead {
+    margin-top: 56px;
+    position: relative;
+    animation: fadeUp 0.9s 0.2s both ease-out;
+  }
+  .masthead .issue-mark {
+    position: absolute;
+    right: 0;
+    top: -8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--red);
+    font-weight: 600;
+  }
+  .name {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 144, 'wght' 750, 'SOFT' 30;
+    font-size: clamp(72px, 14.5vw, 220px);
+    line-height: 0.86;
+    letter-spacing: -0.045em;
+    color: var(--ink);
+    margin-bottom: 0;
+    text-transform: uppercase;
+    cursor: pointer;
+    user-select: none;
+  }
+  .name .ltr { display: inline-block; transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .name.shake .ltr { animation: jitter 0.7s ease-out; }
+  @keyframes jitter {
+    0%   { transform: translate(0, 0) rotate(0); }
+    20%  { transform: translate(var(--jx, 0px), var(--jy, 0px)) rotate(var(--jr, 0deg)); }
+    40%  { transform: translate(calc(var(--jx, 0px) * -0.6), calc(var(--jy, 0px) * 0.4)) rotate(calc(var(--jr, 0deg) * -0.5)); }
+    60%  { transform: translate(calc(var(--jx, 0px) * 0.3), calc(var(--jy, 0px) * -0.3)) rotate(calc(var(--jr, 0deg) * 0.3)); }
+    100% { transform: translate(0, 0) rotate(0); }
+  }
+  .name .amp {
+    font-style: italic;
+    font-variation-settings: 'opsz' 144, 'wght' 400, 'SOFT' 100;
+    color: var(--red);
+  }
+  .standfirst {
+    margin-top: 32px;
+    font-family: 'Newsreader', Georgia, serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: clamp(20px, 2.6vw, 30px);
+    line-height: 1.32;
+    letter-spacing: -0.012em;
+    color: var(--ink-soft);
+    max-width: 920px;
+  }
+  .standfirst em { font-style: normal; color: var(--red); font-weight: 500; }
+
+  .red-rule {
+    height: 6px;
+    background: var(--red);
+    margin: 44px 0 18px;
+    animation: stretch 0.8s 0.4s both cubic-bezier(0.65, 0, 0.35, 1);
+    transform-origin: left;
+  }
+  @keyframes stretch { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+  .meta-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 28px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--hair);
+    animation: fadeUp 0.7s 0.6s both ease-out;
+  }
+  .meta-strip .label { color: var(--ink-faded); margin-right: 8px; }
+  .meta-strip a { color: var(--ink); border-bottom: 1px solid transparent; transition: border-color 0.2s; }
+  .meta-strip a:hover { border-bottom-color: var(--red); color: var(--red); }
+
+  /* ============ THE LEDE ============ */
+  .lede {
+    margin-top: 56px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 56px;
+    animation: fadeUp 0.9s 0.7s both ease-out;
+  }
+  @media (max-width: 800px) { .lede { grid-template-columns: 1fr; gap: 0; } }
+  .lede .kicker {
+    grid-column: 1 / -1;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--red);
+    font-weight: 600;
+    margin-bottom: 22px;
+  }
+  .lede p {
+    font-family: 'Newsreader', Georgia, serif;
+    font-size: 18px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+  }
+  .lede p + p { margin-top: 0; }
+  .lede p:first-of-type::first-letter {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 144, 'wght' 700, 'SOFT' 30;
+    font-size: 6.4em;
+    float: left;
+    line-height: 0.88;
+    margin: 6px 12px -8px 0;
+    color: var(--red);
+  }
+
+  /* ============ SECTION HEAD ============ */
+  .section-head {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: end;
+    gap: 24px;
+    margin: 96px 0 36px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid var(--ink);
+    scroll-margin-top: 32px;
+    position: relative;
+  }
+  .section-head .num,
+  .section-head .title,
+  .section-head .meta { position: relative; z-index: 2; }
+  .section-head .watermark {
+    position: absolute;
+    right: -2%;
+    top: -45%;
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-variation-settings: 'opsz' 144, 'wght' 800, 'SOFT' 100;
+    font-size: clamp(280px, 38vw, 560px);
+    font-weight: 800;
+    line-height: 0.82;
+    letter-spacing: -0.06em;
+    color: var(--red);
+    opacity: 0.07;
+    pointer-events: none;
+    user-select: none;
+    z-index: 0;
+    white-space: nowrap;
+  }
+  [data-theme="dark"] .section-head .watermark { opacity: 0.11; }
+  @media (max-width: 900px) {
+    .section-head .watermark { font-size: clamp(180px, 36vw, 320px); top: -30%; }
+  }
+  .section-head .num {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 144, 'wght' 800, 'SOFT' 30;
+    font-size: 64px;
+    line-height: 0.85;
+    color: var(--red);
+    letter-spacing: -0.04em;
+  }
+  .section-head .title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 144, 'wght' 600, 'SOFT' 30;
+    font-size: clamp(32px, 5vw, 56px);
+    line-height: 0.95;
+    letter-spacing: -0.025em;
+    color: var(--ink);
+    text-transform: uppercase;
+  }
+  .section-head .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+    text-align: right;
+    padding-bottom: 6px;
+  }
+  @media (max-width: 700px) {
+    .section-head { grid-template-columns: auto 1fr; gap: 16px; margin-top: 64px; }
+    .section-head .meta { display: none; }
+    .section-head .num { font-size: 44px; }
+  }
+
+  /* ============ COVER STORY ============ */
+  .cover-story {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 56px;
+    margin-bottom: 48px;
+  }
+  @media (max-width: 900px) { .cover-story { grid-template-columns: 1fr; gap: 28px; } }
+
+  .cover-story .head .kicker {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--red);
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+  .cover-story .head h2 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 144, 'wght' 750, 'SOFT' 20;
+    font-size: clamp(46px, 7vw, 96px);
+    line-height: 0.86;
+    letter-spacing: -0.04em;
+    color: var(--ink);
+  }
+  .cover-story .head h2 a:hover { color: var(--red); }
+  .cover-story .head h2 .accent {
+    color: var(--red);
+    font-style: italic;
+    font-variation-settings: 'opsz' 144, 'wght' 600, 'SOFT' 100;
+  }
+  .cover-story .head .deck {
+    margin-top: 22px;
+    font-family: 'Newsreader', Georgia, serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: 22px;
+    line-height: 1.35;
+    color: var(--ink-soft);
+  }
+  .cover-story .head .byline {
+    margin-top: 32px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+    border-top: 1px solid var(--hair);
+    padding-top: 16px;
+  }
+  .cover-story .head .byline strong { color: var(--ink); font-weight: 600; }
+  .cover-story .head .byline .red { color: var(--red); font-weight: 600; }
+
+  ul.editorial {
+    list-style: none;
+    padding-left: 0;
+  }
+  ul.editorial li {
+    list-style: none;
+    position: relative;
+    padding: 0 0 14px 28px;
+    font-family: 'Newsreader', Georgia, serif;
+    font-size: 16.5px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    border-bottom: 1px dotted var(--hair-soft);
+    margin-bottom: 14px;
+  }
+  ul.editorial li::marker { content: ""; }
+  ul.editorial li:last-child { border-bottom: none; }
+  ul.editorial li::before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    top: 1px;
+    color: var(--red);
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+  }
+  ul.editorial li strong { color: var(--ink); font-weight: 600; }
+
+  /* ============ PULL QUOTE ============ */
+  .pullquote {
+    margin: 64px 0;
+    padding: 0 8%;
+    text-align: center;
+    position: relative;
+  }
+  .pullquote::before, .pullquote::after {
+    content: "";
+    display: block;
+    width: 64px;
+    height: 2px;
+    background: var(--red);
+    margin: 0 auto 28px;
+  }
+  .pullquote::after { margin: 28px auto 0; }
+  .pullquote q {
+    quotes: none;
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-variation-settings: 'opsz' 144, 'wght' 400, 'SOFT' 100;
+    font-size: clamp(26px, 4.2vw, 44px);
+    line-height: 1.18;
+    letter-spacing: -0.018em;
+    color: var(--ink);
+  }
+  .pullquote .attr {
+    margin-top: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+  }
+
+  /* ============ TICKER ============ */
+  .ticker {
+    margin: 48px -64px;
+    background: var(--ink);
+    color: var(--paper);
+    overflow: hidden;
+    position: relative;
+    border-top: 6px solid var(--red);
+    border-bottom: 1px solid var(--ink-soft);
+  }
+  @media (max-width: 800px) { .ticker { margin: 36px -22px; } }
+  .ticker .track {
+    display: flex;
+    width: max-content;
+    animation: tick 28s linear infinite;
+    will-change: transform;
+  }
+  .ticker .track:hover { animation-play-state: paused; }
+  .ticker .item {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 18px 32px;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .ticker .item .dot {
+    color: var(--red);
+    font-size: 16px;
+    line-height: 1;
+  }
+  .ticker .item.flag {
+    color: var(--red);
+    font-weight: 700;
+  }
+  @keyframes tick {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  /* ============ BACK ISSUES ============ */
+  .back-issue {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 56px;
+    padding: 36px 0;
+    border-top: 1px solid var(--hair);
+  }
+  .back-issue:last-child { border-bottom: 1px solid var(--hair); }
+  @media (max-width: 800px) { .back-issue { grid-template-columns: 1fr; gap: 14px; } }
+
+  .back-issue .meta-col .era {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 144, 'wght' 700, 'SOFT' 30;
+    font-size: 36px;
+    line-height: 1;
+    color: var(--red);
+    letter-spacing: -0.03em;
+  }
+  .back-issue .meta-col .era-end {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+    margin-top: 6px;
+  }
+  .back-issue .meta-col .location {
+    margin-top: 14px;
+    font-family: 'Newsreader', Georgia, serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--ink-faded);
+  }
+
+  .back-issue .body-col h3 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 144, 'wght' 700, 'SOFT' 30;
+    font-size: clamp(28px, 4vw, 42px);
+    line-height: 1;
+    letter-spacing: -0.025em;
+    color: var(--ink);
+  }
+  .back-issue .body-col h3 a:hover { color: var(--red); }
+  .back-issue .body-col .role {
+    margin-top: 8px;
+    font-family: 'Newsreader', Georgia, serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--ink-soft);
+    margin-bottom: 22px;
+  }
+
+  /* ============ BY THE NUMBERS ============ */
+  .numbers {
+    background: var(--paper-deep);
+    margin: 64px -64px;
+    padding: 72px 64px;
+    border-top: 6px solid var(--red);
+    border-bottom: 1px solid var(--ink);
+    position: relative;
+    overflow: hidden;
+  }
+  .numbers .watermark {
+    position: absolute;
+    left: -2%;
+    top: -8%;
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-variation-settings: 'opsz' 144, 'wght' 800, 'SOFT' 100;
+    font-size: clamp(320px, 42vw, 620px);
+    line-height: 0.82;
+    letter-spacing: -0.06em;
+    color: var(--red);
+    opacity: 0.06;
+    pointer-events: none;
+    user-select: none;
+    z-index: 0;
+  }
+  [data-theme="dark"] .numbers .watermark { opacity: 0.10; }
+  .numbers .lead, .numbers .stats { position: relative; z-index: 2; }
+  @media (max-width: 800px) { .numbers { margin: 48px -22px; padding: 48px 22px; } }
+  .numbers .lead {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 48px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .numbers .lead h2 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 144, 'wght' 700, 'SOFT' 30;
+    font-size: clamp(36px, 6vw, 72px);
+    line-height: 0.9;
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+  }
+  .numbers .lead h2 em {
+    font-style: italic;
+    font-variation-settings: 'opsz' 144, 'wght' 400, 'SOFT' 100;
+    color: var(--red);
+  }
+  .numbers .lead .kicker {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+  }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border-top: 1px solid var(--hair);
+  }
+  @media (max-width: 800px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px) { .stats { grid-template-columns: 1fr; } }
+  .stat {
+    padding: 32px 24px;
+    border-right: 1px solid var(--hair);
+    border-bottom: 1px solid var(--hair);
+    transition: background 0.25s;
+  }
+  .stat:hover { background: var(--redwash); }
+  .stat:nth-child(3n) { border-right: none; }
+  @media (max-width: 800px) { .stat { border-right: 1px solid var(--hair); } .stat:nth-child(3n) { border-right: 1px solid var(--hair); } .stat:nth-child(2n) { border-right: none; } }
+  @media (max-width: 480px) { .stat { border-right: none !important; } }
+
+  .stat .figure {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 144, 'wght' 800, 'SOFT' 20;
+    font-size: clamp(48px, 7vw, 96px);
+    line-height: 0.88;
+    letter-spacing: -0.045em;
+    color: var(--ink);
+  }
+  .stat .figure .unit {
+    font-style: italic;
+    font-variation-settings: 'opsz' 144, 'wght' 400, 'SOFT' 100;
+    color: var(--red);
+  }
+  .stat .label {
+    margin-top: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+    line-height: 1.5;
+  }
+  .stat .label strong { color: var(--ink); font-weight: 600; }
+
+  /* ============ STUDIES ============ */
+  .study {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 48px;
+    padding: 32px 0;
+    border-top: 1px solid var(--hair);
+  }
+  .study:last-child { border-bottom: 1px solid var(--hair); }
+  @media (max-width: 800px) { .study { grid-template-columns: 1fr; gap: 12px; } }
+
+  .study .left .deg-year {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 144, 'wght' 700, 'SOFT' 30;
+    font-size: 32px;
+    line-height: 1;
+    color: var(--red);
+  }
+  .study .left .deg {
+    margin-top: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+  }
+
+  .study h4 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 144, 'wght' 600, 'SOFT' 30;
+    font-size: 24px;
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+  }
+  .study .program {
+    margin-top: 4px;
+    font-family: 'Newsreader', Georgia, serif;
+    font-style: italic;
+    font-size: 17px;
+    color: var(--ink-soft);
+    margin-bottom: 16px;
+  }
+  .study .focus {
+    font-family: 'Newsreader', Georgia, serif;
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+  }
+  .study .thesis {
+    margin-top: 12px;
+    padding-left: 18px;
+    border-left: 3px solid var(--red);
+    font-family: 'Newsreader', Georgia, serif;
+    font-size: 15.5px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    font-style: italic;
+  }
+  .study .thesis strong {
+    font-style: normal;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--red);
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  /* ============ TOOLS ============ */
+  .tools {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0;
+    border-top: 1px solid var(--hair);
+  }
+  @media (max-width: 800px) { .tools { grid-template-columns: 1fr; } }
+  .tool {
+    padding: 28px 24px;
+    border-right: 1px solid var(--hair);
+    border-bottom: 1px solid var(--hair);
+    transition: background 0.25s;
+  }
+  .tool:hover { background: var(--redwash); }
+  .tool:nth-child(2n) { border-right: none; }
+  @media (max-width: 800px) { .tool { border-right: none; } }
+  .tool .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--red);
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .tool h4 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 144, 'wght' 700, 'SOFT' 30;
+    font-size: 22px;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+  }
+  .tool p {
+    font-family: 'Newsreader', Georgia, serif;
+    font-size: 15.5px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+  }
+
+  /* ============ CERTS ROW ============ */
+  .certs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin-top: 24px;
+  }
+  @media (max-width: 800px) { .certs { grid-template-columns: 1fr; } }
+  .cert { padding: 22px 0; border-top: 1px solid var(--hair); }
+  .cert .when {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--red);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .cert h5 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 144, 'wght' 600, 'SOFT' 30;
+    font-size: 19px;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+  .cert .where {
+    margin-top: 4px;
+    font-family: 'Newsreader', Georgia, serif;
+    font-style: italic;
+    font-size: 14.5px;
+    color: var(--ink-faded);
+  }
+
+  /* ============ FEATURED / FROM THE ARCHIVE ============ */
+  .featured-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border-top: 1px solid var(--hair);
+  }
+  @media (max-width: 900px) { .featured-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px) { .featured-grid { grid-template-columns: 1fr; } }
+  .feature {
+    padding: 28px 22px;
+    border-right: 1px solid var(--hair);
+    border-bottom: 1px solid var(--hair);
+    display: block;
+    color: inherit;
+    position: relative;
+    transition: background 0.25s;
+    overflow: hidden;
+  }
+  .feature::after {
+    content: "→";
+    position: absolute;
+    right: 22px; top: 28px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    color: var(--red);
+    opacity: 0.4;
+    transition: transform 0.3s, opacity 0.3s;
+  }
+  .feature:hover { background: var(--redwash); }
+  .feature:hover::after { transform: translate(6px, -6px); opacity: 1; }
+  .feature:nth-child(3n) { border-right: none; }
+  @media (max-width: 900px) { .feature:nth-child(3n) { border-right: 1px solid var(--hair); } .feature:nth-child(2n) { border-right: none; } }
+  @media (max-width: 600px) { .feature { border-right: none !important; } }
+
+  .feature .kicker {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--red);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .feature h5 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 144, 'wght' 700, 'SOFT' 30;
+    font-size: 22px;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin-bottom: 8px;
+    padding-right: 32px;
+  }
+  .feature .desc {
+    font-family: 'Newsreader', Georgia, serif;
+    font-style: italic;
+    font-size: 14.5px;
+    line-height: 1.5;
+    color: var(--ink-faded);
+  }
+
+  /* ============ COLOPHON ============ */
+  .colophon {
+    margin-top: 96px;
+    padding-top: 32px;
+    border-top: 6px solid var(--red);
+  }
+  .colophon-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 48px;
+  }
+  @media (max-width: 800px) { .colophon-grid { grid-template-columns: 1fr; gap: 24px; } }
+  .colophon h6 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--red);
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .colophon p {
+    font-family: 'Newsreader', Georgia, serif;
+    font-style: italic;
+    font-size: 14.5px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+  }
+  .colophon .signoff {
+    margin-top: 56px;
+    text-align: center;
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 144, 'wght' 800, 'SOFT' 30;
+    font-size: clamp(64px, 12vw, 180px);
+    line-height: 0.9;
+    letter-spacing: -0.05em;
+    color: var(--red);
+    opacity: 0.92;
+    text-transform: uppercase;
+  }
+  .colophon .signoff em {
+    font-style: italic;
+    font-variation-settings: 'opsz' 144, 'wght' 400, 'SOFT' 100;
+    color: var(--ink);
+  }
+  .colophon .lastline {
+    margin-top: 16px;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+  }
+
+  /* ============ MASCOT (friendly blob) ============ */
+  .mascot {
+    position: fixed;
+    bottom: 28px; right: 28px;
+    z-index: 60;
+    cursor: pointer;
+    user-select: none;
+    animation: float 4.5s ease-in-out infinite, fadeIn 0.8s 1.4s both ease-out;
+    transition: transform 0.2s;
+  }
+  .mascot:hover { transform: scale(1.08) rotate(-3deg); }
+  .mascot:active { transform: scale(0.94); }
+  @keyframes float {
+    0%, 100% { translate: 0 0; }
+    50%      { translate: 0 -10px; }
+  }
+  .mascot svg { display: block; filter: drop-shadow(0 6px 14px rgba(214, 40, 40, 0.35)); transition: filter 0.35s ease; overflow: visible; }
+  [data-theme="dark"] .mascot svg { filter: drop-shadow(0 0 18px rgba(239, 68, 68, 0.55)) drop-shadow(0 6px 14px rgba(0, 0, 0, 0.55)); }
+
+  /* Blob gentle breathing */
+  .mascot .blob-body {
+    transform-origin: 50px 52px;
+    animation: blob-breathe 3.6s ease-in-out infinite;
+  }
+  @keyframes blob-breathe {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.04); }
+  }
+
+  /* Sparkle: rotates + pulses */
+  .mascot .sparkle {
+    transform-origin: center;
+    animation: twinkle 4s ease-in-out infinite;
+  }
+  @keyframes twinkle {
+    0%, 100% { transform: translate(80px, 22px) rotate(0deg) scale(1); }
+    25%      { transform: translate(80px, 22px) rotate(45deg) scale(1.35); }
+    50%      { transform: translate(80px, 22px) rotate(90deg) scale(0.85); }
+    75%      { transform: translate(80px, 22px) rotate(135deg) scale(1.2); }
+  }
+
+  /* Smile gets a tiny "say hi" wiggle on hover */
+  .mascot:hover .smile { animation: smile-wiggle 0.6s ease-in-out; }
+  @keyframes smile-wiggle {
+    0%, 100% { transform: translateX(0); }
+    25%      { transform: translateX(-1px); }
+    75%      { transform: translateX(1px); }
+  }
+
+  @media (max-width: 600px) { .mascot { display: none; } }
+
+  .speech {
+    position: absolute;
+    right: 78px;
+    bottom: 50%;
+    transform: translateY(50%);
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    padding: 10px 14px;
+    border-radius: 2px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s, transform 0.25s;
+    box-shadow: 0 4px 10px rgba(26, 22, 18, 0.18);
+  }
+  .speech::after {
+    content: "";
+    position: absolute;
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 6px solid transparent;
+    border-left-color: var(--ink);
+    border-right: 0;
+  }
+  .speech.show {
+    opacity: 1;
+    transform: translateY(50%) translateX(-4px);
+  }
+
+  /* ============ KONAMI OVERLAY ============ */
+  .konami {
+    position: fixed; inset: 0;
+    pointer-events: none;
+    z-index: 70;
+  }
+  .confetti {
+    position: absolute;
+    width: 8px; height: 14px;
+    background: var(--red);
+    opacity: 0;
+  }
+  .konami-banner {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.7);
+    background: var(--ink);
+    color: var(--paper);
+    padding: 28px 48px;
+    z-index: 71;
+    border: 4px solid var(--red);
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 144, 'wght' 800, 'SOFT' 30;
+    font-size: clamp(32px, 5vw, 64px);
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+    text-align: center;
+    line-height: 1;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .konami-banner.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  .konami-banner .red { color: var(--red); }
+  .konami-banner .sub {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--paper);
+    margin-top: 14px;
+    opacity: 0.7;
+  }
+
+  /* ============ ANIMATIONS ============ */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.7s ease-out, transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1); }
+  .reveal.in { opacity: 1; transform: translateY(0); }
+
+  @media (prefers-reduced-motion: reduce) {
+    /* Disable decorative animations only — keep deliberate features (ticker, LIVE) */
+    .ambient, .orbs { display: none; }
+    .mascot { animation: none; }
+    .red-rule { animation: none; }
+    .name.shake .ltr { animation: none; }
+    .reveal { transition: none; opacity: 1 !important; transform: none !important; }
+    .dateline, .masthead, .meta-strip, .lede, .sidenav { animation: none; }
+    /* Ticker stays — it's a deliberate broadcast feature, not decoration */
+  }
+
+  /* ============ PRINT ============ */
+  @media print {
+    @page { size: letter; margin: 0.45in; }
+    /* Force light tokens for print regardless of current theme */
+    :root, [data-theme="dark"], [data-theme="light"] {
+      --paper: #ffffff;
+      --paper-deep: #F2EBDD;
+      --ink: #1A1612;
+      --ink-soft: #3A312A;
+      --ink-faded: #6B5F52;
+      --red: #D62828;
+      --hair: #B5A993;
+      --hair-soft: #D4C9B3;
+    }
+    html, body { background: #fff !important; color: var(--ink) !important; font-size: 10pt; padding-left: 0 !important; }
+    body { background-image: none !important; }
+    .page { padding: 0; max-width: 100%; }
+    .reveal { opacity: 1 !important; transform: none !important; }
+    .sidenav, .ambient, .orbs, .mascot, .ticker, .konami, .konami-banner { display: none !important; }
+    .name { font-size: 76pt; }
+    .standfirst { font-size: 13pt; }
+    .red-rule { background: var(--red) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .section-head { margin-top: 22pt; margin-bottom: 12pt; }
+    .section-head .num { font-size: 28pt; }
+    .section-head .title { font-size: 22pt; }
+    .cover-story { gap: 24pt; }
+    .cover-story .head h2 { font-size: 32pt; }
+    .pullquote { margin: 24pt 0; padding: 0 6%; }
+    .pullquote q { font-size: 16pt; }
+    .numbers { margin: 24pt 0; padding: 24pt; background: var(--paper-deep) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .numbers .lead h2 { font-size: 26pt; }
+    .stat .figure { font-size: 32pt; }
+    .colophon .signoff { font-size: 64pt; }
+    .back-issue { padding: 14pt 0; break-inside: avoid; }
+    .study, .cert, .tool, .feature { break-inside: avoid; }
+    a { color: var(--ink) !important; text-decoration: none; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ CURSOR-FOLLOWING ORBS ============ -->
+<div class="orbs" aria-hidden="true">
+  <div class="orb orb-3"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-1"></div>
+</div>
+
+<!-- ============ AMBIENT GLYPH BACKGROUND ============ -->
+<div class="ambient" id="ambient" aria-hidden="true"></div>
+
+<!-- ============ FIXED SIDENAV ============ -->
+<nav class="sidenav" aria-label="Issue contents">
+  <div class="sn-mark">
+    <span>PB / №26</span>
+    <span class="live">● LIVE</span>
+  </div>
+  <ul id="sn-list">
+    <li data-target="cover">00 / Cover</li>
+    <li data-target="lede">─ / Lede</li>
+    <li data-target="story">01 / Cover Story</li>
+    <li data-target="back">02 / Back Issues</li>
+    <li data-target="reports">03 / Reports</li>
+    <li data-target="numbers">★ / Numbers</li>
+    <li data-target="studies">04 / Studies</li>
+    <li data-target="tools">05 / Tools</li>
+    <li data-target="featured">06 / Featured</li>
+    <li data-target="colophon">─ / Colophon</li>
+  </ul>
+  <div class="sn-progress">
+    <div class="label"><span>Reading</span><span id="sn-pct">0%</span></div>
+    <div class="bar"><span id="sn-bar"></span></div>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- ============ DATELINE ============ -->
+  <div class="dateline" id="dateline">
+    <span><span class="red">●</span> &nbsp;PEDRO BRAUNER QUARTERLY</span>
+    <span class="center">ESTABLISHED MMXXII · ESPORTS &amp; GAMING MEDIA · LIMA / PORTO ALEGRE / PRAGUE</span>
+    <span class="price">VOL. I · MAY 2026 · <span class="big">PRICELESS</span></span>
+  </div>
+
+  <!-- ============ MASTHEAD ============ -->
+  <div class="masthead" id="cover">
+    <div class="issue-mark">ISSUE №26</div>
+    <h1 class="name" id="name">
+      <span class="ltr">P</span><span class="ltr">e</span><span class="ltr">d</span><span class="ltr">r</span><span class="ltr">o</span><br>
+      <span class="ltr">B</span><span class="ltr">r</span><span class="ltr">a</span><span class="ltr">u</span><span class="ltr">n</span><span class="ltr">e</span><span class="ltr">r</span>
+    </h1>
+    <p class="standfirst">
+      A working portfolio of editorial systems, broadcast workflows, and brand architecture built across <em>esports, gaming media, and tournament operations</em> over the last five years. Filed remotely from Lima, Peru. Open to offers.
+    </p>
+    <div class="red-rule"></div>
+    <div class="meta-strip">
+      <span><span class="label">Filed from</span>Lima, Peru</span>
+      <span><span class="label">Mail</span><a href="mailto:hello@pedrobrauner.com">hello@pedrobrauner.com</a></span>
+      <span><span class="label">Web</span><a href="/">pedrobrauner.com</a></span>
+      <span><span class="label">Social</span><a href="https://www.linkedin.com/in/pedrobrauner">LinkedIn</a></span>
+      <span><span class="label">Languages</span>PT · ES · EN</span>
+      <span><span class="label">PDF</span><a href="/assets/Pedro-Brauner-Resume.pdf" target="_blank" rel="noopener">Download ↓</a></span>
+      <span class="edition" role="group" aria-label="Edition">
+        <span class="edition-label">Edition</span>
+        <button type="button" class="edition-opt" data-set="light">Day</button>
+        <span class="edition-divider">·</span>
+        <button type="button" class="edition-opt" data-set="dark">Night</button>
+      </span>
+    </div>
+  </div>
+
+  <!-- ============ THE LEDE ============ -->
+  <div class="lede" id="lede">
+    <div class="kicker">▌ THE LEDE / On the desk this issue</div>
+    <p>
+      Content and creative strategist with five-plus years scaling editorial, broadcast, and social ecosystems for esports organizations, tournament operators, and gaming media. MBA in Marketing, Branding &amp; Growth (2026), with thesis research on G2 Esports' visual identity strategy and its role in audience growth, brand equity, and non-endemic partnership positioning.
+    </p>
+    <p>
+      Track record across brand development, editorial standards, production systems, data pipelines, and cross-functional team leadership for endemic and non-endemic gaming partnerships. Currently anchoring <a class="link" href="https://rdy.gg">rdy.gg</a>'s content strategy from Lima, with on-the-ground tournament coverage at IEM Rio 2026 and the Cologne Major next. Trilingual in Portuguese, Spanish, and English.
+    </p>
+  </div>
+
+  <!-- ============ COVER STORY ============ -->
+  <div class="section-head reveal" id="story">
+    <span class="watermark" aria-hidden="true">01</span>
+    <div class="num">01</div>
+    <div class="title">Cover<br>Story</div>
+    <div class="meta">Currently<br>In Print</div>
+  </div>
+
+  <div class="cover-story reveal">
+    <div class="head">
+      <div class="kicker">▌ THE FRONT PAGE / OCT 2025 — PRESENT</div>
+      <h2><a href="https://rdy.gg">rdy<span class="accent">.</span>gg</a></h2>
+      <p class="deck">Building a content engine for the next generation of CS2, Dota 2, and League of Legends coverage from a remote desk in Lima.</p>
+      <div class="byline">
+        <strong>Content &amp; Creative Strategist</strong> · Prague, CZ (Remote)<br>
+        <span class="red">●</span> Oct 2025 → Present · Tier-1 events covered: 4
+      </div>
+    </div>
+    <ul class="editorial">
+      <li>Established <strong>rdy.gg's content strategy from the ground up</strong>, creating brand guidelines, editorial standards, and content pillars that unified storytelling across all platforms.</li>
+      <li>Launched <strong>four original video series</strong> (Win Condition CS2, Win Condition Dota 2, Context Cap, Ws and Ls) with full brand identities including visual systems, tone guidelines, merchandise, and social templates.</li>
+      <li>Shipped <strong>15+ episodes</strong> across the Win Condition slates, with guests including pro players, coaches, and analysts such as <strong>Coach Arthur (Glyph)</strong> and <strong>voo</strong>.</li>
+      <li>Led on-the-ground content production at <strong>four tier-1 events</strong>, including IEM Rio 2026, with mixed-zone interviews from Vitality, MOUZ, Falcons, and Spirit. CS2 Major in Cologne is next.</li>
+      <li>Built <strong>CS2 data gathering and analysis systems</strong> (Dota 2 in progress) with the quantitative analytics team, turning raw match data into editorial, social, and broadcast-ready assets.</li>
+      <li>Established <strong>SEO and editorial strategy</strong> for CS2, Dota 2, and League of Legends coverage across YouTube, TikTok, Instagram, X, Facebook, and the company website.</li>
+      <li>Provided strategic guidance and structural frameworks for a cross-functional team of journalists, editors, and social media specialists, scaling content output across all platforms.</li>
+    </ul>
+  </div>
+
+  <!-- ============ PULL QUOTE ============ -->
+  <div class="pullquote reveal">
+    <q>Translating raw match data into editorial, social, and broadcast-ready assets, in close partnership with the quantitative analytics team.</q>
+    <div class="attr">— On building rdy.gg's CS2 data pipeline / 2026</div>
+  </div>
+
+  <!-- ============ TICKER ============ -->
+  <div class="ticker reveal" aria-hidden="true">
+    <div class="track" id="ticker-track">
+      <!-- track content cloned via JS for seamless loop -->
+    </div>
+  </div>
+
+  <!-- ============ BACK ISSUES ============ -->
+  <div class="section-head reveal" id="back">
+    <span class="watermark" aria-hidden="true">02</span>
+    <div class="num">02</div>
+    <div class="title">Back<br>Issues</div>
+    <div class="meta">Previously<br>Filed</div>
+  </div>
+
+  <div class="back-issue reveal">
+    <div class="meta-col">
+      <div class="era">'23 — '24</div>
+      <div class="era-end">Nov 2023 → Aug 2024</div>
+      <div class="location">Lima, Peru</div>
+    </div>
+    <div class="body-col">
+      <h3>GROWE</h3>
+      <div class="role">Content &amp; Social Media Manager</div>
+      <ul class="editorial">
+        <li>Grew follower base by <strong>95% in the first month</strong> while rebuilding the content calendar and editorial cadence.</li>
+        <li>Managed tournament operations and broadcast production for esports events, reaching <strong>over 6,000 concurrent viewers and 4M+ minutes watched</strong>.</li>
+        <li>Led a full content calendar integrating internal strategy and brand partnerships across multiple platforms.</li>
+        <li>Developed a tailored Search Engine Optimization (SEO) and social strategy, increasing <strong>organic traffic by 80% in two months</strong>.</li>
+        <li>Executed cross-functional content and influencer campaigns, raising brand visibility and engagement.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="back-issue reveal">
+    <div class="meta-col">
+      <div class="era">'22 — '23</div>
+      <div class="era-end">Nov 2022 → Dec 2023</div>
+      <div class="location">Lima, Peru (Remote)</div>
+    </div>
+    <div class="body-col">
+      <h3><a href="https://www.esports.net">Esports.net</a></h3>
+      <div class="role">Journalist &amp; Interviewer</div>
+      <ul class="editorial">
+        <li>Conducted <strong>over 100 interviews</strong> with esports players, casters, and game developers.</li>
+        <li>Covered top-tier international events including <strong>ESL One Berlin Major, Lima Major, and the Esports Awards</strong>.</li>
+        <li>Published <strong>250+ articles</strong> covering game reviews, industry trends, and opinion columns.</li>
+        <li>Drove audience development through story-led features that consistently ranked among top-performing content on site.</li>
+        <li>Built strong relationships with global esports talent and PR teams for timely access and coverage.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="back-issue reveal">
+    <div class="meta-col">
+      <div class="era">'22 — '23</div>
+      <div class="era-end">Feb 2022 → Nov 2023</div>
+      <div class="location">Lima, Peru</div>
+    </div>
+    <div class="body-col">
+      <h3>Primal Esports</h3>
+      <div class="role">Communications Manager</div>
+      <ul class="editorial">
+        <li>Led a multicultural team to organize and produce <strong>15+ gaming and esports events</strong> across Latin America (LATAM).</li>
+        <li>Managed teams of <strong>20+ across production, marketing, and partnerships</strong>.</li>
+        <li>Collaborated with endemic and non-endemic partners including <strong>Red Bull, El Comercio, MasGamers, and Community Gaming</strong>.</li>
+        <li>Built strategic partnerships with 10+ esports orgs, generating a <strong>25% increase in sponsorship inquiries in 6 months</strong>.</li>
+        <li>Oversaw end-to-end communications strategy for activations and campaigns.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ============ FREELANCE ============ -->
+  <div class="section-head reveal" id="reports">
+    <span class="watermark" aria-hidden="true">03</span>
+    <div class="num">03</div>
+    <div class="title">Special<br>Reports</div>
+    <div class="meta">Freelance<br>&amp; Project-Based</div>
+  </div>
+
+  <div class="back-issue reveal">
+    <div class="meta-col">
+      <div class="era">'25</div>
+      <div class="era-end">Feb → Jun 2025</div>
+      <div class="location">London, U.K.</div>
+    </div>
+    <div class="body-col">
+      <h3>EDGE Esports</h3>
+      <div class="role">Creative &amp; Social Media Consultant</div>
+      <ul class="editorial">
+        <li>Directed brand and content strategy for a competitive Dota 2 team, developing a cohesive visual identity and storytelling across all platforms.</li>
+        <li>Managed player talent and personal brand strategy across the competitive Dota 2 roster.</li>
+        <li>Multiplied overall social media impressions by <strong>over 1,000%, from 27K to 305K in 45 days</strong>.</li>
+        <li>Increased total followers across all platforms by <strong>more than 600%</strong> through consistent branding and platform-specific campaigns.</li>
+        <li>Boosted fan engagement and team visibility by aligning competitive milestones with timely, impactful content.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="back-issue reveal">
+    <div class="meta-col">
+      <div class="era">'25 →</div>
+      <div class="era-end">May 2025 → Present</div>
+      <div class="location">Lima, Peru</div>
+    </div>
+    <div class="body-col">
+      <h3>La Sopa Podcast</h3>
+      <div class="role">Director &amp; Executive Producer</div>
+      <ul class="editorial">
+        <li>Created and led a weekly Spanish-language Dota 2 podcast focused on competitive analysis, community discussion, and storytelling, becoming <strong>Peru's leading Spanish-language Dota 2 and esports podcast</strong>.</li>
+        <li>Reached <strong>over 5.1 million people across 41 episodes</strong>, with average live viewership of 1,500+ per stream and hundreds of thousands of views across social media.</li>
+        <li>Hosted a wide range of prominent guests, including pro players and top-tier Spanish-speaking talent from the Dota 2 community.</li>
+        <li>Oversaw the full production pipeline, covering concept, booking, direction, editing, publishing, and distribution across YouTube, Twitch, and short-form social channels.</li>
+        <li>Closed and activated the show's <strong>title sponsorship with Stake</strong>, integrating branded segment formats (La Culebra, La Ruleta, El Parlay Imposible) into Season 3 episodes.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ============ BY THE NUMBERS ============ -->
+  <div class="numbers reveal" id="numbers">
+    <span class="watermark" aria-hidden="true">★</span>
+    <div class="lead">
+      <h2>By the <em>Numbers</em></h2>
+      <div class="kicker">▌ DATA / FY 2022 → 2026</div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="figure">5.1<span class="unit">M</span></div><div class="label"><strong>People reached</strong><br>La Sopa Podcast, 41 episodes</div></div>
+      <div class="stat"><div class="figure">4<span class="unit">M+</span></div><div class="label"><strong>Minutes watched</strong><br>Tournament broadcasts, GROWE</div></div>
+      <div class="stat"><div class="figure">1,000<span class="unit">%</span></div><div class="label"><strong>Impressions growth</strong><br>EDGE Esports, 45-day campaign</div></div>
+      <div class="stat"><div class="figure">600<span class="unit">%</span></div><div class="label"><strong>Follower growth</strong><br>EDGE Esports, all platforms</div></div>
+      <div class="stat"><div class="figure">250<span class="unit">+</span></div><div class="label"><strong>Articles published</strong><br>Esports.net, 13 months</div></div>
+      <div class="stat"><div class="figure">100<span class="unit">+</span></div><div class="label"><strong>Interviews conducted</strong><br>Players, casters, developers</div></div>
+      <div class="stat"><div class="figure">15<span class="unit">+</span></div><div class="label"><strong>Events produced</strong><br>Primal Esports, LATAM</div></div>
+      <div class="stat"><div class="figure">4</div><div class="label"><strong>Tier-1 events covered</strong><br>rdy.gg, on-ground production</div></div>
+      <div class="stat"><div class="figure">5+</div><div class="label"><strong>Years in esports</strong><br>Editorial, broadcast, brand</div></div>
+    </div>
+  </div>
+
+  <!-- ============ STUDIES ============ -->
+  <div class="section-head reveal" id="studies">
+    <span class="watermark" aria-hidden="true">04</span>
+    <div class="num">04</div>
+    <div class="title">Studies</div>
+    <div class="meta">Education<br>&amp; Research</div>
+  </div>
+
+  <div class="study reveal">
+    <div class="left">
+      <div class="deg-year">2026</div>
+      <div class="deg">MBA · Completed</div>
+    </div>
+    <div class="right">
+      <h4>Pontifical Catholic University of Rio Grande do Sul (PUCRS)</h4>
+      <div class="program">MBA, Marketing, Branding &amp; Growth · Porto Alegre, Brazil</div>
+      <p class="focus">Focus on digital growth strategies, audience development, and brand positioning across creative and tech industries.</p>
+      <div class="thesis">
+        <strong>Thesis</strong>
+        Comparative analysis of G2 Esports' visual identity strategy and its role in audience growth, brand equity, and non-endemic partnership positioning.
+      </div>
+    </div>
+  </div>
+
+  <div class="study reveal">
+    <div class="left">
+      <div class="deg-year">2022</div>
+      <div class="deg">BA · High Honors</div>
+    </div>
+    <div class="right">
+      <h4>Peruvian University of Applied Sciences (UPC)</h4>
+      <div class="program">BA, Journalism &amp; Communications · Lima, Peru</div>
+      <p class="focus">Graduated with high honors. Focus on media production, storytelling, and digital communication.</p>
+    </div>
+  </div>
+
+  <div class="certs reveal">
+    <div class="cert">
+      <div class="when">JAN 2025</div>
+      <h5>Marketing Practicum</h5>
+      <div class="where">Gen.G Esports, Seoul, South Korea</div>
+    </div>
+    <div class="cert">
+      <div class="when">NOV 2023</div>
+      <h5>Esports in Latin America</h5>
+      <div class="where">Universidad de Palermo, Buenos Aires, Argentina</div>
+    </div>
+  </div>
+
+  <!-- ============ TOOLS ============ -->
+  <div class="section-head reveal" id="tools">
+    <span class="watermark" aria-hidden="true">05</span>
+    <div class="num">05</div>
+    <div class="title">Tools of<br>the Trade</div>
+    <div class="meta">Skills<br>&amp; Stack</div>
+  </div>
+
+  <div class="tools reveal">
+    <div class="tool">
+      <div class="num">/ 01</div>
+      <h4>Content &amp; Creative Strategy</h4>
+      <p>Storytelling and brand voice development, content planning, editorial strategy, community engagement, fan growth, influencer collaboration, talent management, viral content ideation.</p>
+    </div>
+    <div class="tool">
+      <div class="num">/ 02</div>
+      <h4>Digital Media &amp; Social</h4>
+      <p>Social media management (Instagram, X, TikTok, YouTube, Kick, Twitch), cross-platform campaign execution, audience analytics, performance optimization, Search Engine Optimization (SEO), podcast strategy and distribution.</p>
+    </div>
+    <div class="tool">
+      <div class="num">/ 03</div>
+      <h4>Production &amp; Project Management</h4>
+      <p>End-to-end content production (live shows, podcasts, esports broadcasts), team leadership, cross-functional collaboration, event planning, budget oversight, sponsorship activation, brand integration, scriptwriting, interviewing, hosting.</p>
+    </div>
+    <div class="tool">
+      <div class="num">/ 04</div>
+      <h4>Tools &amp; Technical</h4>
+      <p>Adobe Creative Suite (Premiere, Photoshop, Illustrator), Open Broadcaster Software (OBS), vMix and broadcast tools, Google Analytics, Meta Business Suite, Content Management Systems (CMS) including WordPress and Ghost, project management with Notion, Trello, and Asana.</p>
+    </div>
+  </div>
+
+  <!-- ============ FEATURED ============ -->
+  <div class="section-head reveal" id="featured">
+    <span class="watermark" aria-hidden="true">06</span>
+    <div class="num">06</div>
+    <div class="title">Featured</div>
+    <div class="meta">From the<br>Archive</div>
+  </div>
+
+  <div class="featured-grid reveal">
+    <a class="feature" href="/" target="_blank" rel="noopener">
+      <div class="kicker">VIDEO · INTERVIEW</div>
+      <h5>ropz, post-IEM Rio 2026</h5>
+      <div class="desc">Mixed-zone with Vitality's star rifler after the Rio 2026 final, full transcript and clip pipeline turned around inside the event window.</div>
+    </a>
+    <a class="feature" href="/" target="_blank" rel="noopener">
+      <div class="kicker">PODCAST · LA SOPA</div>
+      <h5>La Sopa S3 highlight reel</h5>
+      <div class="desc">Five and a bit million people across 41 episodes. Pick of the best moments from Season 3, including Stake-integrated segments.</div>
+    </a>
+    <a class="feature" href="/" target="_blank" rel="noopener">
+      <div class="kicker">SHOW · WIN CONDITION CS2</div>
+      <h5>The pilot episode</h5>
+      <div class="desc">Full visual identity, segment system, and editorial format design for rdy.gg's flagship CS2 podcast.</div>
+    </a>
+    <a class="feature" href="/" target="_blank" rel="noopener">
+      <div class="kicker">LONGFORM · WRITING</div>
+      <h5>The bzkA / LOUD Valorant chronicle</h5>
+      <div class="desc">A long-read on one of LATAM's most-watched roster moves, framed as a narrative case study.</div>
+    </a>
+    <a class="feature" href="/" target="_blank" rel="noopener">
+      <div class="kicker">PORTFOLIO · SITE</div>
+      <h5>pedrobrauner.com</h5>
+      <div class="desc">The full archive: shows, articles, decks, and the always-in-progress side projects no one asked for.</div>
+    </a>
+    <a class="feature" href="mailto:hello@pedrobrauner.com">
+      <div class="kicker">DIRECT · INBOX</div>
+      <h5>Drop a line</h5>
+      <div class="desc">For briefs, freelance, full-time roles, podcast invites, or just a coffee chat about Dota meta. All welcome.</div>
+    </a>
+  </div>
+
+  <!-- ============ COLOPHON ============ -->
+  <div class="colophon" id="colophon">
+    <div class="colophon-grid">
+      <div>
+        <h6>Colophon</h6>
+        <p>Pedro Brauner Quarterly is a single-author publication on esports, gaming media, and editorial systems. Issue №26 was filed from Lima, Peru in May 2026 and set in <em>Fraunces</em>, <em>Newsreader</em>, and <em>JetBrains Mono</em> — all open-source. References available on request from selected esports and media organizations.</p>
+      </div>
+      <div>
+        <h6>Editorial</h6>
+        <p>Written, designed, and produced by Pedro Brauner. All content original. Built without templates.</p>
+      </div>
+      <div>
+        <h6>Next Issue</h6>
+        <p>Filed live from the CS2 Major, Cologne. Subjects: tier-1 mixed-zone reporting, broadcast workflows, and post-Major editorial systems.</p>
+      </div>
+    </div>
+
+    <div class="signoff">— <em>fin</em> —</div>
+    <div class="lastline">Pedro Brauner · Issue №26 · Volume I · MMXXVI · ↑↑↓↓←→←→BA</div>
+  </div>
+
+</div>
+
+<!-- ============ MASCOT (cute blob) ============ -->
+<div class="mascot" id="mascot" title="click me">
+  <div class="speech" id="speech">hi! ✦</div>
+  <svg width="92" height="92" viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="halo" cx="50%" cy="55%" r="50%">
+        <stop offset="0%" stop-color="#D62828" stop-opacity="0.45"/>
+        <stop offset="60%" stop-color="#D62828" stop-opacity="0.10"/>
+        <stop offset="100%" stop-color="#D62828" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="blobgrad" cx="38%" cy="32%" r="70%">
+        <stop offset="0%" stop-color="#F76161"/>
+        <stop offset="55%" stop-color="#D62828"/>
+        <stop offset="100%" stop-color="#9D1B1F"/>
+      </radialGradient>
+    </defs>
+    <!-- soft halo glow -->
+    <circle cx="50" cy="55" r="48" fill="url(#halo)"/>
+    <!-- main blob (asymmetric squircle, slightly tomato-shaped) -->
+    <path class="blob-body"
+          d="M 50,18 C 73,18 86,33 86,53 C 86,73 71,86 50,86 C 29,86 14,73 14,53 C 14,33 27,18 50,18 Z"
+          fill="url(#blobgrad)"/>
+    <!-- subtle highlight -->
+    <ellipse cx="38" cy="34" rx="10" ry="6" fill="#FFFFFF" opacity="0.22"/>
+    <!-- friendly smile -->
+    <path class="smile"
+          d="M 36 56 Q 50 68 64 56"
+          stroke="#F2EBDD" stroke-width="3.6" stroke-linecap="round" fill="none"/>
+    <!-- 4-pointed sparkle (Claude-mascot-style) sitting beside the blob -->
+    <g class="sparkle">
+      <path d="M 0,-9 C 0,-3.6 1.8,-1.8 7,0 C 1.8,1.8 0,3.6 0,9 C 0,3.6 -1.8,1.8 -7,0 C -1.8,-1.8 0,-3.6 0,-9 Z"
+            fill="#D62828"/>
+    </g>
+  </svg>
+</div>
+
+<!-- ============ KONAMI BANNER ============ -->
+<div class="konami" id="konami" aria-hidden="true"></div>
+<div class="konami-banner" id="konami-banner">
+  GG <span class="red">WP</span>
+  <span class="sub">cheat code accepted · vol. 99 · keep scrolling</span>
+</div>
+
+<script>
+  /* ====================== Reveal on scroll ====================== */
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -8% 0px' });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  /* ====================== Edition / Theme toggle ====================== */
+  document.querySelectorAll('.edition .edition-opt').forEach(opt => {
+    opt.addEventListener('click', () => {
+      const theme = opt.dataset.set;
+      document.documentElement.setAttribute('data-theme', theme);
+      try { localStorage.setItem('pbq-theme', theme); } catch (e) {}
+    });
+  });
+  // Live-update if user changes system preference and hasn't picked manually
+  if (window.matchMedia) {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      try {
+        if (!localStorage.getItem('pbq-theme')) {
+          document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+        }
+      } catch (err) {}
+    });
+  }
+
+  /* ====================== Sidenav scrollspy + progress ====================== */
+  const navLis = document.querySelectorAll('#sn-list li');
+  const sections = Array.from(navLis).map(li => ({
+    li, target: document.getElementById(li.dataset.target)
+  })).filter(x => x.target);
+
+  navLis.forEach(li => li.addEventListener('click', () => {
+    const t = document.getElementById(li.dataset.target);
+    if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }));
+
+  const bar = document.getElementById('sn-bar');
+  const pct = document.getElementById('sn-pct');
+  function updateProgress() {
+    const h = document.documentElement;
+    const max = h.scrollHeight - h.clientHeight;
+    const p = Math.max(0, Math.min(1, h.scrollTop / Math.max(1, max)));
+    bar.style.width = (p * 100).toFixed(1) + '%';
+    pct.textContent = Math.round(p * 100) + '%';
+    // active section
+    const y = h.scrollTop + 80;
+    let active = sections[0];
+    for (const s of sections) {
+      if (s.target.offsetTop <= y) active = s;
+    }
+    sections.forEach(s => s.li.classList.toggle('active', s === active));
+  }
+  document.addEventListener('scroll', updateProgress, { passive: true });
+  window.addEventListener('resize', updateProgress);
+  updateProgress();
+
+  /* ====================== Ambient floating glyphs ====================== */
+  const glyphsMono = ['/', '·', '→', '▌', '●', '§', '★', '+', '↗', '✦', '¶', '†', '‡', '½', '¼', '¾', '※', '◯', '←', '↑', '↓', '%', '#', '01', '02', '24/30'];
+  const glyphsSerif = ['&', 'Q', 'g', 'A', 'R', '?', '!', '“', '”'];
+  const ambient = document.getElementById('ambient');
+  function spawnGlyph() {
+    const g = document.createElement('span');
+    const isSerif = Math.random() < 0.4;
+    g.className = 'glyph' + (isSerif ? ' serif' : '');
+    const set = isSerif ? glyphsSerif : glyphsMono;
+    g.textContent = set[Math.floor(Math.random() * set.length)];
+    const x = Math.random() * 100;
+    const startY = 100 + Math.random() * 10;
+    const dur = 22 + Math.random() * 18;
+    const dx = (Math.random() - 0.5) * 240;
+    const rot = (Math.random() - 0.5) * 60;
+    // 40% chance of being a "big specimen" glyph
+    const big = Math.random() < 0.4;
+    const size = big ? (70 + Math.random() * 80) : (20 + Math.random() * 28);
+    const peak = big ? (0.10 + Math.random() * 0.10) : (0.16 + Math.random() * 0.18);
+    g.style.left = x + 'vw';
+    g.style.top = startY + 'vh';
+    g.style.fontSize = size + 'px';
+    g.style.setProperty('--dx', dx + 'px');
+    g.style.setProperty('--rot', rot + 'deg');
+    g.style.setProperty('--peak', peak);
+    g.style.animationDuration = dur + 's';
+    ambient.appendChild(g);
+    setTimeout(() => g.remove(), dur * 1000 + 200);
+  }
+  // Heavy initial spawn so the page feels populated immediately
+  for (let i = 0; i < 22; i++) setTimeout(spawnGlyph, i * 450);
+  // Continuous spawn at higher density
+  setInterval(spawnGlyph, 850);
+
+  /* ====================== Cursor-following orbs ====================== */
+  (function() {
+    const orbEls = [
+      { el: document.querySelector('.orb-1'), x: window.innerWidth/2, y: window.innerHeight/2, lerp: 0.085 },
+      { el: document.querySelector('.orb-2'), x: window.innerWidth/2, y: window.innerHeight/2, lerp: 0.040 },
+      { el: document.querySelector('.orb-3'), x: window.innerWidth/2, y: window.innerHeight/2, lerp: 0.020 }
+    ];
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+    let activeTimer = null;
+
+    function setCursor(x, y) {
+      mouseX = x; mouseY = y;
+      document.body.classList.add('cursor-active');
+      clearTimeout(activeTimer);
+      activeTimer = setTimeout(() => document.body.classList.remove('cursor-active'), 2200);
+    }
+    document.addEventListener('mousemove', (e) => setCursor(e.clientX, e.clientY), { passive: true });
+    document.addEventListener('touchmove', (e) => {
+      if (e.touches[0]) setCursor(e.touches[0].clientX, e.touches[0].clientY);
+    }, { passive: true });
+
+    function tick() {
+      orbEls.forEach(o => {
+        if (!o.el) return;
+        o.x += (mouseX - o.x) * o.lerp;
+        o.y += (mouseY - o.y) * o.lerp;
+        const w = o.el.offsetWidth;
+        const h = o.el.offsetHeight;
+        o.el.style.transform = `translate3d(${o.x - w/2}px, ${o.y - h/2}px, 0)`;
+      });
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+
+    // Subtle ambient drift even when cursor is still — gentle figure-eight at low amplitude
+    let t = 0;
+    setInterval(() => {
+      if (document.body.classList.contains('cursor-active')) return;
+      t += 0.012;
+      const driftX = Math.cos(t) * 60;
+      const driftY = Math.sin(t * 1.4) * 40;
+      mouseX = window.innerWidth / 2 + driftX;
+      mouseY = window.innerHeight / 2 + driftY;
+    }, 33);
+  })();
+
+  /* ====================== Ticker ====================== */
+  const tickerItems = [
+    { flag: true, text: 'BREAKING' },
+    { text: 'PEDRO STILL ACCEPTING COFFEE CHATS' },
+    { text: 'WIN CONDITION CS2 EP. 16 IN PRODUCTION' },
+    { text: 'LA SOPA SEASON 3 LIVE' },
+    { text: 'CS2 MAJOR COLOGNE INCOMING' },
+    { text: 'OPEN TO HIRE · OPEN TO BRIEFS' },
+    { flag: true, text: 'ALSO' },
+    { text: 'MBA THESIS DEFENDED · 2026' },
+    { text: 'IEM RIO 2026 ON-GROUND COVERAGE WRAPPED' },
+    { text: 'TRILINGUAL · PT · ES · EN' },
+    { text: 'RDY.GG / EDITORIAL · BROADCAST · DATA' }
+  ];
+  const tt = document.getElementById('ticker-track');
+  function buildTickerHTML() {
+    return tickerItems.map(i =>
+      `<span class="item ${i.flag ? 'flag' : ''}"><span class="dot">●</span>${i.text}</span>`
+    ).join('');
+  }
+  // duplicate for seamless loop
+  tt.innerHTML = buildTickerHTML() + buildTickerHTML();
+
+  /* ====================== Mascot speech bubble ====================== */
+  const mascot = document.getElementById('mascot');
+  const speech = document.getElementById('speech');
+
+  // Scripted opener — plays in order to land the comedic build
+  const opener = [
+    'hi ✦',
+    'you clicked the blob. ok then.',
+    'no one makes it this deep. respect',
+    'wait, this is a CV',
+    'i made a mascot. for a CV. send help'
+  ];
+
+  // Shuffled pool — once opener is done, these cycle in random order, no repeats until exhausted
+  const pool = [
+    'i could\'ve just used a PDF tbh',
+    'the docx version exists too',
+    'recruiters never click this far',
+    'bold of you to keep clicking',
+    'more effort than my MBA thesis. i lie.',
+    'this is a CV cosplaying as a magazine',
+    'the typography is doing the heavy lifting',
+    'hello@pedrobrauner.com (this part is real)',
+    'briefs, freelance, coffee — all open',
+    'hire me and i\'ll make YOU one of these',
+    'available. flexible. trilingual. cute.',
+    'i make shows, systems, and mascots',
+    'lima time zone. patience appreciated.',
+    'konami code does something fyi',
+    'click my name up top too, idk',
+    'the EDITION toggle does night mode',
+    'the ticker scrolls if you let it',
+    'journalist by training, content by trade',
+    'i edit transcripts faster than i write CVs',
+    'dota 2 takes at hello@pedrobrauner.com',
+    'imagine being a mascot for a CV',
+    'you can stop clicking. i won\'t.',
+    'we\'re both committed at this point',
+    'do recruiters dream of clickable blobs?',
+    'okay, last one. (lie.)',
+    'i swear i can write a normal CV. lie.',
+    'pedrobrauner.com has fewer mascots',
+    'this exists because i had a saturday',
+    'i\'m the comic relief. the CV is the substance.'
+  ];
+
+  let openerIdx = 0;
+  let queue = [];
+  let lastShown = '';
+
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function nextLine() {
+    if (openerIdx < opener.length) {
+      const line = opener[openerIdx++];
+      lastShown = line;
+      return line;
+    }
+    if (queue.length === 0) {
+      queue = shuffle(pool);
+      // avoid the rare case where reshuffle starts with the line we just showed
+      if (queue[0] === lastShown && queue.length > 1) {
+        [queue[0], queue[1]] = [queue[1], queue[0]];
+      }
+    }
+    const line = queue.shift();
+    lastShown = line;
+    return line;
+  }
+
+  let speechTimer = null;
+  mascot.addEventListener('click', (e) => {
+    e.preventDefault();
+    speech.textContent = nextLine();
+    speech.classList.add('show');
+    clearTimeout(speechTimer);
+    speechTimer = setTimeout(() => speech.classList.remove('show'), 2800);
+  });
+
+  /* ====================== Click-the-name easter egg ====================== */
+  const nameEl = document.getElementById('name');
+  nameEl.addEventListener('click', () => {
+    const letters = nameEl.querySelectorAll('.ltr');
+    letters.forEach(l => {
+      l.style.setProperty('--jx', ((Math.random() - 0.5) * 14).toFixed(1) + 'px');
+      l.style.setProperty('--jy', ((Math.random() - 0.5) * 10).toFixed(1) + 'px');
+      l.style.setProperty('--jr', ((Math.random() - 0.5) * 18).toFixed(1) + 'deg');
+    });
+    nameEl.classList.remove('shake');
+    void nameEl.offsetWidth; // force reflow
+    nameEl.classList.add('shake');
+  });
+
+  /* ====================== Konami code ====================== */
+  const konamiSeq = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+  let kIdx = 0;
+  const banner = document.getElementById('konami-banner');
+  const konamiHost = document.getElementById('konami');
+  const dateline = document.getElementById('dateline');
+  const originalDatelineHTML = dateline.innerHTML;
+
+  function fireKonami() {
+    // confetti burst
+    for (let i = 0; i < 80; i++) {
+      const c = document.createElement('div');
+      c.className = 'confetti';
+      c.style.left = '50vw';
+      c.style.top = '50vh';
+      c.style.background = Math.random() > 0.5 ? 'var(--red)' : 'var(--ink)';
+      konamiHost.appendChild(c);
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 200 + Math.random() * 400;
+      const dx = Math.cos(angle) * dist;
+      const dy = Math.sin(angle) * dist;
+      const dur = 1100 + Math.random() * 800;
+      c.animate([
+        { transform: 'translate(-50%, -50%) rotate(0)', opacity: 1 },
+        { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) rotate(${Math.random() * 720}deg)`, opacity: 0 }
+      ], { duration: dur, easing: 'cubic-bezier(0.2, 0.7, 0.2, 1)', fill: 'forwards' });
+      setTimeout(() => c.remove(), dur + 50);
+    }
+    banner.classList.add('show');
+    dateline.innerHTML = '<span><span class="red">●</span> &nbsp;PEDRO BRAUNER QUARTERLY</span><span class="center red">CHEAT CODE ACCEPTED · VOL. 99 · CONTRA SEQUENCE</span><span class="price">GG · WP · <span class="big">UNLOCKED</span></span>';
+    setTimeout(() => banner.classList.remove('show'), 2400);
+    setTimeout(() => { dateline.innerHTML = originalDatelineHTML; }, 6000);
+  }
+  document.addEventListener('keydown', (e) => {
+    const want = konamiSeq[kIdx];
+    const got = e.key === 'B' || e.key === 'A' ? e.key.toLowerCase() : e.key;
+    if (got === want) {
+      kIdx++;
+      if (kIdx === konamiSeq.length) { fireKonami(); kIdx = 0; }
+    } else {
+      kIdx = (got === konamiSeq[0]) ? 1 : 0;
+    }
+  });
+</script>
+</body>
+</html>

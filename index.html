@@ -1006,135 +1006,6 @@
     box-shadow: 0 0 16px var(--red-glow);
   }
 
-  /* ===== RESUME ===== */
-  .resume-section {
-    padding: 48px 60px;
-    border-top: 1px solid var(--border);
-    opacity: 0.45;
-    transition: opacity .4s;
-  }
-  .resume-section:hover { opacity: 0.9; }
-
-  .resume-toggle {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    cursor: pointer;
-    width: fit-content;
-    user-select: none;
-  }
-  .resume-toggle-label {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--text-dim);
-  }
-  .resume-toggle-icon {
-    font-size: 10px;
-    color: var(--text-dim);
-    transition: transform .3s;
-  }
-  .resume-toggle.open .resume-toggle-icon { transform: rotate(180deg); }
-
-  .resume-content { display: none; margin-top: 40px; max-width: 680px; }
-  .resume-content.open { display: block; }
-
-  .resume-name {
-    font-family: 'Chakra Petch', sans-serif;
-    font-size: 40px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 3px;
-    margin-bottom: 4px;
-  }
-  .resume-title-line {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--red);
-    margin-bottom: 20px;
-  }
-  .resume-contact-line {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
-    letter-spacing: 1px;
-    color: var(--text-dim);
-    margin-bottom: 36px;
-  }
-  .resume-block { margin-bottom: 36px; }
-  .resume-block-title {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--red);
-    margin-bottom: 16px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--border);
-  }
-  .resume-item {
-    padding: 14px 0;
-    border-bottom: 1px solid rgba(255,255,255,.03);
-  }
-  .resume-item-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 4px;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .resume-item-title {
-    font-family: 'Chakra Petch', sans-serif;
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--text);
-  }
-  .resume-item-date {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 1px;
-    color: var(--text-dim);
-    white-space: nowrap;
-  }
-  .resume-item-company {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 13px;
-    color: var(--red-dark);
-    margin-bottom: 6px;
-    letter-spacing: 1px;
-  }
-  .resume-item-desc {
-    font-size: 14px;
-    color: var(--text-dim);
-    line-height: 1.65;
-  }
-  .resume-pdf-note {
-    margin-top: 36px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
-    letter-spacing: 1px;
-    color: var(--text-dim);
-    border-left: 2px solid var(--red);
-    padding-left: 14px;
-  }
-  .resume-download {
-    display: inline-block;
-    margin-top: 24px;
-    padding: 10px 24px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    text-decoration: none;
-    color: var(--text-dim);
-    border: 1px solid var(--border);
-    transition: all .2s;
-  }
-  .resume-download:hover { border-color: var(--red); color: var(--red); }
-
   /* ===== SHUTDOWN / REBOOT ===== */
   /* opacity transitions handled inline by JS */
 
@@ -1172,9 +1043,7 @@
     .carousel-arrows { padding: 14px 20px 0; }
     section { padding: 60px 20px; }
     .contact-section { padding: 60px 20px; }
-    .resume-section { padding: 48px 20px; }
     .photo-item { height: 300px; }
-    .resume-section { padding: 48px 20px; }
   }
 
   /* ===== LOADING SCREEN ===== */
@@ -1366,7 +1235,7 @@
 
   <div class="hero-actions" id="heroActions">
     <a href="#contact" class="btn-hero btn-hero-primary">Get in Touch</a>
-    <button class="btn-hero btn-hero-ghost" onclick="openResume()">Curriculum Vitae ↓</button>
+    <a href="cv/" class="btn-hero btn-hero-ghost">Curriculum Vitae ↗</a>
   </div>
 
   <div class="scroll-cue" id="scrollCue">↓ Scroll ↓</div>
@@ -1711,91 +1580,8 @@
       <a href="https://x.com/PBraunerGG" class="social-link" target="_blank" rel="noopener">Twitter / X</a>
       <a href="https://www.linkedin.com/in/pbrauner/" class="social-link" target="_blank" rel="noopener">LinkedIn</a>
       <a href="https://www.instagram.com/pedrobrauner/" class="social-link" target="_blank" rel="noopener">Instagram</a>
+      <a href="cv/" class="social-link">Curriculum Vitae</a>
     </div>
-  </div>
-</div>
-
-<!-- ===== RESUME (hidden) ===== -->
-<div class="resume-section" id="resume">
-  <div class="resume-toggle" onclick="toggleResume(this)">
-    <span class="resume-toggle-label">Curriculum Vitae</span>
-    <span class="resume-toggle-icon">▾</span>
-  </div>
-  <div class="resume-content" id="resume-content">
-    <div class="resume-name">Pedro Brauner</div>
-    <div class="resume-title-line">Journalist &amp; Content Strategist · PT / EN / ES</div>
-    <div class="resume-contact-line">hello@pedrobrauner.com · Lima, Peru</div>
-
-    <div class="resume-block">
-      <div class="resume-block-title">Experience</div>
-
-      <div class="resume-item">
-        <div class="resume-item-header">
-          <span class="resume-item-title">Content and Creative Strategist</span>
-          <span class="resume-item-date">Oct 2025 — Present</span>
-        </div>
-        <div class="resume-item-company">RDY.gg — Lima, Peru</div>
-        <div class="resume-item-desc">Leading content and creative strategy for an esports media company covering CS2, Dota 2, and the broader competitive gaming ecosystem. Overseeing editorial direction, show development, and brand voice.</div>
-      </div>
-
-      <div class="resume-item">
-        <div class="resume-item-header">
-          <span class="resume-item-title">Content Manager</span>
-          <span class="resume-item-date">Nov 2023 — Oct 2025</span>
-        </div>
-        <div class="resume-item-company">Growe — Lima, Peru</div>
-        <div class="resume-item-desc">Led content strategy and production across multiple markets. Managed localization, SEO, and creative campaigns for a fast-growing company operating in competitive digital spaces.</div>
-      </div>
-
-      <div class="resume-item">
-        <div class="resume-item-header">
-          <span class="resume-item-title">Esports Journalist &amp; Interviewer</span>
-          <span class="resume-item-date">Nov 2022 — Nov 2023</span>
-        </div>
-        <div class="resume-item-company">Esports.net — Remote</div>
-        <div class="resume-item-desc">Published 100+ articles and conducted 100+ interviews covering CS2, Dota 2, and Valorant Majors. Attended ESL One Berlin, Lima Major, and other tier-one events. Built one of the platform's most-read author profiles.</div>
-      </div>
-
-      <div class="resume-item">
-        <div class="resume-item-header">
-          <span class="resume-item-title">Communications Manager</span>
-          <span class="resume-item-date">Jan 2021 — Oct 2023</span>
-        </div>
-        <div class="resume-item-company">PRIMAL — Lima, Peru</div>
-        <div class="resume-item-desc">Managed communications and social presence for a LATAM esports organization. Grew digital footprint by 1000%+ in impressions. Created EDGE Esports, a regional media brand under the org.</div>
-      </div>
-
-      <div class="resume-item">
-        <div class="resume-item-header">
-          <span class="resume-item-title">Content &amp; Podcasts Manager</span>
-          <span class="resume-item-date">Oct 2021 — Nov 2022</span>
-        </div>
-        <div class="resume-item-company">CRP Radios — Lima, Peru</div>
-        <div class="resume-item-desc">Produced and managed podcast content for one of Peru's leading radio groups. Developed La Sopa, a gaming and esports show that reached 3.6M people across 23 episodes.</div>
-      </div>
-    </div>
-
-    <div class="resume-block">
-      <div class="resume-block-title">Education</div>
-      <div class="resume-item">
-        <div class="resume-item-header">
-          <span class="resume-item-title">MBA — Marketing</span>
-          <span class="resume-item-date">Expected 2026</span>
-        </div>
-        <div class="resume-item-company">PUCRS — Porto Alegre, Brazil</div>
-      </div>
-      <div class="resume-item">
-        <div class="resume-item-header">
-          <span class="resume-item-title">BA — Journalism &amp; Communications</span>
-          <span class="resume-item-date">2018 — 2022</span>
-        </div>
-        <div class="resume-item-company">UPC — Lima, Peru</div>
-        <div class="resume-item-desc">3.7 GPA · Graduated with High Honors</div>
-      </div>
-    </div>
-
-    <div class="resume-pdf-note">This is an abridged version. For the full curriculum vitae, view the PDF below.</div>
-    <a href="assets/Resume-Pedro-Brauner-2026.pdf" class="resume-download" target="_blank" rel="noopener">View Full PDF ↗</a>
   </div>
 </div>
 
@@ -2084,24 +1870,8 @@
 
 <!-- ===== SITE INTERACTIONS ===== -->
 <script>
-  /* ─── RESUME TOGGLE ─── */
-  function toggleResume(btn) {
-    btn.classList.toggle('open');
-    document.getElementById('resume-content').classList.toggle('open');
-  }
-
-  function openResume() {
-    const toggle  = document.querySelector('.resume-toggle');
-    const content = document.getElementById('resume-content');
-    toggle.classList.add('open');
-    content.classList.add('open');
-    setTimeout(() => {
-      document.getElementById('resume').scrollIntoView({ behavior: 'smooth' });
-    }, 50);
-  }
-
   /* ─── NAV ACTIVE STATE ─── */
-  const navTargets = document.querySelectorAll('section[id], .contact-section[id], .resume-section[id]');
+  const navTargets = document.querySelectorAll('section[id], .contact-section[id]');
   const navAnchors = document.querySelectorAll('.nav-links a[data-section]');
 
   const navObserver = new IntersectionObserver(entries => {
