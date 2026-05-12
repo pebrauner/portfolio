@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0a0a0a">
+<title>Track</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  [hidden] { display: none !important; }
+
+  :root {
+    --bg: #0a0a0a;
+    --bg-1: #111114;
+    --bg-2: #16161a;
+    --bg-3: #1d1d22;
+    --line: #2a2a30;
+    --line-strong: #3a3a42;
+    --ink: #eae4dc;
+    --ink-soft: #b0aca4;
+    --ink-faded: #6b6862;
+    --food: #ffae3d;
+    --food-dim: rgba(255, 174, 61, 0.16);
+    --burp: #f6c577;
+    --diarrhea: #e03418;
+    --diarrhea-dim: rgba(224, 52, 24, 0.16);
+    --other: #9aa0a6;
+    --good: #3fb950;
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  }
+
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  ::selection { background: rgba(255, 174, 61, 0.3); color: var(--ink); }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--food); }
+
+  button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
+  input, textarea, select { font: inherit; color: inherit; }
+  input:focus, textarea:focus, select:focus, button:focus-visible { outline: 2px solid var(--food); outline-offset: 2px; }
+
+  /* ================= LOGIN ================= */
+  #login {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+  }
+  .login-card {
+    width: 100%;
+    max-width: 320px;
+    text-align: center;
+  }
+  .login-mark {
+    font-size: 11px;
+    letter-spacing: 0.32em;
+    color: var(--ink-faded);
+    text-transform: uppercase;
+    margin-bottom: 32px;
+  }
+  .login-title {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+  .login-sub {
+    font-size: 12px;
+    color: var(--ink-faded);
+    margin-bottom: 40px;
+  }
+  .login-card form { display: flex; flex-direction: column; gap: 12px; }
+  .login-card input {
+    width: 100%;
+    padding: 14px 16px;
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: var(--ink);
+    font-size: 14px;
+    text-align: center;
+    letter-spacing: 0.1em;
+  }
+  .login-card input:focus { border-color: var(--food); outline: none; }
+  .login-card button {
+    width: 100%;
+    padding: 14px 16px;
+    background: var(--food);
+    color: var(--bg);
+    font-weight: 700;
+    border-radius: 8px;
+    letter-spacing: 0.04em;
+    transition: background 0.15s, transform 0.05s;
+  }
+  .login-card button:hover { background: #ffbb55; }
+  .login-card button:active { transform: scale(0.98); }
+  .login-card button:disabled { opacity: 0.6; cursor: wait; }
+  #login-error { color: var(--diarrhea); font-size: 12px; min-height: 16px; margin-top: 8px; }
+
+  /* ================= APP SHELL ================= */
+  #app { max-width: 720px; margin: 0 auto; padding: 16px; }
+
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 4px 16px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 16px;
+  }
+  .topbar-mark {
+    font-size: 11px;
+    letter-spacing: 0.28em;
+    color: var(--ink-faded);
+    text-transform: uppercase;
+  }
+  .topbar-right { display: flex; align-items: center; gap: 12px; }
+  .net-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--good);
+    box-shadow: 0 0 8px rgba(63, 185, 80, 0.6);
+  }
+  .net-dot.offline { background: var(--diarrhea); box-shadow: 0 0 8px rgba(224, 52, 24, 0.6); }
+  .net-dot.busy { background: var(--food); box-shadow: 0 0 8px rgba(255, 174, 61, 0.6); }
+  .lock-btn {
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    color: var(--ink-faded);
+    text-transform: uppercase;
+    padding: 6px 10px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    transition: all 0.15s;
+  }
+  .lock-btn:hover { color: var(--ink); border-color: var(--line-strong); }
+
+  /* ================= ACTION BUTTONS ================= */
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .act {
+    padding: 18px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--bg-1);
+    text-align: left;
+    transition: all 0.15s;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-height: 76px;
+  }
+  .act:hover { background: var(--bg-2); border-color: var(--line-strong); transform: translateY(-1px); }
+  .act:active { transform: translateY(0); }
+  .act-label {
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+  }
+  .act-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .act-food .act-title { color: var(--food); }
+  .act-symptom .act-title { color: var(--diarrhea); }
+  .act-shortcut {
+    font-size: 10px;
+    color: var(--ink-faded);
+    margin-top: auto;
+  }
+
+  /* ================= TABS ================= */
+  .tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 16px;
+  }
+  .tab {
+    padding: 10px 14px;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all 0.15s;
+  }
+  .tab:hover { color: var(--ink-soft); }
+  .tab.active { color: var(--ink); border-bottom-color: var(--food); }
+  .tab .count {
+    margin-left: 6px;
+    color: var(--ink-faded);
+    font-weight: 400;
+  }
+
+  /* ================= TIMELINE ================= */
+  .day {
+    margin-bottom: 24px;
+  }
+  .day-head {
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+    padding: 0 4px 8px;
+    border-bottom: 1px dashed var(--line);
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .day-meta { color: var(--ink-faded); font-weight: 400; }
+
+  .entry {
+    display: grid;
+    grid-template-columns: 56px 16px 1fr;
+    gap: 10px;
+    padding: 10px 4px;
+    border-radius: 6px;
+    cursor: pointer;
+    align-items: start;
+    transition: background 0.15s;
+  }
+  .entry:hover { background: var(--bg-1); }
+  .entry-time {
+    font-size: 12px;
+    color: var(--ink-faded);
+    padding-top: 1px;
+    font-variant-numeric: tabular-nums;
+  }
+  .entry-mark {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    margin-top: 6px;
+    background: var(--food);
+    box-shadow: 0 0 0 3px var(--food-dim);
+  }
+  .entry-mark.symptom-burp { background: var(--burp); box-shadow: 0 0 0 3px rgba(246, 197, 119, 0.16); }
+  .entry-mark.symptom-diarrhea { background: var(--diarrhea); box-shadow: 0 0 0 3px var(--diarrhea-dim); }
+  .entry-mark.symptom-other { background: var(--other); box-shadow: 0 0 0 3px rgba(154, 160, 166, 0.16); }
+  .entry-body { min-width: 0; }
+  .entry-title {
+    font-size: 14px;
+    color: var(--ink);
+    overflow-wrap: anywhere;
+  }
+  .entry.symptom .entry-title {
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 12px;
+    color: var(--ink-soft);
+    font-weight: 600;
+  }
+  .entry.symptom.symptom-diarrhea .entry-title { color: var(--diarrhea); }
+  .entry.symptom.symptom-burp .entry-title { color: var(--burp); }
+  .entry-meta {
+    margin-top: 4px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+  .tag {
+    font-size: 10px;
+    padding: 2px 6px;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    color: var(--ink-soft);
+    letter-spacing: 0.04em;
+  }
+  .tag.add {
+    color: var(--ink-faded);
+    border-style: dashed;
+    cursor: pointer;
+  }
+  .tag.add:hover { color: var(--food); border-color: var(--food); }
+  .severity {
+    font-size: 10px;
+    color: var(--ink-faded);
+    letter-spacing: 0.1em;
+  }
+  .severity .filled { color: var(--diarrhea); }
+  .entry-notes {
+    font-size: 12px;
+    color: var(--ink-faded);
+    font-style: italic;
+    margin-top: 4px;
+    overflow-wrap: anywhere;
+  }
+
+  /* Empty state */
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--ink-faded);
+    font-size: 13px;
+  }
+  .empty strong { color: var(--ink-soft); display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; }
+
+  /* ================= SUSPECT FOODS ================= */
+  .suspects-head {
+    font-size: 11px;
+    color: var(--ink-faded);
+    margin-bottom: 12px;
+    padding: 0 4px;
+    line-height: 1.6;
+  }
+  .suspects-head select {
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 3px 6px;
+    border-radius: 3px;
+    margin: 0 4px;
+  }
+  .suspect {
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    gap: 12px;
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--line);
+    align-items: center;
+  }
+  .suspect-rank {
+    font-size: 18px;
+    color: var(--ink-faded);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+  .suspect-rank.top1 { color: var(--diarrhea); font-weight: 700; }
+  .suspect-rank.top2 { color: var(--food); }
+  .suspect-rank.top3 { color: var(--burp); }
+  .suspect-name {
+    font-size: 14px;
+    color: var(--ink);
+  }
+  .suspect-detail {
+    font-size: 10px;
+    color: var(--ink-faded);
+    letter-spacing: 0.04em;
+    margin-top: 2px;
+  }
+  .suspect-count {
+    font-size: 14px;
+    color: var(--food);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ================= MODAL ================= */
+  dialog {
+    border: none;
+    background: transparent;
+    padding: 0;
+    max-width: 100vw;
+    max-height: 100vh;
+  }
+  dialog::backdrop {
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+  }
+  .modal {
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 20px;
+    width: 92vw;
+    max-width: 480px;
+    box-shadow: var(--shadow);
+    color: var(--ink);
+  }
+  .modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .modal-title {
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+  }
+  .modal-close {
+    color: var(--ink-faded);
+    font-size: 18px;
+    padding: 4px 8px;
+  }
+  .modal-close:hover { color: var(--ink); }
+
+  .field { margin-bottom: 14px; }
+  .field-label {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+    margin-bottom: 6px;
+  }
+  .field input[type="text"], .field input[type="datetime-local"], .field textarea {
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    color: var(--ink);
+    font-size: 14px;
+  }
+  .field textarea { min-height: 60px; resize: vertical; font-family: inherit; }
+  .field input:focus, .field textarea:focus { border-color: var(--food); outline: none; }
+
+  .type-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+  .type-btn {
+    padding: 10px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    text-align: center;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    transition: all 0.15s;
+    color: var(--ink-soft);
+  }
+  .type-btn:hover { border-color: var(--line-strong); color: var(--ink); }
+  .type-btn.selected {
+    border-color: currentColor;
+    background: rgba(255, 255, 255, 0.04);
+  }
+  .type-btn[data-type="burp"].selected { color: var(--burp); }
+  .type-btn[data-type="diarrhea"].selected { color: var(--diarrhea); }
+  .type-btn[data-type="other"].selected { color: var(--other); }
+
+  .severity-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .sev-btn {
+    padding: 10px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    color: var(--ink-faded);
+    font-size: 13px;
+    transition: all 0.15s;
+  }
+  .sev-btn:hover { color: var(--ink); }
+  .sev-btn.selected { color: var(--diarrhea); border-color: var(--diarrhea); background: var(--diarrhea-dim); }
+
+  .quick-time { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+  .quick-time button {
+    font-size: 11px;
+    padding: 4px 8px;
+    color: var(--ink-faded);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    transition: all 0.15s;
+  }
+  .quick-time button:hover { color: var(--food); border-color: var(--food); }
+
+  .modal-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+  }
+  .btn {
+    padding: 10px 16px;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 600;
+    transition: all 0.15s;
+  }
+  .btn:hover { background: var(--bg-2); border-color: var(--line-strong); }
+  .btn-primary {
+    background: var(--food);
+    color: var(--bg);
+    border-color: var(--food);
+    margin-left: auto;
+  }
+  .btn-primary:hover { background: #ffbb55; border-color: #ffbb55; }
+  .btn-danger { color: var(--diarrhea); border-color: rgba(224, 52, 24, 0.4); }
+  .btn-danger:hover { background: var(--diarrhea-dim); border-color: var(--diarrhea); }
+
+  /* ================= TOAST ================= */
+  #toast {
+    position: fixed;
+    bottom: 16px; left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--bg-2);
+    border: 1px solid var(--line-strong);
+    color: var(--ink);
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    box-shadow: var(--shadow);
+    transition: transform 0.25s ease;
+    z-index: 9999;
+    max-width: 92vw;
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+  #toast.error { border-color: var(--diarrhea); color: var(--diarrhea); }
+
+  /* ================= MOBILE ================= */
+  @media (max-width: 480px) {
+    #app { padding: 12px; }
+    .actions { gap: 8px; }
+    .act { padding: 14px 12px; min-height: 70px; }
+    .act-title { font-size: 15px; }
+    .act-shortcut { display: none; }
+    .entry { grid-template-columns: 48px 14px 1fr; gap: 8px; }
+    .modal { padding: 16px; width: 96vw; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN ================= -->
+<main id="login">
+  <div class="login-card">
+    <div class="login-mark">PEDRO BRAUNER · TRACK</div>
+    <h1 class="login-title">Locked</h1>
+    <p class="login-sub">enter password to unlock</p>
+    <form id="login-form" autocomplete="off">
+      <input type="password" id="pw" placeholder="password" autocomplete="current-password" required autofocus>
+      <button type="submit" id="unlock-btn">Unlock</button>
+    </form>
+    <p id="login-error"></p>
+  </div>
+</main>
+
+<!-- ================= APP ================= -->
+<main id="app" hidden>
+  <header class="topbar">
+    <span class="topbar-mark">TRACK</span>
+    <div class="topbar-right">
+      <span class="net-dot" id="net-dot" title="Connected"></span>
+      <button class="lock-btn" id="lock-btn">Lock</button>
+    </div>
+  </header>
+
+  <div class="actions">
+    <button class="act act-food" id="btn-food">
+      <span class="act-label">＋ LOG</span>
+      <span class="act-title">Food / Drink</span>
+      <span class="act-shortcut">press F</span>
+    </button>
+    <button class="act act-symptom" id="btn-symptom">
+      <span class="act-label">＋ LOG</span>
+      <span class="act-title">Symptom</span>
+      <span class="act-shortcut">press S</span>
+    </button>
+  </div>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-tab="timeline">Timeline <span class="count" id="count-timeline"></span></button>
+    <button class="tab" data-tab="suspects">Suspect Foods</button>
+  </nav>
+
+  <section id="tab-timeline"></section>
+  <section id="tab-suspects" hidden></section>
+</main>
+
+<!-- ================= MODAL ================= -->
+<dialog id="entry-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="modal-title">Log entry</span>
+      <button class="modal-close" id="modal-close" type="button" aria-label="Close">✕</button>
+    </div>
+    <form id="entry-form"></form>
+  </div>
+</dialog>
+
+<div id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
