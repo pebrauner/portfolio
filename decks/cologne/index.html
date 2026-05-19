@@ -3227,28 +3227,69 @@
     closeModal();
   });
 
-  // ============ Export approved (markdown) ============
+  // ============ Export approved (Excel / .xlsx) ============
   const exportBtn = document.getElementById('export-approved');
-  function fmtTimeDate(ts) {
-    const d = new Date(ts);
-    return d.toISOString().slice(0, 10) + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+
+  // Load SheetJS on demand the first time Export is clicked.
+  let _xlsxPromise = null;
+  function loadSheetJS() {
+    if (window.XLSX) return Promise.resolve(window.XLSX);
+    if (_xlsxPromise) return _xlsxPromise;
+    _xlsxPromise = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+      s.onload = () => window.XLSX ? resolve(window.XLSX) : reject(new Error('XLSX missing'));
+      s.onerror = () => reject(new Error('XLSX script failed to load'));
+      document.head.appendChild(s);
+    });
+    return _xlsxPromise;
   }
-  function cardSection(card) {
+
+  function cardRowData(card) {
     const sec = card.closest('section[id]');
-    return sec ? sec.id : 'unknown';
-  }
-  function cardChips(card) {
-    return Array.from(card.querySelectorAll('.chip')).map(c => c.textContent.replace(/\s+/g, ' ').trim());
-  }
-  function cardTitle(card) {
-    const h = card.querySelector('h3');
-    return h ? h.textContent.trim() : '(untitled)';
-  }
-  function cardBody(card) {
-    return Array.from(card.querySelectorAll('p, ul'))
+    const sectionId = sec ? sec.id.replace('-opener', '') : 'unknown';
+    const sectionLabel = (SECTIONS.find(s => s.key === sectionId) || { label: sectionId }).label;
+    const title = card.querySelector('h3')?.textContent.trim() || '(untitled)';
+    const isIdea = card.classList.contains('card-idea');
+
+    let submittedBy = '';
+    let owner = '';
+    let place = '';
+    const tags = [];
+
+    card.querySelectorAll('.chip').forEach(c => {
+      const txt = c.textContent.replace(/\s+/g, ' ').trim();
+      if (c.classList.contains('from-floor')) {
+        const m = txt.match(/from the floor\s*[·\-]\s*(.*)$/i);
+        submittedBy = m ? m[1].trim() : '';
+      } else if (c.classList.contains('owner')) {
+        owner = txt.replace(/^(Owners?|Brokered by)[:\s]*/i, '').trim();
+      } else if (c.classList.contains('onsite')) {
+        place = 'On-site';
+      } else if (c.classList.contains('remote')) {
+        place = 'Remote';
+      } else if (c.classList.contains('hybrid')) {
+        place = 'Hybrid';
+      } else {
+        tags.push(txt);
+      }
+    });
+
+    const description = Array.from(card.querySelectorAll(':scope > p, :scope > ul'))
       .map(el => el.textContent.replace(/\s+/g, ' ').trim())
       .filter(Boolean)
-      .join('\n  ');
+      .join('\n\n');
+
+    return {
+      section: sectionLabel,
+      title,
+      source: isIdea ? 'From the floor' : 'Prepared',
+      submittedBy,
+      owner,
+      place,
+      tags: tags.join(', '),
+      description
+    };
   }
 
   exportBtn.addEventListener('click', async () => {
@@ -3257,43 +3298,52 @@
       alert('Nothing approved yet. Mark a card with ✓ to include it.');
       return;
     }
-    const grouped = {};
-    approved.forEach(card => {
-      const sectionId = cardSection(card);
-      // Map opener IDs back to body section key
-      let key = sectionId.replace('-opener', '');
-      if (key === 'open-questions') key = 'open-questions';
-      (grouped[key] = grouped[key] || []).push(card);
-    });
 
-    const now = new Date();
-    const stamp = now.toISOString().slice(0, 10) + ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
-    let md = '# Cologne Coverage Plan · Approved deliverables\n\n';
-    md += '_Exported ' + stamp + ' · ' + approved.length + ' item' + (approved.length === 1 ? '' : 's') + '_\n\n';
-
-    SECTIONS.forEach(s => {
-      const list = grouped[s.key];
-      if (!list || !list.length) return;
-      md += '## ' + s.label + '\n\n';
-      list.forEach(card => {
-        const title = cardTitle(card);
-        const isIdea = card.classList.contains('card-idea');
-        md += '### ' + title + (isIdea ? '  _(from the floor)_' : '') + '\n\n';
-        const chips = cardChips(card).filter(c => !/^From the floor/i.test(c));
-        if (chips.length) md += '> ' + chips.join(' · ') + '\n\n';
-        const body = cardBody(card);
-        if (body) md += body.split('\n').map(l => l.trim()).filter(Boolean).map(l => l).join('\n\n') + '\n\n';
-      });
-    });
-
+    let XLSX;
     try {
-      await navigator.clipboard.writeText(md);
-      downloadFile('cologne-approved-' + now.toISOString().slice(0,10) + '.md', md);
-      flashBtn(exportBtn, 'Copied + downloaded');
-    } catch {
-      downloadFile('cologne-approved-' + now.toISOString().slice(0,10) + '.md', md);
-      flashBtn(exportBtn, 'Downloaded');
+      XLSX = await loadSheetJS();
+    } catch (err) {
+      console.error(err);
+      alert('Could not load the Excel library. Check your connection and try again.');
+      return;
     }
+
+    // Sort approved cards by section order so the workbook reads top-down.
+    const sectionOrder = SECTIONS.map(s => s.key);
+    approved.sort((a, b) => {
+      const aKey = (a.closest('section[id]')?.id || '').replace('-opener', '');
+      const bKey = (b.closest('section[id]')?.id || '').replace('-opener', '');
+      return sectionOrder.indexOf(aKey) - sectionOrder.indexOf(bKey);
+    });
+
+    const headers = ['Section', 'Title', 'Source', 'Submitted by', 'Owner', 'Place', 'Tags', 'Description'];
+    const aoa = [headers];
+    approved.forEach(card => {
+      const d = cardRowData(card);
+      aoa.push([d.section, d.title, d.source, d.submittedBy, d.owner, d.place, d.tags, d.description]);
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws['!cols'] = [
+      { wch: 22 },  // Section
+      { wch: 38 },  // Title
+      { wch: 14 },  // Source
+      { wch: 16 },  // Submitted by
+      { wch: 24 },  // Owner
+      { wch: 10 },  // Place
+      { wch: 36 },  // Tags
+      { wch: 80 },  // Description
+    ];
+    ws['!freeze'] = { xSplit: 0, ySplit: 1 };
+
+    const wb = XLSX.utils.book_new();
+    const sheetName = 'Approved · ' + new Date().toISOString().slice(0, 10);
+    XLSX.utils.book_append_sheet(wb, ws, sheetName.slice(0, 31));
+
+    const filename = 'cologne-approved-' + new Date().toISOString().slice(0, 10) + '.xlsx';
+    XLSX.writeFile(wb, filename);
+
+    flashBtn(exportBtn, 'Downloaded');
   });
 
   function flashBtn(btn, msg) {
@@ -3309,15 +3359,6 @@
       btn.style.borderColor = '';
       updateApprovedCount();
     }, 1500);
-  }
-
-  function downloadFile(name, text) {
-    const blob = new Blob([text], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = name;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   // ============ Reset votes / clear ideas ============
