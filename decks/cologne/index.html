@@ -1,0 +1,3271 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cologne Coverage Plan · rdy.gg internal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Newsreader:ital,opsz,wght@0,6..72,200..700;1,6..72,200..700&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bone:        #F4ECDA;
+    --bone-soft:   #D9D1BE;
+    --ash:         #9A9088;
+    --ash-deep:    #66605A;
+    --amber:       #F2B843;
+    --amber-deep:  #C68F1E;
+    --crimson:     #C8334A;
+    --violet-bg:   #0A0610;
+    --hair:        rgba(244, 236, 218, 0.10);
+    --hair-soft:   rgba(244, 236, 218, 0.05);
+    --hair-strong: rgba(244, 236, 218, 0.22);
+    --paper-card:  rgba(20, 14, 30, 0.55);
+    --paper-idea:  rgba(242, 184, 67, 0.04);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  body {
+    background: var(--violet-bg);
+    color: var(--bone-soft);
+    font-family: 'Newsreader', Georgia, serif;
+    font-optical-sizing: auto;
+    font-size: 17px;
+    line-height: 1.62;
+    font-weight: 380;
+    overflow-x: hidden;
+    position: relative;
+  }
+  a { color: inherit; text-decoration: none; }
+  ::selection { background: var(--amber); color: var(--violet-bg); }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+
+  /* ============ CATHEDRAL CANVAS (fixed) ============ */
+  #cathedral {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    display: block;
+  }
+
+  /* ============ TYPE UTILITIES ============ */
+  .display { font-family: 'Fraunces', Georgia, serif; font-optical-sizing: auto; }
+  .body    { font-family: 'Newsreader', Georgia, serif; font-optical-sizing: auto; }
+  .mono    { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+  .upper   { text-transform: uppercase; letter-spacing: 0.16em; }
+  .amber   { color: var(--amber); }
+  .bone    { color: var(--bone); }
+  .ash     { color: var(--ash); }
+  em       { font-style: italic; color: var(--amber); font-weight: 400; }
+
+  /* ============ SIDENAV ============ */
+  .sidenav {
+    position: fixed;
+    left: 22px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 60;
+    width: 192px;
+    padding: 16px 14px 14px;
+    background: rgba(10, 6, 16, 0.62);
+    backdrop-filter: blur(10px) saturate(120%);
+    -webkit-backdrop-filter: blur(10px) saturate(120%);
+    border: 1px solid var(--hair);
+    border-radius: 1px;
+    animation: fadeIn 0.9s 0.4s both ease-out;
+    transition: width 0.32s cubic-bezier(0.4, 0.0, 0.2, 1), padding 0.32s ease;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--hair-strong) transparent;
+  }
+  .sidenav::-webkit-scrollbar { width: 4px; }
+  .sidenav::-webkit-scrollbar-thumb { background: var(--hair-strong); }
+
+  .sn-toggle {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 22px;
+    height: 22px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1;
+    color: var(--ash);
+    border: 1px solid var(--hair);
+    border-radius: 1px;
+    transition: color 0.18s, border-color 0.18s, transform 0.32s ease;
+    z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .sn-toggle:hover { color: var(--amber); border-color: var(--amber); }
+  .sn-toggle::before { content: "‹"; }
+
+  /* Collapsed state */
+  body[data-sidenav="collapsed"] .sidenav {
+    width: 38px;
+    padding: 8px 6px;
+  }
+  body[data-sidenav="collapsed"] .sidenav > *:not(.sn-toggle) {
+    display: none !important;
+  }
+  body[data-sidenav="collapsed"] .sn-toggle {
+    position: static;
+    width: 24px;
+    height: 24px;
+    margin: 0 auto;
+    display: flex;
+  }
+  body[data-sidenav="collapsed"] .sn-toggle::before { content: "›"; }
+
+  .sn-mark {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--amber);
+    font-weight: 500;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 26px 10px 0;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--hair);
+  }
+  .sn-mark .draft { color: var(--ash); animation: blink 2.4s ease-in-out infinite; padding-right: 4px; }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.40; } }
+
+  /* Germany map inside sidenav */
+  .sn-map {
+    margin: 0 auto 12px;
+    width: 100%;
+    max-width: 150px;
+    position: relative;
+    display: block;
+  }
+  .sn-map svg { width: 100%; height: auto; display: block; overflow: visible; }
+  .sn-map .country {
+    fill: rgba(244, 236, 218, 0.05);
+    stroke: rgba(244, 236, 218, 0.55);
+    stroke-width: 0.45;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+  }
+  .sn-map .country-inner {
+    fill: none;
+    stroke: rgba(244, 236, 218, 0.10);
+    stroke-width: 0.25;
+    stroke-dasharray: 0.6 0.8;
+  }
+  .sn-map .city { fill: var(--amber); }
+  .sn-map .city-ring {
+    fill: none;
+    stroke: var(--amber);
+    stroke-width: 0.4;
+    opacity: 0.8;
+    animation: cityPulse 3.2s ease-in-out infinite;
+    transform-origin: center;
+    transform-box: fill-box;
+  }
+  @keyframes cityPulse {
+    0%, 100% { r: 2.2; opacity: 0.8; }
+    50%      { r: 5.5; opacity: 0.0; }
+  }
+  .sn-map .city-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 4.2px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    fill: var(--amber);
+    font-weight: 500;
+  }
+  .sn-map .city-tick {
+    stroke: var(--amber);
+    stroke-width: 0.35;
+    opacity: 0.6;
+  }
+  .sn-map .legend {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 3.6px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    fill: var(--ash-deep);
+  }
+
+  .sn-list { list-style: none; }
+  .sn-list li {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--ash);
+    padding: 5px 0 5px 16px;
+    cursor: pointer;
+    transition: color 0.18s, padding 0.18s;
+    position: relative;
+    line-height: 1.4;
+  }
+  .sn-list li::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 50%;
+    width: 7px; height: 1px;
+    background: var(--hair-strong);
+    transition: width 0.2s, background 0.2s;
+  }
+  .sn-list li:hover { color: var(--bone); padding-left: 20px; }
+  .sn-list li:hover::before { background: var(--amber); width: 11px; }
+  .sn-list li.active { color: var(--amber); font-weight: 500; padding-left: 20px; }
+  .sn-list li.active::before { background: var(--amber); width: 11px; height: 2px; }
+  .sn-list li .cond {
+    color: var(--crimson);
+    font-style: italic;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 8px;
+    margin-left: 4px;
+  }
+
+  .sn-progress {
+    margin-top: 14px;
+    padding-top: 10px;
+    border-top: 1px solid var(--hair);
+  }
+  .sn-progress .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ash-deep);
+    margin-bottom: 6px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .sn-progress .bar {
+    height: 2px;
+    background: var(--hair);
+    position: relative;
+    overflow: hidden;
+  }
+  .sn-progress .bar span {
+    display: block;
+    height: 100%;
+    background: var(--amber);
+    width: 0;
+    transition: width 0.15s ease-out;
+  }
+
+  .sn-approve {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--hair);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .sn-approve .ap-label { color: var(--ash-deep); font-size: 8.5px; letter-spacing: 0.22em; }
+  .sn-approve .ap-count {
+    display: flex;
+    justify-content: space-between;
+    color: var(--amber);
+    font-weight: 500;
+    align-items: baseline;
+  }
+  .sn-approve .ap-count .total { color: var(--ash); font-size: 8.5px; }
+  .sn-approve button {
+    text-align: left;
+    color: var(--ash);
+    padding: 0;
+    transition: color 0.18s;
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+  }
+  .sn-approve button:hover { color: var(--amber); }
+  .sn-approve .ap-export {
+    color: var(--bone);
+    border: 1px solid var(--hair-strong);
+    padding: 7px 8px 6px;
+    margin-top: 2px;
+    text-align: center;
+    transition: all 0.18s;
+  }
+  .sn-approve .ap-export:hover {
+    color: var(--violet-bg);
+    background: var(--amber);
+    border-color: var(--amber);
+  }
+  .sn-approve .ap-export:disabled {
+    color: var(--ash-deep);
+    border-color: var(--hair);
+    cursor: not-allowed;
+  }
+  .sn-approve .ap-export:disabled:hover {
+    background: transparent;
+    color: var(--ash-deep);
+  }
+
+  /* Cloud sync indicator */
+  .sn-sync {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--hair);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ash);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    line-height: 1;
+  }
+  .sn-sync .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--ash-deep);
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .sn-sync .state {
+    color: var(--ash-deep);
+    margin-left: auto;
+  }
+  .sn-sync[data-state="saved"]   .dot   { background: var(--amber); }
+  .sn-sync[data-state="saved"]   .state { color: var(--amber); }
+  .sn-sync[data-state="syncing"] .dot   { background: var(--bone); animation: blink 1.4s ease-in-out infinite; }
+  .sn-sync[data-state="syncing"] .state { color: var(--bone-soft); }
+  .sn-sync[data-state="error"]   .dot   { background: var(--crimson); }
+  .sn-sync[data-state="error"]   .state { color: var(--crimson); }
+
+  @media (max-width: 1180px) { .sidenav { display: none; } }
+
+  /* ============ LAYOUT ============ */
+  main { position: relative; z-index: 2; }
+  section {
+    position: relative;
+    z-index: 2;
+    padding: 80px 6vw 80px;
+  }
+  @media (min-width: 1181px) {
+    main { padding-left: 232px; transition: padding-left 0.32s cubic-bezier(0.4, 0.0, 0.2, 1); }
+    body[data-sidenav="collapsed"] main { padding-left: 70px; }
+  }
+  @media (min-width: 1500px) {
+    main { padding-left: 252px; }
+  }
+  .wrap { max-width: 920px; margin: 0 auto; }
+  .wrap-wide { max-width: 1080px; margin: 0 auto; }
+
+  /* ============ COVER ============ */
+  #cover {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding-top: 56px;
+    padding-bottom: 56px;
+  }
+  .cover-strip {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ash);
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--hair-strong);
+  }
+  .cover-strip .live::before {
+    content: "●";
+    color: var(--crimson);
+    margin-right: 8px;
+    animation: blink 1.8s ease-in-out infinite;
+  }
+  .cover-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: "opsz" 144, "SOFT" 50;
+    font-weight: 320;
+    font-style: italic;
+    color: var(--bone);
+    font-size: clamp(72px, 13vw, 188px);
+    line-height: 0.86;
+    letter-spacing: -0.035em;
+    margin: 0;
+  }
+  .cover-title .top {
+    display: block;
+    font-style: normal;
+    font-weight: 360;
+    font-variation-settings: "opsz" 144, "SOFT" 30;
+    color: var(--bone);
+  }
+  .cover-title .bot {
+    display: block;
+    font-style: italic;
+    font-weight: 280;
+    color: var(--amber);
+  }
+  .cover-deck {
+    margin-top: 30px;
+    max-width: 720px;
+    font-family: 'Newsreader', serif;
+    font-optical-sizing: auto;
+    font-variation-settings: "opsz" 60;
+    font-size: clamp(18px, 1.7vw, 22px);
+    line-height: 1.5;
+    font-weight: 320;
+    color: var(--bone-soft);
+  }
+  .cover-deck em { color: var(--amber); font-style: italic; }
+  .cover-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ash);
+    padding-top: 16px;
+    border-top: 1px solid var(--hair);
+  }
+  .cover-foot .field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .cover-foot .field .lbl { color: var(--ash-deep); font-size: 9px; }
+  .cover-foot .field .val { color: var(--bone-soft); }
+  .cover-cross {
+    position: absolute;
+    right: 6vw;
+    top: 72px;
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 300;
+    font-size: 40px;
+    color: var(--amber);
+    line-height: 1;
+    opacity: 0.6;
+  }
+  @media (max-width: 1180px) { .cover-cross { right: 22px; top: 32px; } }
+
+  /* ============ LEDE ============ */
+  #lede { padding-top: 72px; padding-bottom: 72px; }
+  .kicker {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 22px;
+    display: inline-block;
+  }
+  .kicker .bar { color: var(--amber); margin-right: 4px; }
+  .lede-body {
+    font-family: 'Newsreader', serif;
+    font-variation-settings: "opsz" 36;
+    font-size: 20px;
+    line-height: 1.62;
+    font-weight: 340;
+    color: var(--bone-soft);
+    max-width: 720px;
+  }
+  .lede-body p + p { margin-top: 18px; }
+  .lede-body p:first-of-type::first-letter {
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-weight: 360;
+    font-size: 5.6em;
+    float: left;
+    line-height: 0.86;
+    margin: 6px 14px -4px 0;
+    color: var(--amber);
+  }
+  .lede-body em { color: var(--amber); font-style: italic; }
+  .lede-pull {
+    margin: 56px 0 0;
+    padding: 22px 0 0;
+    border-top: 1px solid var(--amber);
+    max-width: 720px;
+  }
+  .lede-pull q {
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-variation-settings: "opsz" 96, "SOFT" 70;
+    font-weight: 320;
+    font-size: clamp(22px, 2.6vw, 32px);
+    line-height: 1.32;
+    color: var(--bone);
+    quotes: "\201C" "\201D";
+  }
+  .lede-pull q::before, .lede-pull q::after { color: var(--amber); }
+  .lede-pull .attr {
+    margin-top: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ash);
+  }
+
+  /* ============ SECTION OPENER ============ */
+  .opener {
+    min-height: 78vh;
+    display: flex;
+    align-items: center;
+    padding: 96px 6vw 96px;
+    position: relative;
+  }
+  .opener-inner {
+    position: relative;
+    width: 100%;
+    max-width: 1080px;
+    margin: 0 auto;
+  }
+  .opener-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--ash);
+    margin-bottom: 18px;
+  }
+  .opener-num {
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-variation-settings: "opsz" 144, "SOFT" 40;
+    font-weight: 280;
+    font-size: clamp(72px, 11vw, 148px);
+    line-height: 0.9;
+    color: var(--amber);
+    margin-bottom: 8px;
+    letter-spacing: -0.03em;
+  }
+  .opener-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: "opsz" 144, "SOFT" 20;
+    font-weight: 360;
+    font-size: clamp(52px, 8vw, 112px);
+    line-height: 0.96;
+    color: var(--bone);
+    letter-spacing: -0.025em;
+    margin-bottom: 18px;
+    text-transform: uppercase;
+  }
+  .opener-deck {
+    font-family: 'Newsreader', serif;
+    font-variation-settings: "opsz" 36;
+    font-style: italic;
+    font-weight: 320;
+    font-size: clamp(18px, 2vw, 24px);
+    color: var(--bone-soft);
+    max-width: 640px;
+    line-height: 1.45;
+  }
+  .opener-watermark {
+    position: absolute;
+    right: -10px;
+    top: -80px;
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-weight: 280;
+    font-size: clamp(280px, 42vw, 520px);
+    line-height: 0.82;
+    color: var(--bone);
+    opacity: 0.05;
+    pointer-events: none;
+    user-select: none;
+    z-index: -1;
+    white-space: nowrap;
+    letter-spacing: -0.05em;
+  }
+  .opener-rule {
+    margin-top: 36px;
+    padding-top: 14px;
+    border-top: 1px solid var(--hair);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ash-deep);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .opener-rule .right { color: var(--amber); }
+
+  /* ============ BODY / CARDS ============ */
+  .body-section { padding-top: 60px; padding-bottom: 80px; }
+  .section-lead {
+    font-family: 'Newsreader', serif;
+    font-variation-settings: "opsz" 36;
+    font-style: italic;
+    font-size: 20px;
+    line-height: 1.55;
+    font-weight: 340;
+    color: var(--bone-soft);
+    margin-bottom: 40px;
+    max-width: 720px;
+    padding-left: 14px;
+    border-left: 2px solid var(--amber);
+  }
+
+  .card {
+    background: var(--paper-card);
+    border: 1px solid var(--hair);
+    border-radius: 1px;
+    padding: 28px 30px 56px;
+    margin-bottom: 18px;
+    position: relative;
+    transition: border-color 0.25s ease, opacity 0.25s ease, box-shadow 0.25s ease;
+  }
+  .card:hover { border-color: var(--hair-strong); }
+  .card .ordinal {
+    position: absolute;
+    top: 22px;
+    right: 26px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--ash-deep);
+  }
+  .card h3 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: "opsz" 72, "SOFT" 20;
+    font-weight: 380;
+    font-size: 28px;
+    line-height: 1.1;
+    color: var(--bone);
+    margin: 6px 0 14px;
+    letter-spacing: -0.015em;
+    transition: color 0.25s ease;
+  }
+  .card p {
+    font-family: 'Newsreader', serif;
+    font-variation-settings: "opsz" 18;
+    font-size: 16.5px;
+    line-height: 1.6;
+    color: var(--bone-soft);
+    margin-bottom: 10px;
+  }
+  .card p:last-child { margin-bottom: 0; }
+  .card p em { color: var(--amber); font-style: italic; }
+  .card ul {
+    list-style: none;
+    margin: 8px 0 0;
+    padding: 0;
+  }
+  .card ul li {
+    font-family: 'Newsreader', serif;
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--bone-soft);
+    padding-left: 20px;
+    position: relative;
+    margin-bottom: 6px;
+  }
+  .card ul li::before {
+    content: "▸";
+    position: absolute;
+    left: 0;
+    color: var(--amber);
+    font-size: 10px;
+    top: 6px;
+  }
+
+  /* Status states */
+  .card.approved { box-shadow: inset 3px 0 0 var(--amber); border-color: rgba(242, 184, 67, 0.30); }
+  .card.unsure   { box-shadow: inset 3px 0 0 var(--bone-soft); border-style: dashed; }
+  .card.ruled-out {
+    opacity: 0.40;
+    box-shadow: inset 3px 0 0 var(--crimson);
+    filter: saturate(0.5);
+  }
+  .card.ruled-out:hover { opacity: 0.65; }
+  .card.ruled-out h3 {
+    text-decoration: line-through;
+    text-decoration-color: var(--ash-deep);
+    color: var(--ash);
+  }
+
+  /* Status toolbar at card bottom */
+  .card-status {
+    position: absolute;
+    bottom: 14px;
+    right: 18px;
+    display: flex;
+    gap: 4px;
+    z-index: 2;
+  }
+  .vote {
+    width: 26px;
+    height: 26px;
+    border: 1px solid var(--hair-strong);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ash);
+    background: rgba(10, 6, 16, 0.45);
+    border-radius: 1px;
+    transition: all 0.16s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+  .vote:hover { color: var(--bone); border-color: var(--bone-soft); }
+  .card.approved  .vote[data-vote="approved"]  { color: var(--amber);   border-color: var(--amber);   background: rgba(242, 184, 67, 0.14); }
+  .card.unsure    .vote[data-vote="unsure"]    { color: var(--bone);    border-color: var(--bone);    background: rgba(244, 236, 218, 0.06); }
+  .card.ruled-out .vote[data-vote="ruled-out"] { color: var(--crimson); border-color: var(--crimson); background: rgba(200, 51, 74, 0.12); }
+
+  .card-status .vote-label {
+    position: absolute;
+    bottom: -16px;
+    right: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ash-deep);
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.18s;
+    pointer-events: none;
+  }
+  .card.approved  .card-status .vote-label::before { content: "Approved"; }
+  .card.unsure    .card-status .vote-label::before { content: "Maybe"; }
+  .card.ruled-out .card-status .vote-label::before { content: "Ruled out"; }
+  .card:hover .card-status .vote-label { opacity: 1; }
+
+  /* Idea cards (added from the floor) */
+  .card.card-idea {
+    background: linear-gradient(180deg, rgba(242, 184, 67, 0.025) 0%, var(--paper-card) 80%);
+  }
+
+  /* Edit button — top-right corner of each card, fades in on hover */
+  .card-edit {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ash-deep);
+    padding: 4px 9px;
+    border: 1px solid transparent;
+    border-radius: 1px;
+    background: rgba(10, 6, 16, 0.55);
+    opacity: 0;
+    transition: opacity 0.18s, color 0.15s, border-color 0.15s;
+    z-index: 3;
+    line-height: 1;
+  }
+  .card:hover .card-edit { opacity: 0.85; }
+  .card-edit:hover {
+    color: var(--amber);
+    border-color: rgba(242, 184, 67, 0.45);
+    opacity: 1;
+  }
+  /* If the card has an ordinal at top-right, shove edit further left. */
+  .card:has(.ordinal) .card-edit { right: 88px; }
+  /* If the card has the idea-delete X, shove edit to the left of it. */
+  .card-idea .card-edit { right: 46px; }
+  /* Edited prepared cards get a subtle amber marker */
+  .card.edited::after {
+    content: "edited";
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--amber);
+    opacity: 0.55;
+    pointer-events: none;
+  }
+  .card-del {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    width: 22px;
+    height: 22px;
+    color: var(--ash-deep);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    border: 1px solid transparent;
+    border-radius: 1px;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    z-index: 3;
+  }
+  .card-del:hover {
+    color: var(--crimson);
+    border-color: rgba(200, 51, 74, 0.45);
+    background: rgba(200, 51, 74, 0.06);
+  }
+
+  /* Owner / status chip strip */
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .chip {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border: 1px solid var(--hair-strong);
+    color: var(--ash);
+    border-radius: 1px;
+    line-height: 1.1;
+  }
+  .chip.owner { color: var(--bone); border-color: rgba(244, 236, 218, 0.30); }
+  .chip.owner strong { color: var(--amber); font-weight: 500; }
+  .chip.onsite { color: var(--amber); border-color: var(--amber-deep); }
+  .chip.remote { color: var(--bone-soft); }
+  .chip.hybrid { color: var(--bone-soft); border-style: dashed; }
+  .chip.conditional { color: var(--crimson); border-color: rgba(200, 51, 74, 0.5); }
+  .chip.proven { color: var(--bone); }
+  .chip.soft { color: var(--ash); border-style: dashed; }
+  .chip.priority { color: var(--violet-bg); background: var(--amber); border-color: var(--amber); }
+  .chip.recurring { color: var(--bone-soft); }
+  .chip.evergreen { color: var(--ash); }
+  .chip.new { color: var(--amber); border-color: var(--amber); background: rgba(242, 184, 67, 0.08); }
+  .chip.from-floor {
+    color: var(--amber);
+    border-color: var(--amber);
+    background: rgba(242, 184, 67, 0.07);
+  }
+  .chip.from-floor strong { font-weight: 500; }
+
+  /* Pillar grid for Service / Benediction sections */
+  .pillar-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 16px;
+    margin-top: 12px;
+  }
+  @media (max-width: 720px) {
+    .pillar-grid { grid-template-columns: 1fr; }
+  }
+  .pillar-grid .card { margin-bottom: 0; }
+
+  /* Two-column note (caveat) */
+  .caveat {
+    background: rgba(200, 51, 74, 0.06);
+    border: 1px solid rgba(200, 51, 74, 0.35);
+    border-left-width: 3px;
+    padding: 24px 28px;
+    margin: 22px 0;
+  }
+  .caveat .kicker { color: var(--crimson); }
+  .caveat .kicker .bar { color: var(--crimson); }
+  .caveat h4 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: "opsz" 60;
+    font-weight: 360;
+    font-style: italic;
+    font-size: 22px;
+    color: var(--bone);
+    margin-bottom: 14px;
+    line-height: 1.25;
+  }
+  .caveat ul { list-style: none; }
+  .caveat ul li {
+    font-family: 'Newsreader', serif;
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--bone-soft);
+    padding-left: 18px;
+    position: relative;
+    margin-bottom: 6px;
+  }
+  .caveat ul li::before {
+    content: "†";
+    position: absolute;
+    left: 0;
+    color: var(--crimson);
+  }
+
+  /* Pull quote */
+  .pull {
+    margin: 36px 0;
+    padding: 22px 28px;
+    border-left: 2px solid var(--amber);
+    background: rgba(242, 184, 67, 0.025);
+  }
+  .pull q {
+    display: block;
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: "opsz" 96, "SOFT" 50;
+    font-style: italic;
+    font-weight: 340;
+    font-size: clamp(20px, 2.2vw, 26px);
+    line-height: 1.32;
+    color: var(--bone);
+    quotes: "\201C" "\201D";
+  }
+  .pull q::before, .pull q::after { color: var(--amber); }
+  .pull .attr {
+    margin-top: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ash);
+  }
+
+  /* Crew / Order of Service table */
+  .order-grid {
+    margin-top: 14px;
+    border-top: 1px solid var(--hair-strong);
+  }
+  .order-row {
+    display: grid;
+    grid-template-columns: 1.4fr 1.1fr 0.8fr 0.9fr;
+    gap: 18px;
+    padding: 16px 4px;
+    border-bottom: 1px solid var(--hair);
+    align-items: baseline;
+  }
+  .order-row.head {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ash-deep);
+    padding: 12px 4px;
+  }
+  .order-row .stream {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 380;
+    font-size: 17px;
+    color: var(--bone);
+    line-height: 1.3;
+  }
+  .order-row .owner-cell {
+    font-family: 'Newsreader', serif;
+    font-size: 15.5px;
+    color: var(--bone-soft);
+  }
+  .order-row .owner-cell strong { color: var(--amber); font-weight: 500; }
+  .order-row .place {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ash);
+  }
+  .order-row .place.onsite { color: var(--amber); }
+  .order-row .turn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--bone-soft);
+  }
+  @media (max-width: 720px) {
+    .order-row { grid-template-columns: 1fr; gap: 4px; }
+    .order-row.head { display: none; }
+    .order-row .place::before { content: "Place: "; color: var(--ash-deep); }
+    .order-row .turn::before { content: "Turn: "; color: var(--ash-deep); }
+  }
+
+  /* Colophon list */
+  .colophon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 28px;
+    margin-top: 24px;
+  }
+  .colophon-item .role {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 6px;
+  }
+  .colophon-item .who {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 380;
+    font-size: 21px;
+    color: var(--bone);
+    line-height: 1.2;
+    margin-bottom: 6px;
+    letter-spacing: -0.015em;
+  }
+  .colophon-item .who .handle {
+    color: var(--amber);
+    font-style: italic;
+    font-weight: 360;
+    font-size: 0.88em;
+    margin: 0 0.08em;
+  }
+  .colophon-item .place {
+    font-family: 'Newsreader', serif;
+    font-style: italic;
+    font-size: 15px;
+    color: var(--ash);
+  }
+  .colophon-foot {
+    margin-top: 56px;
+    padding-top: 22px;
+    border-top: 1px solid var(--hair);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ash-deep);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  /* Body section heads (small caps numbered subheads inside body sections) */
+  .body-head {
+    margin: 36px 0 18px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--hair);
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+  }
+  .body-head .num {
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: 26px;
+    color: var(--amber);
+    letter-spacing: -0.02em;
+  }
+  .body-head .ttl {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--bone);
+  }
+
+  /* ============ FLOATING ACTION BUTTON ============ */
+  .fab {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 70;
+    background: var(--amber);
+    color: var(--violet-bg);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 13px 18px 13px 16px;
+    border-radius: 1px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(242, 184, 67, 0.5);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .fab:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55), 0 0 0 1px var(--amber);
+  }
+  .fab .plus {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    line-height: 0.6;
+    margin-top: -2px;
+  }
+  @media (max-width: 720px) {
+    .fab { right: 14px; bottom: 14px; font-size: 10px; padding: 11px 14px; }
+  }
+
+  /* ============ MODAL ============ */
+  .modal {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: rgba(6, 4, 12, 0.78);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    animation: modalFade 0.22s ease-out;
+    overflow-y: auto;
+  }
+  .modal[hidden] { display: none; }
+  @keyframes modalFade { from { opacity: 0; } to { opacity: 1; } }
+  .modal-inner {
+    background: #14101C;
+    border: 1px solid var(--hair-strong);
+    border-radius: 1px;
+    width: 100%;
+    max-width: 620px;
+    padding: 28px 32px 24px;
+    position: relative;
+    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.65);
+    animation: modalRise 0.28s cubic-bezier(0.34, 1.2, 0.64, 1);
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+  }
+  @keyframes modalRise {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .modal h3 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-variation-settings: "opsz" 96, "SOFT" 50;
+    font-weight: 340;
+    font-size: 28px;
+    color: var(--bone);
+    line-height: 1.2;
+    margin-bottom: 4px;
+  }
+  .modal .modal-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ash-deep);
+    margin-bottom: 22px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--hair);
+  }
+  .modal label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 6px;
+  }
+  .modal-field { margin-bottom: 14px; }
+  .modal-row { display: flex; gap: 12px; }
+  .modal-row .modal-field { flex: 1; min-width: 0; }
+  .modal input, .modal select, .modal textarea {
+    width: 100%;
+    background: rgba(244, 236, 218, 0.04);
+    border: 1px solid var(--hair-strong);
+    border-radius: 1px;
+    padding: 10px 12px;
+    color: var(--bone);
+    font-family: 'Newsreader', serif;
+    font-size: 15.5px;
+    line-height: 1.5;
+    transition: border-color 0.18s;
+  }
+  .modal input::placeholder, .modal textarea::placeholder { color: var(--ash-deep); }
+  .modal input:focus, .modal select:focus, .modal textarea:focus {
+    outline: none;
+    border-color: var(--amber);
+  }
+  .modal select {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .modal textarea {
+    min-height: 95px;
+    resize: vertical;
+  }
+  .modal .hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ash-deep);
+    margin-top: 5px;
+  }
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 14px;
+    padding-top: 18px;
+    border-top: 1px solid var(--hair);
+  }
+  .btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    padding: 11px 18px;
+    border: 1px solid var(--hair-strong);
+    color: var(--bone-soft);
+    border-radius: 1px;
+    transition: all 0.18s;
+  }
+  .btn:hover { color: var(--bone); border-color: var(--bone); }
+  .btn.primary {
+    background: var(--amber);
+    color: var(--violet-bg);
+    border-color: var(--amber);
+    font-weight: 600;
+  }
+  .btn.primary:hover { background: var(--bone); border-color: var(--bone); }
+  .modal-close {
+    position: absolute;
+    top: 16px;
+    right: 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    color: var(--ash);
+    line-height: 1;
+    padding: 4px 8px;
+    transition: color 0.15s;
+  }
+  .modal-close:hover { color: var(--amber); }
+
+  /* Reveal-on-scroll */
+  .reveal {
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 0.7s ease-out, transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .reveal.in { opacity: 1; transform: translateY(0); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; transition: none; }
+    .sn-map .city-ring { animation: none; opacity: 0.6; }
+    .fab, .card, .btn, .sidenav { transition: none; }
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+  }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  /* ============ PRINT ============ */
+  @media print {
+    body { background: #fff; color: #111; }
+    #cathedral, .sidenav, .fab, .modal { display: none !important; }
+    main { padding-left: 0; }
+    section { padding: 24pt 24pt; break-inside: avoid; }
+    .opener { min-height: auto; }
+    .card { border-color: #ccc; background: #fff; box-shadow: none; padding-bottom: 24pt; }
+    .card.ruled-out { opacity: 0.5; }
+    .card-status, .card-del { display: none; }
+    .cover-title, .opener-title, .opener-num, .card h3, .pull q, .lede-pull q { color: #111 !important; }
+    .kicker, .chip, .opener-meta, .cover-strip { color: #555 !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ CATHEDRAL CANVAS (fixed background) ============ -->
+<canvas id="cathedral" aria-hidden="true"></canvas>
+
+<!-- ============ SIDENAV ============ -->
+<nav class="sidenav" aria-label="Coverage plan contents">
+  <button class="sn-toggle" id="sn-toggle" type="button" aria-label="Collapse sidebar" title="Collapse / expand"></button>
+
+  <div class="sn-mark">
+    <span>RDY · COLOGNE</span>
+    <span class="draft">INTERNAL</span>
+  </div>
+
+  <!-- Germany SVG with Cologne marked -->
+  <div class="sn-map" aria-hidden="true">
+    <svg viewBox="0 0 90 110" preserveAspectRatio="xMidYMid meet">
+      <!-- Germany simplified outline. Coordinates derived from bbox 5.87°E..15.04°E × 47.27°N..55.06°N -->
+      <path class="country" d="
+        M 32,7 L 36,5 L 40,4 L 44,5 L 48,4 L 53,3
+        L 56,7 L 59,4 L 63,5 L 66,9 L 68,13
+        L 72,14 L 74,18 L 73,22 L 76,25 L 78,30
+        L 80,34 L 78,38 L 82,42 L 84,46 L 82,52
+        L 84,56 L 82,60 L 78,62 L 76,66 L 78,72
+        L 74,76 L 70,80 L 71,84 L 68,88 L 64,90
+        L 60,93 L 55,96 L 50,97 L 45,98 L 40,96
+        L 36,94 L 33,90 L 30,86 L 28,82 L 25,78
+        L 22,74 L 19,68 L 16,62 L 14,58 L 13,54
+        L 11,50 L 9,46 L 11,42 L 9,38 L 7,34
+        L 9,30 L 11,27 L 13,24 L 17,22 L 19,18
+        L 22,17 L 24,13 L 28,12 L 30,9 Z
+      "/>
+      <!-- soft inner echo for depth -->
+      <path class="country-inner" d="
+        M 32,7 L 53,3 L 68,13 L 78,30 L 84,46 L 82,60 L 74,76 L 60,93 L 45,98 L 28,82 L 14,58 L 11,42 L 9,30 L 22,17 Z
+      "/>
+
+      <!-- Cologne: lat 50.94°N, lon 6.95°E
+           x = (6.95 - 5.87) / 9.17 * 90 = 10.6
+           y = (55.06 - 50.94) / 7.79 * 110 = 58.2 -->
+      <line class="city-tick" x1="11" y1="58" x2="20" y2="58"/>
+      <circle class="city-ring" cx="11" cy="58" r="2.2"/>
+      <circle class="city" cx="11" cy="58" r="1.3"/>
+      <text class="city-label" x="21" y="59.5">KÖLN</text>
+      <text class="city-label" x="21" y="64" fill="rgba(154, 144, 136, 0.85)" style="font-size: 3.4px;">50.94°N</text>
+
+      <!-- Faint reference dots for Berlin (52.52°N, 13.40°E) and Munich (48.14°N, 11.58°E) -->
+      <circle cx="73.9" cy="35.9" r="0.45" fill="rgba(244, 236, 218, 0.30)"/>
+      <circle cx="55.9" cy="84.2" r="0.45" fill="rgba(244, 236, 218, 0.30)"/>
+
+      <text class="legend" x="2" y="107">DEU · 02 — 21 JUN 2026</text>
+    </svg>
+  </div>
+
+  <ul class="sn-list" id="sn-list">
+    <li data-target="cover">00 / Cover</li>
+    <li data-target="lede">─ / Lede</li>
+    <li data-target="prelude-opener">I / Prelude</li>
+    <li data-target="service-opener">II / Service</li>
+    <li data-target="pilgrimage-opener">III / Pilgrimage<span class="cond">*</span></li>
+    <li data-target="vision-opener">IV / Vision</li>
+    <li data-target="open-questions">V / Open Questions</li>
+    <li data-target="benediction-opener">VI / Benediction</li>
+    <li data-target="order-opener">VII / Order of Service</li>
+    <li data-target="colophon">─ / Colophon</li>
+  </ul>
+
+  <div class="sn-progress">
+    <div class="label"><span>Reading</span><span id="sn-pct">0%</span></div>
+    <div class="bar"><span id="sn-bar"></span></div>
+  </div>
+
+  <div class="sn-approve">
+    <span class="ap-label">Approved ideas</span>
+    <div class="ap-count">
+      <span id="ap-num">0</span>
+      <span class="total">of <span id="ap-total">0</span></span>
+    </div>
+    <button id="export-approved" class="ap-export" type="button">Export ↓</button>
+    <button id="reset-votes" type="button" title="Reset all ✓ / ? / ✕ marks">Reset votes</button>
+    <button id="clear-ideas" type="button" title="Remove all meeting-added ideas">Clear added ideas</button>
+  </div>
+
+  <div class="sn-sync" id="sn-sync" data-state="offline" title="Cloud sync status">
+    <span class="dot"></span>
+    <span class="lbl">Cloud</span>
+    <span class="state">offline</span>
+  </div>
+</nav>
+
+<main>
+
+<!-- ============ 00 COVER ============ -->
+<section id="cover" data-bg="cover">
+  <div class="cover-cross" aria-hidden="true">✠</div>
+
+  <div class="cover-strip">
+    <span class="live">RDY.GG / INTERNAL</span>
+    <span>COLOGNE MAJOR 2026 · COVERAGE PLAN</span>
+    <span>2026-05-19</span>
+  </div>
+
+  <div style="margin-top: 8vh;">
+    <h1 class="cover-title">
+      <span class="top">Cologne Major</span>
+      <span class="bot">Coverage Plan.</span>
+    </h1>
+    <p class="cover-deck">
+      An editorial proposal for rdy.gg's coverage of <em>the 24th CS Major</em>, returning to Cologne after ten years. The cathedral was always going to be the room. The question is what we put on the walls.
+    </p>
+  </div>
+
+  <div class="cover-foot">
+    <div class="field">
+      <span class="lbl">Event</span>
+      <span class="val">IEM Cologne Major 2026</span>
+    </div>
+    <div class="field">
+      <span class="lbl">Dates</span>
+      <span class="val">02 — 21 Jun 2026</span>
+    </div>
+    <div class="field">
+      <span class="lbl">Venue</span>
+      <span class="val">LANXESS Arena, Köln</span>
+    </div>
+    <div class="field">
+      <span class="lbl">Prize Pool</span>
+      <span class="val">USD 1.25M</span>
+    </div>
+    <div class="field">
+      <span class="lbl">By</span>
+      <span class="val">The rdy.gg content team</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ LEDE ============ -->
+<section id="lede" data-bg="content" class="reveal">
+  <div class="wrap">
+    <div class="kicker"><span class="bar">▌</span> THE FRAMING / WHAT THIS DOCUMENT IS</div>
+    <div class="lede-body">
+      <p>
+        This document is a <em>working proposal</em>, not a directive. It's a collaboration across the rdy.gg content team. Treat every pillar below as a starting point, open to cuts, swaps, additions, or full rejections. The intent is to put the full shape of what we could do in one room, so the team can argue about it productively.
+      </p>
+      <p>
+        Cologne is the 24th CS Major and the first one back at LANXESS in a decade. The audience that shows up will be older, louder, and more knowledgeable than at any other event on the 2026 calendar. They have seen everything we are about to film. The framing we owe them is editorial gravitas without the pageantry. Coverage that reads like a record, not a recap.
+      </p>
+      <p>
+        What follows is structured liturgically because the venue invites it and the joke writes itself. The intent underneath is dry. Sections are numbered. Owners are named. Conditional pieces are marked. Anything we cut goes in the colophon so we remember the call. Every deliverable on the page can be marked <em>approved</em>, <em>maybe</em>, or <em>ruled out</em> using the three buttons at the bottom of its card. Ideas added during the meeting become deliverables on the same level. The sidebar will count whatever ends up approved and export those.
+      </p>
+    </div>
+
+    <div class="lede-pull">
+      <q>The cathedral was always going to be the room. The question is what we put on the walls.</q>
+      <div class="attr">— Working epigraph · Cologne Coverage v1</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ I. PRELUDE / OPENER ============ -->
+<section id="prelude-opener" data-bg="divider" class="opener reveal">
+  <div class="opener-inner">
+    <span class="opener-watermark">I</span>
+    <div class="opener-meta">Section One / Pre-event</div>
+    <div class="opener-num">I.</div>
+    <h1 class="opener-title">Prelude</h1>
+    <p class="opener-deck">What we ship before the doors open. Front-loading the read so the on-site work has somewhere to point.</p>
+    <div class="opener-rule">
+      <span>Pillars: 3</span>
+      <span>Owners: Elliott · Sam</span>
+      <span class="right">May → 01 Jun</span>
+    </div>
+  </div>
+</section>
+
+<!-- I. PRELUDE / BODY -->
+<section id="prelude" data-bg="content" class="body-section reveal" data-idea-target=".deliverables">
+  <div class="wrap">
+    <p class="section-lead">
+      Three pre-event pillars, all remote, all written. The supercomputer becomes a recurring asset through the event. The framing piece exists in two forms, one to read and one to film.
+    </p>
+
+    <div class="deliverables">
+
+      <div class="card reveal" data-card-id="prep-prelude-01">
+        <span class="ordinal">01 / 03</span>
+        <div class="chips">
+          <span class="chip owner">Owner: <strong>Elliott</strong></span>
+          <span class="chip remote">Remote</span>
+          <span class="chip recurring">Series</span>
+        </div>
+        <h3>Team breakdowns</h3>
+        <p>The top ten to fifteen teams get a dedicated article each. Lower-ranked teams aggregated three to four per piece. Every breakdown includes strengths, weaknesses, and an <em>rdy.gg diagnostic</em>, the editorial take that's the reason a reader comes to us instead of HLTV.</p>
+        <p>Volume target: roughly fifteen pieces across the slate, paced over two weeks. Headlines should land in the same voice across the set so the series reads as one body.</p>
+      </div>
+
+      <div class="card reveal" data-card-id="prep-prelude-02">
+        <span class="ordinal">02 / 03</span>
+        <div class="chips">
+          <span class="chip owner">Owner: <strong>Sam</strong></span>
+          <span class="chip remote">Remote</span>
+          <span class="chip recurring">Recurring asset</span>
+        </div>
+        <h3>Supercomputer, pre-major edition</h3>
+        <p>Machine learning predictions on stage advancement and Diamond Coin standings. First publish moment of the event. This piece becomes a returning fixture through the tournament, refreshed before Stage 2 and again before playoffs.</p>
+        <p>Reference our prior supercomputer pieces for tone and visual treatment. The pre-major edition is the most read of the three, because nobody else is putting up numbers yet.</p>
+      </div>
+
+      <div class="card reveal" data-card-id="prep-prelude-03">
+        <span class="ordinal">03 / 03</span>
+        <div class="chips">
+          <span class="chip owner">Owners: <strong>Elliott</strong>, camera op</span>
+          <span class="chip hybrid">Remote + on-site</span>
+          <span class="chip">Two formats</span>
+        </div>
+        <h3>Why this Cologne is different</h3>
+        <p>The Major-versus-IEM framing piece. Soft push to Elliott for the article version: 1,200 to 1,500 words, history-aware but not nostalgic. The on-site vox-pop version is filmed during the event, audience answering the same question in their own words. The two halves can publish a few days apart.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ II. THE SERVICE / OPENER ============ -->
+<section id="service-opener" data-bg="divider" class="opener reveal">
+  <div class="opener-inner">
+    <span class="opener-watermark">II</span>
+    <div class="opener-meta">Section Two / During the event</div>
+    <div class="opener-num">II.</div>
+    <h1 class="opener-title">The Service</h1>
+    <p class="opener-deck">From the first map of Stage 1 to the grand final trophy lift. The bulk of the work, the bulk of the publish.</p>
+    <div class="opener-rule">
+      <span>Pillars: 9</span>
+      <span>On-site lead: Horizzon (Stage 2 →)</span>
+      <span class="right">02 → 21 Jun</span>
+    </div>
+  </div>
+</section>
+
+<!-- II. THE SERVICE / BODY -->
+<section id="service" data-bg="content" class="body-section reveal" data-idea-target=".pillar-grid">
+  <div class="wrap-wide">
+
+    <div class="body-head"><span class="num">i.</span><span class="ttl">Stage 1 / The Read from Lima</span></div>
+    <div class="deliverables" style="margin-bottom: 8px;">
+      <div class="card reveal" data-card-id="prep-service-00">
+        <div class="chips">
+          <span class="chip owner">Owner: <strong>Elliott</strong></span>
+          <span class="chip remote">Remote only</span>
+        </div>
+        <h3>Stage 1 recaps</h3>
+        <p>Elliott writes the Stage 1 recaps from his desk. No on-site presence until Stage 2. The pace is high, the camera crew has not arrived, the supercomputer has not refreshed. Output is editorial, written, daily.</p>
+      </div>
+    </div>
+
+    <div class="body-head"><span class="num">ii.</span><span class="ttl">Stage 2 → Playoffs / Nine pillars</span></div>
+    <p style="font-family: 'Newsreader', serif; font-style: italic; color: var(--ash); margin-bottom: 22px; max-width: 720px;">
+      Each pillar below is named. Each has an owner. Volume discipline applies, especially on mixed-zone. Not every player needs a clip.
+    </p>
+
+    <div class="pillar-grid">
+
+      <div class="card reveal" data-card-id="prep-service-01">
+        <span class="ordinal">01 / 09</span>
+        <div class="chips">
+          <span class="chip owner">Owner: <strong>Sam</strong></span>
+          <span class="chip remote">Remote</span>
+          <span class="chip recurring">×2 drops</span>
+        </div>
+        <h3>Supercomputer refreshes</h3>
+        <p>Two publish moments. One before Stage 2 begins. One before playoffs. Each is its own headline asset, not a small update post.</p>
+      </div>
+
+      <div class="card reveal" data-card-id="prep-service-02">
+        <span class="ordinal">02 / 09</span>
+        <div class="chips">
+          <span class="chip owner">Owner: <strong>Horizzon</strong></span>
+          <span class="chip onsite">On-site</span>
+          <span class="chip priority">Priority push</span>
+        </div>
+        <h3>Mixed-zone interviews</h3>
+        <p>Audio recorded for every interview. Pedro publishes to Spotify from Lima, embeds widget on every related piece. The positioning stance: <em>rdy.gg leans into Stage 2 orgs that rarely get camera time</em>, the MIBR-type teams other outlets skip past for the default Vitality clip. Tier-1 standard coverage still applies for Vitality, Falcons, FURIA, Spirit.</p>
+      </div>
+
+      <div class="card reveal" data-card-id="prep-service-03">
+        <span class="ordinal">03 / 09</span>
+        <div class="chips">
+          <span class="chip owner">Owner: <strong>Horizzon</strong></span>
+          <span class="chip onsite">On-site</span>
+          <span class="chip">Named pillar</span>
+        </div>
+        <h3>Coach interviews</h3>
+        <p>Coaches are more articulate, more strategic, and more available than players. B1ad3, dastan, zonic, the German coaches in the home market are examples, not a fixed list. Aim for scheduled sit-downs across the event. Post-elimination coaches give the strongest material.</p>
+      </div>
+
+      <div class="card reveal" data-card-id="prep-service-04">
+        <span class="ordinal">04 / 09</span>
+        <div class="chips">
+          <span class="chip owner">Owner: <strong>Horizzon</strong></span>
+          <span class="chip onsite">On-site</span>
+          <span class="chip soft">Soft commit</span>
+        </div>
+        <h3>Post-elimination lane</h3>
+        <p>Longer-form sit-down request when a team is eliminated and before they fly home. Different question set than mixed zone. Soft commitment, not a hard floor. Some teams will say no. If we miss them, it is not a missed deliverable.</p>
+      </div>
+
+      <div class="card reveal" data-card-id="prep-service-05">
+        <span class="ordinal">05 / 09</span>
+        <div class="chips">
+          <span class="chip owner">Brokered by <strong>Sam</strong></span>
+          <span class="chip onsite">On-site</span>
+          <span class="chip">10 — 15 min</span>
+        </div>
+        <h3>Talent interviews</h3>
+        <p>Sam brokers, probable yes but not contractual. German casters in the home market are the angle. Ten to fifteen minute sit-downs. Talent is not obligated to us and can decline.</p>
+      </div>
+
+      <div class="card reveal" data-card-id="prep-service-06">
+        <span class="ordinal">06 / 09</span>
+        <div class="chips">
+          <span class="chip owner">Owner: <strong>Horizzon</strong></span>
+          <span class="chip onsite">On-site</span>
+          <span class="chip priority">High priority</span>
+          <span class="chip recurring">60 — 90s recurring</span>
+        </div>
+        <h3>Supercomputer reaction segment</h3>
+        <p>Horizzon shows players Sam's predictions on camera, films the reaction. Also works as vox-pop with fans on the floor. Low production cost, recurring across the event, high audience pull. The format that pays for itself.</p>
+      </div>
+
+      <div class="card reveal" data-card-id="prep-service-07">
+        <span class="ordinal">07 / 09</span>
+        <div class="chips">
+          <span class="chip owner">Owner: <strong>Horizzon</strong> + camera op</span>
+          <span class="chip onsite">On-site</span>
+          <span class="chip">Social-first</span>
+        </div>
+        <h3>Audience vox-pops</h3>
+        <p>Brief social edits. Doubles as the live half of the "Why this Cologne is different" piece. The Cologne audience is opinionated and on camera by choice. They are also the readymade context for everything else we ship.</p>
+      </div>
+
+      <div class="card reveal" data-card-id="prep-service-08">
+        <span class="ordinal">08 / 09</span>
+        <div class="chips">
+          <span class="chip owner">Owner: <strong>Camera op</strong></span>
+          <span class="chip onsite">On-site</span>
+          <span class="chip proven">Proven, from Rio</span>
+        </div>
+        <h3>Atmospheric B-roll</h3>
+        <p>A dedicated daily window for the camera op. Carved out of the schedule, not squeezed between other asks. Non-negotiable. Cologne and LANXESS specifically are high-value for this content: the crowd, the arches, the queues, the lights. The reel that travels furthest after the event.</p>
+      </div>
+
+      <div class="card reveal" data-card-id="prep-service-09">
+        <span class="ordinal">09 / 09</span>
+        <div class="chips">
+          <span class="chip owner">Owner: <strong>Elliott</strong></span>
+          <span class="chip remote">Remote</span>
+          <span class="chip">In production</span>
+        </div>
+        <h3>Daily editorial recap</h3>
+        <p>Already greenlit, already in motion. Listed here for completeness so we do not accidentally cannibalize its slot.</p>
+      </div>
+
+    </div>
+
+    <div class="pull reveal">
+      <q>rdy.gg leans into less-covered teams while other outlets default to the top four. That is the position, and Cologne is where it shows.</q>
+      <div class="attr">— Mixed-zone framing · II.02</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ III. THE PILGRIMAGE / OPENER ============ -->
+<section id="pilgrimage-opener" data-bg="divider" class="opener reveal">
+  <div class="opener-inner">
+    <span class="opener-watermark">III</span>
+    <div class="opener-meta">Section Three / Conditional · Win Condition Live</div>
+    <div class="opener-num">III.</div>
+    <h1 class="opener-title">The Pilgrimage</h1>
+    <p class="opener-deck">A live or live-to-tape episode of Win Condition from Cologne. Big swing, real cost, open variables. Honest framing follows.</p>
+    <div class="opener-rule">
+      <span>Status: proposal</span>
+      <span class="right" style="color: var(--crimson);">CONDITIONAL · NOT BUDGETED</span>
+    </div>
+  </div>
+</section>
+
+<!-- III. THE PILGRIMAGE / BODY -->
+<section id="pilgrimage" data-bg="content" class="body-section reveal" data-idea-target=".deliverables">
+  <div class="wrap">
+    <p class="section-lead">
+      Potentially the biggest piece of content rdy.gg has ever made. Also genuinely hard. Here is what it would take.
+    </p>
+
+    <div class="deliverables">
+
+      <div class="card reveal" data-card-id="prep-pilgrimage-01">
+        <div class="chips">
+          <span class="chip">Decision A</span>
+        </div>
+        <h3>Format fork</h3>
+        <p>Two options, not three.</p>
+        <ul>
+          <li><strong style="color: var(--bone);">Option A.</strong> Live broadcast. Highest impact, highest production cost, highest failure surface.</li>
+          <li><strong style="color: var(--bone);">Option B.</strong> Recorded on the day, posted within 24 to 48 hours. Most of the upside, most of the room to fix mistakes.</li>
+        </ul>
+      </div>
+
+      <div class="card reveal" data-card-id="prep-pilgrimage-02">
+        <div class="chips">
+          <span class="chip">Decision B</span>
+        </div>
+        <h3>Venue</h3>
+        <p>Bar with live audience: ideal. Highest impact, highest budget. The format and the room speak to each other.</p>
+        <p>Hotel meeting room: <em>ruled out</em>. The vibe does not survive a hotel meeting room.</p>
+      </div>
+
+      <div class="card reveal" data-card-id="prep-pilgrimage-03">
+        <div class="chips">
+          <span class="chip">If live</span>
+        </div>
+        <h3>Equipment list, minimum viable</h3>
+        <ul>
+          <li>Two cameras, switched.</li>
+          <li>Switcher for basic camera cuts.</li>
+          <li>One multi-input capture card if we're going live, so both feeds reach the PC for the broadcast. Plenty of options on the market. If we record on the day instead, footage stays on the cameras and gets edited later, no capture card needed.</li>
+          <li>One PC, for graphics and run-of-show.</li>
+          <li>Three to four broadcast-grade microphones, one per chair.</li>
+          <li>Rodecaster Pro or equivalent mixer. Non-optional.</li>
+          <li>Most of this can be rented locally in Köln; nothing here requires ownership.</li>
+        </ul>
+      </div>
+
+      <div class="card reveal" data-card-id="prep-pilgrimage-04">
+        <div class="chips">
+          <span class="chip soft">Soft commits</span>
+        </div>
+        <h3>Guests</h3>
+        <p>Talent or players. Must be confirmed before we commit to a date. <em>Sam's most likely on-camera moment</em>, if he says yes. He is hesitant, not opposed.</p>
+      </div>
+
+    </div>
+
+    <div class="caveat reveal">
+      <div class="kicker"><span class="bar">▌</span> WORTH POINTING OUT</div>
+      <h4>Things to plan around, not blockers.</h4>
+      <ul>
+        <li>Whoever runs it on the day should be on-site. Remote ops on a live podcast is doable but adds friction we don't need.</li>
+        <li>This is the kind of format that rewards overpreparation. Run-of-show, dry-run, contingencies on every guest and every cue.</li>
+        <li>Gear and venue can be sorted with local rentals and a couple of phone calls. None of it is a real obstacle.</li>
+        <li>If we can't staff it to the level above by the date, record on the day and post the cut. The fallback is still a strong piece.</li>
+      </ul>
+    </div>
+
+    <div class="pull reveal">
+      <q>Potentially the biggest piece of content rdy.gg has ever made. Also genuinely hard. The proposal is honest about both halves.</q>
+      <div class="attr">— III. The Pilgrimage / framing</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ IV. THE VISION / OPENER ============ -->
+<section id="vision-opener" data-bg="divider" class="opener reveal">
+  <div class="opener-inner">
+    <span class="opener-watermark">IV</span>
+    <div class="opener-meta">Section Four / Strategic direction</div>
+    <div class="opener-num">IV.</div>
+    <h1 class="opener-title">The Vision</h1>
+    <p class="opener-deck">A team mini-documentary series. Not a Cologne deliverable. A flag planted in the ground for where rdy.gg should be heading.</p>
+    <div class="opener-rule">
+      <span>Status: direction, not commitment</span>
+      <span class="right">Pilot window: any team that bites</span>
+    </div>
+  </div>
+</section>
+
+<!-- IV. THE VISION / BODY -->
+<section id="vision" data-bg="content" class="body-section reveal" data-idea-target=".deliverables">
+  <div class="wrap">
+    <div class="deliverables">
+
+      <div class="card reveal" data-card-id="prep-vision-01">
+        <div class="chips">
+          <span class="chip">Format</span>
+          <span class="chip">20 minutes per episode</span>
+          <span class="chip">Long-form</span>
+        </div>
+        <h3>One episode per team, selected list</h3>
+        <p>Twenty minutes per episode. Selected list, not a full roster. The intent is the <em>emotional side of the players</em>, the side rdy.gg does not usually show. Coach Arthur and voo-style depth, but as a series with a shared visual language and a release cadence.</p>
+        <p>Requires team alignment, schedule access, deeper relationships than mixed-zone gives us. Not something to launch cold at Cologne. But Cologne can be a pilot if a team bites and the access is real.</p>
+      </div>
+
+      <div class="card reveal" data-card-id="prep-vision-02">
+        <div class="chips">
+          <span class="chip">Why now</span>
+        </div>
+        <h3>Framing for the team</h3>
+        <p>This belongs in the deck because the rest of the deck is tactical. Cologne is a single tournament. The Vision is the answer to "what is rdy.gg in two years." Listing it here forces us to keep one eye there while we run the present.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ V. OPEN QUESTIONS ============ -->
+<section id="open-questions" data-bg="content" class="body-section reveal" style="padding-top: 80px;" data-idea-target=".deliverables">
+  <div class="wrap">
+    <div class="body-head" style="margin-top: 0;">
+      <span class="num">V.</span>
+      <span class="ttl">Open Questions / Things that may or may not ship</span>
+    </div>
+    <p class="section-lead">
+      Three pieces that are easy to suggest and worth flagging, with a ship-or-cut decision pushed to the meeting. The third is new since the last draft and may extend well beyond Cologne.
+    </p>
+
+    <div class="deliverables">
+
+      <div class="card reveal" data-card-id="prep-openq-01">
+        <span class="ordinal">01 / 03</span>
+        <div class="chips">
+          <span class="chip owner">Owner: <strong>Camera op</strong> · social edit by anyone</span>
+          <span class="chip onsite">On-site</span>
+          <span class="chip">Photo essay or montage</span>
+        </div>
+        <h3>Banner and sign culture</h3>
+        <p>German CS fan banners at LANXESS are their own art form. Either a photo essay or a 60-second montage. Camera op alignment needed early so the shots actually get captured. Easy to suggest, ship-or-cut later.</p>
+      </div>
+
+      <div class="card reveal" data-card-id="prep-openq-02">
+        <span class="ordinal">02 / 03</span>
+        <div class="chips">
+          <span class="chip owner">Owner: <strong>Elliott</strong></span>
+          <span class="chip remote">Remote</span>
+          <span class="chip evergreen">Evergreen · slow content</span>
+        </div>
+        <h3>Cologne Returns / Anchor piece</h3>
+        <p>Why Cologne as a venue matters in CS history. LANXESS legacy, German CS culture, iconic past moments. Written by Elliott, depends on bandwidth. Indexable, slow content, the kind of piece that pulls SEO long after the event is over.</p>
+      </div>
+
+      <div class="card reveal" data-card-id="prep-openq-03">
+        <span class="ordinal">03 / 03</span>
+        <div class="chips">
+          <span class="chip new">New in v1</span>
+          <span class="chip">Article + video essay</span>
+          <span class="chip recurring">Potential running series</span>
+        </div>
+        <h3>Tournament Origins / Video essay series</h3>
+        <p>An article plus an edited <em>video essay for the rdy.gg YouTube channel</em> on the origin story of a single tournament. Cologne is the pilot because the history is the deepest and most visual: a decade of LANXESS moments, the venue's relationship to CS as a sport, why this is the cathedral and not a metaphor.</p>
+        <p>If the pilot works, it becomes a recurring series across the rdy ecosystem. Each major and each long-running circuit stop gets an episode. Long-tail, evergreen, ours to own.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ VI. BENEDICTION / OPENER ============ -->
+<section id="benediction-opener" data-bg="divider" class="opener reveal">
+  <div class="opener-inner">
+    <span class="opener-watermark">VI</span>
+    <div class="opener-meta">Section Six / Post-event</div>
+    <div class="opener-num">VI.</div>
+    <h1 class="opener-title">Benediction</h1>
+    <p class="opener-deck">What we ship after the trophy lift. The pieces that decide whether the coverage is remembered or replaced.</p>
+    <div class="opener-rule">
+      <span>Window: 22 Jun → 30 Jun</span>
+      <span class="right">Pieces: 5</span>
+    </div>
+  </div>
+</section>
+
+<!-- VI. BENEDICTION / BODY -->
+<section id="benediction" data-bg="content" class="body-section reveal" data-idea-target=".pillar-grid">
+  <div class="wrap-wide">
+    <div class="pillar-grid">
+
+      <div class="card reveal" data-card-id="prep-benediction-01">
+        <span class="ordinal">01 / 05</span>
+        <div class="chips">
+          <span class="chip owner">Owner: <strong>Elliott</strong></span>
+          <span class="chip">Pre-written, dual version</span>
+        </div>
+        <h3>Vitality piece, in two versions</h3>
+        <p>Drafted in both shapes before the grand final. <em>End of the era</em> if they lose. <em>Dynasty cemented</em> if they win. Whichever ships, it ships within the hour.</p>
+      </div>
+
+      <div class="card reveal" data-card-id="prep-benediction-02">
+        <span class="ordinal">02 / 05</span>
+        <div class="chips">
+          <span class="chip">Within 72 hours</span>
+        </div>
+        <h3>Wrap-up Win Condition episode</h3>
+        <p>Recorded and published within 72 hours of the grand final. The post-mortem episode while the read is still live. Format consistent with the season slate.</p>
+      </div>
+
+      <div class="card reveal" data-card-id="prep-benediction-03">
+        <span class="ordinal">03 / 05</span>
+        <div class="chips">
+          <span class="chip">Long-form</span>
+        </div>
+        <h3>Champion-team feature</h3>
+        <p>Long-form profile on whichever roster lifts. Built from mixed-zone audio, coach interviews, post-elim sit-downs, plus the editorial perspective Elliott brings.</p>
+      </div>
+
+      <div class="card reveal" data-card-id="prep-benediction-04">
+        <span class="ordinal">04 / 05</span>
+        <div class="chips">
+          <span class="chip">YouTube + TikTok</span>
+        </div>
+        <h3>Best-of compilation</h3>
+        <p>Compiled from B-roll, audience vox-pops, reaction segments, and crowd footage. One cut for YouTube, several shorter for TikTok. The reel that travels furthest after the event closes.</p>
+      </div>
+
+      <div class="card reveal" data-card-id="prep-benediction-05">
+        <span class="ordinal">05 / 05</span>
+        <div class="chips">
+          <span class="chip owner">Owner: <strong>Elliott</strong> + editorial</span>
+          <span class="chip">Position piece</span>
+        </div>
+        <h3>Editorial wrap</h3>
+        <p>"What Cologne told us about CS2." The position piece that frames the next six months of coverage. Slower than the recap, more durable than the hot take.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ VII. ORDER OF SERVICE / OPENER ============ -->
+<section id="order-opener" data-bg="divider" class="opener reveal">
+  <div class="opener-inner">
+    <span class="opener-watermark">VII</span>
+    <div class="opener-meta">Section Seven / Roles and logistics</div>
+    <div class="opener-num">VII.</div>
+    <h1 class="opener-title">Order of Service</h1>
+    <p class="opener-deck">Workstreams, owners, on-site or remote, turnaround. Held loose. Open for the team to reshape during the brainstorm.</p>
+    <div class="opener-rule">
+      <span>Crew on-site: Horizzon (Stage 2 →), camera op, Sam (soft)</span>
+      <span class="right">Remote: Elliott, Pedro, Div</span>
+    </div>
+  </div>
+</section>
+
+<!-- VII. ORDER OF SERVICE / BODY -->
+<section id="order" data-bg="content" class="body-section reveal" data-idea-target=".deliverables">
+  <div class="wrap-wide">
+
+    <div class="order-grid">
+      <div class="order-row head">
+        <span>Workstream</span>
+        <span>Owner</span>
+        <span>Place</span>
+        <span>Turnaround</span>
+      </div>
+
+      <div class="order-row">
+        <span class="stream">Team breakdowns + Stage 1 recaps</span>
+        <span class="owner-cell"><strong>Elliott</strong></span>
+        <span class="place">Remote</span>
+        <span class="turn">Pre-event → Stage 1</span>
+      </div>
+      <div class="order-row">
+        <span class="stream">Supercomputer · three drops</span>
+        <span class="owner-cell"><strong>Sam</strong></span>
+        <span class="place">Remote</span>
+        <span class="turn">Pre · Stage 2 · Playoffs</span>
+      </div>
+      <div class="order-row">
+        <span class="stream">Mixed zone + coach interviews</span>
+        <span class="owner-cell"><strong>Horizzon</strong></span>
+        <span class="place onsite">On-site</span>
+        <span class="turn">Daily, audio same-day</span>
+      </div>
+      <div class="order-row">
+        <span class="stream">Post-elimination sit-downs</span>
+        <span class="owner-cell"><strong>Horizzon</strong></span>
+        <span class="place onsite">On-site</span>
+        <span class="turn">As eliminations land</span>
+      </div>
+      <div class="order-row">
+        <span class="stream">Talent interviews · brokered</span>
+        <span class="owner-cell"><strong>Sam</strong> brokers · Horizzon shoots</span>
+        <span class="place onsite">On-site</span>
+        <span class="turn">Mid-event window</span>
+      </div>
+      <div class="order-row">
+        <span class="stream">Supercomputer reaction</span>
+        <span class="owner-cell"><strong>Horizzon</strong></span>
+        <span class="place onsite">On-site</span>
+        <span class="turn">60 — 90s, recurring</span>
+      </div>
+      <div class="order-row">
+        <span class="stream">Audience vox-pops</span>
+        <span class="owner-cell"><strong>Horizzon</strong> + camera op</span>
+        <span class="place onsite">On-site</span>
+        <span class="turn">Daily, short cuts</span>
+      </div>
+      <div class="order-row">
+        <span class="stream">Atmospheric B-roll</span>
+        <span class="owner-cell"><strong>Camera op</strong></span>
+        <span class="place onsite">On-site</span>
+        <span class="turn">Dedicated daily window</span>
+      </div>
+      <div class="order-row">
+        <span class="stream">Daily editorial recap</span>
+        <span class="owner-cell"><strong>Elliott</strong></span>
+        <span class="place">Remote</span>
+        <span class="turn">Same-day publish</span>
+      </div>
+      <div class="order-row">
+        <span class="stream">Spotify embed and audio assembly</span>
+        <span class="owner-cell"><strong>Pedro</strong></span>
+        <span class="place">Remote</span>
+        <span class="turn">24h from raw audio</span>
+      </div>
+      <div class="order-row">
+        <span class="stream">Win Condition Live · conditional</span>
+        <span class="owner-cell"><strong>Pedro</strong> remote · live ops TBD</span>
+        <span class="place">Hybrid</span>
+        <span class="turn">Mid-to-late event</span>
+      </div>
+      <div class="order-row">
+        <span class="stream">Vitality piece, dual version</span>
+        <span class="owner-cell"><strong>Elliott</strong></span>
+        <span class="place">Remote</span>
+        <span class="turn">Pre-drafted · post-final</span>
+      </div>
+      <div class="order-row">
+        <span class="stream">Wrap-up + champion feature</span>
+        <span class="owner-cell"><strong>Elliott</strong> + editorial</span>
+        <span class="place">Remote</span>
+        <span class="turn">72h post-final</span>
+      </div>
+    </div>
+
+    <div class="caveat reveal" style="margin-top: 36px; background: rgba(242, 184, 67, 0.04); border-color: rgba(242, 184, 67, 0.35);">
+      <div class="kicker" style="color: var(--amber);"><span class="bar" style="color: var(--amber);">▌</span> OPEN FOR TEAM INPUT</div>
+      <h4 style="color: var(--bone);">Held loose by design.</h4>
+      <p style="font-family: 'Newsreader', serif; color: var(--bone-soft); font-size: 16px; line-height: 1.55;">
+        This table is a starting point for the brainstorm, not a contract. Add, cut, or re-assign during the meeting. Use the floating button bottom-right to drop ideas into any section as we go. They appear as full deliverables on the same level as prepared ones, with their own owner, place, and ✓ / ? / ✕ status. Hit <strong style="color: var(--amber);">Export ↓</strong> in the sidebar to dump everything currently marked approved as a markdown file for the meeting notes.
+      </p>
+    </div>
+
+    <div class="deliverables" style="margin-top: 18px;"></div>
+  </div>
+</section>
+
+<!-- ============ COLOPHON ============ -->
+<section id="colophon" data-bg="content" class="body-section reveal" style="padding-bottom: 120px;" data-idea-target=".deliverables">
+  <div class="wrap-wide">
+    <div class="body-head" style="margin-top: 0;">
+      <span class="num">─</span>
+      <span class="ttl">Colophon / Crew and scope</span>
+    </div>
+
+    <div class="colophon-grid">
+      <div class="colophon-item">
+        <div class="role">General Editor</div>
+        <div class="who">Andreea <span class="handle">"Div"</span> Esanu</div>
+        <div class="place">Remote · final call</div>
+      </div>
+      <div class="colophon-item">
+        <div class="role">Content Strategist</div>
+        <div class="who">Pedro Brauner</div>
+        <div class="place">Remote · Lima</div>
+      </div>
+      <div class="colophon-item">
+        <div class="role">Writer</div>
+        <div class="who">Elliott <span class="handle">"aizyesque"</span> Griffiths</div>
+        <div class="place">Remote · all recaps + breakdowns</div>
+      </div>
+      <div class="colophon-item">
+        <div class="role">On-site lead</div>
+        <div class="who">Sebastian <span class="handle">"Horizzon"</span> Lalic</div>
+        <div class="place">Köln · Stage 2 → playoffs</div>
+      </div>
+      <div class="colophon-item">
+        <div class="role">Camera op</div>
+        <div class="who">One person, TBD</div>
+        <div class="place">Köln · daily window protected</div>
+      </div>
+      <div class="colophon-item">
+        <div class="role">Supercomputer + talent broker</div>
+        <div class="who">Sam <span class="handle">"LuzRaposa"</span> Carder</div>
+        <div class="place">Köln · soft on camera</div>
+      </div>
+    </div>
+
+    <div class="colophon-foot">
+      <span>Cologne Coverage Plan · rdy.gg content</span>
+      <span>Compiled 2026-05-19 · for the Cologne brainstorm</span>
+      <span>rdy.gg / internal · not for distribution</span>
+    </div>
+
+    <div class="deliverables" style="margin-top: 36px;"></div>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ FLOATING ACTION BUTTON ============ -->
+<button class="fab" id="fab" type="button" aria-label="Add meeting idea">
+  <span class="plus">+</span>
+  <span>Add deliverable</span>
+</button>
+
+<!-- ============ MODAL ============ -->
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal-inner">
+    <button class="modal-close" id="modal-close" type="button" aria-label="Close">✕</button>
+    <h3 id="modal-title">Add deliverable from the floor</h3>
+    <div class="modal-sub">Drop it where it goes. Appears as a full card alongside the prepared ones.</div>
+
+    <form id="idea-form" autocomplete="off">
+
+      <div class="modal-row">
+        <div class="modal-field" style="flex: 0 0 38%;">
+          <label for="idea-author">Submitted by</label>
+          <input id="idea-author" type="text" maxlength="32" placeholder="initials or name" list="crew" />
+        </div>
+        <div class="modal-field">
+          <label for="idea-section">Section</label>
+          <select id="idea-section" required>
+            <option value="prelude">I. Prelude</option>
+            <option value="service">II. The Service</option>
+            <option value="pilgrimage">III. The Pilgrimage</option>
+            <option value="vision">IV. The Vision</option>
+            <option value="open-questions">V. Open Questions</option>
+            <option value="benediction">VI. Benediction</option>
+            <option value="order">VII. Order of Service</option>
+            <option value="colophon">Colophon</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-field">
+        <label for="idea-title">Title</label>
+        <input id="idea-title" type="text" maxlength="80" required placeholder="Short and concrete. The headline of the deliverable." />
+      </div>
+
+      <div class="modal-field">
+        <label for="idea-note">Description</label>
+        <textarea id="idea-note" maxlength="800" required placeholder="What is it, what does it look like, who reads it. Two or three lines is enough."></textarea>
+      </div>
+
+      <div class="modal-row">
+        <div class="modal-field">
+          <label for="idea-owner">Owner</label>
+          <input id="idea-owner" type="text" maxlength="40" placeholder="Elliott, Sam, Horizzon, Camera op..." list="crew" />
+        </div>
+        <div class="modal-field" style="flex: 0 0 36%;">
+          <label for="idea-place">Place</label>
+          <select id="idea-place">
+            <option value="">—</option>
+            <option value="remote">Remote</option>
+            <option value="onsite">On-site</option>
+            <option value="hybrid">Hybrid</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-field">
+        <label for="idea-tags">Tags <span style="color: var(--ash-deep);">· comma-separated, optional</span></label>
+        <input id="idea-tags" type="text" maxlength="120" placeholder="e.g. Long-form, Recurring, Social-first" />
+        <div class="hint">Each tag becomes its own chip on the card.</div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn" id="modal-reset" hidden style="margin-right: auto; color: var(--ash); border-color: transparent;">↺ Reset to original</button>
+        <button type="button" class="btn" id="modal-cancel">Cancel</button>
+        <button type="submit" class="btn primary" id="modal-submit">Add to deck</button>
+      </div>
+    </form>
+
+    <datalist id="crew">
+      <option value="Div">
+      <option value="Andreea">
+      <option value="Pedro">
+      <option value="Elliott">
+      <option value="aizyesque">
+      <option value="Sam">
+      <option value="LuzRaposa">
+      <option value="Horizzon">
+      <option value="Sebastian">
+      <option value="Camera op">
+      <option value="Editorial team">
+    </datalist>
+  </div>
+</div>
+
+<!-- ================================================================
+     GERMANY MAP · Natural Earth GeoJSON (same source as /lab/globe)
+     Fetches the real country outline and replaces the fallback SVG.
+     If the fetch fails we keep the hand-drawn placeholder.
+     ================================================================ -->
+<script>
+(function loadGermanyMap() {
+  const URL = 'https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@master/geojson/ne_50m_admin_0_countries.geojson';
+  fetch(URL)
+    .then(r => r.ok ? r.json() : Promise.reject(r.status))
+    .then(data => {
+      const f = data.features.find(x =>
+        (x.properties && (x.properties.ISO_A3 === 'DEU' ||
+                          x.properties.ADM0_A3 === 'DEU' ||
+                          x.properties.ADMIN === 'Germany' ||
+                          x.properties.NAME === 'Germany'))
+      );
+      if (!f) throw new Error('Germany not found in GeoJSON');
+
+      const polys = f.geometry.type === 'Polygon'
+        ? [f.geometry.coordinates]
+        : f.geometry.coordinates;
+
+      let minLon = Infinity, maxLon = -Infinity, minLat = Infinity, maxLat = -Infinity;
+      polys.forEach(p => p.forEach(ring => ring.forEach(([lon, lat]) => {
+        if (lon < minLon) minLon = lon;
+        if (lon > maxLon) maxLon = lon;
+        if (lat < minLat) minLat = lat;
+        if (lat > maxLat) maxLat = lat;
+      })));
+
+      const W = 90, H = 110, margin = 5;
+      const midLat = (minLat + maxLat) / 2;
+      const cosLat = Math.cos(midLat * Math.PI / 180);
+      const lonW = (maxLon - minLon) * cosLat;
+      const latH = (maxLat - minLat);
+      const s = Math.min((W - 2 * margin) / lonW, (H - 2 * margin) / latH);
+      const offX = (W - lonW * s) / 2;
+      const offY = (H - latH * s) / 2;
+
+      function project(lon, lat) {
+        return [
+          offX + (lon - minLon) * cosLat * s,
+          offY + (maxLat - lat) * s
+        ];
+      }
+
+      // Build SVG path. Use M/L; close each ring with Z.
+      let d = '';
+      polys.forEach(p => p.forEach(ring => {
+        ring.forEach(([lon, lat], i) => {
+          const [x, y] = project(lon, lat);
+          d += (i === 0 ? 'M' : 'L') + x.toFixed(2) + ',' + y.toFixed(2) + ' ';
+        });
+        d += 'Z ';
+      }));
+
+      const [cx, cy] = project(6.95, 50.94);
+
+      const svg = document.querySelector('.sn-map svg');
+      if (!svg) return;
+      svg.innerHTML =
+        `<path class="country" d="${d}"/>` +
+        `<line class="city-tick" x1="${cx.toFixed(2)}" y1="${cy.toFixed(2)}" ` +
+          `x2="${(cx + 9).toFixed(2)}" y2="${cy.toFixed(2)}"/>` +
+        `<circle class="city-ring" cx="${cx.toFixed(2)}" cy="${cy.toFixed(2)}" r="2.2"/>` +
+        `<circle class="city" cx="${cx.toFixed(2)}" cy="${cy.toFixed(2)}" r="1.3"/>` +
+        `<text class="city-label" x="${(cx + 10).toFixed(2)}" y="${(cy + 1.4).toFixed(2)}">KÖLN</text>` +
+        `<text class="city-label" x="${(cx + 10).toFixed(2)}" y="${(cy + 6).toFixed(2)}" ` +
+          `fill="rgba(154, 144, 136, 0.85)" style="font-size: 3.2px;">50.94°N</text>` +
+        `<text class="legend" x="2" y="${(H - 3).toFixed(2)}">DEU · 02 — 21 JUN 2026</text>`;
+    })
+    .catch(err => {
+      console.warn('Germany map fetch failed; keeping fallback path:', err);
+    });
+})();
+</script>
+
+<!-- ================================================================
+     CATHEDRAL SHADER (adapted from cologne-bg-v07.html)
+     Single fixed canvas. Params interpolate when scrolling triggers
+     a section with data-bg="cover|divider|content".
+     ================================================================ -->
+<script>
+(function () {
+  const VERT = `#version 300 es
+    in vec2 a_pos;
+    void main() { gl_Position = vec4(a_pos, 0.0, 1.0); }
+  `;
+
+  const FRAG = `#version 300 es
+    precision highp float;
+
+    uniform vec2  u_res;
+    uniform float u_time;
+    uniform vec2  u_winPos;
+    uniform float u_winScale;
+    uniform float u_windowOn;
+    uniform float u_amp;
+    uniform float u_px;
+    uniform float u_cn;
+
+    out vec4 fragColor;
+
+    const float bayer[16] = float[16](
+       0.0/16.0,  8.0/16.0,  2.0/16.0, 10.0/16.0,
+      12.0/16.0,  4.0/16.0, 14.0/16.0,  6.0/16.0,
+       3.0/16.0, 11.0/16.0,  1.0/16.0,  9.0/16.0,
+      15.0/16.0,  7.0/16.0, 13.0/16.0,  5.0/16.0
+    );
+
+    mat2 rot(float a) { return mat2(cos(a), -sin(a), sin(a), cos(a)); }
+
+    float rayBand(vec2 uv, vec2 origin, float angleRad, float lengthScale, float widthScale) {
+      vec2 p = uv - origin;
+      p = rot(-angleRad) * p;
+      if (p.y < 0.0) return 0.0;
+      float along    = p.y / lengthScale;
+      float across   = exp(-(p.x * p.x) / (widthScale * widthScale));
+      float lenAtten = exp(-along * 0.95);
+      return across * lenAtten;
+    }
+
+    float windowMask(vec2 uv, vec2 center, float scale) {
+      vec2 p = (uv - center) / scale;
+      float rect = smoothstep(0.52, 0.48, abs(p.x))
+                 * smoothstep(1.02, 0.98, p.y)
+                 * step(0.0, p.y);
+      float dLeft  = length(p - vec2( 0.5, 0.0));
+      float dRight = length(p - vec2(-0.5, 0.0));
+      float arch = smoothstep(1.02, 0.98, max(dLeft, dRight)) * step(p.y, 0.0);
+      return clamp(max(rect, arch), 0.0, 1.0);
+    }
+
+    vec3 windowGlass(vec2 uv, vec2 center, float scale, float pulse) {
+      vec2 p = (uv - center) / scale;
+      vec3 c;
+      if (p.x < -0.15)      c = vec3(0.50, 0.18, 0.95);
+      else if (p.x < 0.15)  c = vec3(0.95, 0.55, 0.12);
+      else                  c = vec3(0.20, 0.42, 1.00);
+      if (p.y > 0.20 && p.y < 0.55) {
+        c = mix(c, vec3(1.05, 0.22, 0.30), 0.75);
+      }
+      return c * pulse;
+    }
+
+    void main() {
+      vec2 coord = floor(gl_FragCoord.xy / u_px) * u_px;
+      vec2 uv    = coord / u_res;
+      uv.y = 1.0 - uv.y;
+
+      vec2 auv  = vec2(uv.x * u_res.x / u_res.y, uv.y);
+      vec2 acen = vec2(u_winPos.x * u_res.x / u_res.y, u_winPos.y);
+
+      float t = u_time;
+
+      vec3 bg = vec3(0.020, 0.010, 0.034);
+
+      float sunPulse = 0.70 + 0.30 * sin(t * 6.2832 / 22.0);
+
+      float a1 = sin((uv.x + uv.y * 0.8) * 7.0 + t * 0.09) * 0.5 + 0.5;
+      float a2 = sin((uv.x * 1.3 - uv.y * 0.6) * 5.5 - t * 0.06 + 2.1) * 0.5 + 0.5;
+      float atm = a1 * a2;
+      float winDist = distance(auv, acen);
+      float atmFalloff = exp(-winDist * winDist * 1.8);
+      vec3 lit = vec3(0.20, 0.05, 0.85) * atm * 0.020 * atmFalloff;
+
+      float mistMask = smoothstep(0.50, 1.05, uv.y);
+      float m1 = sin((uv.x * 2.4 + t * 0.06)) * 0.5 + 0.5;
+      float m2 = sin((uv.y * 5.5 - t * 0.04 + 1.3)) * 0.5 + 0.5;
+      float m3 = sin((uv.x * 1.6 - uv.y * 2.2 + t * 0.05 + 2.7)) * 0.5 + 0.5;
+      float mistField = (m1 * m2 + m2 * m3 + m1 * m3) / 3.0;
+      float m4 = sin((uv.x * 9.0 + uv.y * 7.0 - t * 0.08)) * 0.5 + 0.5;
+      mistField *= 0.7 + 0.3 * m4;
+      float mist = mistField * mistMask * 0.16;
+      lit += vec3(0.55, 0.50, 0.65) * mist;
+
+      vec2 origin = acen + vec2(0.0, u_winScale * 0.90);
+      float baseLen   = 1.9;
+      float baseWidth = 0.16;
+
+      float a_r1 = radians(-28.0) + radians(1.0) * sin(t * 6.2832 / 47.0);
+      float a_r2 = radians(-36.0) + radians(1.0) * sin(t * 6.2832 / 51.0 + 1.0);
+      float a_r3 = radians(-44.0) + radians(1.5) * sin(t * 6.2832 / 53.0 + 2.0);
+      float a_r4 = radians(-52.0) + radians(1.0) * sin(t * 6.2832 / 49.0 + 3.0);
+      float a_r5 = radians(-60.0) + radians(1.0) * sin(t * 6.2832 / 55.0 + 4.0);
+
+      float i1 = sunPulse * (0.95 + 0.07 * sin(t * 6.2832 / 31.0));
+      float i2 = sunPulse * (0.97 + 0.05 * sin(t * 6.2832 / 34.0 + 1.0));
+      float i3 = sunPulse * (1.00 + 0.04 * sin(t * 6.2832 / 28.0 + 2.0));
+      float i4 = sunPulse * (0.97 + 0.05 * sin(t * 6.2832 / 36.0 + 1.5));
+      float i5 = sunPulse * (0.95 + 0.07 * sin(t * 6.2832 / 38.0 + 3.0));
+
+      float r1 = rayBand(auv, origin, a_r1, baseLen,        baseWidth * 1.00);
+      float r2 = rayBand(auv, origin, a_r2, baseLen,        baseWidth * 1.05);
+      float r3 = rayBand(auv, origin, a_r3, baseLen * 1.15, baseWidth * 1.20);
+      float r4 = rayBand(auv, origin, a_r4, baseLen,        baseWidth * 1.05);
+      float r5 = rayBand(auv, origin, a_r5, baseLen,        baseWidth * 1.00);
+
+      lit += vec3(0.18, 0.38, 1.05) * r1 * i1;
+      lit += vec3(0.95, 0.48, 0.10) * r2 * i2;
+      lit += vec3(1.05, 0.22, 0.30) * r3 * i3;
+      lit += vec3(0.85, 0.45, 0.08) * r4 * i4;
+      lit += vec3(0.50, 0.18, 1.00) * r5 * i5;
+      lit *= u_amp;
+
+      float haloDist = distance(auv, acen);
+      float halo = exp(-haloDist * haloDist * 22.0) * 0.40 * sunPulse * u_windowOn;
+      lit += vec3(0.95, 0.55, 0.20) * halo;
+
+      float wm = windowMask(auv, acen, u_winScale) * u_windowOn;
+      vec3 glass = windowGlass(auv, acen, u_winScale, sunPulse) * 1.30;
+
+      int bx = int(mod(coord.x / u_px, 4.0));
+      int by = int(mod(coord.y / u_px, 4.0));
+      float thresh = bayer[by * 4 + bx];
+
+      vec3 dithered_lit;
+      for (int i = 0; i < 3; i++) {
+        float v = clamp(lit[i], 0.0, 1.0);
+        float scaled = v * (u_cn - 1.0);
+        dithered_lit[i] = ((fract(scaled) > thresh) ? ceil(scaled) : floor(scaled)) / (u_cn - 1.0);
+      }
+
+      vec3 dithered_glass;
+      for (int i = 0; i < 3; i++) {
+        float v = clamp(glass[i], 0.0, 1.0);
+        float scaled = v * (u_cn - 1.0);
+        dithered_glass[i] = ((fract(scaled) > thresh) ? ceil(scaled) : floor(scaled)) / (u_cn - 1.0);
+      }
+
+      vec3 final = bg + dithered_lit;
+      final = mix(final, dithered_glass, wm);
+
+      // v3.1 post-dither dim: pull final ~17% toward bg so the dither
+      // reads as texture rather than noise (slightly punchier than v3).
+      final = mix(bg, final, 0.83);
+
+      fragColor = vec4(final, 1.0);
+    }
+  `;
+
+  function makeShader(gl, type, src) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+      console.error('Shader compile error:', gl.getShaderInfoLog(s));
+      return null;
+    }
+    return s;
+  }
+
+  // v3 PRESETS: window pushed even further off, amp dropped hard so dither
+  // reads as texture rather than noise. cn=8 gives smoother gradients.
+  const PRESETS = {
+    cover:   { winPos: [0.94, -0.42], winScale: 0.20, windowOn: 1.0, amp: 0.26, px: 2.0, cn: 8.0 },
+    divider: { winPos: [0.96, -0.40], winScale: 0.18, windowOn: 1.0, amp: 0.18, px: 2.0, cn: 8.0 },
+    content: { winPos: [0.96, -0.44], winScale: 0.20, windowOn: 0.0, amp: 0.11, px: 2.0, cn: 8.0 }
+  };
+
+  const canvas = document.getElementById('cathedral');
+  const gl = canvas.getContext('webgl2', { antialias: false, alpha: false });
+  if (!gl) {
+    console.error('WebGL2 not supported. Cathedral background disabled.');
+    canvas.style.background = '#0A0610';
+    return;
+  }
+
+  const prog = gl.createProgram();
+  gl.attachShader(prog, makeShader(gl, gl.VERTEX_SHADER, VERT));
+  gl.attachShader(prog, makeShader(gl, gl.FRAGMENT_SHADER, FRAG));
+  gl.linkProgram(prog);
+  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+    console.error('Program link error:', gl.getProgramInfoLog(prog));
+    return;
+  }
+  gl.useProgram(prog);
+
+  const vao = gl.createVertexArray();
+  gl.bindVertexArray(vao);
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+  const aPos = gl.getAttribLocation(prog, 'a_pos');
+  gl.enableVertexAttribArray(aPos);
+  gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+  const U = {
+    res:      gl.getUniformLocation(prog, 'u_res'),
+    time:     gl.getUniformLocation(prog, 'u_time'),
+    winPos:   gl.getUniformLocation(prog, 'u_winPos'),
+    winScale: gl.getUniformLocation(prog, 'u_winScale'),
+    windowOn: gl.getUniformLocation(prog, 'u_windowOn'),
+    amp:      gl.getUniformLocation(prog, 'u_amp'),
+    px:       gl.getUniformLocation(prog, 'u_px'),
+    cn:       gl.getUniformLocation(prog, 'u_cn'),
+  };
+
+  const state  = { ...PRESETS.cover, winPos: [...PRESETS.cover.winPos] };
+  const target = { ...PRESETS.cover, winPos: [...PRESETS.cover.winPos] };
+
+  function setTarget(preset) {
+    if (!PRESETS[preset]) return;
+    target.winPos[0] = PRESETS[preset].winPos[0];
+    target.winPos[1] = PRESETS[preset].winPos[1];
+    target.winScale  = PRESETS[preset].winScale;
+    target.windowOn  = PRESETS[preset].windowOn;
+    target.amp       = PRESETS[preset].amp;
+    target.px        = PRESETS[preset].px;
+    target.cn        = PRESETS[preset].cn;
+  }
+
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width  = Math.max(1, Math.floor(window.innerWidth  * dpr));
+    canvas.height = Math.max(1, Math.floor(window.innerHeight * dpr));
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.uniform2f(U.res, canvas.width, canvas.height);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  const t0 = performance.now();
+  const LERP = 0.055;
+
+  function frame() {
+    state.winPos[0] += (target.winPos[0] - state.winPos[0]) * LERP;
+    state.winPos[1] += (target.winPos[1] - state.winPos[1]) * LERP;
+    state.winScale  += (target.winScale  - state.winScale)  * LERP;
+    state.windowOn  += (target.windowOn  - state.windowOn)  * LERP;
+    state.amp       += (target.amp       - state.amp)       * LERP;
+    state.px = target.px; state.cn = target.cn;
+
+    gl.uniform1f(U.time,     (performance.now() - t0) / 1000);
+    gl.uniform2f(U.winPos,   state.winPos[0], state.winPos[1]);
+    gl.uniform1f(U.winScale, state.winScale);
+    gl.uniform1f(U.windowOn, state.windowOn);
+    gl.uniform1f(U.amp,      state.amp);
+    gl.uniform1f(U.px,       state.px);
+    gl.uniform1f(U.cn,       state.cn);
+
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    requestAnimationFrame(frame);
+  }
+  frame();
+
+  window.__cathedral = { setPreset: setTarget };
+})();
+</script>
+
+<!-- ================================================================
+     PAGE BEHAVIOR
+     - cathedral preset swap
+     - reveal-on-scroll
+     - sidenav scrollspy + progress
+     - sidenav collapse (persistent)
+     - card status (✓ / ? / ✕) + ideas as full deliverables
+     - approved-only markdown export
+     ================================================================ -->
+<script>
+(function () {
+
+  // ============ Storage keys ============
+  const K_IDEAS     = 'rdy-cologne-ideas-v2';
+  const K_STATUS    = 'rdy-cologne-status-v2';
+  const K_AUTHOR    = 'rdy-cologne-author-v2';
+  const K_SIDENAV   = 'rdy-cologne-sidenav-v2';
+  const K_OVERRIDES = 'rdy-cologne-overrides-v2';
+
+  // ============ Supabase cloud sync ============
+  // To enable: paste your Supabase project URL + anon (public) key below,
+  // then create the table once with this SQL in the Supabase SQL editor:
+  //
+  //   create table public.cologne_state (
+  //     id text primary key,
+  //     data jsonb not null default '{}'::jsonb,
+  //     updated_at timestamptz default now()
+  //   );
+  //   alter table public.cologne_state enable row level security;
+  //   create policy "anon read"   on public.cologne_state for select using (true);
+  //   create policy "anon insert" on public.cologne_state for insert with check (true);
+  //   create policy "anon update" on public.cologne_state for update using (true);
+  //   insert into public.cologne_state (id, data) values ('main', '{}'::jsonb)
+  //     on conflict do nothing;
+  //
+  // Until those values are filled in, the deck runs in localStorage-only mode.
+  const SUPABASE_URL      = 'https://gmfxramxulpracbujnuv.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_DpYxp69iGUhINMR5QJDN8g_HshEULdM';
+  const SUPABASE_TABLE    = 'cologne_state';
+  const SUPABASE_ROW_ID   = 'main';
+  const supabaseReady =
+    !!SUPABASE_URL && !SUPABASE_URL.includes('PASTE_') &&
+    !!SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.includes('PASTE_');
+
+  function syncHeaders() {
+    return {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: 'Bearer ' + SUPABASE_ANON_KEY
+    };
+  }
+
+  function setSyncStatus(state) {
+    const el = document.getElementById('sn-sync');
+    if (!el) return;
+    el.dataset.state = state;
+    const lbl = el.querySelector('.state');
+    if (lbl) lbl.textContent = state === 'saved' ? 'synced' : state;
+  }
+
+  async function pullSync() {
+    if (!supabaseReady) {
+      setSyncStatus('offline');
+      return;
+    }
+    setSyncStatus('syncing');
+    try {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.${SUPABASE_ROW_ID}&select=data`,
+        { headers: syncHeaders() }
+      );
+      if (!res.ok) throw new Error('http ' + res.status);
+      const rows = await res.json();
+      const data = rows[0] && rows[0].data;
+      if (data && typeof data === 'object') {
+        if (Array.isArray(data.ideas))   localStorage.setItem(K_IDEAS,     JSON.stringify(data.ideas));
+        if (data.status && typeof data.status === 'object')
+                                          localStorage.setItem(K_STATUS,    JSON.stringify(data.status));
+        if (data.overrides && typeof data.overrides === 'object')
+                                          localStorage.setItem(K_OVERRIDES, JSON.stringify(data.overrides));
+      }
+      setSyncStatus('saved');
+    } catch (err) {
+      console.warn('Cloud sync (pull) failed:', err);
+      setSyncStatus('error');
+    }
+  }
+
+  let pushTimer = null;
+  function pushSync() {
+    if (!supabaseReady) return;
+    clearTimeout(pushTimer);
+    setSyncStatus('syncing');
+    pushTimer = setTimeout(actuallyPush, 220);
+  }
+
+  async function actuallyPush() {
+    try {
+      const data = {
+        ideas:     JSON.parse(localStorage.getItem(K_IDEAS)     || '[]'),
+        status:    JSON.parse(localStorage.getItem(K_STATUS)    || '{}'),
+        overrides: JSON.parse(localStorage.getItem(K_OVERRIDES) || '{}'),
+      };
+      // Upsert against the single 'main' row.
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=id`,
+        {
+          method: 'POST',
+          headers: {
+            ...syncHeaders(),
+            'Content-Type': 'application/json',
+            Prefer: 'resolution=merge-duplicates,return=minimal'
+          },
+          body: JSON.stringify({
+            id: SUPABASE_ROW_ID,
+            data,
+            updated_at: new Date().toISOString()
+          })
+        }
+      );
+      if (!res.ok) throw new Error('http ' + res.status);
+      setSyncStatus('saved');
+    } catch (err) {
+      console.warn('Cloud sync (push) failed:', err);
+      setSyncStatus('error');
+    }
+  }
+
+  // ============ Section labels (for export, etc.) ============
+  const SECTIONS = [
+    { key: 'prelude',        label: 'I. Prelude',         openerId: 'prelude-opener' },
+    { key: 'service',        label: 'II. The Service',    openerId: 'service-opener' },
+    { key: 'pilgrimage',     label: 'III. The Pilgrimage', openerId: 'pilgrimage-opener' },
+    { key: 'vision',         label: 'IV. The Vision',     openerId: 'vision-opener' },
+    { key: 'open-questions', label: 'V. Open Questions',  openerId: 'open-questions' },
+    { key: 'benediction',    label: 'VI. Benediction',    openerId: 'benediction-opener' },
+    { key: 'order',          label: 'VII. Order of Service', openerId: 'order-opener' },
+    { key: 'colophon',       label: 'Colophon',           openerId: 'colophon' },
+  ];
+
+  // ============ Cathedral preset swap ============
+  const sectionsWithBg = document.querySelectorAll('[data-bg]');
+  const bgObserver = new IntersectionObserver((entries) => {
+    let best = null, bestDist = Infinity;
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      const dist = Math.abs(e.boundingClientRect.top);
+      if (dist < bestDist) { bestDist = dist; best = e.target; }
+    });
+    if (best && window.__cathedral) window.__cathedral.setPreset(best.dataset.bg);
+  }, { rootMargin: "-30% 0px -50% 0px", threshold: [0, 0.1, 0.5] });
+  sectionsWithBg.forEach(el => bgObserver.observe(el));
+
+  // ============ Reveal-on-scroll ============
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('in');
+        revealObserver.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.08, rootMargin: "0px 0px -8% 0px" });
+  function observeReveals(root) {
+    (root || document).querySelectorAll('.reveal:not(.in)').forEach(el => revealObserver.observe(el));
+  }
+  observeReveals();
+
+  // ============ Sidenav scrollspy + progress ============
+  const navLis = document.querySelectorAll('#sn-list li');
+  const scrollSections = Array.from(navLis).map(li => ({
+    li, target: document.getElementById(li.dataset.target)
+  })).filter(x => x.target);
+  navLis.forEach(li => li.addEventListener('click', () => {
+    const t = document.getElementById(li.dataset.target);
+    if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }));
+  const bar = document.getElementById('sn-bar');
+  const pct = document.getElementById('sn-pct');
+  function updateProgress() {
+    const h = document.documentElement;
+    const max = h.scrollHeight - h.clientHeight;
+    const p = Math.max(0, Math.min(1, h.scrollTop / Math.max(1, max)));
+    bar.style.width = (p * 100).toFixed(1) + '%';
+    pct.textContent = Math.round(p * 100) + '%';
+    const y = h.scrollTop + 100;
+    let active = scrollSections[0];
+    for (const s of scrollSections) if (s.target.offsetTop <= y) active = s;
+    scrollSections.forEach(s => s.li.classList.toggle('active', s === active));
+  }
+  document.addEventListener('scroll', updateProgress, { passive: true });
+  window.addEventListener('resize', updateProgress);
+  updateProgress();
+
+  // ============ Sidenav collapse (persistent) ============
+  const snToggle = document.getElementById('sn-toggle');
+  function applySidenavState(state) {
+    if (state === 'collapsed') document.body.dataset.sidenav = 'collapsed';
+    else delete document.body.dataset.sidenav;
+  }
+  applySidenavState(localStorage.getItem(K_SIDENAV));
+  snToggle.addEventListener('click', () => {
+    const next = document.body.dataset.sidenav === 'collapsed' ? 'expanded' : 'collapsed';
+    applySidenavState(next);
+    localStorage.setItem(K_SIDENAV, next);
+  });
+
+  // ============ Helpers ============
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
+    }[c]));
+  }
+  function placeChip(place) {
+    if (place === 'onsite')  return '<span class="chip onsite">On-site</span>';
+    if (place === 'remote')  return '<span class="chip remote">Remote</span>';
+    if (place === 'hybrid')  return '<span class="chip hybrid">Hybrid</span>';
+    return '';
+  }
+
+  // ============ Originals snapshot + overrides ============
+  // ORIGINAL_STATES holds the initial editable state of each prepared card
+  // (in memory). Edits get persisted in localStorage as overrides on top.
+  const ORIGINAL_STATES = {};
+
+  function extractFromDom(card) {
+    const h3 = card.querySelector(':scope > h3');
+    const title = h3 ? h3.textContent.trim() : '';
+    const body = Array.from(card.querySelectorAll(':scope > p, :scope > ul'))
+      .map(el => el.textContent.replace(/\s+/g, ' ').trim())
+      .filter(Boolean)
+      .join('\n\n');
+    let owner = '';
+    let place = '';
+    const tags = [];
+    const chips = card.querySelector('.chips');
+    if (chips) {
+      Array.from(chips.querySelectorAll('.chip')).forEach(c => {
+        if (c.classList.contains('owner')) {
+          owner = c.textContent.replace(/^(Owners?|Brokered by)[:\s]*/i, '').trim();
+        } else if (c.classList.contains('onsite')) {
+          place = 'onsite';
+        } else if (c.classList.contains('remote')) {
+          place = 'remote';
+        } else if (c.classList.contains('hybrid')) {
+          place = 'hybrid';
+        } else if (!c.classList.contains('from-floor')) {
+          tags.push(c.textContent.trim());
+        }
+      });
+    }
+    return { title, body, owner, place, tags };
+  }
+
+  function captureOriginals() {
+    document.querySelectorAll('.card[data-card-id^="prep-"]').forEach(card => {
+      if (!ORIGINAL_STATES[card.dataset.cardId]) {
+        ORIGINAL_STATES[card.dataset.cardId] = extractFromDom(card);
+      }
+    });
+  }
+
+  function loadOverrides() {
+    try { return JSON.parse(localStorage.getItem(K_OVERRIDES) || '{}'); }
+    catch { return {}; }
+  }
+  function saveOverrides(map) {
+    localStorage.setItem(K_OVERRIDES, JSON.stringify(map));
+    pushSync();
+  }
+
+  function applyEditableState(card, state) {
+    const h3 = card.querySelector(':scope > h3');
+    if (h3) h3.textContent = state.title || '';
+    // Replace direct p/ul children with new <p>'s from the body text.
+    // Anchor on h3 so paragraphs always land below the title.
+    Array.from(card.querySelectorAll(':scope > p, :scope > ul')).forEach(el => el.remove());
+    if (h3) {
+      const paragraphs = String(state.body || '').split(/\n\n+/).filter(Boolean);
+      let cursor = h3;
+      paragraphs.forEach(text => {
+        const p = document.createElement('p');
+        p.innerHTML = escapeHtml(text).replace(/\n/g, '<br>');
+        cursor.after(p);
+        cursor = p;
+      });
+    }
+    // Rebuild chips (preserve from-floor for idea cards)
+    const chips = card.querySelector('.chips');
+    if (chips) {
+      const fromFloor = chips.querySelector('.chip.from-floor');
+      const html = (fromFloor ? fromFloor.outerHTML : '')
+        + (state.owner ? `<span class="chip owner">Owner: <strong>${escapeHtml(state.owner)}</strong></span>` : '')
+        + (state.place ? placeChip(state.place) : '')
+        + (state.tags || []).map(t => `<span class="chip">${escapeHtml(t)}</span>`).join('');
+      chips.innerHTML = html;
+    }
+  }
+
+  // ============ Card status (✓ / ? / ✕) + edit button ============
+  function loadStatus() {
+    try { return JSON.parse(localStorage.getItem(K_STATUS) || '{}'); }
+    catch { return {}; }
+  }
+  function saveStatus(map) {
+    localStorage.setItem(K_STATUS, JSON.stringify(map));
+    pushSync();
+  }
+
+  function statusToolbarEl() {
+    const t = document.createElement('div');
+    t.className = 'card-status';
+    t.innerHTML = `
+      <span class="vote-label" aria-hidden="true"></span>
+      <button class="vote" type="button" data-vote="approved"  aria-label="Approve">✓</button>
+      <button class="vote" type="button" data-vote="unsure"    aria-label="Mark uncertain">?</button>
+      <button class="vote" type="button" data-vote="ruled-out" aria-label="Rule out">✕</button>
+    `;
+    return t;
+  }
+  function editButtonEl(cardId) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'card-edit';
+    btn.dataset.editCard = cardId;
+    btn.setAttribute('aria-label', 'Edit deliverable');
+    btn.textContent = 'Edit';
+    return btn;
+  }
+  function applyCardStatus(card, status) {
+    card.classList.remove('approved', 'unsure', 'ruled-out');
+    if (status) card.classList.add(status);
+  }
+
+  function ensureCardActions() {
+    const statusMap = loadStatus();
+    document.querySelectorAll('.card').forEach((card) => {
+      if (!card.dataset.cardId) card.dataset.cardId = 'auto-' + Math.random().toString(36).slice(2, 9);
+      if (!card.querySelector('.card-status')) card.appendChild(statusToolbarEl());
+      if (!card.querySelector('.card-edit'))   card.appendChild(editButtonEl(card.dataset.cardId));
+      // re-sync the data-edit-card in case the cardId changed
+      const editBtn = card.querySelector('.card-edit');
+      if (editBtn) editBtn.dataset.editCard = card.dataset.cardId;
+      applyCardStatus(card, statusMap[card.dataset.cardId] || null);
+    });
+    updateApprovedCount();
+  }
+
+  // Vote button delegation
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.vote');
+    if (!btn) return;
+    const card = btn.closest('.card');
+    if (!card) return;
+    const id = card.dataset.cardId;
+    const action = btn.dataset.vote;
+    const map = loadStatus();
+    if (map[id] === action) {
+      delete map[id];
+      applyCardStatus(card, null);
+    } else {
+      map[id] = action;
+      applyCardStatus(card, action);
+    }
+    saveStatus(map);
+    updateApprovedCount();
+  });
+
+  // ============ Approved count ============
+  const apNum = document.getElementById('ap-num');
+  const apTotal = document.getElementById('ap-total');
+  function updateApprovedCount() {
+    const all = document.querySelectorAll('.card').length;
+    const approved = document.querySelectorAll('.card.approved').length;
+    if (apNum)   apNum.textContent   = approved;
+    if (apTotal) apTotal.textContent = all;
+    const exportBtn = document.getElementById('export-approved');
+    if (exportBtn) {
+      exportBtn.disabled = approved === 0;
+      exportBtn.textContent = approved === 0 ? 'Export ↓' : `Export ${approved} ↓`;
+    }
+  }
+
+  // ============ Ideas as full deliverables ============
+  function loadIdeas() {
+    try { return JSON.parse(localStorage.getItem(K_IDEAS) || '[]'); }
+    catch { return []; }
+  }
+  function saveIdeas(arr) {
+    localStorage.setItem(K_IDEAS, JSON.stringify(arr));
+    pushSync();
+  }
+
+  function ideaCardEl(idea) {
+    const card = document.createElement('div');
+    card.className = 'card card-idea reveal in';
+    card.dataset.cardId = idea.id;
+    const tagsHtml = (idea.tags || []).map(t => `<span class="chip">${escapeHtml(t)}</span>`).join('');
+    const owner = idea.owner
+      ? `<span class="chip owner">Owner: <strong>${escapeHtml(idea.owner)}</strong></span>`
+      : '';
+    const author = idea.author ? escapeHtml(idea.author) : 'anon';
+    card.innerHTML = `
+      <button class="card-del" type="button" data-del-idea="${idea.id}" aria-label="Remove from deck">×</button>
+      <div class="chips">
+        <span class="chip from-floor">From the floor · <strong>${author}</strong></span>
+        ${owner}
+        ${placeChip(idea.place)}
+        ${tagsHtml}
+      </div>
+      <h3>${escapeHtml(idea.title)}</h3>
+      <p>${escapeHtml(idea.body).replace(/\n/g, '<br>')}</p>
+    `;
+    return card;
+  }
+
+  function renderAll() {
+    // 1. Apply or revert overrides on prepared cards
+    const overrides = loadOverrides();
+    document.querySelectorAll('.card[data-card-id^="prep-"]').forEach(card => {
+      const id = card.dataset.cardId;
+      const original = ORIGINAL_STATES[id];
+      if (!original) return;
+      if (overrides[id]) {
+        applyEditableState(card, { ...original, ...overrides[id] });
+        card.classList.add('edited');
+      } else if (card.classList.contains('edited')) {
+        applyEditableState(card, original);
+        card.classList.remove('edited');
+      }
+    });
+    // 2. Re-render idea cards
+    document.querySelectorAll('.card.card-idea').forEach(el => el.remove());
+    loadIdeas().forEach(idea => {
+      const section = document.getElementById(idea.section);
+      if (!section) return;
+      const target = section.querySelector(section.dataset.ideaTarget || '.deliverables');
+      if (!target) return;
+      target.appendChild(ideaCardEl(idea));
+    });
+    // 3. Inject toolbars + edit buttons, apply saved status
+    ensureCardActions();
+  }
+
+  // Delete an idea
+  document.addEventListener('click', (e) => {
+    const del = e.target.closest('[data-del-idea]');
+    if (!del) return;
+    const id = del.dataset.delIdea;
+    saveIdeas(loadIdeas().filter(i => i.id !== id));
+    const status = loadStatus();
+    delete status[id];
+    saveStatus(status);
+    renderAll();
+  });
+
+  // Edit button → open modal in edit mode
+  document.addEventListener('click', (e) => {
+    const editBtn = e.target.closest('[data-edit-card]');
+    if (!editBtn) return;
+    const id = editBtn.dataset.editCard;
+    const card = document.querySelector(`[data-card-id="${id}"]`);
+    if (card) openModalForEdit(card);
+  });
+
+  // ============ Modal (add + edit modes) ============
+  const fab          = document.getElementById('fab');
+  const modal        = document.getElementById('modal');
+  const modalTitleEl = document.getElementById('modal-title');
+  const modalSubEl   = document.querySelector('#modal .modal-sub');
+  const modalClose   = document.getElementById('modal-close');
+  const modalCancel  = document.getElementById('modal-cancel');
+  const modalReset   = document.getElementById('modal-reset');
+  const modalSubmit  = document.getElementById('modal-submit');
+  const form         = document.getElementById('idea-form');
+  const inAuthor     = document.getElementById('idea-author');
+  const inSection    = document.getElementById('idea-section');
+  const inTitle      = document.getElementById('idea-title');
+  const inNote       = document.getElementById('idea-note');
+  const inOwner      = document.getElementById('idea-owner');
+  const inPlace      = document.getElementById('idea-place');
+  const inTags       = document.getElementById('idea-tags');
+  const fAuthorWrap  = inAuthor.closest('.modal-field');
+
+  let modalMode = { mode: 'add' };
+
+  function inferCurrentSection() {
+    const y = window.scrollY + window.innerHeight * 0.4;
+    let last = SECTIONS[0].key;
+    SECTIONS.forEach(s => {
+      const el = document.getElementById(s.key) || document.getElementById(s.openerId);
+      if (el && el.offsetTop <= y) last = s.key;
+    });
+    return last;
+  }
+  function sectionKeyFromCard(card) {
+    const sec = card.closest('section[id]');
+    if (!sec) return SECTIONS[0].key;
+    return sec.id.replace('-opener', '');
+  }
+
+  function openModalForAdd() {
+    modalMode = { mode: 'add' };
+    modalTitleEl.textContent = 'Add deliverable from the floor';
+    modalSubEl.textContent = 'Drop it where it goes. Appears as a full card alongside the prepared ones.';
+    modalSubmit.textContent = 'Add to deck';
+    modalReset.hidden = true;
+    fAuthorWrap.style.display = '';
+    form.reset();
+    inSection.value = inferCurrentSection();
+    const lastAuthor = localStorage.getItem(K_AUTHOR);
+    if (lastAuthor) inAuthor.value = lastAuthor;
+    modal.hidden = false;
+    setTimeout(() => inTitle.focus(), 80);
+  }
+
+  function openModalForEdit(card) {
+    const id = card.dataset.cardId;
+    modalMode = { mode: 'edit', cardId: id };
+    let state;
+    let isIdea = id.startsWith('idea-');
+    if (isIdea) {
+      state = loadIdeas().find(i => i.id === id);
+      if (!state) return;
+      fAuthorWrap.style.display = '';
+      modalReset.hidden = true;
+    } else {
+      const overrides = loadOverrides();
+      const original = ORIGINAL_STATES[id] || extractFromDom(card);
+      state = { ...original, ...(overrides[id] || {}), section: sectionKeyFromCard(card), author: '' };
+      fAuthorWrap.style.display = 'none';   // prepared cards have no author
+      modalReset.hidden = !overrides[id];   // only show reset if there IS an override
+    }
+    inAuthor.value = state.author || '';
+    inSection.value = state.section || sectionKeyFromCard(card);
+    inTitle.value = state.title || '';
+    inNote.value = state.body || '';
+    inOwner.value = state.owner || '';
+    inPlace.value = state.place || '';
+    inTags.value = (state.tags || []).join(', ');
+    modalTitleEl.textContent = isIdea ? 'Edit floor idea' : 'Edit deliverable';
+    modalSubEl.textContent = isIdea
+      ? 'Update what we added from the floor.'
+      : 'Update what we ship. Reset restores the original copy.';
+    modalSubmit.textContent = 'Save';
+    modal.hidden = false;
+    setTimeout(() => inTitle.focus(), 80);
+  }
+
+  function closeModal() {
+    modal.hidden = true;
+  }
+
+  fab.addEventListener('click', openModalForAdd);
+  modalClose.addEventListener('click', closeModal);
+  modalCancel.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modal.hidden) closeModal();
+  });
+
+  modalReset.addEventListener('click', () => {
+    if (modalMode.mode !== 'edit') return;
+    const id = modalMode.cardId;
+    if (!id || !id.startsWith('prep-')) return;
+    if (!confirm('Reset this card to its original copy? Your edits will be lost.')) return;
+    const overrides = loadOverrides();
+    delete overrides[id];
+    saveOverrides(overrides);
+    renderAll();
+    closeModal();
+  });
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const title = inTitle.value.trim();
+    const body  = inNote.value.trim();
+    if (!title || !body) return;
+    const author = inAuthor.value.trim();
+    if (author) localStorage.setItem(K_AUTHOR, author);
+    const tags = inTags.value.split(',').map(t => t.trim()).filter(Boolean);
+    const data = {
+      title,
+      body,
+      owner: inOwner.value.trim(),
+      place: inPlace.value,
+      tags
+    };
+
+    if (modalMode.mode === 'edit') {
+      const id = modalMode.cardId;
+      if (id.startsWith('idea-')) {
+        const ideas = loadIdeas();
+        const idx = ideas.findIndex(i => i.id === id);
+        if (idx >= 0) {
+          ideas[idx] = {
+            ...ideas[idx],
+            ...data,
+            section: inSection.value,
+            author: author || ideas[idx].author
+          };
+          saveIdeas(ideas);
+        }
+      } else {
+        const overrides = loadOverrides();
+        overrides[id] = data;
+        saveOverrides(overrides);
+      }
+    } else {
+      const ideas = loadIdeas();
+      ideas.push({
+        id: 'idea-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+        ts: Date.now(),
+        section: inSection.value,
+        author,
+        ...data
+      });
+      saveIdeas(ideas);
+    }
+    renderAll();
+    closeModal();
+  });
+
+  // ============ Export approved (markdown) ============
+  const exportBtn = document.getElementById('export-approved');
+  function fmtTimeDate(ts) {
+    const d = new Date(ts);
+    return d.toISOString().slice(0, 10) + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+  }
+  function cardSection(card) {
+    const sec = card.closest('section[id]');
+    return sec ? sec.id : 'unknown';
+  }
+  function cardChips(card) {
+    return Array.from(card.querySelectorAll('.chip')).map(c => c.textContent.replace(/\s+/g, ' ').trim());
+  }
+  function cardTitle(card) {
+    const h = card.querySelector('h3');
+    return h ? h.textContent.trim() : '(untitled)';
+  }
+  function cardBody(card) {
+    return Array.from(card.querySelectorAll('p, ul'))
+      .map(el => el.textContent.replace(/\s+/g, ' ').trim())
+      .filter(Boolean)
+      .join('\n  ');
+  }
+
+  exportBtn.addEventListener('click', async () => {
+    const approved = Array.from(document.querySelectorAll('.card.approved'));
+    if (!approved.length) {
+      alert('Nothing approved yet. Mark a card with ✓ to include it.');
+      return;
+    }
+    const grouped = {};
+    approved.forEach(card => {
+      const sectionId = cardSection(card);
+      // Map opener IDs back to body section key
+      let key = sectionId.replace('-opener', '');
+      if (key === 'open-questions') key = 'open-questions';
+      (grouped[key] = grouped[key] || []).push(card);
+    });
+
+    const now = new Date();
+    const stamp = now.toISOString().slice(0, 10) + ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+    let md = '# Cologne Coverage Plan · Approved deliverables\n\n';
+    md += '_Exported ' + stamp + ' · ' + approved.length + ' item' + (approved.length === 1 ? '' : 's') + '_\n\n';
+
+    SECTIONS.forEach(s => {
+      const list = grouped[s.key];
+      if (!list || !list.length) return;
+      md += '## ' + s.label + '\n\n';
+      list.forEach(card => {
+        const title = cardTitle(card);
+        const isIdea = card.classList.contains('card-idea');
+        md += '### ' + title + (isIdea ? '  _(from the floor)_' : '') + '\n\n';
+        const chips = cardChips(card).filter(c => !/^From the floor/i.test(c));
+        if (chips.length) md += '> ' + chips.join(' · ') + '\n\n';
+        const body = cardBody(card);
+        if (body) md += body.split('\n').map(l => l.trim()).filter(Boolean).map(l => l).join('\n\n') + '\n\n';
+      });
+    });
+
+    try {
+      await navigator.clipboard.writeText(md);
+      downloadFile('cologne-approved-' + now.toISOString().slice(0,10) + '.md', md);
+      flashBtn(exportBtn, 'Copied + downloaded');
+    } catch {
+      downloadFile('cologne-approved-' + now.toISOString().slice(0,10) + '.md', md);
+      flashBtn(exportBtn, 'Downloaded');
+    }
+  });
+
+  function flashBtn(btn, msg) {
+    const orig = btn.textContent;
+    btn.textContent = msg;
+    btn.style.color = 'var(--violet-bg)';
+    btn.style.background = 'var(--amber)';
+    btn.style.borderColor = 'var(--amber)';
+    setTimeout(() => {
+      btn.textContent = orig;
+      btn.style.color = '';
+      btn.style.background = '';
+      btn.style.borderColor = '';
+      updateApprovedCount();
+    }, 1500);
+  }
+
+  function downloadFile(name, text) {
+    const blob = new Blob([text], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  // ============ Reset votes / clear ideas ============
+  document.getElementById('reset-votes').addEventListener('click', () => {
+    if (!confirm('Reset all ✓ / ? / ✕ marks on every card?')) return;
+    localStorage.removeItem(K_STATUS);
+    document.querySelectorAll('.card').forEach(c => applyCardStatus(c, null));
+    updateApprovedCount();
+  });
+
+  document.getElementById('clear-ideas').addEventListener('click', () => {
+    const ideas = loadIdeas();
+    if (!ideas.length) return;
+    if (!confirm('Remove all ' + ideas.length + ' meeting-added idea' + (ideas.length === 1 ? '' : 's') + '? Their approval marks go too.')) return;
+    const status = loadStatus();
+    ideas.forEach(i => delete status[i.id]);
+    saveStatus(status);
+    saveIdeas([]);
+    renderAll();
+  });
+
+  // ============ Boot ============
+  captureOriginals();   // snapshot the initial copy of every prepared card
+  (async function boot() {
+    await pullSync();    // pull cloud state into localStorage (or silently fall back)
+    renderAll();         // apply overrides + render ideas + inject toolbars
+    observeReveals();
+  })();
+
+})();
+</script>
+
+</body>
+</html>
