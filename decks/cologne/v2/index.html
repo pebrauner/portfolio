@@ -1,0 +1,1759 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+<meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet">
+<title>Cologne Coverage Plan · Compact view</title>
+<style>
+  :root {
+    --bg:        #FAFAF7;
+    --surface:   #FFFFFF;
+    --ink:       #1A1815;
+    --ink-soft:  #4A4540;
+    --ink-mute:  #8E8780;
+    --ink-faint: #B5AFA6;
+    --border:    #E5E2DC;
+    --border-soft: #EDEAE3;
+    --amber:     #C68F1E;
+    --amber-bg:  rgba(198, 143, 30, 0.07);
+    --amber-line: rgba(198, 143, 30, 0.55);
+    --crimson:   #A6263A;
+    --crimson-bg: rgba(166, 38, 58, 0.05);
+    --hover:     rgba(0, 0, 0, 0.025);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  a { color: inherit; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; padding: 0; }
+  em { font-style: italic; color: var(--ink); }
+  strong { font-weight: 600; }
+
+  .page {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 32px 28px 100px;
+  }
+
+  /* ============ HEADER ============ */
+  .top {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 14px;
+    padding-bottom: 18px;
+    margin-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+  }
+  .top .h-title {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    margin-right: auto;
+  }
+  .top .h-title .h-sub {
+    color: var(--ink-mute);
+    font-weight: 400;
+    margin-left: 8px;
+    font-size: 14px;
+  }
+  .top .h-link {
+    font-size: 12px;
+    color: var(--ink-mute);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1px;
+    text-decoration: none;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .top .h-link:hover { color: var(--amber); border-bottom-color: var(--amber); }
+
+  .top .h-sync {
+    font-size: 11px;
+    color: var(--ink-mute);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .top .h-sync .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--ink-faint);
+    transition: background 0.2s;
+  }
+  .top .h-sync[data-state="live"]    .dot { background: var(--amber); animation: livePulse 2.4s ease-in-out infinite; }
+  .top .h-sync[data-state="syncing"] .dot { background: var(--ink-soft); animation: blink 1.4s ease-in-out infinite; }
+  .top .h-sync[data-state="error"]   .dot { background: var(--crimson); }
+  .top .h-sync[data-state="offline"] .dot { background: var(--ink-faint); }
+  @keyframes livePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(198, 143, 30, 0); }
+    50%      { box-shadow: 0 0 0 4px rgba(198, 143, 30, 0.18); }
+  }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  .intro {
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+    margin-bottom: 32px;
+    max-width: 600px;
+  }
+  .intro em { color: var(--ink); font-style: italic; }
+
+  /* ============ SECTION ============ */
+  .section { margin-bottom: 36px; }
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 10px 0 8px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0;
+  }
+  .section-head .name {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .section-head .count {
+    font-size: 12px;
+    color: var(--ink-mute);
+    font-variant-numeric: tabular-nums;
+  }
+  .section-head .blurb {
+    font-size: 12px;
+    color: var(--ink-mute);
+    margin-left: auto;
+    font-style: italic;
+  }
+
+  /* ============ CARD (compact row) ============ */
+  .card {
+    border-bottom: 1px solid var(--border-soft);
+    padding: 10px 6px 10px 6px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.12s ease;
+    display: grid;
+    grid-template-columns: 18px 1fr auto;
+    gap: 10px;
+    align-items: center;
+  }
+  .card:hover { background: var(--hover); }
+  .card:last-child { border-bottom: 0; }
+
+  .card .toggle {
+    grid-column: 1;
+    grid-row: 1;
+    color: var(--ink-faint);
+    font-size: 9px;
+    line-height: 1;
+    transition: transform 0.15s, color 0.15s;
+    user-select: none;
+  }
+  .card.expanded .toggle { transform: rotate(90deg); color: var(--ink-mute); }
+
+  .card h3 {
+    grid-column: 2;
+    grid-row: 1;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink);
+    margin: 0;
+    line-height: 1.35;
+  }
+  .card.ruled-out h3 {
+    text-decoration: line-through;
+    text-decoration-color: var(--ink-faint);
+    color: var(--ink-mute);
+  }
+
+  .card .meta {
+    grid-column: 2;
+    grid-row: 1;
+    font-size: 12px;
+    color: var(--ink-mute);
+    justify-self: end;
+    align-self: center;
+    padding-right: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 220px;
+  }
+  .card.expanded .meta { display: none; }
+
+  /* Status toolbar at the right */
+  .card-status {
+    grid-column: 3;
+    grid-row: 1;
+    display: flex;
+    gap: 3px;
+    align-items: center;
+  }
+  .vote {
+    width: 24px;
+    height: 24px;
+    border: 1px solid var(--border);
+    color: var(--ink-mute);
+    background: transparent;
+    border-radius: 2px;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.12s;
+  }
+  .vote:hover { color: var(--ink); border-color: var(--ink-soft); background: var(--surface); }
+  .card.approved  .vote[data-vote="approved"]  { color: var(--amber); border-color: var(--amber); background: var(--amber-bg); }
+  .card.unsure    .vote[data-vote="unsure"]    { color: var(--ink); border-color: var(--ink-soft); background: var(--surface); }
+  .card.ruled-out .vote[data-vote="ruled-out"] { color: var(--crimson); border-color: var(--crimson); background: var(--crimson-bg); }
+
+  /* Approved cards get an amber left edge */
+  .card.approved { box-shadow: inset 2px 0 0 var(--amber); }
+  .card.unsure   { box-shadow: inset 2px 0 0 var(--ink-faint); }
+  .card.ruled-out { opacity: 0.55; }
+  .card.ruled-out:hover { opacity: 0.85; }
+
+  /* Expanded content */
+  .card .chips, .card > p, .card > ul, .card-edit {
+    grid-column: 2 / -1;
+    display: none;
+  }
+  .card.expanded .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    grid-row: 2;
+    margin-top: 8px;
+  }
+  .card.expanded > p {
+    display: block;
+    grid-row: auto;
+    margin-top: 8px;
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.55;
+    max-width: 64ch;
+  }
+  .card.expanded > ul {
+    display: block;
+    grid-row: auto;
+    margin-top: 6px;
+    padding-left: 18px;
+    list-style: disc;
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.55;
+  }
+  .card.expanded > ul li { margin-bottom: 4px; }
+  .card.expanded .card-edit {
+    display: inline-flex;
+    margin-top: 12px;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    border: 1px solid var(--border);
+    padding: 5px 10px;
+    border-radius: 2px;
+    background: var(--surface);
+    transition: all 0.12s;
+    width: max-content;
+  }
+  .card.expanded .card-edit:hover {
+    color: var(--ink);
+    border-color: var(--ink-soft);
+  }
+
+  /* Chips (compact) */
+  .chip {
+    font-size: 10.5px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border: 1px solid var(--border);
+    color: var(--ink-mute);
+    border-radius: 2px;
+    line-height: 1.5;
+    background: var(--surface);
+  }
+  .chip.owner { color: var(--ink); border-color: var(--ink-soft); }
+  .chip.owner strong { color: var(--amber); font-weight: 600; }
+  .chip.onsite { color: var(--amber); border-color: var(--amber-line); }
+  .chip.remote { color: var(--ink-mute); }
+  .chip.hybrid { color: var(--ink-mute); border-style: dashed; }
+  .chip.conditional { color: var(--crimson); border-color: rgba(166, 38, 58, 0.5); }
+  .chip.from-floor {
+    color: var(--amber);
+    border-color: var(--amber-line);
+    background: var(--amber-bg);
+  }
+  .chip.new { color: var(--amber); border-color: var(--amber-line); background: var(--amber-bg); }
+
+  /* Idea card distinguishing bg */
+  .card.card-idea { background: linear-gradient(180deg, var(--amber-bg) 0%, transparent 50%); }
+  .card-del {
+    position: absolute;
+    top: 8px;
+    right: 76px;
+    width: 18px;
+    height: 18px;
+    color: var(--ink-faint);
+    font-size: 12px;
+    line-height: 1;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    background: transparent;
+  }
+  .card.card-idea.expanded .card-del { display: inline-flex; }
+  .card-del:hover { color: var(--crimson); border-color: rgba(166, 38, 58, 0.45); }
+
+  /* Edited marker */
+  .card.edited::after {
+    content: "edited";
+    position: absolute;
+    left: 36px;
+    top: 100%;
+    margin-top: -6px;
+    font-size: 9px;
+    color: var(--amber);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  /* ============ TOOLBAR (sticky bottom) ============ */
+  .toolbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 10px 28px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 40;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.92);
+  }
+  .toolbar .approve-count {
+    font-size: 12px;
+    color: var(--ink-mute);
+    margin-right: auto;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .toolbar .approve-count strong { color: var(--ink); font-weight: 600; }
+  .tb-btn {
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    color: var(--ink-soft);
+    border-radius: 2px;
+    background: var(--surface);
+    transition: all 0.15s;
+    line-height: 1;
+  }
+  .tb-btn:hover { color: var(--ink); border-color: var(--ink-soft); }
+  .tb-btn.primary {
+    color: var(--surface);
+    background: var(--ink);
+    border-color: var(--ink);
+  }
+  .tb-btn.primary:hover { background: var(--ink-soft); border-color: var(--ink-soft); }
+  .tb-btn.amber {
+    color: var(--ink);
+    background: var(--amber);
+    border-color: var(--amber);
+  }
+  .tb-btn.amber:hover { filter: brightness(1.08); }
+  .tb-btn:disabled { color: var(--ink-faint); cursor: not-allowed; }
+  .tb-btn:disabled:hover { color: var(--ink-faint); border-color: var(--border); }
+  .tb-overflow {
+    position: relative;
+  }
+  .tb-overflow .menu {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    right: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    min-width: 180px;
+    display: none;
+    flex-direction: column;
+    padding: 4px 0;
+    z-index: 50;
+  }
+  .tb-overflow.open .menu { display: flex; }
+  .tb-overflow .menu button {
+    text-align: left;
+    padding: 8px 14px;
+    font-size: 12px;
+    color: var(--ink-soft);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    transition: background 0.1s, color 0.1s;
+  }
+  .tb-overflow .menu button:hover { background: var(--hover); color: var(--ink); }
+
+  /* ============ MODAL ============ */
+  .modal {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: rgba(26, 24, 21, 0.42);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    animation: modalFade 0.16s ease-out;
+    overflow-y: auto;
+  }
+  .modal[hidden] { display: none; }
+  @keyframes modalFade { from { opacity: 0; } to { opacity: 1; } }
+  .modal-inner {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    width: 100%;
+    max-width: 560px;
+    padding: 24px 26px 18px;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+  }
+  .modal h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .modal .modal-sub {
+    font-size: 12px;
+    color: var(--ink-mute);
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+    letter-spacing: 0.02em;
+  }
+  .modal label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-bottom: 5px;
+    font-weight: 500;
+  }
+  .modal-field { margin-bottom: 12px; }
+  .modal-row { display: flex; gap: 10px; }
+  .modal-row .modal-field { flex: 1; min-width: 0; }
+  .modal input, .modal select, .modal textarea {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 8px 10px;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.45;
+    transition: border-color 0.12s;
+  }
+  .modal input:focus, .modal select:focus, .modal textarea:focus {
+    outline: none;
+    border-color: var(--ink-soft);
+  }
+  .modal textarea { min-height: 90px; resize: vertical; }
+  .modal-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 12px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+  }
+  .modal-actions .reset-btn {
+    margin-right: auto;
+    color: var(--ink-mute);
+    border-color: transparent;
+  }
+  .modal-actions .reset-btn:hover { color: var(--ink); border-color: var(--border); }
+  .modal-close {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    color: var(--ink-mute);
+    font-size: 16px;
+    line-height: 1;
+    padding: 4px 6px;
+  }
+  .modal-close:hover { color: var(--ink); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .modal, .card, .vote, .tb-btn { transition: none; animation: none; }
+    .top .h-sync[data-state="live"] .dot { animation: none; }
+    .top .h-sync[data-state="syncing"] .dot { animation: none; }
+  }
+
+  @media (max-width: 640px) {
+    .page { padding: 24px 18px 100px; }
+    .card { grid-template-columns: 14px 1fr auto; gap: 8px; }
+    .card h3 { font-size: 14px; }
+    .card .meta { display: none; }
+    .toolbar { padding: 10px 18px; flex-wrap: wrap; }
+  }
+
+  @media print {
+    .toolbar, .modal, .card-status, .card-del, .toggle { display: none !important; }
+    .card { break-inside: avoid; padding: 8pt 0; }
+    .card > p, .card .chips { display: block !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <header class="top">
+    <div class="h-title">Cologne Coverage Plan <span class="h-sub">· compact view</span></div>
+    <a href="../" class="h-link">→ Full deck</a>
+    <span class="h-sync" id="h-sync" data-state="offline" title="Cloud sync">
+      <span class="dot"></span>
+      <span class="state">offline</span>
+    </span>
+  </header>
+
+  <p class="intro">
+    Same plan as the full deck, stripped down to a scannable list. <em>Approved</em>, <em>maybe</em>, and <em>ruled out</em> sync live across every open tab. Click a row to expand its description. Hit <strong>Add deliverable</strong> at the bottom to throw an idea in.
+  </p>
+
+  <!-- ============ PRE-EVENT ============ -->
+  <section class="section" data-phase="pre" data-idea-target=".section-body">
+    <div class="section-head">
+      <span class="name">Pre-event</span>
+      <span class="count" id="count-pre">6</span>
+      <span class="blurb">What we ship before the doors open.</span>
+    </div>
+    <div class="section-body">
+
+      <article class="card" data-card-id="prep-prelude-01" data-section-key="prelude">
+        <span class="toggle">▸</span>
+        <h3>Team breakdowns</h3>
+        <div class="chips">
+          <span class="chip owner">Owner: <strong>Elliott</strong></span>
+          <span class="chip remote">Remote</span>
+          <span class="chip">Series</span>
+        </div>
+        <p>The top ten to fifteen teams get a dedicated article each. Lower-ranked teams aggregated three to four per piece. Every breakdown includes strengths, weaknesses, and an <em>rdy.gg diagnostic</em>, the editorial take that's the reason a reader comes to us instead of HLTV.</p>
+        <p>Volume target: roughly fifteen pieces across the slate, paced over two weeks. Headlines should land in the same voice across the set so the series reads as one body.</p>
+      </article>
+
+      <article class="card" data-card-id="prep-prelude-02" data-section-key="prelude">
+        <span class="toggle">▸</span>
+        <h3>Supercomputer, pre-major edition</h3>
+        <div class="chips">
+          <span class="chip owner">Owner: <strong>Sam</strong></span>
+          <span class="chip remote">Remote</span>
+          <span class="chip">Recurring asset</span>
+        </div>
+        <p>Machine learning predictions on stage advancement and Diamond Coin standings. First publish moment of the event. This piece becomes a returning fixture through the tournament, refreshed before Stage 2 and again before playoffs.</p>
+        <p>Reference our prior supercomputer pieces for tone and visual treatment. The pre-major edition is the most read of the three, because nobody else is putting up numbers yet.</p>
+      </article>
+
+      <article class="card" data-card-id="prep-prelude-03" data-section-key="prelude">
+        <span class="toggle">▸</span>
+        <h3>Why this Cologne is different</h3>
+        <div class="chips">
+          <span class="chip owner">Owners: <strong>Elliott</strong>, camera op</span>
+          <span class="chip hybrid">Remote + on-site</span>
+          <span class="chip">Two formats</span>
+        </div>
+        <p>The Major-versus-IEM framing piece. Soft push to Elliott for the article version: 1,200 to 1,500 words, history-aware but not nostalgic. The on-site vox-pop version is filmed during the event, audience answering the same question in their own words. The two halves can publish a few days apart.</p>
+      </article>
+
+      <article class="card" data-card-id="prep-prelude-04" data-section-key="prelude">
+        <span class="toggle">▸</span>
+        <h3>AWP Hierarchy</h3>
+        <div class="chips">
+          <span class="chip owner">Owners: <strong>Sam</strong> + <strong>Elliott</strong></span>
+          <span class="chip remote">Remote</span>
+          <span class="chip new">Segments menu</span>
+          <span class="chip">Ranking</span>
+        </div>
+        <p>Pre-major ranking of the top AWPers heading into Cologne. Stats, impact, consistency. One AWPer can decide a Bo3 at this stage; the piece exists because readers expect to see who's hot before brackets lock.</p>
+      </article>
+
+      <article class="card" data-card-id="prep-prelude-05" data-section-key="prelude">
+        <span class="toggle">▸</span>
+        <h3>Map Pool Report</h3>
+        <div class="chips">
+          <span class="chip owner">Owners: <strong>Sam</strong> + <strong>Elliott</strong></span>
+          <span class="chip remote">Remote</span>
+          <span class="chip new">Segments menu</span>
+          <span class="chip">Per top team</span>
+        </div>
+        <p>One report per top team. Strengths, weaknesses, permabans, opponent targets. Sits alongside the team breakdowns as the tactical spine, written so the Stage 1 recaps can reference it without re-explaining ban orders.</p>
+      </article>
+
+      <article class="card" data-card-id="prep-prelude-06" data-section-key="prelude">
+        <span class="toggle">▸</span>
+        <h3>Major Pressure Tracker</h3>
+        <div class="chips">
+          <span class="chip owner">Owners: <strong>Sam</strong> + <strong>Elliott</strong></span>
+          <span class="chip remote">Remote</span>
+          <span class="chip new">Segments menu</span>
+          <span class="chip">Stakes · recurring</span>
+        </div>
+        <p>Track which teams are fighting for Cologne spots and Valve points. Refreshed as Stage results land. Cologne is the Major itself, so the stakes board reads twice: who clears, and who fails to clear and falls out of the running.</p>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ============ DURING EVENT ============ -->
+  <section class="section" data-phase="during" data-idea-target=".section-body">
+    <div class="section-head">
+      <span class="name">During event</span>
+      <span class="count" id="count-during">21</span>
+      <span class="blurb">02 → 21 Jun. Mixed-zone, recaps, on-site coverage.</span>
+    </div>
+    <div class="section-body">
+
+      <article class="card" data-card-id="prep-service-00" data-section-key="service">
+        <span class="toggle">▸</span>
+        <h3>Stage 1 recaps</h3>
+        <div class="chips">
+          <span class="chip owner">Owner: <strong>Elliott</strong></span>
+          <span class="chip remote">Remote only</span>
+        </div>
+        <p>Elliott writes the Stage 1 recaps from his desk. No on-site presence until Stage 2. The pace is high, the camera crew has not arrived, the supercomputer has not refreshed. Output is editorial, written, daily.</p>
+      </article>
+
+      <article class="card" data-card-id="prep-service-01" data-section-key="service">
+        <span class="toggle">▸</span>
+        <h3>Supercomputer refreshes</h3>
+        <div class="chips">
+          <span class="chip owner">Owner: <strong>Sam</strong></span>
+          <span class="chip remote">Remote</span>
+          <span class="chip">×2 drops</span>
+        </div>
+        <p>Two publish moments. One before Stage 2 begins. One before playoffs. Each is its own headline asset, not a small update post.</p>
+      </article>
+
+      <article class="card" data-card-id="prep-service-02" data-section-key="service">
+        <span class="toggle">▸</span>
+        <h3>Mixed-zone interviews</h3>
+        <div class="chips">
+          <span class="chip owner">Owner: <strong>Horizzon</strong></span>
+          <span class="chip onsite">On-site</span>
+          <span class="chip">Priority push</span>
+        </div>
+        <p>Audio recorded for every interview. Pedro publishes to Spotify from Lima, embeds widget on every related piece. The positioning stance: <em>rdy.gg leans into Stage 2 orgs that rarely get camera time</em>, the MIBR-type teams other outlets skip past for the default Vitality clip. Tier-1 standard coverage still applies for Vitality, Falcons, FURIA, Spirit.</p>
+      </article>
+
+      <article class="card" data-card-id="prep-service-03" data-section-key="service">
+        <span class="toggle">▸</span>
+        <h3>Coach interviews</h3>
+        <div class="chips">
+          <span class="chip owner">Owner: <strong>Horizzon</strong></span>
+          <span class="chip onsite">On-site</span>
+          <span class="chip">Named pillar</span>
+        </div>
+        <p>Coaches are more articulate, more strategic, and more available than players. B1ad3, dastan, zonic, the German coaches in the home market are examples, not a fixed list. Aim for scheduled sit-downs across the event. Post-elimination coaches give the strongest material.</p>
+      </article>
+
+      <article class="card" data-card-id="prep-service-04" data-section-key="service">
+        <span class="toggle">▸</span>
+        <h3>Post-elimination lane</h3>
+        <div class="chips">
+          <span class="chip owner">Owner: <strong>Horizzon</strong></span>
+          <span class="chip onsite">On-site</span>
+          <span class="chip">Soft commit</span>
+        </div>
+        <p>Longer-form sit-down request when a team is eliminated and before they fly home. Different question set than mixed zone. Soft commitment, not a hard floor. Some teams will say no. If we miss them, it is not a missed deliverable.</p>
+      </article>
+
+      <article class="card" data-card-id="prep-service-05" data-section-key="service">
+        <span class="toggle">▸</span>
+        <h3>Talent interviews</h3>
+        <div class="chips">
+          <span class="chip owner">Brokered by <strong>Sam</strong></span>
+          <span class="chip onsite">On-site</span>
+          <span class="chip">10 — 15 min</span>
+        </div>
+        <p>Sam brokers, probable yes but not contractual. German casters in the home market are the angle. Ten to fifteen minute sit-downs. Talent is not obligated to us and can decline.</p>
+      </article>
+
+      <article class="card" data-card-id="prep-service-06" data-section-key="service">
+        <span class="toggle">▸</span>
+        <h3>Supercomputer reaction segment</h3>
+        <div class="chips">
+          <span class="chip owner">Owner: <strong>Horizzon</strong></span>
+          <span class="chip onsite">On-site</span>
+          <span class="chip">High priority</span>
+          <span class="chip">60 — 90s recurring</span>
+        </div>
+        <p>Horizzon shows players Sam's predictions on camera, films the reaction. Also works as vox-pop with fans on the floor. Low production cost, recurring across the event, high audience pull. The format that pays for itself.</p>
+      </article>
+
+      <article class="card" data-card-id="prep-service-07" data-section-key="service">
+        <span class="toggle">▸</span>
+        <h3>Audience vox-pops</h3>
+        <div class="chips">
+          <span class="chip owner">Owner: <strong>Horizzon</strong> + camera op</span>
+          <span class="chip onsite">On-site</span>
+          <span class="chip">Social-first</span>
+        </div>
+        <p>Brief social edits. Doubles as the live half of the "Why this Cologne is different" piece. The Cologne audience is opinionated and on camera by choice. They are also the readymade context for everything else we ship.</p>
+      </article>
+
+      <article class="card" data-card-id="prep-service-08" data-section-key="service">
+        <span class="toggle">▸</span>
+        <h3>Atmospheric B-roll</h3>
+        <div class="chips">
+          <span class="chip owner">Owner: <strong>Camera op</strong></span>
+          <span class="chip onsite">On-site</span>
+          <span class="chip">Proven, from Rio</span>
+        </div>
+        <p>A dedicated daily window for the camera op. Carved out of the schedule, not squeezed between other asks. Non-negotiable. Cologne and LANXESS specifically are high-value for this content: the crowd, the arches, the queues, the lights. The reel that travels furthest after the event.</p>
+      </article>
+
+      <article class="card" data-card-id="prep-service-09" data-section-key="service">
+        <span class="toggle">▸</span>
+        <h3>Daily editorial recap</h3>
+        <div class="chips">
+          <span class="chip owner">Owner: <strong>Elliott</strong></span>
+          <span class="chip remote">Remote</span>
+          <span class="chip">In production</span>
+        </div>
+        <p>Already greenlit, already in motion. Listed here for completeness so we do not accidentally cannibalize its slot.</p>
+      </article>
+
+      <article class="card" data-card-id="prep-service-10" data-section-key="service">
+        <span class="toggle">▸</span>
+        <h3>First Take</h3>
+        <div class="chips">
+          <span class="chip owner">Owner: <strong>Elliott</strong></span>
+          <span class="chip remote">Remote</span>
+          <span class="chip new">Segments menu</span>
+          <span class="chip">Daily · quick-turn</span>
+        </div>
+        <p>Short reactive piece after each major match or news beat. Pure rdy.gg perspective, no pretense of comprehensive coverage. One per match day at minimum, often two on the big days. Sits next to the daily recap as the faster sibling.</p>
+      </article>
+
+      <article class="card" data-card-id="prep-pilgrimage-01" data-section-key="pilgrimage">
+        <span class="toggle">▸</span>
+        <h3>Win Condition Live · Format fork</h3>
+        <div class="chips">
+          <span class="chip conditional">Conditional</span>
+          <span class="chip">Decision A</span>
+        </div>
+        <p>Two options, not three.</p>
+        <ul>
+          <li><strong>Option A.</strong> Live broadcast. Highest impact, highest production cost, highest failure surface.</li>
+          <li><strong>Option B.</strong> Recorded on the day, posted within 24 to 48 hours. Most of the upside, most of the room to fix mistakes.</li>
+        </ul>
+      </article>
+
+      <article class="card" data-card-id="prep-pilgrimage-02" data-section-key="pilgrimage">
+        <span class="toggle">▸</span>
+        <h3>Win Condition Live · Venue</h3>
+        <div class="chips">
+          <span class="chip conditional">Conditional</span>
+          <span class="chip">Decision B</span>
+        </div>
+        <p>Bar with live audience: ideal. Highest impact, highest budget. The format and the room speak to each other.</p>
+        <p>Hotel meeting room: <em>ruled out</em>. The vibe does not survive a hotel meeting room.</p>
+      </article>
+
+      <article class="card" data-card-id="prep-pilgrimage-03" data-section-key="pilgrimage">
+        <span class="toggle">▸</span>
+        <h3>Win Condition Live · Equipment</h3>
+        <div class="chips">
+          <span class="chip conditional">Conditional</span>
+          <span class="chip">If live</span>
+        </div>
+        <ul>
+          <li>Two cameras, switched.</li>
+          <li>Switcher for basic camera cuts.</li>
+          <li>One multi-input capture card if we're going live, so both feeds reach the PC for the broadcast. Plenty of options on the market. If we record on the day instead, footage stays on the cameras and gets edited later, no capture card needed.</li>
+          <li>One PC, for graphics and run-of-show.</li>
+          <li>Three to four broadcast-grade microphones, one per chair.</li>
+          <li>Rodecaster Pro or equivalent mixer. Non-optional.</li>
+          <li>Most of this can be rented locally in Köln; nothing here requires ownership.</li>
+        </ul>
+      </article>
+
+      <article class="card" data-card-id="prep-pilgrimage-04" data-section-key="pilgrimage">
+        <span class="toggle">▸</span>
+        <h3>Win Condition Live · Guests</h3>
+        <div class="chips">
+          <span class="chip conditional">Conditional</span>
+          <span class="chip">Soft commits</span>
+        </div>
+        <p>Talent or players. Must be confirmed before we commit to a date. <em>Sam's most likely on-camera moment</em>, if he says yes. He is hesitant, not opposed.</p>
+      </article>
+
+      <article class="card" data-card-id="prep-vision-01" data-section-key="vision">
+        <span class="toggle">▸</span>
+        <h3>Team mini-docs · One episode per team</h3>
+        <div class="chips">
+          <span class="chip">Strategic direction</span>
+          <span class="chip">20 minutes per episode</span>
+        </div>
+        <p>Twenty minutes per episode. Selected list, not a full roster. The intent is the <em>emotional side of the players</em>, the side rdy.gg does not usually show. Coach Arthur and voo-style depth, but as a series with a shared visual language and a release cadence.</p>
+        <p>Requires team alignment, schedule access, deeper relationships than mixed-zone gives us. Not something to launch cold at Cologne. But Cologne can be a pilot if a team bites and the access is real.</p>
+      </article>
+
+      <article class="card" data-card-id="prep-vision-02" data-section-key="vision">
+        <span class="toggle">▸</span>
+        <h3>Team mini-docs · Framing for the team</h3>
+        <div class="chips">
+          <span class="chip">Strategic direction</span>
+          <span class="chip">Why now</span>
+        </div>
+        <p>This belongs in the deck because the rest of the deck is tactical. Cologne is a single tournament. The mini-docs are the answer to "what is rdy.gg in two years." Listing it here forces us to keep one eye there while we run the present.</p>
+      </article>
+
+      <article class="card" data-card-id="prep-openq-01" data-section-key="open-questions">
+        <span class="toggle">▸</span>
+        <h3>Banner and sign culture</h3>
+        <div class="chips">
+          <span class="chip owner">Owner: <strong>Camera op</strong></span>
+          <span class="chip onsite">On-site</span>
+          <span class="chip">Photo essay or montage</span>
+        </div>
+        <p>German CS fan banners at LANXESS are their own art form. Either a photo essay or a 60-second montage. Camera op alignment needed early so the shots actually get captured. Easy to suggest, ship-or-cut later.</p>
+      </article>
+
+      <article class="card" data-card-id="prep-openq-02" data-section-key="open-questions">
+        <span class="toggle">▸</span>
+        <h3>Cologne Returns · Anchor piece</h3>
+        <div class="chips">
+          <span class="chip owner">Owner: <strong>Elliott</strong></span>
+          <span class="chip remote">Remote</span>
+          <span class="chip">Evergreen · slow content</span>
+        </div>
+        <p>Why Cologne as a venue matters in CS history. LANXESS legacy, German CS culture, iconic past moments. Written by Elliott, depends on bandwidth. Indexable, slow content, the kind of piece that pulls SEO long after the event is over.</p>
+      </article>
+
+      <article class="card" data-card-id="prep-openq-03" data-section-key="open-questions">
+        <span class="toggle">▸</span>
+        <h3>Tournament Origins · Video essay series</h3>
+        <div class="chips">
+          <span class="chip new">New in v1</span>
+          <span class="chip">Article + video essay</span>
+          <span class="chip">Potential running series</span>
+        </div>
+        <p>An article plus an edited <em>video essay for the rdy.gg YouTube channel</em> on the origin story of a single tournament. Cologne is the pilot because the history is the deepest and most visual: a decade of LANXESS moments, the venue's relationship to CS as a sport, why this is the cathedral and not a metaphor.</p>
+        <p>If the pilot works, it becomes a recurring series across the rdy ecosystem. Each major and each long-running circuit stop gets an episode. Long-tail, evergreen, ours to own.</p>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ============ POST-EVENT ============ -->
+  <section class="section" data-phase="post" data-idea-target=".section-body">
+    <div class="section-head">
+      <span class="name">Post-event</span>
+      <span class="count" id="count-post">7</span>
+      <span class="blurb">22 → 30 Jun. After the trophy lift.</span>
+    </div>
+    <div class="section-body">
+
+      <article class="card" data-card-id="prep-benediction-01" data-section-key="benediction">
+        <span class="toggle">▸</span>
+        <h3>Vitality piece, in two versions</h3>
+        <div class="chips">
+          <span class="chip owner">Owner: <strong>Elliott</strong></span>
+          <span class="chip">Pre-written, dual version</span>
+        </div>
+        <p>Drafted in both shapes before the grand final. <em>End of the era</em> if they lose. <em>Dynasty cemented</em> if they win. Whichever ships, it ships within the hour.</p>
+      </article>
+
+      <article class="card" data-card-id="prep-benediction-02" data-section-key="benediction">
+        <span class="toggle">▸</span>
+        <h3>Wrap-up Win Condition episode</h3>
+        <div class="chips">
+          <span class="chip">Within 72 hours</span>
+        </div>
+        <p>Recorded and published within 72 hours of the grand final. The post-mortem episode while the read is still live. Format consistent with the season slate.</p>
+      </article>
+
+      <article class="card" data-card-id="prep-benediction-03" data-section-key="benediction">
+        <span class="toggle">▸</span>
+        <h3>Champion-team feature</h3>
+        <div class="chips">
+          <span class="chip">Long-form</span>
+        </div>
+        <p>Long-form profile on whichever roster lifts. Built from mixed-zone audio, coach interviews, post-elim sit-downs, plus the editorial perspective Elliott brings.</p>
+      </article>
+
+      <article class="card" data-card-id="prep-benediction-04" data-section-key="benediction">
+        <span class="toggle">▸</span>
+        <h3>Best-of compilation</h3>
+        <div class="chips">
+          <span class="chip">YouTube + TikTok</span>
+        </div>
+        <p>Compiled from B-roll, audience vox-pops, reaction segments, and crowd footage. One cut for YouTube, several shorter for TikTok. The reel that travels furthest after the event closes.</p>
+      </article>
+
+      <article class="card" data-card-id="prep-benediction-05" data-section-key="benediction">
+        <span class="toggle">▸</span>
+        <h3>Editorial wrap</h3>
+        <div class="chips">
+          <span class="chip owner">Owner: <strong>Elliott</strong> + editorial</span>
+          <span class="chip">Position piece</span>
+        </div>
+        <p>"What Cologne told us about CS2." The position piece that frames the next six months of coverage. Slower than the recap, more durable than the hot take.</p>
+      </article>
+
+      <article class="card" data-card-id="prep-benediction-06" data-section-key="benediction">
+        <span class="toggle">▸</span>
+        <h3>Winners &amp; Losers</h3>
+        <div class="chips">
+          <span class="chip owner">Owner: <strong>Elliott</strong> + editorial</span>
+          <span class="chip remote">Remote</span>
+          <span class="chip new">Segments menu</span>
+          <span class="chip">Wrap · recap</span>
+        </div>
+        <p>Day after the grand final. Who came out ahead at Cologne and who didn't. Teams, players, orgs, regions. The piece readers screenshot.</p>
+      </article>
+
+      <article class="card" data-card-id="prep-benediction-07" data-section-key="benediction">
+        <span class="toggle">▸</span>
+        <h3>The Stat That Stuck</h3>
+        <div class="chips">
+          <span class="chip owner">Owners: <strong>Sam</strong> + <strong>Elliott</strong></span>
+          <span class="chip remote">Remote</span>
+          <span class="chip new">Segments menu</span>
+          <span class="chip">Stat · quick-turn</span>
+        </div>
+        <p>One surprising number from Cologne, the kind that tells the whole story sideways. Built around it. The shortest piece in the wrap-up window, often the most shared.</p>
+      </article>
+
+    </div>
+  </section>
+
+</div>
+
+<!-- ============ TOOLBAR ============ -->
+<div class="toolbar">
+  <span class="approve-count"><strong id="ap-num">0</strong> approved · <span id="ap-total">0</span> total</span>
+  <button class="tb-btn" id="export-approved" disabled type="button">Export ↓</button>
+  <button class="tb-btn primary" id="fab" type="button">+ Add deliverable</button>
+  <div class="tb-overflow" id="tb-overflow">
+    <button class="tb-btn" id="overflow-toggle" type="button" aria-label="More" title="More">⋯</button>
+    <div class="menu">
+      <button id="reset-votes" type="button">Reset all votes</button>
+      <button id="clear-ideas" type="button">Clear added ideas</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL ============ -->
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal-inner">
+    <button class="modal-close" id="modal-close" type="button" aria-label="Close">✕</button>
+    <h3 id="modal-title">Add deliverable from the floor</h3>
+    <div class="modal-sub">Drop it where it goes. Synced live across every open tab.</div>
+
+    <form id="idea-form" autocomplete="off">
+
+      <div class="modal-row">
+        <div class="modal-field" style="flex: 0 0 40%;">
+          <label for="idea-author">Submitted by</label>
+          <input id="idea-author" type="text" maxlength="32" placeholder="initials or name" list="crew" />
+        </div>
+        <div class="modal-field">
+          <label for="idea-section">Section</label>
+          <select id="idea-section" required>
+            <option value="prelude">I. Prelude (pre-event)</option>
+            <option value="service">II. The Service (during)</option>
+            <option value="pilgrimage">III. The Pilgrimage (conditional)</option>
+            <option value="vision">IV. The Vision (strategic)</option>
+            <option value="open-questions">V. Open Questions (during)</option>
+            <option value="benediction">VI. Benediction (post-event)</option>
+            <option value="order">VII. Order of Service</option>
+            <option value="colophon">Colophon</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-field">
+        <label for="idea-title">Title</label>
+        <input id="idea-title" type="text" maxlength="80" required placeholder="The headline of the deliverable." />
+      </div>
+
+      <div class="modal-field">
+        <label for="idea-note">Description</label>
+        <textarea id="idea-note" maxlength="800" required placeholder="What is it, what does it look like, who reads it."></textarea>
+      </div>
+
+      <div class="modal-row">
+        <div class="modal-field">
+          <label for="idea-owner">Owner</label>
+          <input id="idea-owner" type="text" maxlength="40" placeholder="Elliott, Sam, Horizzon..." list="crew" />
+        </div>
+        <div class="modal-field" style="flex: 0 0 36%;">
+          <label for="idea-place">Place</label>
+          <select id="idea-place">
+            <option value="">—</option>
+            <option value="remote">Remote</option>
+            <option value="onsite">On-site</option>
+            <option value="hybrid">Hybrid</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-field">
+        <label for="idea-tags">Tags · comma-separated, optional</label>
+        <input id="idea-tags" type="text" maxlength="120" placeholder="e.g. Long-form, Recurring, Social-first" />
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="tb-btn reset-btn" id="modal-reset" hidden>↺ Reset to original</button>
+        <button type="button" class="tb-btn" id="modal-cancel">Cancel</button>
+        <button type="submit" class="tb-btn primary" id="modal-submit">Add to deck</button>
+      </div>
+    </form>
+
+    <datalist id="crew">
+      <option value="Div"><option value="Andreea">
+      <option value="Pedro">
+      <option value="Elliott"><option value="aizyesque">
+      <option value="Sam"><option value="LuzRaposa">
+      <option value="Horizzon"><option value="Sebastian">
+      <option value="Camera op"><option value="Editorial team">
+    </datalist>
+  </div>
+</div>
+
+<!-- ================================================================
+     PAGE BEHAVIOR · shares the Supabase row with /decks/cologne/
+     so approvals, edits, and added deliverables flow both ways.
+     ================================================================ -->
+<script>
+(function () {
+
+  // ============ Storage keys (must match V1) ============
+  const K_IDEAS     = 'rdy-cologne-ideas-v2';
+  const K_STATUS    = 'rdy-cologne-status-v2';
+  const K_AUTHOR    = 'rdy-cologne-author-v2';
+  const K_OVERRIDES = 'rdy-cologne-overrides-v2';
+
+  // ============ Supabase ============
+  const SUPABASE_URL      = 'https://gmfxramxulpracbujnuv.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_DpYxp69iGUhINMR5QJDN8g_HshEULdM';
+  const SUPABASE_TABLE    = 'cologne_state';
+  const SUPABASE_ROW_ID   = 'main';
+  const supabaseReady =
+    !!SUPABASE_URL && !SUPABASE_URL.includes('PASTE_') &&
+    !!SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.includes('PASTE_');
+
+  function syncHeaders() {
+    return {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: 'Bearer ' + SUPABASE_ANON_KEY
+    };
+  }
+
+  function setSyncStatus(state) {
+    const el = document.getElementById('h-sync');
+    if (!el) return;
+    el.dataset.state = state;
+    const lbl = el.querySelector('.state');
+    if (lbl) lbl.textContent = state;
+  }
+
+  let lastSeenUpdatedAt = null;
+
+  function applyCloudData(data) {
+    if (!data || typeof data !== 'object') return;
+    if (Array.isArray(data.ideas))                       localStorage.setItem(K_IDEAS,     JSON.stringify(data.ideas));
+    if (data.status && typeof data.status === 'object')  localStorage.setItem(K_STATUS,    JSON.stringify(data.status));
+    if (data.overrides && typeof data.overrides === 'object')
+                                                          localStorage.setItem(K_OVERRIDES, JSON.stringify(data.overrides));
+  }
+
+  async function pullSync() {
+    if (!supabaseReady) { setSyncStatus('offline'); return; }
+    setSyncStatus('syncing');
+    try {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.${SUPABASE_ROW_ID}&select=data,updated_at`,
+        { headers: syncHeaders() }
+      );
+      if (!res.ok) throw new Error('http ' + res.status);
+      const rows = await res.json();
+      const row = rows[0];
+      if (row) {
+        lastSeenUpdatedAt = row.updated_at;
+        applyCloudData(row.data);
+      }
+      setSyncStatus('live');
+    } catch (err) {
+      console.warn('pullSync failed:', err);
+      setSyncStatus('error');
+    }
+  }
+
+  let pushTimer = null;
+  function pushSync() {
+    if (!supabaseReady) return;
+    clearTimeout(pushTimer);
+    setSyncStatus('syncing');
+    pushTimer = setTimeout(actuallyPush, 220);
+  }
+  async function actuallyPush() {
+    try {
+      const data = {
+        ideas:     JSON.parse(localStorage.getItem(K_IDEAS)     || '[]'),
+        status:    JSON.parse(localStorage.getItem(K_STATUS)    || '{}'),
+        overrides: JSON.parse(localStorage.getItem(K_OVERRIDES) || '{}'),
+      };
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=id&select=updated_at`,
+        {
+          method: 'POST',
+          headers: {
+            ...syncHeaders(),
+            'Content-Type': 'application/json',
+            Prefer: 'resolution=merge-duplicates,return=representation'
+          },
+          body: JSON.stringify({ id: SUPABASE_ROW_ID, data, updated_at: new Date().toISOString() })
+        }
+      );
+      if (!res.ok) throw new Error('http ' + res.status);
+      const rows = await res.json();
+      if (rows[0] && rows[0].updated_at) lastSeenUpdatedAt = rows[0].updated_at;
+      setSyncStatus('live');
+    } catch (err) {
+      console.warn('actuallyPush failed:', err);
+      setSyncStatus('error');
+    }
+  }
+
+  const POLL_MS = 1500;
+  let pollInFlight = false;
+  async function pollSync() {
+    if (!supabaseReady || pollInFlight || document.hidden) return;
+    pollInFlight = true;
+    try {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.${SUPABASE_ROW_ID}&select=data,updated_at`,
+        { headers: syncHeaders() }
+      );
+      if (!res.ok) throw new Error('http ' + res.status);
+      const rows = await res.json();
+      const row = rows[0];
+      if (!row) return;
+      if (row.updated_at === lastSeenUpdatedAt) return;
+      lastSeenUpdatedAt = row.updated_at;
+      applyCloudData(row.data);
+      renderAll();
+      setSyncStatus('live');
+    } catch (err) {
+      console.warn('pollSync failed:', err);
+      setSyncStatus('error');
+    } finally {
+      pollInFlight = false;
+    }
+  }
+
+  // ============ Section labels ============
+  const SECTIONS = [
+    { key: 'prelude',        label: 'I. Prelude',         phase: 'pre'    },
+    { key: 'service',        label: 'II. The Service',    phase: 'during' },
+    { key: 'pilgrimage',     label: 'III. The Pilgrimage', phase: 'during' },
+    { key: 'vision',         label: 'IV. The Vision',     phase: 'during' },
+    { key: 'open-questions', label: 'V. Open Questions',  phase: 'during' },
+    { key: 'benediction',    label: 'VI. Benediction',    phase: 'post'   },
+    { key: 'order',          label: 'VII. Order of Service', phase: 'during' },
+    { key: 'colophon',       label: 'Colophon',           phase: 'during' },
+  ];
+  function phaseForSection(key) {
+    const s = SECTIONS.find(x => x.key === key);
+    return s ? s.phase : 'during';
+  }
+
+  // ============ Helpers ============
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
+    }[c]));
+  }
+  function placeChip(place) {
+    if (place === 'onsite')  return '<span class="chip onsite">On-site</span>';
+    if (place === 'remote')  return '<span class="chip remote">Remote</span>';
+    if (place === 'hybrid')  return '<span class="chip hybrid">Hybrid</span>';
+    return '';
+  }
+
+  // ============ Originals snapshot + overrides ============
+  const ORIGINAL_STATES = {};
+
+  function extractFromDom(card) {
+    const h3 = card.querySelector(':scope > h3');
+    const title = h3 ? h3.textContent.trim() : '';
+    const body = Array.from(card.querySelectorAll(':scope > p, :scope > ul'))
+      .map(el => el.textContent.replace(/\s+/g, ' ').trim())
+      .filter(Boolean)
+      .join('\n\n');
+    let owner = ''; let place = ''; const tags = [];
+    const chips = card.querySelector('.chips');
+    if (chips) {
+      Array.from(chips.querySelectorAll('.chip')).forEach(c => {
+        if (c.classList.contains('owner')) {
+          owner = c.textContent.replace(/^(Owners?|Brokered by)[:\s]*/i, '').trim();
+        } else if (c.classList.contains('onsite')) place = 'onsite';
+        else if (c.classList.contains('remote'))  place = 'remote';
+        else if (c.classList.contains('hybrid'))  place = 'hybrid';
+        else if (!c.classList.contains('from-floor')) tags.push(c.textContent.trim());
+      });
+    }
+    return { title, body, owner, place, tags };
+  }
+
+  function captureOriginals() {
+    document.querySelectorAll('.card[data-card-id^="prep-"]').forEach(card => {
+      if (!ORIGINAL_STATES[card.dataset.cardId]) {
+        ORIGINAL_STATES[card.dataset.cardId] = extractFromDom(card);
+      }
+    });
+  }
+
+  function loadOverrides() {
+    try { return JSON.parse(localStorage.getItem(K_OVERRIDES) || '{}'); }
+    catch { return {}; }
+  }
+  function saveOverrides(map) {
+    localStorage.setItem(K_OVERRIDES, JSON.stringify(map));
+    pushSync();
+  }
+
+  function applyEditableState(card, state) {
+    const h3 = card.querySelector(':scope > h3');
+    if (h3) h3.textContent = state.title || '';
+    Array.from(card.querySelectorAll(':scope > p, :scope > ul')).forEach(el => el.remove());
+    if (h3) {
+      const paragraphs = String(state.body || '').split(/\n\n+/).filter(Boolean);
+      let cursor = h3;
+      paragraphs.forEach(text => {
+        const p = document.createElement('p');
+        p.innerHTML = escapeHtml(text).replace(/\n/g, '<br>');
+        cursor.after(p);
+        cursor = p;
+      });
+    }
+    const chips = card.querySelector('.chips');
+    if (chips) {
+      const fromFloor = chips.querySelector('.chip.from-floor');
+      const html = (fromFloor ? fromFloor.outerHTML : '')
+        + (state.owner ? `<span class="chip owner">Owner: <strong>${escapeHtml(state.owner)}</strong></span>` : '')
+        + (state.place ? placeChip(state.place) : '')
+        + (state.tags || []).map(t => `<span class="chip">${escapeHtml(t)}</span>`).join('');
+      chips.innerHTML = html;
+    }
+    updateMeta(card);
+  }
+
+  // ============ Card meta (collapsed-row owner summary) ============
+  function updateMeta(card) {
+    let meta = card.querySelector(':scope > .meta');
+    if (!meta) {
+      meta = document.createElement('div');
+      meta.className = 'meta';
+      const status = card.querySelector('.card-status');
+      if (status) card.insertBefore(meta, status);
+      else card.appendChild(meta);
+    }
+    const ownerChip = card.querySelector('.chip.owner');
+    const placeEl = card.querySelector('.chip.onsite, .chip.remote, .chip.hybrid');
+    const owner = ownerChip ? ownerChip.textContent.replace(/^(Owners?|Brokered by)[:\s]*/i, '').trim() : '';
+    const place = placeEl ? placeEl.textContent.trim() : '';
+    meta.textContent = [owner, place].filter(Boolean).join(' · ');
+  }
+
+  // ============ Card status (✓ / ? / ✕) + edit button ============
+  function loadStatus() {
+    try { return JSON.parse(localStorage.getItem(K_STATUS) || '{}'); }
+    catch { return {}; }
+  }
+  function saveStatus(map) {
+    localStorage.setItem(K_STATUS, JSON.stringify(map));
+    pushSync();
+  }
+
+  function statusToolbarEl() {
+    const t = document.createElement('div');
+    t.className = 'card-status';
+    t.innerHTML = `
+      <button class="vote" type="button" data-vote="approved"  aria-label="Approve">✓</button>
+      <button class="vote" type="button" data-vote="unsure"    aria-label="Mark uncertain">?</button>
+      <button class="vote" type="button" data-vote="ruled-out" aria-label="Rule out">✕</button>
+    `;
+    return t;
+  }
+  function editButtonEl(cardId) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'card-edit';
+    btn.dataset.editCard = cardId;
+    btn.setAttribute('aria-label', 'Edit deliverable');
+    btn.textContent = 'Edit';
+    return btn;
+  }
+  function applyCardStatus(card, status) {
+    card.classList.remove('approved', 'unsure', 'ruled-out');
+    if (status) card.classList.add(status);
+  }
+
+  function ensureCardActions() {
+    const statusMap = loadStatus();
+    document.querySelectorAll('.card').forEach((card) => {
+      if (!card.dataset.cardId) card.dataset.cardId = 'auto-' + Math.random().toString(36).slice(2, 9);
+      if (!card.querySelector('.card-status')) card.appendChild(statusToolbarEl());
+      if (!card.querySelector('.card-edit'))   card.appendChild(editButtonEl(card.dataset.cardId));
+      const editBtn = card.querySelector('.card-edit');
+      if (editBtn) editBtn.dataset.editCard = card.dataset.cardId;
+      applyCardStatus(card, statusMap[card.dataset.cardId] || null);
+      updateMeta(card);
+    });
+    updateApprovedCount();
+    updatePhaseCounts();
+  }
+
+  // Vote button delegation
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.vote');
+    if (!btn) return;
+    e.stopPropagation();   // don't toggle expansion
+    const card = btn.closest('.card');
+    if (!card) return;
+    const id = card.dataset.cardId;
+    const action = btn.dataset.vote;
+    const map = loadStatus();
+    if (map[id] === action) { delete map[id]; applyCardStatus(card, null); }
+    else { map[id] = action; applyCardStatus(card, action); }
+    saveStatus(map);
+    updateApprovedCount();
+  });
+
+  // Edit button — open modal in edit mode, don't toggle
+  document.addEventListener('click', (e) => {
+    const editBtn = e.target.closest('[data-edit-card]');
+    if (!editBtn) return;
+    e.stopPropagation();
+    const id = editBtn.dataset.editCard;
+    const card = document.querySelector(`[data-card-id="${id}"]`);
+    if (card) openModalForEdit(card);
+  });
+
+  // Card-del button on idea cards
+  document.addEventListener('click', (e) => {
+    const del = e.target.closest('[data-del-idea]');
+    if (!del) return;
+    e.stopPropagation();
+    const id = del.dataset.delIdea;
+    saveIdeas(loadIdeas().filter(i => i.id !== id));
+    const status = loadStatus();
+    delete status[id];
+    saveStatus(status);
+    renderAll();
+  });
+
+  // Click row to toggle expansion (ignore clicks on buttons inside)
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('button')) return;
+    const card = e.target.closest('.card');
+    if (!card) return;
+    card.classList.toggle('expanded');
+    const toggle = card.querySelector('.toggle');
+    if (toggle) toggle.textContent = '▸';   // CSS rotates it
+  });
+
+  // ============ Counts ============
+  const apNum = document.getElementById('ap-num');
+  const apTotal = document.getElementById('ap-total');
+  function updateApprovedCount() {
+    const all = document.querySelectorAll('.card').length;
+    const approved = document.querySelectorAll('.card.approved').length;
+    if (apNum)   apNum.textContent   = approved;
+    if (apTotal) apTotal.textContent = all;
+    const exportBtn = document.getElementById('export-approved');
+    if (exportBtn) {
+      exportBtn.disabled = approved === 0;
+      exportBtn.textContent = approved === 0 ? 'Export ↓' : `Export ${approved} ↓`;
+    }
+  }
+
+  function updatePhaseCounts() {
+    ['pre', 'during', 'post'].forEach(phase => {
+      const el = document.getElementById('count-' + phase);
+      if (!el) return;
+      const cards = document.querySelectorAll(`section[data-phase="${phase}"] .card`);
+      el.textContent = cards.length;
+    });
+  }
+
+  // ============ Ideas as full deliverables ============
+  function loadIdeas() {
+    try { return JSON.parse(localStorage.getItem(K_IDEAS) || '[]'); }
+    catch { return []; }
+  }
+  function saveIdeas(arr) {
+    localStorage.setItem(K_IDEAS, JSON.stringify(arr));
+    pushSync();
+  }
+
+  function ideaCardEl(idea) {
+    const card = document.createElement('article');
+    card.className = 'card card-idea';
+    card.dataset.cardId = idea.id;
+    card.dataset.sectionKey = idea.section;
+    const tagsHtml = (idea.tags || []).map(t => `<span class="chip">${escapeHtml(t)}</span>`).join('');
+    const owner = idea.owner
+      ? `<span class="chip owner">Owner: <strong>${escapeHtml(idea.owner)}</strong></span>`
+      : '';
+    const author = idea.author ? escapeHtml(idea.author) : 'anon';
+    card.innerHTML = `
+      <span class="toggle">▸</span>
+      <h3>${escapeHtml(idea.title)}</h3>
+      <button class="card-del" type="button" data-del-idea="${idea.id}" aria-label="Remove from deck">×</button>
+      <div class="chips">
+        <span class="chip from-floor">From the floor · <strong>${author}</strong></span>
+        ${owner}
+        ${placeChip(idea.place)}
+        ${tagsHtml}
+      </div>
+      <p>${escapeHtml(idea.body).replace(/\n/g, '<br>')}</p>
+    `;
+    return card;
+  }
+
+  function targetForSectionKey(key) {
+    // Find the section with the matching phase, then return its .section-body
+    const phase = phaseForSection(key);
+    const sec = document.querySelector(`section[data-phase="${phase}"]`);
+    return sec ? sec.querySelector('.section-body') : null;
+  }
+
+  function renderAll() {
+    // 1. Apply or revert overrides on prepared cards
+    const overrides = loadOverrides();
+    document.querySelectorAll('.card[data-card-id^="prep-"]').forEach(card => {
+      const id = card.dataset.cardId;
+      const original = ORIGINAL_STATES[id];
+      if (!original) return;
+      if (overrides[id]) {
+        applyEditableState(card, { ...original, ...overrides[id] });
+        card.classList.add('edited');
+      } else if (card.classList.contains('edited')) {
+        applyEditableState(card, original);
+        card.classList.remove('edited');
+      }
+    });
+    // 2. Re-render idea cards
+    document.querySelectorAll('.card.card-idea').forEach(el => el.remove());
+    loadIdeas().forEach(idea => {
+      const target = targetForSectionKey(idea.section);
+      if (target) target.appendChild(ideaCardEl(idea));
+    });
+    // 3. Inject toolbars + edit, apply saved status, refresh counts
+    ensureCardActions();
+  }
+
+  // ============ Modal ============
+  const fab          = document.getElementById('fab');
+  const modal        = document.getElementById('modal');
+  const modalTitleEl = document.getElementById('modal-title');
+  const modalSubEl   = document.querySelector('#modal .modal-sub');
+  const modalClose   = document.getElementById('modal-close');
+  const modalCancel  = document.getElementById('modal-cancel');
+  const modalReset   = document.getElementById('modal-reset');
+  const modalSubmit  = document.getElementById('modal-submit');
+  const form         = document.getElementById('idea-form');
+  const inAuthor     = document.getElementById('idea-author');
+  const inSection    = document.getElementById('idea-section');
+  const inTitle      = document.getElementById('idea-title');
+  const inNote       = document.getElementById('idea-note');
+  const inOwner      = document.getElementById('idea-owner');
+  const inPlace      = document.getElementById('idea-place');
+  const inTags       = document.getElementById('idea-tags');
+  const fAuthorWrap  = inAuthor.closest('.modal-field');
+
+  let modalMode = { mode: 'add' };
+
+  function sectionKeyFromCard(card) {
+    return card.dataset.sectionKey || 'prelude';
+  }
+
+  function openModalForAdd() {
+    modalMode = { mode: 'add' };
+    modalTitleEl.textContent = 'Add deliverable from the floor';
+    modalSubEl.textContent = 'Drop it where it goes. Synced live across every open tab.';
+    modalSubmit.textContent = 'Add to deck';
+    modalReset.hidden = true;
+    fAuthorWrap.style.display = '';
+    form.reset();
+    const lastAuthor = localStorage.getItem(K_AUTHOR);
+    if (lastAuthor) inAuthor.value = lastAuthor;
+    modal.hidden = false;
+    setTimeout(() => inTitle.focus(), 60);
+  }
+
+  function openModalForEdit(card) {
+    const id = card.dataset.cardId;
+    modalMode = { mode: 'edit', cardId: id };
+    let state;
+    const isIdea = id.startsWith('idea-');
+    if (isIdea) {
+      state = loadIdeas().find(i => i.id === id);
+      if (!state) return;
+      fAuthorWrap.style.display = '';
+      modalReset.hidden = true;
+    } else {
+      const overrides = loadOverrides();
+      const original = ORIGINAL_STATES[id] || extractFromDom(card);
+      state = { ...original, ...(overrides[id] || {}), section: sectionKeyFromCard(card), author: '' };
+      fAuthorWrap.style.display = 'none';
+      modalReset.hidden = !overrides[id];
+    }
+    inAuthor.value = state.author || '';
+    inSection.value = state.section || sectionKeyFromCard(card);
+    inTitle.value = state.title || '';
+    inNote.value = state.body || '';
+    inOwner.value = state.owner || '';
+    inPlace.value = state.place || '';
+    inTags.value = (state.tags || []).join(', ');
+    modalTitleEl.textContent = isIdea ? 'Edit floor idea' : 'Edit deliverable';
+    modalSubEl.textContent = isIdea ? 'Update what we added from the floor.' : 'Update what we ship. Reset restores the original copy.';
+    modalSubmit.textContent = 'Save';
+    modal.hidden = false;
+    setTimeout(() => inTitle.focus(), 60);
+  }
+
+  function closeModal() { modal.hidden = true; }
+
+  fab.addEventListener('click', openModalForAdd);
+  modalClose.addEventListener('click', closeModal);
+  modalCancel.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !modal.hidden) closeModal(); });
+
+  modalReset.addEventListener('click', () => {
+    if (modalMode.mode !== 'edit') return;
+    const id = modalMode.cardId;
+    if (!id || !id.startsWith('prep-')) return;
+    if (!confirm('Reset this card to its original copy? Your edits will be lost.')) return;
+    const overrides = loadOverrides();
+    delete overrides[id];
+    saveOverrides(overrides);
+    renderAll();
+    closeModal();
+  });
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const title = inTitle.value.trim();
+    const body  = inNote.value.trim();
+    if (!title || !body) return;
+    const author = inAuthor.value.trim();
+    if (author) localStorage.setItem(K_AUTHOR, author);
+    const tags = inTags.value.split(',').map(t => t.trim()).filter(Boolean);
+    const data = { title, body, owner: inOwner.value.trim(), place: inPlace.value, tags };
+
+    if (modalMode.mode === 'edit') {
+      const id = modalMode.cardId;
+      if (id.startsWith('idea-')) {
+        const ideas = loadIdeas();
+        const idx = ideas.findIndex(i => i.id === id);
+        if (idx >= 0) {
+          ideas[idx] = { ...ideas[idx], ...data, section: inSection.value, author: author || ideas[idx].author };
+          saveIdeas(ideas);
+        }
+      } else {
+        const overrides = loadOverrides();
+        overrides[id] = data;
+        saveOverrides(overrides);
+      }
+    } else {
+      const ideas = loadIdeas();
+      ideas.push({
+        id: 'idea-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+        ts: Date.now(),
+        section: inSection.value,
+        author,
+        ...data
+      });
+      saveIdeas(ideas);
+    }
+    renderAll();
+    closeModal();
+  });
+
+  // ============ Export approved (XLSX, on-demand SheetJS) ============
+  const exportBtn = document.getElementById('export-approved');
+  let _xlsxPromise = null;
+  function loadSheetJS() {
+    if (window.XLSX) return Promise.resolve(window.XLSX);
+    if (_xlsxPromise) return _xlsxPromise;
+    _xlsxPromise = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+      s.onload = () => window.XLSX ? resolve(window.XLSX) : reject(new Error('XLSX missing'));
+      s.onerror = () => reject(new Error('XLSX script failed to load'));
+      document.head.appendChild(s);
+    });
+    return _xlsxPromise;
+  }
+
+  function cardRowData(card) {
+    const sectionKey = card.dataset.sectionKey || 'prelude';
+    const sectionLabel = (SECTIONS.find(s => s.key === sectionKey) || { label: sectionKey }).label;
+    const title = card.querySelector(':scope > h3')?.textContent.trim() || '(untitled)';
+    const isIdea = card.classList.contains('card-idea');
+
+    let submittedBy = ''; let owner = ''; let place = ''; const tags = [];
+    card.querySelectorAll('.chip').forEach(c => {
+      const txt = c.textContent.replace(/\s+/g, ' ').trim();
+      if (c.classList.contains('from-floor')) {
+        const m = txt.match(/from the floor\s*[·\-]\s*(.*)$/i);
+        submittedBy = m ? m[1].trim() : '';
+      } else if (c.classList.contains('owner')) {
+        owner = txt.replace(/^(Owners?|Brokered by)[:\s]*/i, '').trim();
+      } else if (c.classList.contains('onsite')) place = 'On-site';
+      else if (c.classList.contains('remote'))  place = 'Remote';
+      else if (c.classList.contains('hybrid'))  place = 'Hybrid';
+      else tags.push(txt);
+    });
+
+    const description = Array.from(card.querySelectorAll(':scope > p, :scope > ul'))
+      .map(el => el.textContent.replace(/\s+/g, ' ').trim())
+      .filter(Boolean)
+      .join('\n\n');
+
+    return {
+      section: sectionLabel,
+      title,
+      source: isIdea ? 'From the floor' : 'Prepared',
+      submittedBy, owner, place, tags: tags.join(', '), description
+    };
+  }
+
+  exportBtn.addEventListener('click', async () => {
+    const approved = Array.from(document.querySelectorAll('.card.approved'));
+    if (!approved.length) {
+      alert('Nothing approved yet. Mark a card with ✓ to include it.');
+      return;
+    }
+    let XLSX;
+    try { XLSX = await loadSheetJS(); }
+    catch (err) {
+      console.error(err);
+      alert('Could not load the Excel library. Check your connection and try again.');
+      return;
+    }
+    const sectionOrder = SECTIONS.map(s => s.key);
+    approved.sort((a, b) =>
+      sectionOrder.indexOf(a.dataset.sectionKey || '') - sectionOrder.indexOf(b.dataset.sectionKey || '')
+    );
+
+    const headers = ['Section', 'Title', 'Source', 'Submitted by', 'Owner', 'Place', 'Tags', 'Description'];
+    const aoa = [headers];
+    approved.forEach(card => {
+      const d = cardRowData(card);
+      aoa.push([d.section, d.title, d.source, d.submittedBy, d.owner, d.place, d.tags, d.description]);
+    });
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws['!cols'] = [
+      { wch: 22 }, { wch: 38 }, { wch: 14 }, { wch: 16 },
+      { wch: 24 }, { wch: 10 }, { wch: 36 }, { wch: 80 }
+    ];
+    ws['!freeze'] = { xSplit: 0, ySplit: 1 };
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, ('Approved · ' + new Date().toISOString().slice(0, 10)).slice(0, 31));
+    XLSX.writeFile(wb, 'cologne-approved-' + new Date().toISOString().slice(0, 10) + '.xlsx');
+  });
+
+  // ============ Reset / clear (overflow menu) ============
+  const overflow = document.getElementById('tb-overflow');
+  const overflowToggle = document.getElementById('overflow-toggle');
+  overflowToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    overflow.classList.toggle('open');
+  });
+  document.addEventListener('click', (e) => {
+    if (!overflow.contains(e.target)) overflow.classList.remove('open');
+  });
+
+  document.getElementById('reset-votes').addEventListener('click', () => {
+    overflow.classList.remove('open');
+    if (!confirm('Reset all ✓ / ? / ✕ marks on every card? This affects everyone viewing the deck.')) return;
+    localStorage.removeItem(K_STATUS);
+    document.querySelectorAll('.card').forEach(c => applyCardStatus(c, null));
+    pushSync();
+    updateApprovedCount();
+  });
+
+  document.getElementById('clear-ideas').addEventListener('click', () => {
+    overflow.classList.remove('open');
+    const ideas = loadIdeas();
+    if (!ideas.length) return;
+    if (!confirm('Remove all ' + ideas.length + ' meeting-added idea' + (ideas.length === 1 ? '' : 's') + '? Affects everyone.')) return;
+    const status = loadStatus();
+    ideas.forEach(i => delete status[i.id]);
+    saveStatus(status);
+    saveIdeas([]);
+    renderAll();
+  });
+
+  // ============ Boot ============
+  captureOriginals();
+  (async function boot() {
+    await pullSync();
+    renderAll();
+    if (supabaseReady) {
+      setInterval(pollSync, POLL_MS);
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) pollSync(); });
+    }
+  })();
+
+})();
+</script>
+
+</body>
+</html>
