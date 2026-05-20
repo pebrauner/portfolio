@@ -347,10 +347,16 @@
   }
   .sn-sync[data-state="saved"]   .dot   { background: var(--amber); }
   .sn-sync[data-state="saved"]   .state { color: var(--amber); }
+  .sn-sync[data-state="live"]    .dot   { background: var(--amber); animation: livePulse 2.2s ease-in-out infinite; }
+  .sn-sync[data-state="live"]    .state { color: var(--amber); }
   .sn-sync[data-state="syncing"] .dot   { background: var(--bone); animation: blink 1.4s ease-in-out infinite; }
   .sn-sync[data-state="syncing"] .state { color: var(--bone-soft); }
   .sn-sync[data-state="error"]   .dot   { background: var(--crimson); }
   .sn-sync[data-state="error"]   .state { color: var(--crimson); }
+  @keyframes livePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(242, 184, 67, 0); }
+    50%      { box-shadow: 0 0 0 4px rgba(242, 184, 67, 0.25); }
+  }
 
   @media (max-width: 1180px) { .sidenav { display: none; } }
 
@@ -2665,6 +2671,18 @@
     if (lbl) lbl.textContent = state === 'saved' ? 'synced' : state;
   }
 
+  // Last cloud updated_at we have applied locally. Used by pollSync to
+  // ignore stale or self-originated updates.
+  let lastSeenUpdatedAt = null;
+
+  function applyCloudData(data) {
+    if (!data || typeof data !== 'object') return;
+    if (Array.isArray(data.ideas))                       localStorage.setItem(K_IDEAS,     JSON.stringify(data.ideas));
+    if (data.status && typeof data.status === 'object')  localStorage.setItem(K_STATUS,    JSON.stringify(data.status));
+    if (data.overrides && typeof data.overrides === 'object')
+                                                          localStorage.setItem(K_OVERRIDES, JSON.stringify(data.overrides));
+  }
+
   async function pullSync() {
     if (!supabaseReady) {
       setSyncStatus('offline');
@@ -2673,20 +2691,17 @@
     setSyncStatus('syncing');
     try {
       const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.${SUPABASE_ROW_ID}&select=data`,
+        `${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.${SUPABASE_ROW_ID}&select=data,updated_at`,
         { headers: syncHeaders() }
       );
       if (!res.ok) throw new Error('http ' + res.status);
       const rows = await res.json();
-      const data = rows[0] && rows[0].data;
-      if (data && typeof data === 'object') {
-        if (Array.isArray(data.ideas))   localStorage.setItem(K_IDEAS,     JSON.stringify(data.ideas));
-        if (data.status && typeof data.status === 'object')
-                                          localStorage.setItem(K_STATUS,    JSON.stringify(data.status));
-        if (data.overrides && typeof data.overrides === 'object')
-                                          localStorage.setItem(K_OVERRIDES, JSON.stringify(data.overrides));
+      const row = rows[0];
+      if (row) {
+        lastSeenUpdatedAt = row.updated_at;
+        applyCloudData(row.data);
       }
-      setSyncStatus('saved');
+      setSyncStatus('live');
     } catch (err) {
       console.warn('Cloud sync (pull) failed:', err);
       setSyncStatus('error');
@@ -2708,15 +2723,16 @@
         status:    JSON.parse(localStorage.getItem(K_STATUS)    || '{}'),
         overrides: JSON.parse(localStorage.getItem(K_OVERRIDES) || '{}'),
       };
-      // Upsert against the single 'main' row.
+      // Upsert against the single 'main' row, return the row so we capture
+      // the new updated_at and don't bounce our own change back via poll.
       const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=id`,
+        `${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=id&select=updated_at`,
         {
           method: 'POST',
           headers: {
             ...syncHeaders(),
             'Content-Type': 'application/json',
-            Prefer: 'resolution=merge-duplicates,return=minimal'
+            Prefer: 'resolution=merge-duplicates,return=representation'
           },
           body: JSON.stringify({
             id: SUPABASE_ROW_ID,
@@ -2726,10 +2742,44 @@
         }
       );
       if (!res.ok) throw new Error('http ' + res.status);
-      setSyncStatus('saved');
+      const rows = await res.json();
+      if (rows[0] && rows[0].updated_at) lastSeenUpdatedAt = rows[0].updated_at;
+      setSyncStatus('live');
     } catch (err) {
       console.warn('Cloud sync (push) failed:', err);
       setSyncStatus('error');
+    }
+  }
+
+  // ============ Live polling for collaborative edits ============
+  // Lightweight pull every POLL_MS. If cloud's updated_at is newer than what
+  // we last saw, someone else (or another tab) pushed — apply their data and
+  // re-render so the deck stays in sync during the meeting.
+  const POLL_MS = 1500;
+  let pollInFlight = false;
+
+  async function pollSync() {
+    if (!supabaseReady || pollInFlight || document.hidden) return;
+    pollInFlight = true;
+    try {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.${SUPABASE_ROW_ID}&select=data,updated_at`,
+        { headers: syncHeaders() }
+      );
+      if (!res.ok) throw new Error('http ' + res.status);
+      const rows = await res.json();
+      const row = rows[0];
+      if (!row) return;
+      if (row.updated_at === lastSeenUpdatedAt) return;   // self-push echo or no change
+      lastSeenUpdatedAt = row.updated_at;
+      applyCloudData(row.data);
+      renderAll();
+      setSyncStatus('live');
+    } catch (err) {
+      console.warn('Cloud sync (poll) failed:', err);
+      setSyncStatus('error');
+    } finally {
+      pollInFlight = false;
     }
   }
 
@@ -3386,6 +3436,14 @@
     await pullSync();    // pull cloud state into localStorage (or silently fall back)
     renderAll();         // apply overrides + render ideas + inject toolbars
     observeReveals();
+    // Live collaboration: poll for other people's edits every POLL_MS.
+    if (supabaseReady) {
+      setInterval(pollSync, POLL_MS);
+      // Resume immediately when the tab becomes visible after being hidden.
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) pollSync();
+      });
+    }
   })();
 
 })();
