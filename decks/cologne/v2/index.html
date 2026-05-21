@@ -307,6 +307,9 @@
   }
   .chip.new { color: var(--amber); border-color: var(--amber-line); background: var(--amber-bg); }
 
+  /* Hidden cards: visually removed but kept in DOM for restore */
+  .card.is-hidden { display: none !important; }
+
   /* Idea card distinguishing bg */
   .card.card-idea { background: linear-gradient(180deg, var(--amber-bg) 0%, transparent 50%); }
   .card-del {
@@ -979,6 +982,7 @@
     <div class="menu">
       <button id="reset-votes" type="button">Reset all votes</button>
       <button id="clear-ideas" type="button">Clear added ideas</button>
+      <button id="restore-deleted" type="button">Restore deleted</button>
     </div>
   </div>
 </div>
@@ -1044,6 +1048,7 @@
       </div>
 
       <div class="modal-actions">
+        <button type="button" class="tb-btn reset-btn" id="modal-delete" hidden style="margin-right: auto; color: var(--crimson); border-color: rgba(166, 38, 58, 0.4);">Delete</button>
         <button type="button" class="tb-btn reset-btn" id="modal-reset" hidden>↺ Reset to original</button>
         <button type="button" class="tb-btn" id="modal-cancel">Cancel</button>
         <button type="submit" class="tb-btn primary" id="modal-submit">Add to deck</button>
@@ -1073,6 +1078,7 @@
   const K_STATUS    = 'rdy-cologne-status-v2';
   const K_AUTHOR    = 'rdy-cologne-author-v2';
   const K_OVERRIDES = 'rdy-cologne-overrides-v2';
+  const K_HIDDEN    = 'rdy-cologne-hidden-v2';
 
   // ============ Supabase ============
   const SUPABASE_URL      = 'https://gmfxramxulpracbujnuv.supabase.co';
@@ -1106,6 +1112,7 @@
     if (data.status && typeof data.status === 'object')  localStorage.setItem(K_STATUS,    JSON.stringify(data.status));
     if (data.overrides && typeof data.overrides === 'object')
                                                           localStorage.setItem(K_OVERRIDES, JSON.stringify(data.overrides));
+    if (Array.isArray(data.hidden))                      localStorage.setItem(K_HIDDEN,    JSON.stringify(data.hidden));
   }
 
   async function pullSync() {
@@ -1143,6 +1150,7 @@
         ideas:     JSON.parse(localStorage.getItem(K_IDEAS)     || '[]'),
         status:    JSON.parse(localStorage.getItem(K_STATUS)    || '{}'),
         overrides: JSON.parse(localStorage.getItem(K_OVERRIDES) || '{}'),
+        hidden:    JSON.parse(localStorage.getItem(K_HIDDEN)    || '[]'),
       };
       const res = await fetch(
         `${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?on_conflict=id&select=updated_at`,
@@ -1261,6 +1269,15 @@
   }
   function saveOverrides(map) {
     localStorage.setItem(K_OVERRIDES, JSON.stringify(map));
+    pushSync();
+  }
+
+  function loadHidden() {
+    try { return JSON.parse(localStorage.getItem(K_HIDDEN) || '[]'); }
+    catch { return []; }
+  }
+  function saveHidden(arr) {
+    localStorage.setItem(K_HIDDEN, JSON.stringify(arr));
     pushSync();
   }
 
@@ -1409,8 +1426,8 @@
   const apNum = document.getElementById('ap-num');
   const apTotal = document.getElementById('ap-total');
   function updateApprovedCount() {
-    const all = document.querySelectorAll('.card').length;
-    const approved = document.querySelectorAll('.card.approved').length;
+    const all = document.querySelectorAll('.card:not(.is-hidden)').length;
+    const approved = document.querySelectorAll('.card.approved:not(.is-hidden)').length;
     if (apNum)   apNum.textContent   = approved;
     if (apTotal) apTotal.textContent = all;
     const exportBtn = document.getElementById('export-approved');
@@ -1424,7 +1441,7 @@
     ['pre', 'during', 'post'].forEach(phase => {
       const el = document.getElementById('count-' + phase);
       if (!el) return;
-      const cards = document.querySelectorAll(`section[data-phase="${phase}"] .card`);
+      const cards = document.querySelectorAll(`section[data-phase="${phase}"] .card:not(.is-hidden)`);
       el.textContent = cards.length;
     });
   }
@@ -1492,7 +1509,12 @@
       const target = targetForSectionKey(idea.section);
       if (target) target.appendChild(ideaCardEl(idea));
     });
-    // 3. Inject toolbars + edit, apply saved status, refresh counts
+    // 3. Apply hidden flag (soft-delete)
+    const hidden = new Set(loadHidden());
+    document.querySelectorAll('.card').forEach(card => {
+      card.classList.toggle('is-hidden', hidden.has(card.dataset.cardId));
+    });
+    // 4. Inject toolbars + edit, apply saved status, refresh counts
     ensureCardActions();
   }
 
@@ -1504,6 +1526,7 @@
   const modalClose   = document.getElementById('modal-close');
   const modalCancel  = document.getElementById('modal-cancel');
   const modalReset   = document.getElementById('modal-reset');
+  const modalDelete  = document.getElementById('modal-delete');
   const modalSubmit  = document.getElementById('modal-submit');
   const form         = document.getElementById('idea-form');
   const inAuthor     = document.getElementById('idea-author');
@@ -1527,6 +1550,7 @@
     modalSubEl.textContent = 'Drop it where it goes. Synced live across every open tab.';
     modalSubmit.textContent = 'Add to deck';
     modalReset.hidden = true;
+    modalDelete.hidden = true;
     fAuthorWrap.style.display = '';
     form.reset();
     const lastAuthor = localStorage.getItem(K_AUTHOR);
@@ -1545,12 +1569,16 @@
       if (!state) return;
       fAuthorWrap.style.display = '';
       modalReset.hidden = true;
+      modalDelete.hidden = false;
+      modalDelete.textContent = 'Delete idea';
     } else {
       const overrides = loadOverrides();
       const original = ORIGINAL_STATES[id] || extractFromDom(card);
       state = { ...original, ...(overrides[id] || {}), section: sectionKeyFromCard(card), author: '' };
       fAuthorWrap.style.display = 'none';
       modalReset.hidden = !overrides[id];
+      modalDelete.hidden = false;
+      modalDelete.textContent = 'Delete';
     }
     inAuthor.value = state.author || '';
     inSection.value = state.section || sectionKeyFromCard(card);
@@ -1560,11 +1588,38 @@
     inPlace.value = state.place || '';
     inTags.value = (state.tags || []).join(', ');
     modalTitleEl.textContent = isIdea ? 'Edit floor idea' : 'Edit deliverable';
-    modalSubEl.textContent = isIdea ? 'Update what we added from the floor.' : 'Update what we ship. Reset restores the original copy.';
+    modalSubEl.textContent = isIdea
+      ? 'Update what we added from the floor.'
+      : 'Update what we ship. Reset restores the original copy. Delete hides it from the deck.';
     modalSubmit.textContent = 'Save';
     modal.hidden = false;
     setTimeout(() => inTitle.focus(), 60);
   }
+
+  modalDelete.addEventListener('click', () => {
+    if (modalMode.mode !== 'edit') return;
+    const id = modalMode.cardId;
+    if (!id) return;
+    const isIdea = id.startsWith('idea-');
+    const confirmMsg = isIdea
+      ? 'Delete this idea? It will be removed for everyone.'
+      : 'Delete this deliverable? It will be hidden for everyone. You can bring it back via the ⋯ menu.';
+    if (!confirm(confirmMsg)) return;
+    if (isIdea) {
+      saveIdeas(loadIdeas().filter(i => i.id !== id));
+    } else {
+      const hidden = loadHidden();
+      if (!hidden.includes(id)) {
+        hidden.push(id);
+        saveHidden(hidden);
+      }
+    }
+    const status = loadStatus();
+    delete status[id];
+    saveStatus(status);
+    renderAll();
+    closeModal();
+  });
 
   function closeModal() { modal.hidden = true; }
 
@@ -1675,7 +1730,7 @@
   }
 
   exportBtn.addEventListener('click', async () => {
-    const approved = Array.from(document.querySelectorAll('.card.approved'));
+    const approved = Array.from(document.querySelectorAll('.card.approved:not(.is-hidden)'));
     if (!approved.length) {
       alert('Nothing approved yet. Mark a card with ✓ to include it.');
       return;
@@ -1738,6 +1793,18 @@
     ideas.forEach(i => delete status[i.id]);
     saveStatus(status);
     saveIdeas([]);
+    renderAll();
+  });
+
+  document.getElementById('restore-deleted').addEventListener('click', () => {
+    overflow.classList.remove('open');
+    const hidden = loadHidden();
+    if (!hidden.length) {
+      alert('Nothing is deleted right now.');
+      return;
+    }
+    if (!confirm('Restore ' + hidden.length + ' deleted card' + (hidden.length === 1 ? '' : 's') + ' for everyone?')) return;
+    saveHidden([]);
     renderAll();
   });
 
