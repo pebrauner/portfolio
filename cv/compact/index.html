@@ -1,0 +1,824 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pedro Brauner · CV · Compact view</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<script>
+  (function() {
+    try {
+      var saved = localStorage.getItem('pbq-theme');
+      var sysDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      var theme = saved || (sysDark ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+    } catch (e) {
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+  })();
+</script>
+<style>
+  /* ============ TOKENS (same identity as V1) ============ */
+  :root, [data-theme="light"] {
+    --paper:       #F2EBDD;
+    --paper-deep:  #EBE3D0;
+    --ink:         #1A1612;
+    --ink-soft:    #3A312A;
+    --ink-faded:   #6B5F52;
+    --red:         #D62828;
+    --hair:        #B5A993;
+    --hair-soft:   #D4C9B3;
+    --hover:       rgba(214, 40, 40, 0.04);
+  }
+  [data-theme="dark"] {
+    --paper:       #14110D;
+    --paper-deep:  #1E1812;
+    --ink:         #ECE3D2;
+    --ink-soft:    #B8AC97;
+    --ink-faded:   #7E7565;
+    --red:         #EF4444;
+    --hair:        #3A332B;
+    --hair-soft:   #2A241D;
+    --hover:       rgba(239, 68, 68, 0.06);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'IBM Plex Serif', Georgia, serif;
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  a { color: inherit; text-decoration: none; }
+  a.link {
+    border-bottom: 1px solid var(--hair-soft);
+    transition: border-color 0.18s, color 0.18s;
+  }
+  a.link:hover { color: var(--red); border-bottom-color: var(--red); }
+  em  { color: var(--ink); font-style: italic; }
+  strong { font-weight: 600; }
+  ul, ol { list-style: none; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; padding: 0; }
+
+  .page {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 32px 28px 80px;
+  }
+
+  /* ============ TOP STRIP ============ */
+  .top {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 14px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--hair);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+  }
+  .top .h-title {
+    font-weight: 600;
+    color: var(--red);
+    margin-right: auto;
+  }
+  .top .h-title .h-sub {
+    color: var(--ink-faded);
+    font-weight: 400;
+    margin-left: 6px;
+  }
+  .top a.h-link {
+    color: var(--ink-faded);
+    border-bottom: 1px solid var(--hair);
+    padding-bottom: 1px;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .top a.h-link:hover { color: var(--red); border-bottom-color: var(--red); }
+  .edition { display: inline-flex; align-items: center; gap: 6px; }
+  .edition .edition-opt {
+    color: var(--ink-faded);
+    transition: color 0.18s;
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+  }
+  .edition .edition-opt:hover { color: var(--ink); }
+  [data-theme="light"] .edition .edition-opt[data-set="light"] { color: var(--red); font-weight: 600; }
+  [data-theme="dark"]  .edition .edition-opt[data-set="dark"]  { color: var(--red); font-weight: 600; }
+  .edition .divider { color: var(--hair); }
+
+  /* ============ MASTHEAD ============ */
+  .masthead { margin-top: 28px; }
+  .name {
+    font-family: 'IBM Plex Serif', Georgia, serif;
+    font-weight: 700;
+    font-size: clamp(38px, 7vw, 56px);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+  }
+  .lede {
+    margin-top: 14px;
+    font-size: 15px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+    max-width: 62ch;
+  }
+  .lede em { color: var(--red); font-style: italic; }
+
+  /* ============ CONTACT STRIP ============ */
+  .contact {
+    margin-top: 18px;
+    padding: 12px 0;
+    border-top: 1px solid var(--hair);
+    border-bottom: 1px solid var(--hair);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .contact .label { color: var(--ink-faded); margin-right: 6px; }
+  .contact a {
+    color: var(--ink);
+    border-bottom: 1px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .contact a:hover { color: var(--red); border-bottom-color: var(--red); }
+
+  /* ============ SECTION ============ */
+  .sec { margin-top: 32px; }
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding-bottom: 8px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--hair);
+  }
+  .sec-head .num {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--red);
+    font-weight: 600;
+    letter-spacing: 0.16em;
+  }
+  .sec-head .title {
+    font-family: 'IBM Plex Serif', Georgia, serif;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    color: var(--ink);
+    text-transform: uppercase;
+  }
+  .sec-head .blurb {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+    margin-left: auto;
+    font-style: normal;
+  }
+
+  /* ============ ROLE (job) ============ */
+  .role {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--hair-soft);
+  }
+  .role:last-child { border-bottom: 0; }
+  .role-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+  }
+  .role-head h3 {
+    font-family: 'IBM Plex Serif', Georgia, serif;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: -0.012em;
+    color: var(--ink);
+  }
+  .role-head h3 a:hover { color: var(--red); }
+  .role-meta {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+    margin-left: auto;
+    white-space: nowrap;
+  }
+  .role-meta .red { color: var(--red); font-weight: 600; }
+  .role-sub {
+    font-family: 'IBM Plex Serif', Georgia, serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-bottom: 10px;
+  }
+  .role ul.bullets {
+    padding-left: 0;
+  }
+  .role ul.bullets li {
+    position: relative;
+    padding: 2px 0 2px 20px;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+  }
+  .role ul.bullets li::before {
+    content: "→";
+    position: absolute;
+    left: 0; top: 2px;
+    color: var(--red);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .role ul.bullets li strong { color: var(--ink); font-weight: 600; }
+  @media (max-width: 560px) {
+    .role-meta { margin-left: 0; white-space: normal; }
+  }
+
+  /* ============ NUMBERS GRID ============ */
+  .nums {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border-top: 1px solid var(--hair-soft);
+  }
+  .num-cell {
+    padding: 14px 12px;
+    border-right: 1px solid var(--hair-soft);
+    border-bottom: 1px solid var(--hair-soft);
+    transition: background 0.2s;
+  }
+  .num-cell:hover { background: var(--hover); }
+  .num-cell:nth-child(3n) { border-right: 0; }
+  .num-cell .fig {
+    font-family: 'IBM Plex Serif', Georgia, serif;
+    font-weight: 700;
+    font-size: 26px;
+    line-height: 1;
+    letter-spacing: -0.025em;
+    color: var(--ink);
+  }
+  .num-cell .fig .unit { color: var(--red); font-style: italic; font-weight: 400; }
+  .num-cell .lbl {
+    margin-top: 6px;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+    line-height: 1.45;
+  }
+  .num-cell .lbl strong { color: var(--ink); font-weight: 600; }
+  @media (max-width: 560px) {
+    .nums { grid-template-columns: repeat(2, 1fr); }
+    .num-cell:nth-child(3n) { border-right: 1px solid var(--hair-soft); }
+    .num-cell:nth-child(2n) { border-right: 0; }
+  }
+
+  /* ============ STUDY ============ */
+  .study {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--hair-soft);
+    display: grid;
+    grid-template-columns: 70px 1fr;
+    gap: 16px;
+    align-items: baseline;
+  }
+  .study:last-of-type { border-bottom: 0; }
+  .study .year {
+    font-family: 'IBM Plex Serif', Georgia, serif;
+    font-weight: 700;
+    font-size: 22px;
+    color: var(--red);
+    letter-spacing: -0.02em;
+  }
+  .study .right h4 {
+    font-family: 'IBM Plex Serif', Georgia, serif;
+    font-weight: 600;
+    font-size: 15px;
+    line-height: 1.3;
+    color: var(--ink);
+  }
+  .study .right .program {
+    font-family: 'IBM Plex Serif', Georgia, serif;
+    font-style: italic;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    margin-top: 3px;
+  }
+  .study .right .program em { color: var(--red); }
+  .study .right .note {
+    margin-top: 8px;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    padding-left: 12px;
+    border-left: 2px solid var(--red);
+    font-style: italic;
+  }
+  .study .right .note strong {
+    display: block;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 3px;
+    font-weight: 600;
+    font-style: normal;
+  }
+
+  /* ============ CERTS ============ */
+  .certs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    margin-top: 8px;
+    border-top: 1px solid var(--hair-soft);
+  }
+  .cert {
+    padding: 12px 14px 12px 0;
+    border-bottom: 1px solid var(--hair-soft);
+  }
+  .cert:nth-child(even) { padding-left: 16px; padding-right: 0; border-left: 1px solid var(--hair-soft); }
+  @media (max-width: 560px) {
+    .certs { grid-template-columns: 1fr; }
+    .cert:nth-child(even) { padding-left: 0; border-left: 0; }
+  }
+  .cert .when {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: var(--red);
+    font-weight: 600;
+    margin-bottom: 3px;
+  }
+  .cert h5 {
+    font-family: 'IBM Plex Serif', Georgia, serif;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1.3;
+    color: var(--ink);
+  }
+  .cert .where {
+    font-family: 'IBM Plex Serif', Georgia, serif;
+    font-style: italic;
+    font-size: 12.5px;
+    color: var(--ink-faded);
+    margin-top: 2px;
+  }
+
+  /* ============ TOOL ============ */
+  .tool {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--hair-soft);
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 16px;
+  }
+  .tool:last-of-type { border-bottom: 0; }
+  .tool h4 {
+    font-family: 'IBM Plex Serif', Georgia, serif;
+    font-weight: 600;
+    font-size: 14.5px;
+    letter-spacing: -0.005em;
+    color: var(--ink);
+  }
+  .tool p {
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+  }
+  @media (max-width: 560px) {
+    .tool { grid-template-columns: 1fr; gap: 4px; }
+  }
+
+  /* ============ FEATURED ============ */
+  .featured {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border-top: 1px solid var(--hair-soft);
+  }
+  @media (max-width: 560px) { .featured { grid-template-columns: 1fr; } }
+  .feat {
+    padding: 14px 14px;
+    border-right: 1px solid var(--hair-soft);
+    border-bottom: 1px solid var(--hair-soft);
+    display: block;
+    color: inherit;
+    position: relative;
+    transition: background 0.15s;
+  }
+  .feat:hover { background: var(--hover); }
+  .feat:nth-child(2n) { border-right: 0; }
+  @media (max-width: 560px) { .feat { border-right: 0; } }
+  .feat::after {
+    content: "→";
+    position: absolute;
+    right: 14px; top: 14px;
+    color: var(--red);
+    opacity: 0.45;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 13px;
+    transition: transform 0.2s, opacity 0.2s;
+  }
+  .feat:hover::after { transform: translate(4px, -4px); opacity: 1; }
+  .feat .kicker {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--red);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .feat h5 {
+    font-family: 'IBM Plex Serif', Georgia, serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: -0.012em;
+    color: var(--ink);
+    padding-right: 22px;
+    margin-bottom: 4px;
+  }
+  .feat .desc {
+    font-family: 'IBM Plex Serif', Georgia, serif;
+    font-style: italic;
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: var(--ink-faded);
+  }
+
+  /* ============ COLOPHON ============ */
+  .colophon {
+    margin-top: 40px;
+    padding-top: 16px;
+    border-top: 1px solid var(--hair);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+    text-align: center;
+  }
+  .colophon a {
+    color: var(--ink-faded);
+    border-bottom: 1px solid var(--hair);
+    padding-bottom: 1px;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .colophon a:hover { color: var(--red); border-bottom-color: var(--red); }
+
+  @media (max-width: 560px) {
+    .page { padding: 24px 18px 60px; }
+    .top { gap: 10px 14px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    body, .num-cell, .feat, .edition .edition-opt, a, a.link { transition: none; }
+  }
+
+  @media print {
+    @page { size: letter; margin: 0.5in; }
+    :root, [data-theme="dark"], [data-theme="light"] {
+      --paper: #fff; --paper-deep: #f6f3ec;
+      --ink: #1A1612; --ink-soft: #3A312A; --ink-faded: #6B5F52;
+      --red: #D62828; --hair: #B5A993; --hair-soft: #D4C9B3;
+    }
+    body { background: #fff !important; font-size: 10pt; }
+    .top, .colophon { display: none; }
+    .page { padding: 0; max-width: 100%; }
+    .role, .study, .tool, .feat { break-inside: avoid; }
+    .feat::after { display: none; }
+    a { color: var(--ink) !important; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <header class="top">
+    <span class="h-title">Pedro Brauner · CV <span class="h-sub">· compact view</span></span>
+    <a href="../" class="h-link">→ Full edition</a>
+    <span class="edition" role="group" aria-label="Edition">
+      <button type="button" class="edition-opt" data-set="light">Day</button>
+      <span class="divider">·</span>
+      <button type="button" class="edition-opt" data-set="dark">Night</button>
+    </span>
+  </header>
+
+  <!-- ============ MASTHEAD ============ -->
+  <section class="masthead">
+    <h1 class="name">Pedro Brauner</h1>
+    <p class="lede">
+      Content and creative strategist with five-plus years scaling editorial, broadcast, and social ecosystems for esports organizations, tournament operators, and gaming media. MBA in Marketing, Branding &amp; Growth (2026). Currently anchoring <a class="link" href="https://rdy.gg">rdy.gg</a>'s content strategy from Lima, with <em>on-the-ground coverage at IEM Rio 2026</em>.
+    </p>
+  </section>
+
+  <div class="contact">
+    <span><span class="label">Filed from</span>Lima, Peru</span>
+    <span><span class="label">Mail</span><a href="mailto:hello@pedrobrauner.com">hello@pedrobrauner.com</a></span>
+    <span><span class="label">Web</span><a href="/">pedrobrauner.com</a></span>
+    <span><span class="label">Social</span><a href="https://www.linkedin.com/in/pedrobrauner">LinkedIn</a></span>
+    <span><span class="label">Languages</span>PT · ES · EN</span>
+    <span><span class="label">PDF</span><a href="/assets/Pedro-Brauner-Resume.pdf" target="_blank" rel="noopener">Download ↓</a></span>
+  </div>
+
+  <!-- ============ 01 CURRENTLY ============ -->
+  <section class="sec">
+    <div class="sec-head">
+      <span class="num">01</span>
+      <span class="title">Currently</span>
+      <span class="blurb">Cover story · in print</span>
+    </div>
+
+    <article class="role">
+      <div class="role-head">
+        <h3><a href="https://rdy.gg">rdy.gg</a></h3>
+        <span class="role-meta"><span class="red">●</span> Oct 2025 → Present · Prague (Remote)</span>
+      </div>
+      <div class="role-sub">Content &amp; Creative Strategist · Building the content engine for CS2, Dota 2, and League coverage from Lima.</div>
+      <ul class="bullets">
+        <li>Established rdy.gg's <strong>content strategy from the ground up</strong>: brand guidelines, editorial standards, and content pillars unifying storytelling across platforms.</li>
+        <li>Launched <strong>four original video series</strong> (Win Condition CS2, Win Condition Dota 2, Context Cap, Ws and Ls) with full brand identities, tone, merch, and social systems.</li>
+        <li>Shipped <strong>15+ episodes</strong> across the Win Condition slates; guests include <strong>Coach Arthur (Glyph)</strong> and <strong>voo</strong>.</li>
+        <li>Led on-the-ground production at <strong>four tier-1 events</strong> including IEM Rio 2026, with mixed-zone interviews from Vitality, MOUZ, Falcons, Spirit.</li>
+        <li>Built <strong>CS2 data gathering and analysis systems</strong> (Dota 2 in progress) with the quantitative analytics team, turning match data into editorial, social, and broadcast assets.</li>
+        <li>Established <strong>SEO and editorial strategy</strong> across YouTube, TikTok, Instagram, X, Facebook, and the company website.</li>
+        <li>Provided strategic guidance and structural frameworks for a cross-functional team of journalists, editors, and social media specialists.</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 02 PREVIOUSLY ============ -->
+  <section class="sec">
+    <div class="sec-head">
+      <span class="num">02</span>
+      <span class="title">Previously</span>
+      <span class="blurb">Back issues</span>
+    </div>
+
+    <article class="role">
+      <div class="role-head">
+        <h3>GROWE</h3>
+        <span class="role-meta">Nov 2023 → Aug 2024 · Lima</span>
+      </div>
+      <div class="role-sub">Content &amp; Social Media Manager</div>
+      <ul class="bullets">
+        <li>Grew follower base by <strong>95% in the first month</strong> while rebuilding the content calendar and editorial cadence.</li>
+        <li>Managed tournament operations and broadcast production for esports events, reaching <strong>over 6,000 concurrent viewers and 4M+ minutes watched</strong>.</li>
+        <li>Led a full content calendar integrating internal strategy and brand partnerships across multiple platforms.</li>
+        <li>Developed a tailored SEO and social strategy, increasing <strong>organic traffic by 80% in two months</strong>.</li>
+        <li>Executed cross-functional content and influencer campaigns, raising brand visibility and engagement.</li>
+      </ul>
+    </article>
+
+    <article class="role">
+      <div class="role-head">
+        <h3><a href="https://www.esports.net">Esports.net</a></h3>
+        <span class="role-meta">Nov 2022 → Dec 2023 · Lima (Remote)</span>
+      </div>
+      <div class="role-sub">Journalist &amp; Interviewer</div>
+      <ul class="bullets">
+        <li>Conducted <strong>over 100 interviews</strong> with esports players, casters, and game developers.</li>
+        <li>Covered top-tier international events including <strong>ESL One Berlin Major, Lima Major, and the Esports Awards</strong>.</li>
+        <li>Published <strong>250+ articles</strong> covering game reviews, industry trends, and opinion columns.</li>
+        <li>Drove audience development through story-led features that consistently ranked among top-performing content on site.</li>
+        <li>Built strong relationships with global esports talent and PR teams for timely access and coverage.</li>
+      </ul>
+    </article>
+
+    <article class="role">
+      <div class="role-head">
+        <h3>Primal Esports</h3>
+        <span class="role-meta">Feb 2022 → Nov 2023 · Lima</span>
+      </div>
+      <div class="role-sub">Communications Manager</div>
+      <ul class="bullets">
+        <li>Led a multicultural team to organize and produce <strong>15+ gaming and esports events</strong> across Latin America.</li>
+        <li>Managed teams of <strong>20+ across production, marketing, and partnerships</strong>.</li>
+        <li>Collaborated with endemic and non-endemic partners including <strong>Red Bull, El Comercio, MasGamers, and Community Gaming</strong>.</li>
+        <li>Built strategic partnerships with 10+ esports orgs, generating a <strong>25% increase in sponsorship inquiries in 6 months</strong>.</li>
+        <li>Oversaw end-to-end communications strategy for activations and campaigns.</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ 03 SPECIAL REPORTS ============ -->
+  <section class="sec">
+    <div class="sec-head">
+      <span class="num">03</span>
+      <span class="title">Special Reports</span>
+      <span class="blurb">Freelance &amp; project-based</span>
+    </div>
+
+    <article class="role">
+      <div class="role-head">
+        <h3>La Sopa Podcast</h3>
+        <span class="role-meta"><span class="red">●</span> May 2025 → Present · Lima</span>
+      </div>
+      <div class="role-sub">Director &amp; Executive Producer</div>
+      <ul class="bullets">
+        <li>Created and led a weekly Spanish-language Dota 2 podcast focused on competitive analysis, community discussion, and storytelling, becoming <strong>Peru's leading Spanish-language Dota 2 and esports podcast</strong>.</li>
+        <li>Reached <strong>over 5.1 million people across 41 episodes</strong>, with average live viewership of 1,500+ per stream and hundreds of thousands across socials.</li>
+        <li>Hosted a wide range of prominent guests, including pro players and top-tier Spanish-speaking talent from the Dota 2 community.</li>
+        <li>Oversaw the full production pipeline: concept, booking, direction, editing, publishing, and distribution across YouTube, Twitch, and short-form social.</li>
+        <li>Closed and activated the show's <strong>title sponsorship with Stake</strong>, integrating branded segment formats (La Culebra, La Ruleta, El Parlay Imposible) into Season 3 episodes.</li>
+      </ul>
+    </article>
+
+    <article class="role">
+      <div class="role-head">
+        <h3>EDGE Esports</h3>
+        <span class="role-meta">Feb → Jun 2025 · London</span>
+      </div>
+      <div class="role-sub">Creative &amp; Social Media Consultant</div>
+      <ul class="bullets">
+        <li>Directed brand and content strategy for a competitive Dota 2 team, developing a cohesive visual identity and storytelling across all platforms.</li>
+        <li>Managed player talent and personal brand strategy across the competitive Dota 2 roster.</li>
+        <li>Multiplied overall social media impressions by <strong>over 1,000%, from 27K to 305K in 45 days</strong>.</li>
+        <li>Increased total followers across all platforms by <strong>more than 600%</strong> through consistent branding and platform-specific campaigns.</li>
+        <li>Boosted fan engagement and team visibility by aligning competitive milestones with timely, impactful content.</li>
+      </ul>
+    </article>
+  </section>
+
+  <!-- ============ ★ NUMBERS ============ -->
+  <section class="sec">
+    <div class="sec-head">
+      <span class="num">★</span>
+      <span class="title">By the Numbers</span>
+      <span class="blurb">FY 2022 → 2026</span>
+    </div>
+    <div class="nums">
+      <div class="num-cell"><div class="fig">5.1<span class="unit">M</span></div><div class="lbl"><strong>People reached</strong><br>La Sopa, 41 eps</div></div>
+      <div class="num-cell"><div class="fig">4<span class="unit">M+</span></div><div class="lbl"><strong>Minutes watched</strong><br>Tournaments, GROWE</div></div>
+      <div class="num-cell"><div class="fig">1,000<span class="unit">%</span></div><div class="lbl"><strong>Impressions ↑</strong><br>EDGE, 45 days</div></div>
+      <div class="num-cell"><div class="fig">600<span class="unit">%</span></div><div class="lbl"><strong>Follower ↑</strong><br>EDGE, all platforms</div></div>
+      <div class="num-cell"><div class="fig">250<span class="unit">+</span></div><div class="lbl"><strong>Articles published</strong><br>Esports.net, 13 mo</div></div>
+      <div class="num-cell"><div class="fig">100<span class="unit">+</span></div><div class="lbl"><strong>Interviews</strong><br>Players, casters, devs</div></div>
+      <div class="num-cell"><div class="fig">15<span class="unit">+</span></div><div class="lbl"><strong>Events produced</strong><br>Primal, LATAM</div></div>
+      <div class="num-cell"><div class="fig">4</div><div class="lbl"><strong>Tier-1 events</strong><br>rdy.gg, on-ground</div></div>
+      <div class="num-cell"><div class="fig">5+</div><div class="lbl"><strong>Years in esports</strong><br>Editorial · broadcast · brand</div></div>
+    </div>
+  </section>
+
+  <!-- ============ 04 STUDIES ============ -->
+  <section class="sec">
+    <div class="sec-head">
+      <span class="num">04</span>
+      <span class="title">Studies</span>
+      <span class="blurb">Education &amp; research</span>
+    </div>
+
+    <div class="study">
+      <div class="year">2026</div>
+      <div class="right">
+        <h4>Pontifical Catholic University of Rio Grande do Sul (PUCRS)</h4>
+        <div class="program">MBA, Marketing, Branding &amp; Growth · Porto Alegre, Brazil</div>
+        <div class="note">
+          <strong>Thesis</strong>
+          Comparative analysis of G2 Esports' visual identity strategy and its role in audience growth, brand equity, and non-endemic partnership positioning.
+        </div>
+      </div>
+    </div>
+
+    <div class="study">
+      <div class="year">2022</div>
+      <div class="right">
+        <h4>Peruvian University of Applied Sciences (UPC)</h4>
+        <div class="program">BA, Journalism &amp; Communications · Lima, Peru · <em>High honors</em></div>
+      </div>
+    </div>
+
+    <div class="certs">
+      <div class="cert">
+        <div class="when">Jan 2025</div>
+        <h5>Marketing Practicum</h5>
+        <div class="where">Gen.G Esports, Seoul, South Korea</div>
+      </div>
+      <div class="cert">
+        <div class="when">Nov 2023</div>
+        <h5>Esports in Latin America</h5>
+        <div class="where">Universidad de Palermo, Buenos Aires, Argentina</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 05 TOOLS ============ -->
+  <section class="sec">
+    <div class="sec-head">
+      <span class="num">05</span>
+      <span class="title">Tools of the Trade</span>
+      <span class="blurb">Skills &amp; stack</span>
+    </div>
+
+    <div class="tool">
+      <h4>Content &amp; creative strategy</h4>
+      <p>Storytelling and brand voice, content planning, editorial strategy, community engagement, fan growth, influencer collaboration, talent management, viral content ideation.</p>
+    </div>
+    <div class="tool">
+      <h4>Digital media &amp; social</h4>
+      <p>Social management across Instagram, X, TikTok, YouTube, Kick, and Twitch. Cross-platform campaigns, audience analytics, SEO, podcast strategy and distribution.</p>
+    </div>
+    <div class="tool">
+      <h4>Production &amp; project mgmt</h4>
+      <p>End-to-end content production (live shows, podcasts, esports broadcasts), team leadership, event planning, budget oversight, sponsorship activation, brand integration, scriptwriting, hosting.</p>
+    </div>
+    <div class="tool">
+      <h4>Tools &amp; technical</h4>
+      <p>Adobe Creative Suite (Premiere, Photoshop, Illustrator), OBS, vMix, Google Analytics, Meta Business Suite, CMS (WordPress, Ghost), project management (Notion, Trello, Asana).</p>
+    </div>
+  </section>
+
+  <!-- ============ 06 FEATURED ============ -->
+  <section class="sec">
+    <div class="sec-head">
+      <span class="num">06</span>
+      <span class="title">Featured</span>
+      <span class="blurb">From the archive</span>
+    </div>
+    <div class="featured">
+      <a class="feat" href="/" target="_blank" rel="noopener">
+        <div class="kicker">Video · Interview</div>
+        <h5>ropz, post-IEM Rio 2026</h5>
+        <div class="desc">Mixed-zone with Vitality's star rifler after the Rio 2026 final.</div>
+      </a>
+      <a class="feat" href="/" target="_blank" rel="noopener">
+        <div class="kicker">Podcast · La Sopa</div>
+        <h5>La Sopa S3 highlight reel</h5>
+        <div class="desc">5.1M people across 41 episodes. Best of Season 3, including Stake-integrated segments.</div>
+      </a>
+      <a class="feat" href="/" target="_blank" rel="noopener">
+        <div class="kicker">Show · Win Condition CS2</div>
+        <h5>The pilot episode</h5>
+        <div class="desc">Full visual identity, segment system, and editorial format design for rdy.gg's flagship CS2 podcast.</div>
+      </a>
+      <a class="feat" href="/" target="_blank" rel="noopener">
+        <div class="kicker">Longform · Writing</div>
+        <h5>The bzkA / LOUD Valorant chronicle</h5>
+        <div class="desc">A long-read on one of LATAM's most-watched roster moves, framed as a narrative case study.</div>
+      </a>
+      <a class="feat" href="/" target="_blank" rel="noopener">
+        <div class="kicker">Portfolio · Site</div>
+        <h5>pedrobrauner.com</h5>
+        <div class="desc">The full archive: shows, articles, decks, side projects.</div>
+      </a>
+      <a class="feat" href="mailto:hello@pedrobrauner.com">
+        <div class="kicker">Direct · Inbox</div>
+        <h5>Drop a line</h5>
+        <div class="desc">Briefs, freelance, full-time, podcast invites, coffee chats. All welcome.</div>
+      </a>
+    </div>
+  </section>
+
+  <div class="colophon">
+    Pedro Brauner · CV compact view · MMXXVI · <a href="../">→ Full edition</a>
+  </div>
+
+</div>
+
+<script>
+  document.querySelectorAll('.edition .edition-opt').forEach(opt => {
+    opt.addEventListener('click', () => {
+      const theme = opt.dataset.set;
+      document.documentElement.setAttribute('data-theme', theme);
+      try { localStorage.setItem('pbq-theme', theme); } catch (e) {}
+    });
+  });
+  if (window.matchMedia) {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      try {
+        if (!localStorage.getItem('pbq-theme')) {
+          document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+        }
+      } catch (err) {}
+    });
+  }
+</script>
+</body>
+</html>

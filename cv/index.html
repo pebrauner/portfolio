@@ -6,7 +6,7 @@
 <title>Pedro Brauner Quarterly · Issue №26</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,100..900,0..100;1,9..144,100..900,0..100&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap">
 <script>
   // Set theme before first paint to avoid flash. Reads localStorage, falls back to system preference.
   (function() {
@@ -60,7 +60,7 @@
   body {
     background: var(--paper);
     color: var(--ink);
-    font-family: 'Newsreader', Georgia, serif;
+    font-family: 'IBM Plex Serif', Georgia, serif;
     font-size: 17px;
     line-height: 1.55;
     overflow-x: hidden;
@@ -84,7 +84,7 @@
   }
   .glyph {
     position: absolute;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     color: var(--red);
     opacity: 0;
     user-select: none;
@@ -92,7 +92,7 @@
     animation: drift linear forwards;
   }
   .glyph.serif {
-    font-family: 'Fraunces', 'Newsreader', Georgia, serif;
+    font-family: 'IBM Plex Serif', Georgia, serif;
     font-style: italic;
     color: var(--ink);
   }
@@ -170,7 +170,7 @@
     animation: fadeIn 0.8s 1s both ease-out;
   }
   .sidenav .sn-mark {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 9.5px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
@@ -190,7 +190,7 @@
 
   .sidenav ul { list-style: none; }
   .sidenav li {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 10px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -220,7 +220,7 @@
     border-top: 1px solid var(--hair);
   }
   .sn-progress .label {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 9px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
@@ -266,9 +266,9 @@
   }
 
   /* ============ TYPOGRAPHY UTILS ============ */
-  .display { font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'opsz' 144, 'SOFT' 30; }
-  .body-serif { font-family: 'Newsreader', Georgia, serif; }
-  .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+  .display { font-family: 'IBM Plex Serif', Georgia, serif; }
+  .body-serif { font-family: 'IBM Plex Serif', Georgia, serif; }
+  .mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; }
   .smallcaps { font-variant: small-caps; letter-spacing: 0.06em; }
   .upper { text-transform: uppercase; letter-spacing: 0.14em; }
   .red { color: var(--red); }
@@ -332,7 +332,7 @@
     align-items: baseline;
     flex-wrap: wrap;
     gap: 16px;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 11px;
     letter-spacing: 0.16em;
     text-transform: uppercase;
@@ -360,7 +360,7 @@
     position: absolute;
     right: 0;
     top: -8px;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 11px;
     letter-spacing: 0.2em;
     text-transform: uppercase;
@@ -368,8 +368,8 @@
     font-weight: 600;
   }
   .name {
-    font-family: 'Fraunces', Georgia, serif;
-    font-variation-settings: 'opsz' 144, 'wght' 750, 'SOFT' 30;
+    font-family: 'IBM Plex Serif', Georgia, serif;
+    font-weight: 700;
     font-size: clamp(72px, 14.5vw, 220px);
     line-height: 0.86;
     letter-spacing: -0.045em;
@@ -390,12 +390,12 @@
   }
   .name .amp {
     font-style: italic;
-    font-variation-settings: 'opsz' 144, 'wght' 400, 'SOFT' 100;
+    font-weight: 400;
     color: var(--red);
   }
   .standfirst {
     margin-top: 32px;
-    font-family: 'Newsreader', Georgia, serif;
+    font-family: 'IBM Plex Serif', Georgia, serif;
     font-style: italic;
     font-weight: 300;
     font-size: clamp(20px, 2.6vw, 30px);
@@ -419,7 +419,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 28px;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 11.5px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
@@ -443,7 +443,7 @@
   @media (max-width: 800px) { .lede { grid-template-columns: 1fr; gap: 0; } }
   .lede .kicker {
     grid-column: 1 / -1;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 11px;
     letter-spacing: 0.2em;
     text-transform: uppercase;
@@ -452,15 +452,15 @@
     margin-bottom: 22px;
   }
   .lede p {
-    font-family: 'Newsreader', Georgia, serif;
+    font-family: 'IBM Plex Serif', Georgia, serif;
     font-size: 18px;
     line-height: 1.55;
     color: var(--ink-soft);
   }
   .lede p + p { margin-top: 0; }
   .lede p:first-of-type::first-letter {
-    font-family: 'Fraunces', Georgia, serif;
-    font-variation-settings: 'opsz' 144, 'wght' 700, 'SOFT' 30;
+    font-family: 'IBM Plex Serif', Georgia, serif;
+    font-weight: 700;
     font-size: 6.4em;
     float: left;
     line-height: 0.88;
@@ -487,9 +487,9 @@
     position: absolute;
     right: -2%;
     top: -45%;
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: 'IBM Plex Serif', Georgia, serif;
     font-style: italic;
-    font-variation-settings: 'opsz' 144, 'wght' 800, 'SOFT' 100;
+    font-weight: 700;
     font-size: clamp(280px, 38vw, 560px);
     font-weight: 800;
     line-height: 0.82;
@@ -506,16 +506,16 @@
     .section-head .watermark { font-size: clamp(180px, 36vw, 320px); top: -30%; }
   }
   .section-head .num {
-    font-family: 'Fraunces', Georgia, serif;
-    font-variation-settings: 'opsz' 144, 'wght' 800, 'SOFT' 30;
+    font-family: 'IBM Plex Serif', Georgia, serif;
+    font-weight: 700;
     font-size: 64px;
     line-height: 0.85;
     color: var(--red);
     letter-spacing: -0.04em;
   }
   .section-head .title {
-    font-family: 'Fraunces', Georgia, serif;
-    font-variation-settings: 'opsz' 144, 'wght' 600, 'SOFT' 30;
+    font-family: 'IBM Plex Serif', Georgia, serif;
+    font-weight: 600;
     font-size: clamp(32px, 5vw, 56px);
     line-height: 0.95;
     letter-spacing: -0.025em;
@@ -523,7 +523,7 @@
     text-transform: uppercase;
   }
   .section-head .meta {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 11px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
@@ -547,7 +547,7 @@
   @media (max-width: 900px) { .cover-story { grid-template-columns: 1fr; gap: 28px; } }
 
   .cover-story .head .kicker {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 11px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
@@ -556,8 +556,8 @@
     margin-bottom: 14px;
   }
   .cover-story .head h2 {
-    font-family: 'Fraunces', Georgia, serif;
-    font-variation-settings: 'opsz' 144, 'wght' 750, 'SOFT' 20;
+    font-family: 'IBM Plex Serif', Georgia, serif;
+    font-weight: 700;
     font-size: clamp(46px, 7vw, 96px);
     line-height: 0.86;
     letter-spacing: -0.04em;
@@ -567,11 +567,11 @@
   .cover-story .head h2 .accent {
     color: var(--red);
     font-style: italic;
-    font-variation-settings: 'opsz' 144, 'wght' 600, 'SOFT' 100;
+    font-weight: 600;
   }
   .cover-story .head .deck {
     margin-top: 22px;
-    font-family: 'Newsreader', Georgia, serif;
+    font-family: 'IBM Plex Serif', Georgia, serif;
     font-style: italic;
     font-weight: 300;
     font-size: 22px;
@@ -580,7 +580,7 @@
   }
   .cover-story .head .byline {
     margin-top: 32px;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 11px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
@@ -599,7 +599,7 @@
     list-style: none;
     position: relative;
     padding: 0 0 14px 28px;
-    font-family: 'Newsreader', Georgia, serif;
+    font-family: 'IBM Plex Serif', Georgia, serif;
     font-size: 16.5px;
     line-height: 1.55;
     color: var(--ink-soft);
@@ -615,7 +615,7 @@
     top: 1px;
     color: var(--red);
     font-weight: 600;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 14px;
   }
   ul.editorial li strong { color: var(--ink); font-weight: 600; }
@@ -638,9 +638,9 @@
   .pullquote::after { margin: 28px auto 0; }
   .pullquote q {
     quotes: none;
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: 'IBM Plex Serif', Georgia, serif;
     font-style: italic;
-    font-variation-settings: 'opsz' 144, 'wght' 400, 'SOFT' 100;
+    font-weight: 400;
     font-size: clamp(26px, 4.2vw, 44px);
     line-height: 1.18;
     letter-spacing: -0.018em;
@@ -648,7 +648,7 @@
   }
   .pullquote .attr {
     margin-top: 14px;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 10.5px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
@@ -674,7 +674,7 @@
   }
   .ticker .track:hover { animation-play-state: paused; }
   .ticker .item {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 13.5px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
@@ -710,15 +710,15 @@
   @media (max-width: 800px) { .back-issue { grid-template-columns: 1fr; gap: 14px; } }
 
   .back-issue .meta-col .era {
-    font-family: 'Fraunces', Georgia, serif;
-    font-variation-settings: 'opsz' 144, 'wght' 700, 'SOFT' 30;
+    font-family: 'IBM Plex Serif', Georgia, serif;
+    font-weight: 700;
     font-size: 36px;
     line-height: 1;
     color: var(--red);
     letter-spacing: -0.03em;
   }
   .back-issue .meta-col .era-end {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 11px;
     letter-spacing: 0.16em;
     text-transform: uppercase;
@@ -727,15 +727,15 @@
   }
   .back-issue .meta-col .location {
     margin-top: 14px;
-    font-family: 'Newsreader', Georgia, serif;
+    font-family: 'IBM Plex Serif', Georgia, serif;
     font-style: italic;
     font-size: 14px;
     color: var(--ink-faded);
   }
 
   .back-issue .body-col h3 {
-    font-family: 'Fraunces', Georgia, serif;
-    font-variation-settings: 'opsz' 144, 'wght' 700, 'SOFT' 30;
+    font-family: 'IBM Plex Serif', Georgia, serif;
+    font-weight: 700;
     font-size: clamp(28px, 4vw, 42px);
     line-height: 1;
     letter-spacing: -0.025em;
@@ -744,7 +744,7 @@
   .back-issue .body-col h3 a:hover { color: var(--red); }
   .back-issue .body-col .role {
     margin-top: 8px;
-    font-family: 'Newsreader', Georgia, serif;
+    font-family: 'IBM Plex Serif', Georgia, serif;
     font-style: italic;
     font-size: 18px;
     color: var(--ink-soft);
@@ -765,9 +765,9 @@
     position: absolute;
     left: -2%;
     top: -8%;
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: 'IBM Plex Serif', Georgia, serif;
     font-style: italic;
-    font-variation-settings: 'opsz' 144, 'wght' 800, 'SOFT' 100;
+    font-weight: 700;
     font-size: clamp(320px, 42vw, 620px);
     line-height: 0.82;
     letter-spacing: -0.06em;
@@ -789,8 +789,8 @@
     gap: 16px;
   }
   .numbers .lead h2 {
-    font-family: 'Fraunces', Georgia, serif;
-    font-variation-settings: 'opsz' 144, 'wght' 700, 'SOFT' 30;
+    font-family: 'IBM Plex Serif', Georgia, serif;
+    font-weight: 700;
     font-size: clamp(36px, 6vw, 72px);
     line-height: 0.9;
     letter-spacing: -0.03em;
@@ -798,11 +798,11 @@
   }
   .numbers .lead h2 em {
     font-style: italic;
-    font-variation-settings: 'opsz' 144, 'wght' 400, 'SOFT' 100;
+    font-weight: 400;
     color: var(--red);
   }
   .numbers .lead .kicker {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 11px;
     letter-spacing: 0.2em;
     text-transform: uppercase;
@@ -828,8 +828,8 @@
   @media (max-width: 480px) { .stat { border-right: none !important; } }
 
   .stat .figure {
-    font-family: 'Fraunces', Georgia, serif;
-    font-variation-settings: 'opsz' 144, 'wght' 800, 'SOFT' 20;
+    font-family: 'IBM Plex Serif', Georgia, serif;
+    font-weight: 700;
     font-size: clamp(48px, 7vw, 96px);
     line-height: 0.88;
     letter-spacing: -0.045em;
@@ -837,12 +837,12 @@
   }
   .stat .figure .unit {
     font-style: italic;
-    font-variation-settings: 'opsz' 144, 'wght' 400, 'SOFT' 100;
+    font-weight: 400;
     color: var(--red);
   }
   .stat .label {
     margin-top: 14px;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 10.5px;
     letter-spacing: 0.16em;
     text-transform: uppercase;
@@ -863,15 +863,15 @@
   @media (max-width: 800px) { .study { grid-template-columns: 1fr; gap: 12px; } }
 
   .study .left .deg-year {
-    font-family: 'Fraunces', Georgia, serif;
-    font-variation-settings: 'opsz' 144, 'wght' 700, 'SOFT' 30;
+    font-family: 'IBM Plex Serif', Georgia, serif;
+    font-weight: 700;
     font-size: 32px;
     line-height: 1;
     color: var(--red);
   }
   .study .left .deg {
     margin-top: 8px;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 11px;
     letter-spacing: 0.16em;
     text-transform: uppercase;
@@ -879,22 +879,22 @@
   }
 
   .study h4 {
-    font-family: 'Fraunces', Georgia, serif;
-    font-variation-settings: 'opsz' 144, 'wght' 600, 'SOFT' 30;
+    font-family: 'IBM Plex Serif', Georgia, serif;
+    font-weight: 600;
     font-size: 24px;
     line-height: 1.1;
     letter-spacing: -0.015em;
   }
   .study .program {
     margin-top: 4px;
-    font-family: 'Newsreader', Georgia, serif;
+    font-family: 'IBM Plex Serif', Georgia, serif;
     font-style: italic;
     font-size: 17px;
     color: var(--ink-soft);
     margin-bottom: 16px;
   }
   .study .focus {
-    font-family: 'Newsreader', Georgia, serif;
+    font-family: 'IBM Plex Serif', Georgia, serif;
     font-size: 16px;
     line-height: 1.55;
     color: var(--ink-soft);
@@ -903,7 +903,7 @@
     margin-top: 12px;
     padding-left: 18px;
     border-left: 3px solid var(--red);
-    font-family: 'Newsreader', Georgia, serif;
+    font-family: 'IBM Plex Serif', Georgia, serif;
     font-size: 15.5px;
     line-height: 1.55;
     color: var(--ink-soft);
@@ -911,7 +911,7 @@
   }
   .study .thesis strong {
     font-style: normal;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 11px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
@@ -938,7 +938,7 @@
   .tool:nth-child(2n) { border-right: none; }
   @media (max-width: 800px) { .tool { border-right: none; } }
   .tool .num {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 11px;
     letter-spacing: 0.18em;
     color: var(--red);
@@ -946,15 +946,15 @@
     margin-bottom: 8px;
   }
   .tool h4 {
-    font-family: 'Fraunces', Georgia, serif;
-    font-variation-settings: 'opsz' 144, 'wght' 700, 'SOFT' 30;
+    font-family: 'IBM Plex Serif', Georgia, serif;
+    font-weight: 700;
     font-size: 22px;
     line-height: 1.1;
     letter-spacing: -0.02em;
     margin-bottom: 12px;
   }
   .tool p {
-    font-family: 'Newsreader', Georgia, serif;
+    font-family: 'IBM Plex Serif', Georgia, serif;
     font-size: 15.5px;
     line-height: 1.55;
     color: var(--ink-soft);
@@ -970,7 +970,7 @@
   @media (max-width: 800px) { .certs { grid-template-columns: 1fr; } }
   .cert { padding: 22px 0; border-top: 1px solid var(--hair); }
   .cert .when {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 11px;
     letter-spacing: 0.18em;
     color: var(--red);
@@ -978,15 +978,15 @@
     margin-bottom: 6px;
   }
   .cert h5 {
-    font-family: 'Fraunces', Georgia, serif;
-    font-variation-settings: 'opsz' 144, 'wght' 600, 'SOFT' 30;
+    font-family: 'IBM Plex Serif', Georgia, serif;
+    font-weight: 600;
     font-size: 19px;
     line-height: 1.2;
     letter-spacing: -0.01em;
   }
   .cert .where {
     margin-top: 4px;
-    font-family: 'Newsreader', Georgia, serif;
+    font-family: 'IBM Plex Serif', Georgia, serif;
     font-style: italic;
     font-size: 14.5px;
     color: var(--ink-faded);
@@ -1015,7 +1015,7 @@
     content: "→";
     position: absolute;
     right: 22px; top: 28px;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 16px;
     color: var(--red);
     opacity: 0.4;
@@ -1028,7 +1028,7 @@
   @media (max-width: 600px) { .feature { border-right: none !important; } }
 
   .feature .kicker {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 10px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
@@ -1037,8 +1037,8 @@
     margin-bottom: 12px;
   }
   .feature h5 {
-    font-family: 'Fraunces', Georgia, serif;
-    font-variation-settings: 'opsz' 144, 'wght' 700, 'SOFT' 30;
+    font-family: 'IBM Plex Serif', Georgia, serif;
+    font-weight: 700;
     font-size: 22px;
     line-height: 1.1;
     letter-spacing: -0.02em;
@@ -1047,7 +1047,7 @@
     padding-right: 32px;
   }
   .feature .desc {
-    font-family: 'Newsreader', Georgia, serif;
+    font-family: 'IBM Plex Serif', Georgia, serif;
     font-style: italic;
     font-size: 14.5px;
     line-height: 1.5;
@@ -1067,7 +1067,7 @@
   }
   @media (max-width: 800px) { .colophon-grid { grid-template-columns: 1fr; gap: 24px; } }
   .colophon h6 {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 10.5px;
     letter-spacing: 0.2em;
     text-transform: uppercase;
@@ -1076,7 +1076,7 @@
     margin-bottom: 10px;
   }
   .colophon p {
-    font-family: 'Newsreader', Georgia, serif;
+    font-family: 'IBM Plex Serif', Georgia, serif;
     font-style: italic;
     font-size: 14.5px;
     line-height: 1.5;
@@ -1085,8 +1085,8 @@
   .colophon .signoff {
     margin-top: 56px;
     text-align: center;
-    font-family: 'Fraunces', Georgia, serif;
-    font-variation-settings: 'opsz' 144, 'wght' 800, 'SOFT' 30;
+    font-family: 'IBM Plex Serif', Georgia, serif;
+    font-weight: 700;
     font-size: clamp(64px, 12vw, 180px);
     line-height: 0.9;
     letter-spacing: -0.05em;
@@ -1096,13 +1096,13 @@
   }
   .colophon .signoff em {
     font-style: italic;
-    font-variation-settings: 'opsz' 144, 'wght' 400, 'SOFT' 100;
+    font-weight: 400;
     color: var(--ink);
   }
   .colophon .lastline {
     margin-top: 16px;
     text-align: center;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 11px;
     letter-spacing: 0.2em;
     text-transform: uppercase;
@@ -1167,7 +1167,7 @@
     transform: translateY(50%);
     background: var(--ink);
     color: var(--paper);
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 12px;
     letter-spacing: 0.06em;
     padding: 10px 14px;
@@ -1214,8 +1214,8 @@
     padding: 28px 48px;
     z-index: 71;
     border: 4px solid var(--red);
-    font-family: 'Fraunces', Georgia, serif;
-    font-variation-settings: 'opsz' 144, 'wght' 800, 'SOFT' 30;
+    font-family: 'IBM Plex Serif', Georgia, serif;
+    font-weight: 700;
     font-size: clamp(32px, 5vw, 64px);
     letter-spacing: -0.03em;
     text-transform: uppercase;
@@ -1232,7 +1232,7 @@
   .konami-banner .red { color: var(--red); }
   .konami-banner .sub {
     display: block;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 11px;
     letter-spacing: 0.2em;
     color: var(--paper);
@@ -1372,6 +1372,7 @@
       <span><span class="label">Social</span><a href="https://www.linkedin.com/in/pedrobrauner">LinkedIn</a></span>
       <span><span class="label">Languages</span>PT · ES · EN</span>
       <span><span class="label">PDF</span><a href="/assets/Pedro-Brauner-Resume.pdf" target="_blank" rel="noopener">Download ↓</a></span>
+      <span><span class="label">View</span><a href="./compact/">Compact →</a></span>
       <span class="edition" role="group" aria-label="Edition">
         <span class="edition-label">Edition</span>
         <button type="button" class="edition-opt" data-set="light">Day</button>
@@ -1388,7 +1389,7 @@
       Content and creative strategist with five-plus years scaling editorial, broadcast, and social ecosystems for esports organizations, tournament operators, and gaming media. MBA in Marketing, Branding &amp; Growth (2026), with thesis research on G2 Esports' visual identity strategy and its role in audience growth, brand equity, and non-endemic partnership positioning.
     </p>
     <p>
-      Track record across brand development, editorial standards, production systems, data pipelines, and cross-functional team leadership for endemic and non-endemic gaming partnerships. Currently anchoring <a class="link" href="https://rdy.gg">rdy.gg</a>'s content strategy from Lima, with on-the-ground tournament coverage at IEM Rio 2026 and the Cologne Major next. Trilingual in Portuguese, Spanish, and English.
+      Track record across brand development, editorial standards, production systems, data pipelines, and cross-functional team leadership for endemic and non-endemic gaming partnerships. Currently anchoring <a class="link" href="https://rdy.gg">rdy.gg</a>'s content strategy from Lima, with on-the-ground tournament coverage at IEM Rio 2026. Trilingual in Portuguese, Spanish, and English.
     </p>
   </div>
 
@@ -1414,7 +1415,7 @@
       <li>Established <strong>rdy.gg's content strategy from the ground up</strong>, creating brand guidelines, editorial standards, and content pillars that unified storytelling across all platforms.</li>
       <li>Launched <strong>four original video series</strong> (Win Condition CS2, Win Condition Dota 2, Context Cap, Ws and Ls) with full brand identities including visual systems, tone guidelines, merchandise, and social templates.</li>
       <li>Shipped <strong>15+ episodes</strong> across the Win Condition slates, with guests including pro players, coaches, and analysts such as <strong>Coach Arthur (Glyph)</strong> and <strong>voo</strong>.</li>
-      <li>Led on-the-ground content production at <strong>four tier-1 events</strong>, including IEM Rio 2026, with mixed-zone interviews from Vitality, MOUZ, Falcons, and Spirit. CS2 Major in Cologne is next.</li>
+      <li>Led on-the-ground content production at <strong>four tier-1 events</strong>, including IEM Rio 2026, with mixed-zone interviews from Vitality, MOUZ, Falcons, and Spirit.</li>
       <li>Built <strong>CS2 data gathering and analysis systems</strong> (Dota 2 in progress) with the quantitative analytics team, turning raw match data into editorial, social, and broadcast-ready assets.</li>
       <li>Established <strong>SEO and editorial strategy</strong> for CS2, Dota 2, and League of Legends coverage across YouTube, TikTok, Instagram, X, Facebook, and the company website.</li>
       <li>Provided strategic guidance and structural frameworks for a cross-functional team of journalists, editors, and social media specialists, scaling content output across all platforms.</li>
@@ -1691,15 +1692,15 @@
     <div class="colophon-grid">
       <div>
         <h6>Colophon</h6>
-        <p>Pedro Brauner Quarterly is a single-author publication on esports, gaming media, and editorial systems. Issue №26 was filed from Lima, Peru in May 2026 and set in <em>Fraunces</em>, <em>Newsreader</em>, and <em>JetBrains Mono</em> — all open-source. References available on request from selected esports and media organizations.</p>
+        <p>Pedro Brauner Quarterly is a single-author publication on esports, gaming media, and editorial systems. Issue №26 was filed from Lima, Peru in May 2026 and set in <em>IBM Plex Serif</em> and <em>IBM Plex Mono</em> — both open-source. References available on request from selected esports and media organizations.</p>
       </div>
       <div>
         <h6>Editorial</h6>
-        <p>Written, designed, and produced by Pedro Brauner. All content original. Built without templates.</p>
+        <p>Written, designed, and produced by Pedro Brauner. All content original. Built without templates. <em>Made by a human.</em></p>
       </div>
       <div>
         <h6>Next Issue</h6>
-        <p>Filed live from the CS2 Major, Cologne. Subjects: tier-1 mixed-zone reporting, broadcast workflows, and post-Major editorial systems.</p>
+        <p>Filed from Lima. Subjects: rdy.gg editorial systems, broadcast workflows, and the rolling tier-1 tournament calendar.</p>
       </div>
     </div>
 
@@ -1898,7 +1899,6 @@
     { text: 'PEDRO STILL ACCEPTING COFFEE CHATS' },
     { text: 'WIN CONDITION CS2 EP. 16 IN PRODUCTION' },
     { text: 'LA SOPA SEASON 3 LIVE' },
-    { text: 'CS2 MAJOR COLOGNE INCOMING' },
     { text: 'OPEN TO HIRE · OPEN TO BRIEFS' },
     { flag: true, text: 'ALSO' },
     { text: 'MBA THESIS DEFENDED · 2026' },
