@@ -1,0 +1,1762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-B770C9F7FJ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-B770C9F7FJ');
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The International 2026 | Guide to Every Player | rdy.gg</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400&family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   rdy.gg × TI 2026 — Player Guide
+   Information architecture ported from The Guardian's
+   "World Cup 2026: guide to all 1,248 players".
+   ============================================================ */
+:root {
+  --green: #00D161;
+  --gold: #C9A84C;
+  --gold-bright: #F0C840;
+  --gold-dim: #C9A84C20;
+
+  --midnight: #080a0e;
+  --card: #0f1117;
+  --card-alt: #141720;
+  --surface: #1e2230;
+  --surface-alt: #252a38;
+  --border: #ffffff0d;
+  --border-solid: #1e2230;
+
+  --text-primary: #ffffff;
+  --text-secondary: #c8ccd6;
+  --text-muted: #7a8499;
+  --text-dim: #3e4557;
+
+  --red: #e04040;
+
+  --font-display: 'Roboto Condensed', sans-serif;
+  --font-body: 'Source Sans 3', sans-serif;
+
+  --radius: 6px;
+  --radius-lg: 10px;
+
+  /* per-team accent, overridden inline on each .team-block */
+  --team: var(--gold);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface) var(--midnight);
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--midnight);
+  color: var(--text-secondary);
+  line-height: 1.5;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, #C9A84C08 0%, transparent 55%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* rdy vitrals — static full-page backdrop (recoloured Cologne dither shader) */
+#vitrals {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+a { color: var(--gold); text-decoration: none; transition: opacity 0.2s; }
+a:hover { opacity: 0.8; }
+img { max-width: 100%; display: block; }
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--midnight); }
+::-webkit-scrollbar-thumb { background: var(--surface); border-radius: 3px; }
+
+/* ============================================================
+   SITE HEADER
+   ============================================================ */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  background: rgba(8, 10, 14, 0.92);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(16px);
+}
+.header-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.logo-text {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+}
+.logo-text span { color: var(--green); }
+
+.sport-switcher {
+  display: flex;
+  gap: 2px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 3px;
+}
+.sport-pill {
+  padding: 3px 11px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: var(--font-body);
+  transition: all 0.15s;
+}
+.sport-pill:hover { color: var(--text-secondary); }
+.sport-pill.active { background: var(--surface); color: var(--text-primary); }
+
+.nav-links {
+  display: flex;
+  gap: 2px;
+  list-style: none;
+}
+.nav-links a {
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 5px 10px;
+  border-radius: var(--radius);
+  transition: all 0.15s;
+  display: block;
+}
+.nav-links a:hover { color: var(--text-primary); background: var(--card); opacity: 1; }
+
+.header-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.nav-event-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--card);
+  border: 1px solid var(--gold-dim);
+  border-radius: 5px;
+  padding: 4px 11px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+.pill-dot {
+  width: 6px; height: 6px;
+  background: var(--red);
+  border-radius: 50%;
+  animation: dot-blink 1.4s ease-in-out infinite;
+}
+@keyframes dot-blink { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
+
+/* ============================================================
+   TOURNAMENT BAR + TABS
+   ============================================================ */
+.tournament-bar {
+  background: linear-gradient(180deg, #0c0f18 0%, #0f1117 100%);
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+.tournament-bar::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, var(--gold) 30%, var(--gold-bright) 50%, var(--gold) 70%, transparent 100%);
+  opacity: 0.8;
+}
+.tournament-bar-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 14px 24px 0;
+  position: relative;
+  z-index: 1;
+}
+.t-bar-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.ti-shield {
+  font-size: 26px;
+  line-height: 1;
+  filter: drop-shadow(0 0 10px var(--gold-dim));
+}
+.t-bar-name {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  line-height: 1;
+}
+.t-bar-subtitle {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-top: 3px;
+}
+.t-bar-tier {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  background: var(--gold-dim);
+  border: 1px solid var(--gold);
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.t-bar-meta { display: flex; align-items: center; gap: 22px; margin-left: auto; flex-wrap: wrap; }
+.t-bar-stat { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
+.t-bar-stat-label {
+  font-size: 9px; font-weight: 700; color: var(--text-dim);
+  text-transform: uppercase; letter-spacing: 0.8px;
+}
+.t-bar-stat-value {
+  font-family: var(--font-display); font-size: 14px; font-weight: 700;
+  color: var(--text-primary); white-space: nowrap;
+}
+.t-bar-stat-value.gold { color: var(--gold); }
+
+.tab-nav { display: flex; gap: 0; border-top: 1px solid var(--border); }
+.tab-btn {
+  padding: 10px 18px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  position: relative;
+  transition: color 0.15s;
+  white-space: nowrap;
+  display: block;
+}
+.tab-btn:hover { color: var(--text-primary); opacity: 1; }
+.tab-btn.active { color: var(--gold); }
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--gold);
+  border-radius: 2px 2px 0 0;
+}
+
+/* ============================================================
+   MASTHEAD
+   ============================================================ */
+main { position: relative; z-index: 1; max-width: 1280px; margin: 0 auto; padding: 0 24px 80px; }
+
+.masthead {
+  padding: 48px 0 36px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 28px;
+}
+.masthead-kicker {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 2.5px;
+  margin-bottom: 16px;
+}
+.masthead h1 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(40px, 6.5vw, 86px);
+  line-height: 0.94;
+  letter-spacing: -0.5px;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  max-width: 14ch;
+  margin-bottom: 20px;
+}
+.masthead h1 em { font-style: normal; color: var(--gold); }
+.masthead-stand {
+  font-size: 18px;
+  font-weight: 300;
+  color: var(--text-secondary);
+  max-width: 52ch;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+.masthead-byline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.masthead-byline b { color: var(--text-secondary); font-weight: 600; }
+.masthead-byline .dot { color: var(--text-dim); }
+
+/* ============================================================
+   TEAM QUICK-NAV
+   ============================================================ */
+.teamnav {
+  position: sticky;
+  top: 52px;
+  z-index: 100;
+  background: rgba(8,10,14,0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  margin-bottom: 36px;
+}
+.teamnav-label {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: 10px;
+}
+.teamnav-regions { display: flex; flex-wrap: wrap; gap: 18px 26px; }
+.teamnav-region { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.teamnav-region-name {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.teamnav-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 11px 4px 5px;
+  background: var(--card);
+  border: 1px solid var(--border-solid);
+  border-radius: 100px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.teamnav-chip:hover { border-color: var(--chip); color: var(--text-primary); opacity: 1; background: var(--card-alt); }
+.teamnav-chip img { width: 20px; height: 20px; object-fit: contain; }
+.teamnav-chip .chip-mark {
+  width: 20px; height: 20px; border-radius: 4px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 800; color: #000;
+  background: var(--chip);
+}
+
+/* ============================================================
+   TEAM BLOCK
+   ============================================================ */
+.team-block { margin-bottom: 56px; scroll-margin-top: 120px; }
+
+/* Header bar: team color name plate */
+.team-head {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 16px 20px;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--team) 26%, transparent) 0%, color-mix(in srgb, var(--team) 6%, transparent) 36%, transparent 70%),
+    var(--card);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--team);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+.team-crest {
+  width: 56px; height: 56px;
+  object-fit: contain;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
+}
+.team-crest-fallback {
+  width: 56px; height: 56px; border-radius: 8px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-weight: 800; font-size: 18px; color: #000;
+  background: var(--team);
+}
+.team-head-id { flex: 1; min-width: 0; }
+.team-name {
+  font-family: var(--font-display);
+  font-size: clamp(26px, 3.4vw, 38px);
+  font-weight: 800;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  line-height: 1;
+  text-decoration: none;
+  display: inline-block;
+  transition: color 0.15s;
+}
+.team-name:hover { color: var(--team); opacity: 1; }
+.team-name .ext { font-size: 0.42em; vertical-align: super; margin-left: 5px; color: var(--team); opacity: 0.45; transition: opacity 0.15s; }
+.team-name:hover .ext { opacity: 1; }
+.team-region-line {
+  display: flex; align-items: center; gap: 8px; margin-top: 6px;
+  font-size: 12px; color: var(--text-muted); font-weight: 600;
+}
+.team-region-tag {
+  font-family: var(--font-display);
+  font-size: 10px; font-weight: 800;
+  color: var(--team);
+  background: color-mix(in srgb, var(--team) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--team) 40%, transparent);
+  padding: 2px 8px; border-radius: 3px;
+  text-transform: uppercase; letter-spacing: 1px;
+}
+.team-rank { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
+.team-rank-label {
+  font-size: 9px; font-weight: 700; color: var(--text-dim);
+  text-transform: uppercase; letter-spacing: 1px;
+}
+.team-rank-num {
+  font-family: var(--font-display);
+  font-size: 46px; font-weight: 800;
+  color: var(--team); line-height: 0.9;
+}
+
+/* Summary panel */
+.team-summary {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  overflow: hidden;
+}
+.team-summary-main { padding: 20px 22px; }
+.team-bio { font-size: 15px; line-height: 1.65; color: var(--text-secondary); margin-bottom: 18px; }
+.team-bio .coach { color: var(--text-muted); }
+.sw-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.sw-block h4 {
+  font-family: var(--font-display);
+  font-size: 10px; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 1.2px;
+  margin-bottom: 6px;
+  display: flex; align-items: center; gap: 6px;
+}
+.sw-block.str h4 { color: var(--green); }
+.sw-block.wek h4 { color: var(--red); }
+.sw-block p { font-size: 13.5px; line-height: 1.55; color: var(--text-secondary); }
+
+/* One to watch */
+.team-watch {
+  position: relative;
+  padding: 20px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--team) 22%, transparent), color-mix(in srgb, var(--team) 4%, transparent) 70%, transparent),
+    var(--card-alt);
+  border-left: 1px solid var(--border);
+  display: flex; flex-direction: column; justify-content: center;
+  overflow: hidden;
+}
+.team-watch-label {
+  font-family: var(--font-display);
+  font-size: 10px; font-weight: 800;
+  color: var(--team);
+  text-transform: uppercase; letter-spacing: 1.4px;
+  margin-bottom: 12px;
+}
+.team-watch-body { display: flex; gap: 14px; align-items: center; }
+.team-watch-photo {
+  width: 84px; height: 84px; border-radius: 8px; flex-shrink: 0;
+  object-fit: cover; object-position: center top;
+  background: color-mix(in srgb, var(--team) 30%, var(--surface));
+  border: 2px solid color-mix(in srgb, var(--team) 55%, transparent);
+}
+.team-watch-name { font-family: var(--font-display); font-size: 22px; font-weight: 800; color: var(--text-primary); line-height: 1; text-transform: uppercase; }
+.team-watch-role { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+.team-watch-real { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+/* ============================================================
+   PLAYER LINEUP GRID
+   ============================================================ */
+.lineup-label {
+  display: flex; align-items: center; gap: 10px;
+  margin: 22px 0 14px;
+}
+.lineup-label span {
+  font-family: var(--font-display);
+  font-size: 11px; font-weight: 800;
+  color: var(--text-dim);
+  text-transform: uppercase; letter-spacing: 1.2px;
+}
+.lineup-label .line { flex: 1; height: 1px; background: var(--border); }
+
+.lineup { position: relative; }
+.player-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+}
+.player-card {
+  position: relative;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  text-align: left;
+}
+.player-card:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--team) 60%, transparent);
+  box-shadow: 0 10px 28px -12px color-mix(in srgb, var(--team) 70%, transparent);
+}
+.player-card.active {
+  border-color: var(--team);
+  box-shadow: 0 0 0 1px var(--team);
+}
+.player-photo-wrap {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 50% 20%, color-mix(in srgb, var(--team) 38%, transparent), transparent 70%),
+    color-mix(in srgb, var(--team) 16%, var(--surface));
+}
+.player-photo {
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: center top;
+  mix-blend-mode: normal;
+}
+/* team-color wash that grounds the white photo bg into the card */
+.player-photo-wrap::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, transparent 45%, color-mix(in srgb, var(--team) 30%, transparent) 78%, var(--card) 100%);
+  pointer-events: none;
+}
+.player-photo-fallback {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-weight: 800;
+  font-size: 34px; color: color-mix(in srgb, var(--team) 70%, #fff);
+  letter-spacing: 1px;
+}
+.player-pos-badge {
+  position: absolute;
+  top: 8px; left: 8px;
+  z-index: 2;
+  display: flex; align-items: center; gap: 5px;
+  padding: 3px 8px 3px 4px;
+  background: rgba(8,10,14,0.78);
+  backdrop-filter: blur(4px);
+  border-radius: 100px;
+  border: 1px solid color-mix(in srgb, var(--team) 50%, transparent);
+}
+.player-pos-num {
+  width: 17px; height: 17px; border-radius: 50%;
+  background: var(--team); color: #07090d;
+  font-family: var(--font-display); font-weight: 800; font-size: 11px;
+  display: flex; align-items: center; justify-content: center;
+}
+.player-pos-role {
+  font-family: var(--font-display); font-size: 9px; font-weight: 700;
+  color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.8px;
+  padding-right: 3px;
+}
+.player-flag {
+  position: absolute; top: 8px; right: 8px; z-index: 2;
+  line-height: 0;
+}
+/* real flag images (flag emoji do not render on Windows) */
+.flag-img {
+  width: 21px; height: 14px;
+  object-fit: cover;
+  border-radius: 2px;
+  display: inline-block;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.35), 0 1px 3px rgba(0,0,0,0.5);
+  vertical-align: middle;
+}
+.flag-img.inline { width: 18px; height: 12px; margin-right: 2px; }
+.player-card-body { padding: 9px 11px 11px; }
+.player-handle {
+  font-family: var(--font-display);
+  font-size: 17px; font-weight: 800;
+  color: var(--text-primary);
+  text-transform: uppercase; letter-spacing: 0.3px;
+  line-height: 1;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.player-real { font-size: 11.5px; color: var(--text-muted); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.player-heroes { display: flex; gap: 3px; margin-top: 9px; }
+.player-heroes img {
+  width: 26px; height: 26px; border-radius: 4px;
+  object-fit: cover; object-position: center top;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+/* ============================================================
+   EXPANDING PLAYER DETAIL (Guardian-style pointer panel)
+   ============================================================ */
+.player-detail {
+  display: none;
+  position: relative;
+  margin-top: 14px;
+  background: var(--card-alt);
+  border: 1px solid color-mix(in srgb, var(--team) 45%, var(--border-solid));
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.player-detail.open { display: block; animation: detail-in 0.22s ease; }
+@keyframes detail-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+.player-detail-pointer {
+  position: absolute;
+  top: -8px;
+  width: 14px; height: 14px;
+  background: var(--card-alt);
+  border-left: 1px solid color-mix(in srgb, var(--team) 45%, var(--border-solid));
+  border-top: 1px solid color-mix(in srgb, var(--team) 45%, var(--border-solid));
+  transform: rotate(45deg);
+  transition: left 0.2s ease;
+}
+.player-detail-inner {
+  display: grid;
+  grid-template-columns: 150px 1fr auto;
+  gap: 22px;
+  padding: 22px;
+  align-items: start;
+}
+.detail-portrait {
+  width: 150px; height: 150px; border-radius: 8px;
+  object-fit: cover; object-position: center top;
+  background:
+    radial-gradient(ellipse at 50% 25%, color-mix(in srgb, var(--team) 45%, transparent), transparent 70%),
+    color-mix(in srgb, var(--team) 20%, var(--surface));
+  border: 2px solid color-mix(in srgb, var(--team) 50%, transparent);
+}
+.detail-main { min-width: 0; }
+.detail-pos {
+  display: inline-flex; align-items: center; gap: 7px;
+  margin-bottom: 10px;
+}
+.detail-pos .num {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--team); color: #07090d;
+  font-family: var(--font-display); font-weight: 800; font-size: 13px;
+  display: flex; align-items: center; justify-content: center;
+}
+.detail-pos .role {
+  font-family: var(--font-display); font-size: 12px; font-weight: 800;
+  color: var(--team); text-transform: uppercase; letter-spacing: 1.2px;
+}
+.detail-handle {
+  font-family: var(--font-display);
+  font-size: 32px; font-weight: 800; color: var(--text-primary);
+  text-transform: uppercase; line-height: 1; letter-spacing: 0.4px;
+}
+.detail-real {
+  font-size: 14px; color: var(--text-muted); margin-top: 6px;
+  display: flex; align-items: center; gap: 8px;
+}
+.detail-real .flag { font-size: 16px; }
+.detail-note {
+  font-size: 15px; line-height: 1.6; color: var(--text-secondary);
+  margin: 14px 0 16px; max-width: 60ch;
+}
+.detail-heroes-label, .detail-form-label {
+  font-family: var(--font-display);
+  font-size: 9px; font-weight: 800; color: var(--text-dim);
+  text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 8px;
+}
+.detail-heroes { display: flex; gap: 6px; flex-wrap: wrap; }
+.detail-hero { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 52px; }
+.detail-hero img {
+  width: 52px; height: 52px; border-radius: 6px;
+  object-fit: cover; object-position: center top;
+  background: var(--surface); border: 1px solid var(--border);
+}
+.detail-hero span {
+  font-size: 8.5px; color: var(--text-muted); text-align: center;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;
+  text-transform: capitalize;
+}
+.detail-hero .dh-wr { font-family: var(--font-display); font-size: 11px; font-weight: 800; color: var(--gold); text-transform: none; margin-top: -2px; }
+.detail-past { display: flex; flex-wrap: wrap; gap: 5px; }
+.past-team {
+  font-size: 11px; color: var(--text-secondary);
+  background: var(--surface); border: 1px solid var(--border-solid);
+  padding: 3px 8px; border-radius: 4px; white-space: nowrap;
+}
+.detail-stats { display: flex; flex-wrap: wrap; gap: 12px 24px; margin: 14px 0 2px; }
+.dstat { display: flex; flex-direction: column; }
+.dstat-v { font-family: var(--font-display); font-size: 20px; font-weight: 800; color: var(--text-primary); line-height: 1; }
+.dstat-v.gold { color: var(--gold); }
+.dstat-v.mute { color: var(--text-muted); font-size: 14px; }
+.dstat-l { font-size: 9px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.8px; margin-top: 5px; }
+.detail-side {
+  display: flex; flex-direction: column; gap: 18px;
+  padding-left: 22px; border-left: 1px solid var(--border);
+  min-width: 150px;
+}
+.detail-form-circles { display: flex; gap: 5px; }
+.detail-circle {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 1.5px solid color-mix(in srgb, var(--team) 60%, transparent);
+}
+.detail-circle.on { background: var(--team); border-color: var(--team); }
+.detail-meta-row { font-size: 13px; color: var(--text-secondary); }
+.detail-meta-row .k {
+  display: block; font-family: var(--font-display); font-size: 9px; font-weight: 800;
+  color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;
+}
+.detail-close {
+  position: absolute; top: 12px; right: 12px;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--surface); border: 1px solid var(--border-solid);
+  color: var(--text-muted); cursor: pointer;
+  font-size: 15px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.detail-close:hover { color: var(--text-primary); border-color: var(--text-muted); }
+
+/* ============================================================
+   COACH LINE · RDY VERDICT · RDY READ · RESULTS · PROFILE
+   ============================================================ */
+.team-coach { margin-top: 8px; font-size: 12px; color: var(--text-secondary); }
+.team-coach .lbl {
+  font-family: var(--font-display); font-size: 9px; font-weight: 800;
+  color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-right: 7px;
+}
+.team-coach b { font-weight: 700; color: var(--text-primary); }
+
+.team-verdict {
+  margin-top: 18px; padding: 13px 16px;
+  background: color-mix(in srgb, var(--green) 8%, var(--card-alt));
+  border: 1px solid color-mix(in srgb, var(--green) 28%, transparent);
+  border-left: 3px solid var(--green);
+  border-radius: var(--radius);
+}
+.team-verdict-head { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
+.team-verdict-label {
+  font-family: var(--font-display); font-size: 10px; font-weight: 800;
+  color: var(--green); text-transform: uppercase; letter-spacing: 1.4px;
+}
+.team-verdict-proj {
+  font-family: var(--font-display); font-size: 10px; font-weight: 800;
+  color: #07090d; background: var(--green);
+  padding: 2px 9px; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.6px;
+}
+.team-verdict p { font-size: 13.5px; line-height: 1.55; color: var(--text-secondary); }
+
+.rdy-read {
+  margin: 2px 0 16px; padding: 11px 14px;
+  background: color-mix(in srgb, var(--green) 7%, var(--card));
+  border-left: 3px solid var(--green);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+.rdy-read .lbl {
+  display: block; margin-bottom: 5px;
+  font-family: var(--font-display); font-size: 9px; font-weight: 800;
+  color: var(--green); text-transform: uppercase; letter-spacing: 1.4px;
+}
+.rdy-read p { font-size: 14px; line-height: 1.5; color: var(--text-primary); }
+
+.detail-results { display: flex; flex-direction: column; }
+.result-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 12px;
+}
+.result-row:last-child { border-bottom: none; }
+.result-badge {
+  width: 16px; height: 16px; border-radius: 3px; flex-shrink: 0;
+  font-family: var(--font-display); font-size: 10px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+}
+.result-badge.w { background: var(--green); color: #07090d; }
+.result-badge.l { background: var(--red); color: #fff; }
+.result-opp-logo { width: 16px; height: 16px; object-fit: contain; flex-shrink: 0; }
+.result-opp { flex: 1; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.result-score { font-family: var(--font-display); font-weight: 700; color: var(--text-primary); }
+
+.detail-profile {
+  display: inline-flex; align-items: center; gap: 7px; margin-top: 16px;
+  padding: 8px 14px; border-radius: var(--radius);
+  background: color-mix(in srgb, var(--green) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--green) 45%, transparent);
+  font-family: var(--font-display); font-size: 12px; font-weight: 800;
+  color: var(--green); text-transform: uppercase; letter-spacing: 0.6px;
+  transition: all 0.15s;
+}
+.detail-profile:hover { background: var(--green); color: #07090d; opacity: 1; }
+
+/* ============================================================
+   FROM THE RDY ARCHIVE — per-team past coverage
+   ============================================================ */
+.archive { margin-top: 30px; }
+.archive-label { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.archive-label span {
+  font-family: var(--font-display); font-size: 11px; font-weight: 800;
+  color: var(--green); text-transform: uppercase; letter-spacing: 1.2px;
+}
+.archive-label .line { flex: 1; height: 1px; background: var(--border); }
+.archive-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.archive-item {
+  display: block; padding: 14px 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-left: 2px solid transparent;
+  border-radius: var(--radius);
+  transition: transform 0.16s ease, background 0.16s ease, border-color 0.16s ease;
+}
+.archive-item:hover {
+  background: var(--card-alt);
+  border-left-color: var(--green);
+  opacity: 1;
+  transform: translateX(2px);
+}
+.archive-tag {
+  display: block; margin-bottom: 7px;
+  font-family: var(--font-display); font-size: 9px; font-weight: 800;
+  color: var(--green); text-transform: uppercase; letter-spacing: 1.4px;
+}
+.archive-title {
+  font-family: var(--font-display); font-size: 17px; font-weight: 700;
+  color: var(--text-primary); line-height: 1.22; letter-spacing: 0.2px;
+  margin-bottom: 9px; transition: color 0.16s;
+}
+.archive-item:hover .archive-title { color: var(--green); }
+.archive-meta { font-size: 11px; color: var(--text-dim); }
+.archive-meta .read { color: var(--text-muted); }
+@media (max-width: 760px) { .archive-grid { grid-template-columns: 1fr; } }
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.guide-footer {
+  margin-top: 60px;
+  padding: 24px 0 0;
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 14px;
+}
+.guide-footer .proto-note {
+  font-size: 12px; color: var(--text-muted); max-width: 64ch; line-height: 1.5;
+}
+.guide-footer .proto-note b { color: var(--text-secondary); }
+.guide-footer .credit {
+  font-family: var(--font-display); font-size: 12px; font-weight: 700;
+  color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px;
+}
+.guide-footer .credit span { color: var(--green); }
+
+/* ============================================================
+   RDY'S 5 TO WATCH
+   ============================================================ */
+.watch5 { margin: 0 0 36px; }
+.watch5-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.watch5-head span { font-family: var(--font-display); font-size: 13px; font-weight: 800; color: var(--gold); text-transform: uppercase; letter-spacing: 1.4px; }
+.watch5-head .line { flex: 1; height: 1px; background: var(--border); }
+.watch5-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.watch5-card {
+  --team: var(--gold);
+  display: flex; flex-direction: column; text-align: left;
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  overflow: hidden; cursor: pointer; transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.watch5-card:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--team) 60%, transparent); box-shadow: 0 10px 26px -12px color-mix(in srgb, var(--team) 70%, transparent); }
+.watch5-photo { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; object-position: center top; background: color-mix(in srgb, var(--team) 22%, var(--surface)); }
+.watch5-body { padding: 10px 12px 13px; }
+.watch5-top { display: flex; align-items: center; gap: 7px; margin-bottom: 6px; }
+.watch5-pos { width: 17px; height: 17px; border-radius: 50%; background: var(--team); color: #07090d; font-family: var(--font-display); font-weight: 800; font-size: 11px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.watch5-team { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.watch5-handle { font-family: var(--font-display); font-size: 19px; font-weight: 800; color: var(--text-primary); text-transform: uppercase; line-height: 1; margin-bottom: 8px; }
+.watch5-why { font-size: 12px; line-height: 1.45; color: var(--text-secondary); }
+
+/* ============================================================
+   ROLE FILTER BAR + FLAT VIEW
+   ============================================================ */
+.filterbar { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 30px; }
+.fb-label { font-family: var(--font-display); font-size: 10px; font-weight: 800; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.2px; }
+.fb-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.fb-chip {
+  font-family: var(--font-display); font-size: 12px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase;
+  color: var(--text-secondary); background: var(--card); border: 1px solid var(--border-solid);
+  border-radius: 100px; padding: 5px 13px; cursor: pointer; transition: all .15s;
+}
+.fb-chip:hover { color: var(--text-primary); border-color: var(--text-muted); }
+.fb-chip.active { background: var(--gold); color: #07090d; border-color: var(--gold); }
+.fb-sort { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.fb-sort.hide { display: none; }
+.fb-sort span { font-size: 10px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+.fb-sort select { background: var(--card); color: var(--text-primary); border: 1px solid var(--border-solid); border-radius: var(--radius); padding: 5px 10px; font-family: var(--font-body); font-size: 12px; cursor: pointer; }
+
+.flat-head { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.flat-head span { font-family: var(--font-display); font-size: 13px; font-weight: 800; color: var(--text-primary); text-transform: uppercase; letter-spacing: 1px; }
+.flat-head .line { flex: 1; height: 1px; background: var(--border); }
+.flat-grid { grid-template-columns: repeat(auto-fill, minmax(184px, 1fr)); }
+.flat-team { display: flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.flat-team img { width: 16px; height: 16px; object-fit: contain; }
+
+@media (max-width: 760px) {
+  .watch5-grid { grid-template-columns: repeat(2, 1fr); }
+  .fb-sort { margin-left: 0; }
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1000px) {
+  .team-summary { grid-template-columns: 1fr; }
+  .team-watch { border-left: none; border-top: 1px solid var(--border); }
+  .detail-side { border-left: none; border-top: 1px solid var(--border); padding-left: 0; padding-top: 16px; }
+  .player-detail-inner { grid-template-columns: 120px 1fr; }
+  .detail-portrait { width: 120px; height: 120px; }
+}
+@media (max-width: 760px) {
+  .header-inner { gap: 12px; overflow-x: auto; }
+  .nav-links { display: none; }
+  .player-grid { grid-template-columns: repeat(2, 1fr); }
+  .player-detail-inner { grid-template-columns: 1fr; }
+  .detail-portrait { width: 100%; height: auto; aspect-ratio: 1; }
+  .masthead h1 { font-size: clamp(34px, 11vw, 56px); }
+  .teamnav { top: 0; }
+}
+@media (max-width: 440px) {
+  main { padding: 0 14px 60px; }
+  .player-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="vitrals" aria-hidden="true"></canvas>
+
+<!-- ===== HEADER ===== -->
+<header class="site-header">
+  <div class="header-inner">
+    <a href="/" class="logo-text">rdy<span>.gg</span></a>
+    <div class="sport-switcher">
+      <button class="sport-pill">CS2</button>
+      <button class="sport-pill active">DOTA</button>
+    </div>
+    <ul class="nav-links">
+      <li><a href="TI2026_Hub_Prototype_rdy_gg.html">Hub</a></li>
+      <li><a href="TI2026_Match_Analysis_rdy_gg.html">Matches</a></li>
+      <li><a href="#" style="color:var(--text-primary)">Players</a></li>
+    </ul>
+    <div class="header-right">
+      <span class="nav-event-pill"><span class="pill-dot"></span> TI 2026 · LIVE</span>
+    </div>
+  </div>
+</header>
+
+<!-- ===== TOURNAMENT BAR ===== -->
+<div class="tournament-bar">
+  <div class="tournament-bar-inner">
+    <div class="t-bar-top">
+      <span class="ti-shield">🛡️</span>
+      <div>
+        <div class="t-bar-name">The International 2026</div>
+        <div class="t-bar-subtitle">Player Guide</div>
+      </div>
+      <span class="t-bar-tier">Tier 1</span>
+      <div class="t-bar-meta">
+        <div class="t-bar-stat">
+          <span class="t-bar-stat-label">Prize Pool</span>
+          <span class="t-bar-stat-value gold">$2,560,000</span>
+        </div>
+        <div class="t-bar-stat">
+          <span class="t-bar-stat-label">Teams</span>
+          <span class="t-bar-stat-value">16</span>
+        </div>
+        <div class="t-bar-stat">
+          <span class="t-bar-stat-label">Players</span>
+          <span class="t-bar-stat-value">80</span>
+        </div>
+      </div>
+    </div>
+    <nav class="tab-nav">
+      <a class="tab-btn" href="TI2026_Hub_Prototype_rdy_gg.html">Overview</a>
+      <a class="tab-btn" href="TI2026_Match_Analysis_rdy_gg.html">Match Analysis</a>
+      <a class="tab-btn active" href="#">Player Guide</a>
+    </nav>
+  </div>
+</div>
+
+<!-- ===== MAIN ===== -->
+<main>
+  <section class="masthead">
+    <div class="masthead-kicker">The International 2026 · Aegis of Champions</div>
+    <h1>Guide to <em>every player</em> at TI 2026</h1>
+    <p class="masthead-stand">
+      Everything you need to know about the rosters chasing the Aegis. Players are sorted by team and lined up
+      one through five, carry to hard support. Tap any player to open their card.
+    </p>
+    <div class="masthead-byline">
+      <b>By the rdy.gg team</b>
+      <span class="dot">·</span>
+      <span>Dota desk</span>
+      <span class="dot">·</span>
+      <span>Updated June 2026</span>
+    </div>
+  </section>
+
+  <!-- rdy's 5 to watch (rendered by JS) -->
+  <section class="watch5" id="watch5"></section>
+
+  <!-- Team quick-nav (rendered by JS) -->
+  <nav class="teamnav" id="teamnav">
+    <div class="teamnav-label">Jump to team</div>
+    <div class="teamnav-regions" id="teamnav-regions"></div>
+  </nav>
+
+  <!-- Role filter + sort (rendered by JS) -->
+  <div class="filterbar" id="filterbar"></div>
+
+  <!-- Team blocks (rendered by JS) -->
+  <div id="teams"></div>
+
+  <!-- Flat role view (rendered by JS) -->
+  <div id="flatview" style="display:none"></div>
+
+  <footer class="guide-footer">
+    <p class="proto-note">
+      <b>Prototype.</b> Layout ported from The Guardian's "guide to all 1,248 players". Seed data covers four
+      rosters with verified positions, names and nationalities from Liquipedia, plus real career earnings and live dota2.com ladder ranks. Signature
+      heroes, win rates and past teams are illustrative placeholders. Extend the <code>TEAMS</code> array to add the rest of the field.
+    </p>
+    <div class="credit">Built by rdy<span>.gg</span></div>
+  </footer>
+</main>
+
+<script>
+/* ============================================================
+   DATA — single source of truth.
+   Add a team object here (logo + 5 players) and it renders.
+   pos: 1 Carry · 2 Mid · 3 Offlane · 4 Soft Support · 5 Hard Support
+   heroes[] use filenames from assets/dota2_portraits/ (no .png)
+   rating: illustrative "rdy form" 1-5
+   ============================================================ */
+const ROLE = { 1:'Carry', 2:'Mid', 3:'Offlane', 4:'Soft Sup', 5:'Hard Sup' };
+
+const TEAMS = [
+  {
+    key:'parivision', name:'PARIVISION', logo:'assets/teams/Parivision.webp',
+    team:'#9A6BFF', region:'Eastern Europe', tag:'EEU', rank:1, coach:'Puppey',
+    bio:'Reigning DreamLeague Season 29 champions who, somehow, missed the direct TI invites and have to grind the qualifier. Satanic is on loan from Spirit, No[o]ne brings a decade of mid lane scar tissue.',
+    strengths:'Drafting brain and a sky-high individual ceiling.',
+    weaknesses:'Freshly assembled and still learning to lose together.',
+    projection:'Top 4',
+    verdict:'The most talent per dollar in the field. If the chemistry catches up to the names, this is a final-weekend team. If it does not, they go home angry and early.',
+    articles:[
+      { tag:'Op-Ed', title:'Has BLAST Slam VII become a victim of the calendar?', date:'Jun 2026', read:6, author:'Pandora' },
+      { tag:'Interview', title:'No[o]ne at 30: The Metronome Who Refuses to Slow Down', date:'Feb 2026', read:6 },
+      { tag:'Film Room', title:'The Satanic Loan: How a Spirit Castoff Became the Engine', date:'Jan 2026', read:5 },
+      { tag:'Power Rankings', title:"Drafting Like It's 2015: PARIVISION's Old-School Identity", date:'Dec 2025', read:7 },
+    ],
+    results:[
+      { opp:'Team Spirit', opplogo:'assets/teams/spirit.png', score:'2-1', win:true,  event:'ESL One Raleigh' },
+      { opp:'Gaimin Gladiators', opplogo:'assets/teams/gaimin.png', score:'1-2', win:false, event:'DreamLeague S29' },
+      { opp:'Tundra', opplogo:'assets/teams/tundra.png', score:'2-0', win:true,  event:'ESL One Raleigh' },
+    ],
+    watch:1,
+    players:[
+      { handle:'Satanic', real:'Alan Gallyamov', country:'Russia', flag:'🇷🇺', pos:1, photo:'assets/players/Parivision/Satanic.png', heroes:['faceless_void','morphling','slark'], rating:4, note:'On loan from Spirit, a carry with title pedigree and a quick clock on the map.', read:'Spirit did not loan him out because he is bad. Watch the first ten minutes and you will see why they want him back.' },
+      { handle:'No[o]ne-', real:'Volodymyr Minenko', country:'Ukraine', flag:'🇺🇦', pos:2, photo:'assets/players/Parivision/Noone.png', heroes:['invoker','storm_spirit','puck'], rating:5, note:'The veteran mid and a CIS mainstay for the better part of a decade. Still the reference point for tempo.', read:'Old enough to coach half this field, still the scariest first-phase mid pick in the bracket.' },
+      { handle:'SSS', real:'Valery Lazarev', country:'Russia', flag:'🇷🇺', pos:3, photo:'assets/players/Parivision/SSS.png', heroes:['bristleback','dragon_knight','doom_bringer'], rating:4, note:'A durable offlane spine who buys his cores the time they need.', read:'Does the unglamorous job so well you forget he is there, until he has tanked the entire enemy team.' },
+      { handle:'9Class', real:'Edgar Naltakian', country:'Russia', flag:'🇷🇺', pos:4, photo:'assets/players/Parivision/9class.png', heroes:['tusk','mirana','vengefulspirit'], rating:4, note:'A former core playing the four, so the damage never really stops.', read:'A carry pretending to be a support, and the scoreboard keeps catching him in the act.' },
+      { handle:'Dukalis', real:'Andrey Kuropatkin', country:'Russia', flag:'🇷🇺', pos:5, photo:'assets/players/Parivision/Dukalis.png', heroes:['lion','rubick','grimstroke'], rating:4, note:'A crafty five with a habit of stealing the spells that matter.', read:'If your big spell goes missing mid-fight, check the Dukalis inventory first.' },
+    ]
+  },
+  {
+    key:'yandex', name:'Team Yandex', logo:'assets/teams/Yandex.webp',
+    team:'#FF4D2E', region:'CIS', tag:'CIS', rank:2, coach:'Accell',
+    bio:'A veteran-led CIS side built around Saksa’s tactical mind and watson’s move to the safelane. There is experience everywhere you look on this roster.',
+    strengths:'Macro discipline and real draft depth.',
+    weaknesses:'Raw firepower in the cores can run cold.',
+    projection:'Contender',
+    verdict:'They led the BLAST Slam VII group stage and put Team Spirit to the sword in the last chance qualifier. Saksa is timing this veteran core to peak for the Aegis.',
+    articles:[
+      { tag:'Report', title:'Yandex and Falcons lead BLAST Slam VII as group stage storylines take shape', date:'May 2026', read:6, author:'Pandora' },
+      { tag:'Report', title:'Team Yandex and Aurora survive the last chance qualifier at BLAST Slam VII', date:'May 2026', read:5, author:'Div' },
+      { tag:'Win Condition', title:'Old Heads, New Tricks: Can Experience Still Win TI?', date:'Feb 2026', read:5 },
+      { tag:'Stat Check', title:"The Quiet Favourites: Nobody's Headline, Everyone's Problem", date:'Jan 2026', read:4 },
+    ],
+    results:[
+      { opp:'BetBoom Team', opplogo:'assets/teams/betboom.png', score:'2-1', win:true,  event:'FISSURE Universe 5' },
+      { opp:'1win', opplogo:'assets/teams/1win.png', score:'2-0', win:true,  event:'DreamLeague S29' },
+      { opp:'Team Spirit', opplogo:'assets/teams/spirit.png', score:'0-2', win:false, event:'ESL One Raleigh' },
+    ],
+    watch:3,
+    players:[
+      { handle:'watson', real:'Alimzhan Islambekov', country:'Kazakhstan', flag:'🇰🇿', pos:1, photo:'assets/players/Yandex/Watson.png', heroes:['juggernaut','faceless_void','life_stealer'], rating:4, note:'A converted mid now farming as the one, with the laning to back it up.', read:'The safelane move looked like a demotion. It looks like a masterstroke now.' },
+      { handle:'CHIRA_JUNIOR', real:'Ilya Chirtsov', country:'Russia', flag:'🇷🇺', pos:2, photo:'assets/players/Yandex/Chira junion.png', heroes:['storm_spirit','leshrac','queenofpain'], rating:4, note:'An explosive young mid with carry instincts and no fear of the fight.', read:'Plays like the lobby owes him money. We are here for it.' },
+      { handle:'DM', real:'Dmitry Dorokhin', country:'Russia', flag:'🇷🇺', pos:3, photo:'assets/players/Yandex/DM.png', heroes:['mars','beastmaster','centaur'], rating:4, note:'A veteran offlaner, recently off the PARIVISION bench and out to prove a point.', read:'Benched, doubted, back. The chip on his shoulder has its own MMR.' },
+      { handle:'Saksa', real:'Martin Sazdov', country:'North Macedonia', flag:'🇲🇰', pos:4, photo:'assets/players/Yandex/Saksa.png', heroes:['earthshaker','rubick','tusk'], rating:5, note:'A decorated roamer and the tactical brain of the side. The drafts run through him.', read:'The smartest man in most rooms he walks into. Enemy drafts crumble around him.' },
+      { handle:'Malady', real:'Arman Orazbayev', country:'Kazakhstan', flag:'🇰🇿', pos:5, photo:'assets/players/Yandex/Malady.png', heroes:['shadow_shaman','warlock','wisp'], rating:4, note:'A steady five who holds the back line together when games get loud.', read:'Quietly does five-position things that never trend but always win games.' },
+    ]
+  },
+  {
+    key:'navi', name:'Natus Vincere', logo:'assets/teams/NAVI.webp',
+    team:'#F2C94C', region:'Europe', tag:'EU', rank:3, coach:'Cy-',
+    bio:'Natus Vincere handed the keys to their academy and the Junior core ran with it. An all-action, all-Ukrainian five that would rather make a mistake forward than sit still.',
+    strengths:'Relentless tempo and fearless laning.',
+    weaknesses:'Can play themselves into trouble just as fast.',
+    projection:'Long shot',
+    verdict:'Fresh off crashing out of the EWC 2026 qualifiers, the academy experiment keeps running into the wall the main stage builds. Tempo for days, consistency still pending.',
+    articles:[
+      { tag:'Report', title:'NAVI crash out of EWC 2026 qualifiers after stunning lower bracket upset', date:'Jun 2026', read:5, author:'Div' },
+      { tag:'Interview', title:'gotthejuice and the Weight of the NAVI Jersey', date:'Mar 2026', read:6 },
+      { tag:'Film Room', title:'All Gas, No Brakes: Deconstructing NAVI Chaos Dota', date:'Feb 2026', read:5 },
+      { tag:'Timeline', title:'From Junior to the Main Stage: A NAVI Story', date:'Jan 2026', read:4 },
+    ],
+    results:[
+      { opp:'Team Falcons', opplogo:'assets/teams/falcons.png', score:'1-2', win:false, event:'ESL One Raleigh' },
+      { opp:'OG', opplogo:'assets/teams/og.png', score:'2-1', win:true,  event:'DreamLeague S29' },
+      { opp:'Team Liquid', opplogo:'assets/teams/liquid.png', score:'2-1', win:true,  event:'FISSURE Universe 5' },
+    ],
+    watch:1,
+    players:[
+      { handle:'gotthejuice', real:'Taras Linnikov', country:'Ukraine', flag:'🇺🇦', pos:1, photo:'assets/players/NAVI/GOTTHEJUICE.png', heroes:['faceless_void','juggernaut','terrorblade'], rating:4, note:'The Junior-era carry handed the keys to NAVI’s revival, and happy to gamble for tempo.', read:'Carries the jersey and the expectations. So far the shoulders are holding.' },
+      { handle:'NIKU', real:'Artem Bachkur', country:'Ukraine', flag:'🇺🇦', pos:2, photo:'assets/players/NAVI/NIKU.png', heroes:['storm_spirit','invoker','puck'], rating:4, note:'A high-tempo mid who plays on the front foot and drags the map forward.', read:'Will lose you the lane and win you the game in the same breath.' },
+      { handle:'pma', real:'Yurii Prots', country:'Ukraine', flag:'🇺🇦', pos:3, photo:'assets/players/NAVI/PMA.png', heroes:['mars','tidehunter','dawnbreaker'], rating:4, note:'A space-creating offlaner who is comfortable being the one to start the fight.', read:'Throws his body into fights like rent is due. Usually it pays off.' },
+      { handle:'ZAYAC', real:'Bakyt Emilzhanov', country:'Kyrgyzstan', flag:'🇰🇬', pos:4, photo:'assets/players/NAVI/ZAYAC.png', heroes:['tusk','earth_spirit','hoodwink'], rating:3, note:'A roaming four with a roving streak. NAVI now field daze in this slot.', read:'The roam never stops, and neither does the chaos he leaves behind.' },
+      { handle:'Riddys', real:'Stanislav Mitroshkyn', country:'Ukraine', flag:'🇺🇦', pos:5, photo:'assets/players/NAVI/RIDDYS.png', heroes:['lion','shadow_shaman','witch_doctor'], rating:3, note:'The hard support anchoring the back line of a very young roster.', read:'Twenty years old and already babysitting a roster. Growing up fast.' },
+    ]
+  },
+  {
+    key:'heroic', name:'LGD Gaming', logo:'assets/teams/lgd-gaming.png',
+    team:'#F23A4D', region:'South America', tag:'SA', rank:4, coach:'kaffs',
+    bio:'The South American core that made its name as HEROIC, now flying the LGD Gaming flag. Yuma and TaiLung can trade with anyone on a good day and travel into chaos on a bad one.',
+    strengths:'Explosive cores and genuine regional pedigree.',
+    weaknesses:'Inconsistency tends to pack its bags with them.',
+    projection:'Group stage',
+    verdict:'South America’s heart says further than South America’s seeding. A statement win is in them. A clean tournament probably is not, yet.',
+    articles:[
+      { tag:'Op-Ed', title:"The problem isn't that Dota is dying, it's that success isn't paying", date:'Jun 2026', read:8, author:'Pandora' },
+      { tag:'Interview', title:"Yuma the Greedy: SA's Most Fearless Carry", date:'Apr 2026', read:6 },
+      { tag:'Film Room', title:"TaiLung's Highlight Reel Is Also His Resume", date:'Mar 2026', read:5 },
+      { tag:'Op-Ed', title:'Why the West Still Sleeps on South American Dota', date:'Feb 2026', read:6 },
+    ],
+    results:[
+      { opp:'Xtreme Gaming', opplogo:'assets/teams/xtreme.png', score:'0-2', win:false, event:'ESL One Raleigh' },
+      { opp:'Talon', opplogo:'assets/teams/talon.png', score:'2-1', win:true,  event:'DreamLeague S29' },
+      { opp:'Team Liquid', opplogo:'assets/teams/liquid.png', score:'1-2', win:false, event:'FISSURE Universe 5' },
+    ],
+    watch:1,
+    players:[
+      { handle:'Yuma', real:'Yuma Langlet', country:'Nicaragua', flag:'🇳🇮', pos:1, photo:'assets/players/Heroic/Yuma.png', heroes:['terrorblade','spectre','faceless_void'], rating:4, note:'South America’s breakout carry. Plays greedy and tends to get away with it.', read:'Greediest farm pattern in South America, and he dares you to punish it.' },
+      { handle:'TaiLung', real:'Santiago Olivos Agüero', country:'Peru', flag:'🇵🇪', pos:2, photo:'assets/players/Heroic/Tailung.png', heroes:['invoker','ember_spirit','kunkka'], rating:4, note:'A flashy Peruvian mid with a deep pool and a taste for the highlight reel.', read:'Half his games are a mixtape. The other half are a problem for you.' },
+      { handle:'Wisper', real:'Adrián Céspedes Dobles', country:'Bolivia', flag:'🇧🇴', pos:3, photo:'assets/players/Heroic/Wisper.png', heroes:['mars','primal_beast','axe'], rating:3, note:'A physical offlaner who never met a dive he did not like.', read:'Dives first, asks questions never. Bring a stun.' },
+      { handle:'Thiolicor', real:'Thiago Cordeiro', country:'Brazil', flag:'🇧🇷', pos:4, photo:'assets/players/Heroic/Thiolicor.png', heroes:['snapfire','earth_spirit','pangolier'], rating:3, note:'A playmaking four, always hunting the early pickoff.', read:'Finds the pickoff three seconds before anyone else sees it.' },
+      { handle:'KJ', real:'Matheus Diniz', country:'Brazil', flag:'🇧🇷', pos:5, photo:'assets/players/Heroic/KJ.png', heroes:['shadow_shaman','lion','dazzle'], rating:3, note:'A selfless five whose whole job is keeping the cores alive.', read:'Will die ten times so his cores die zero. The math works out.' },
+    ]
+  },
+];
+
+/* Region grouping for the quick-nav, in display order */
+const REGION_ORDER = ['Eastern Europe', 'CIS', 'Europe', 'South America'];
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+const PORTRAIT = h => `assets/dota2_portraits/${h}.png`;
+const heroLabel = h => h.replace(/_/g, ' ');
+const initials = s => s.replace(/[^A-Za-z0-9]/g,'').slice(0,2).toUpperCase();
+
+/* country -> ISO 3166-1 alpha-2 for flag images (flagcdn.com) */
+const ISO = {
+  'Russia':'ru', 'Ukraine':'ua', 'Kazakhstan':'kz', 'North Macedonia':'mk',
+  'Nicaragua':'ni', 'Peru':'pe', 'Bolivia':'bo', 'Brazil':'br', 'Kyrgyzstan':'kg',
+};
+const slugify = s => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+/* deterministic illustrative stats — stable per player+hero (swap for real data later) */
+function hashStr(s){ let h = 2166136261; for (let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0); }
+function heroWR(handle, hero){ return 46 + hashStr(handle + '|' + hero) % 25; }   // 46-70%
+function stat(handle, key, min, max){ return min + hashStr(handle + ':' + key) % (max - min + 1); }
+function fmtNum(n){ return n.toLocaleString('en-US'); }
+function fmtMoney(n){ return n >= 1000000 ? '$' + (n / 1000000).toFixed(2) + 'M' : '$' + Math.round(n / 1000) + 'K'; }
+/* dota2.com ranked leaderboard: region by roster region + pinned real positions */
+const LADDER_REGION = { 'Eastern Europe': 'EU', 'CIS': 'EU', 'Europe': 'EU', 'South America': 'AM', 'China': 'CN', 'Southeast Asia': 'SEA' };
+const RANK_OVERRIDE = {      // live positions from dota2.com/leaderboards, Europe division (Jun 2026)
+  'Satanic': 'EU #1', 'NIKU': 'EU #2', 'watson': 'EU #3', 'TaiLung': 'EU #5',
+  'No[o]ne-': 'EU #16', 'Wisper': 'EU #18', 'Saksa': 'EU #20', 'CHIRA_JUNIOR': 'EU #28',
+  'Thiolicor': 'EU #47', '9Class': 'EU #63', 'SSS': 'EU #69', 'gotthejuice': 'EU #71',
+  'DM': 'EU #75', 'Dukalis': 'EU #87', 'KJ': 'EU #111', 'Riddys': 'EU #126',
+  'pma': 'EU #146', 'Yuma': 'EU #181',
+};
+/* career earnings (USD) — Approx. Total Winnings, Liquipedia (Jun 2026) */
+const EARNINGS = {
+  'Satanic': 419006, 'No[o]ne-': 2169664, 'SSS': 77355, '9Class': 704453, 'Dukalis': 678549,
+  'watson': 533400, 'CHIRA_JUNIOR': 269942, 'DM': 1097283, 'Saksa': 3893047, 'Malady': 377311,
+  'gotthejuice': 121400, 'NIKU': 66917, 'pma': 130142, 'ZAYAC': 879784, 'Riddys': 121663,
+  'Yuma': 268364, 'TaiLung': 37662, 'Wisper': 842933, 'Thiolicor': 230250, 'KJ': 375372,
+};
+
+/* rdy.gg Dota desk bylines (real writers) */
+const WRITERS = ['Pandora', 'Div', 'Belandrial'];
+
+/* past teams — illustrative career history; verify before publishing */
+const PAST = {
+  'Satanic': ['Team Spirit', 'BetBoom Team'],
+  'No[o]ne-': ['Natus Vincere', 'Virtus.pro', 'Team Spirit'],
+  'SSS': ['Xtreme Gaming', 'Aurora'],
+  '9Class': ['Team Empire', 'HellRaisers'],
+  'Dukalis': ['Virtus.pro', 'BetBoom Team'],
+  'watson': ['Natus Vincere', 'HellRaisers'],
+  'CHIRA_JUNIOR': ['BetBoom Team'],
+  'DM': ['PARIVISION', 'Virtus.pro'],
+  'Saksa': ['OG', 'Team Liquid', 'Tundra Esports'],
+  'Malady': ['BetBoom Team', 'Yellow Submarine'],
+  'gotthejuice': ['NAVI Junior'],
+  'NIKU': ['NAVI Junior'],
+  'pma': ['NAVI Junior', 'Mind Games'],
+  'ZAYAC': ['HellRaisers', 'Winstrike'],
+  'Riddys': ['NAVI Junior'],
+  'Yuma': ['beastcoast', 'Infamous'],
+  'TaiLung': ['beastcoast', 'Thunder Awaken'],
+  'Wisper': ['Thunder Awaken', 'Evil Geniuses'],
+  'Thiolicor': ['Infamous', 'Hokori'],
+  'KJ': ['beastcoast', 'Infamous'],
+};
+function flagImg(country, cls) {
+  const code = ISO[country];
+  if (!code) return '';
+  return `<img class="flag-img ${cls||''}" src="https://flagcdn.com/${code}.svg" alt="${country}" title="${country}" loading="lazy" onerror="this.style.display='none'">`;
+}
+
+function heroIcon(h, cls) {
+  return `<img class="${cls||''}" src="${PORTRAIT(h)}" alt="${heroLabel(h)}" loading="lazy" onerror="this.style.display='none'">`;
+}
+
+function crestMarkup(t) {
+  return `<img class="team-crest" src="${t.logo}" alt="${t.name}" onerror="this.outerHTML='<div class=&quot;team-crest-fallback&quot;>${initials(t.name)}</div>'">`;
+}
+
+function photoMarkup(p, cls) {
+  // photo with graceful fallback to initials over the team-color wash
+  return `<img class="${cls}" src="${encodeURI(p.photo)}" alt="${p.handle}" loading="lazy"
+    onerror="this.style.display='none'; this.insertAdjacentHTML('afterend','<div class=&quot;player-photo-fallback&quot;>${initials(p.handle)}</div>')">`;
+}
+
+function playerCard(p, ti, pi) {
+  return `
+    <button class="player-card" data-team="${ti}" data-player="${pi}" type="button">
+      <div class="player-photo-wrap">
+        ${photoMarkup(p, 'player-photo')}
+        <div class="player-pos-badge">
+          <span class="player-pos-num">${p.pos}</span>
+          <span class="player-pos-role">${ROLE[p.pos]}</span>
+        </div>
+        <span class="player-flag" title="${p.country}">${flagImg(p.country)}</span>
+      </div>
+      <div class="player-card-body">
+        <div class="player-handle">${p.handle}</div>
+        <div class="player-real">${p.real || '&nbsp;'}</div>
+        <div class="player-heroes">${p.heroes.map(h => heroIcon(h)).join('')}</div>
+      </div>
+    </button>`;
+}
+
+function articlesMarkup(t) {
+  if (!t.articles || !t.articles.length) return '';
+  const items = t.articles.map(a => `
+        <a class="archive-item" href="#" onclick="return false">
+          <span class="archive-tag">${a.tag}</span>
+          <div class="archive-title">${a.title}</div>
+          <div class="archive-meta">By ${a.author || WRITERS[hashStr(a.title) % WRITERS.length]} <span class="read">· ${a.date} · ${a.read} min read</span></div>
+        </a>`).join('');
+  return `
+    <div class="archive">
+      <div class="archive-label"><span>From the rdy archive</span><div class="line"></div></div>
+      <div class="archive-grid">${items}</div>
+    </div>`;
+}
+
+function teamBlock(t, ti) {
+  const w = t.players[t.watch];
+  return `
+  <section class="team-block" id="team-${t.key}" style="--team:${t.team}">
+    <div class="team-head">
+      ${crestMarkup(t)}
+      <div class="team-head-id">
+        <a class="team-name" href="https://rdy.gg/en/dota2/teams/${slugify(t.name)}" target="_blank" rel="noopener">${t.name}<span class="ext">↗</span></a>
+        <div class="team-region-line">
+          <span class="team-region-tag">${t.tag}</span>
+          <span>${t.region}</span>
+        </div>
+        <div class="team-coach"><span class="lbl">Coach</span> <b>${t.coach}</b></div>
+      </div>
+      <div class="team-rank">
+        <span class="team-rank-label">rdy rank</span>
+        <span class="team-rank-num">${t.rank}</span>
+      </div>
+    </div>
+
+    <div class="team-summary">
+      <div class="team-summary-main">
+        <p class="team-bio">${t.bio}</p>
+        <div class="sw-grid">
+          <div class="sw-block str"><h4>Strengths</h4><p>${t.strengths}</p></div>
+          <div class="sw-block wek"><h4>Weaknesses</h4><p>${t.weaknesses}</p></div>
+        </div>
+        <div class="team-verdict">
+          <div class="team-verdict-head">
+            <span class="team-verdict-label">rdy verdict</span>
+            <span class="team-verdict-proj">${t.projection}</span>
+          </div>
+          <p>${t.verdict}</p>
+        </div>
+      </div>
+      <div class="team-watch">
+        <div class="team-watch-label">★ Player to watch</div>
+        <div class="team-watch-body">
+          <img class="team-watch-photo" src="${encodeURI(w.photo)}" alt="${w.handle}"
+            onerror="this.style.visibility='hidden'">
+          <div>
+            <div class="team-watch-name">${w.handle}</div>
+            <div class="team-watch-role">${w.pos} · ${ROLE[w.pos]}</div>
+            <div class="team-watch-real">${flagImg(w.country,'inline')} ${w.real || w.country}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="lineup-label"><span>Roster · 1 to 5</span><div class="line"></div></div>
+    <div class="lineup">
+      <div class="player-grid">
+        ${t.players.map((p, pi) => playerCard(p, ti, pi)).join('')}
+      </div>
+      <div class="player-detail" id="detail-${ti}">
+        <div class="player-detail-pointer"></div>
+        <button class="detail-close" type="button" aria-label="Close">✕</button>
+        <div class="player-detail-inner"></div>
+      </div>
+    </div>
+    ${articlesMarkup(t)}
+  </section>`;
+}
+
+function teamnavMarkup() {
+  return REGION_ORDER.map(region => {
+    const chips = TEAMS
+      .filter(t => t.region === region)
+      .map(t => `
+        <a class="teamnav-chip" href="#team-${t.key}" style="--chip:${t.team}">
+          <img src="${t.logo}" alt="" onerror="this.outerHTML='<span class=&quot;chip-mark&quot; style=&quot;--chip:${t.team}&quot;>${initials(t.name)}</span>'">
+          ${t.name}
+        </a>`).join('');
+    if (!chips) return '';
+    return `<div class="teamnav-region"><span class="teamnav-region-name">${region}</span>${chips}</div>`;
+  }).join('');
+}
+
+/* mount */
+document.getElementById('teamnav-regions').innerHTML = teamnavMarkup();
+document.getElementById('teams').innerHTML = TEAMS.map((t, ti) => teamBlock(t, ti)).join('');
+
+/* ============================================================
+   PLAYER DETAIL — open / close with Guardian-style pointer
+   ============================================================ */
+function detailMarkup(t, p) {
+  const circles = Array.from({length:5}, (_,i) =>
+    `<span class="detail-circle ${i < p.rating ? 'on' : ''}"></span>`).join('');
+  const heroes = p.heroes.map(h =>
+    `<div class="detail-hero">${heroIcon(h)}<span class="dh-name">${heroLabel(h)}</span><span class="dh-wr">${heroWR(p.handle, h)}%</span></div>`).join('');
+  const results = (t.results || []).map(r => `
+        <div class="result-row" title="${r.event || ''}">
+          <span class="result-badge ${r.win ? 'w' : 'l'}">${r.win ? 'W' : 'L'}</span>
+          <img class="result-opp-logo" src="${r.opplogo}" alt="" onerror="this.style.display='none'">
+          <span class="result-opp">${r.opp}</span>
+          <span class="result-score">${r.score}</span>
+        </div>`).join('');
+  const profile = `https://rdy.gg/dota/players/${slugify(p.handle)}`;
+  const past = PAST[p.handle] || [];
+  const core = p.pos <= 3;
+  const ladder = RANK_OVERRIDE[p.handle] || 'Unlisted';   // not on the live board
+  const STATS = [
+    { v: ladder, l: 'Ladder rank', mute: !RANK_OVERRIDE[p.handle] },
+    core ? { v: stat(p.handle, 'gpm', 470, 720), l: 'GPM' } : { v: (stat(p.handle, 'stk', 55, 205) / 10).toFixed(1), l: 'Stacks/g' },
+    core ? { v: stat(p.handle, 'xpm', 510, 760), l: 'XPM' } : { v: stat(p.handle, 'wrd', 12, 27), l: 'Wards/g' },
+    { v: fmtNum(stat(p.handle, 'mch', 620, 2200)), l: 'Matches' },
+    { v: fmtMoney(EARNINGS[p.handle] || 0), l: 'Earnings', gold: true },
+  ];
+  const statStrip = `<div class="detail-stats">${STATS.map(s => `<div class="dstat"><span class="dstat-v${s.gold ? ' gold' : ''}${s.mute ? ' mute' : ''}">${s.v}</span><span class="dstat-l">${s.l}</span></div>`).join('')}</div>`;
+  return `
+    <img class="detail-portrait" src="${encodeURI(p.photo)}" alt="${p.handle}" onerror="this.style.visibility='hidden'">
+    <div class="detail-main">
+      <div class="detail-pos"><span class="num">${p.pos}</span><span class="role">${ROLE[p.pos]}</span></div>
+      <div class="detail-handle">${p.handle}</div>
+      <div class="detail-real">${flagImg(p.country,'inline')} ${p.real ? p.real + ' · ' : ''}${p.country || 'Nationality TBC'}</div>
+      ${statStrip}
+      <p class="detail-note">${p.note}</p>
+      ${p.read ? `<div class="rdy-read"><span class="lbl">rdy read</span><p>${p.read}</p></div>` : ''}
+      <div class="detail-heroes-label">Signature heroes</div>
+      <div class="detail-heroes">${heroes}</div>
+      <a class="detail-profile" href="${profile}" target="_blank" rel="noopener">Full rdy.gg profile →</a>
+    </div>
+    <div class="detail-side">
+      <div>
+        <div class="detail-form-label">rdy form</div>
+        <div class="detail-form-circles">${circles}</div>
+      </div>
+      ${results ? `<div><div class="detail-form-label">Recent results</div><div class="detail-results">${results}</div></div>` : ''}
+      ${past.length ? `<div><div class="detail-form-label">Career · past teams</div><div class="detail-past">${past.map(tm => `<span class="past-team">${tm}</span>`).join('')}</div></div>` : ''}
+      <div class="detail-meta-row"><span class="k">Position</span>${p.pos} · ${ROLE[p.pos]}</div>
+      <div class="detail-meta-row"><span class="k">Country</span>${flagImg(p.country,'inline')} ${p.country || 'TBC'}</div>
+    </div>`;
+}
+
+let openKey = null; // `${ti}:${pi}`
+
+function closeDetail(ti) {
+  const panel = document.getElementById('detail-' + ti);
+  panel.classList.remove('open');
+  document.querySelectorAll(`.player-card[data-team="${ti}"].active`).forEach(c => c.classList.remove('active'));
+}
+
+function openDetail(ti, pi, card) {
+  const t = TEAMS[ti];
+  const panel = document.getElementById('detail-' + ti);
+  const inner = panel.querySelector('.player-detail-inner');
+  inner.innerHTML = detailMarkup(t, t.players[pi]);
+
+  // highlight active card within this team
+  document.querySelectorAll(`.player-card[data-team="${ti}"].active`).forEach(c => c.classList.remove('active'));
+  card.classList.add('active');
+
+  panel.classList.add('open');
+
+  // align the pointer under the clicked card
+  const grid = card.parentElement;
+  const pointer = panel.querySelector('.player-detail-pointer');
+  const left = card.offsetLeft + card.offsetWidth / 2 - 7;
+  pointer.style.left = Math.max(10, Math.min(left, grid.offsetWidth - 24)) + 'px';
+}
+
+document.getElementById('teams').addEventListener('click', (e) => {
+  const card = e.target.closest('.player-card');
+  const close = e.target.closest('.detail-close');
+
+  if (close) {
+    const ti = close.closest('.player-detail').id.replace('detail-', '');
+    closeDetail(ti);
+    openKey = null;
+    return;
+  }
+  if (!card) return;
+
+  const ti = card.dataset.team, pi = card.dataset.player;
+  const key = ti + ':' + pi;
+
+  if (openKey === key) {           // clicking the open card closes it
+    closeDetail(ti);
+    openKey = null;
+  } else {
+    if (openKey && openKey.split(':')[0] !== ti) closeDetail(openKey.split(':')[0]);
+    openDetail(+ti, +pi, card);
+    openKey = key;
+    // bring the opened panel into view if it landed below the fold
+    requestAnimationFrame(() => {
+      const panel = document.getElementById('detail-' + ti);
+      const r = panel.getBoundingClientRect();
+      if (r.bottom > window.innerHeight) panel.scrollIntoView({ behavior:'smooth', block:'nearest' });
+    });
+  }
+});
+
+/* keep an open pointer aligned on resize */
+window.addEventListener('resize', () => {
+  if (!openKey) return;
+  const [ti, pi] = openKey.split(':');
+  const card = document.querySelector(`.player-card[data-team="${ti}"][data-player="${pi}"]`);
+  if (card) openDetail(+ti, +pi, card);
+});
+
+/* Esc closes any open detail */
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && openKey) { closeDetail(openKey.split(':')[0]); openKey = null; }
+});
+
+/* ============================================================
+   RDY'S 5 TO WATCH
+   ============================================================ */
+const WATCH5 = [
+  { ti:0, pi:0, why:'World number one on the EU ladder and the engine of the DreamLeague S29 champions.' },     // Satanic
+  { ti:1, pi:0, why:'Converted carry at EU #3, topping the BLAST Slam VII standings.' },                          // watson
+  { ti:1, pi:3, why:'The most decorated head in the room, steering Yandex past Spirit and into the playoffs.' },  // Saksa
+  { ti:0, pi:1, why:'A decade in the mid lane and still the scariest first-phase pick at the table.' },           // No[o]ne-
+  { ti:3, pi:1, why:'A South American mixtape mid sitting quietly at EU #5 with LGD.' },                          // TaiLung
+];
+function watch5Markup(){
+  return `
+    <div class="watch5-head"><span>★ rdy's 5 to watch</span><div class="line"></div></div>
+    <div class="watch5-grid">
+      ${WATCH5.map(w => { const t = TEAMS[w.ti], p = t.players[w.pi]; return `
+        <button class="watch5-card" data-team="${w.ti}" data-player="${w.pi}" style="--team:${t.team}" type="button">
+          <img class="watch5-photo" src="${encodeURI(p.photo)}" alt="${p.handle}" onerror="this.style.visibility='hidden'">
+          <div class="watch5-body">
+            <div class="watch5-top"><span class="watch5-pos">${p.pos}</span><span class="watch5-team">${t.name}</span></div>
+            <div class="watch5-handle">${p.handle}</div>
+            <div class="watch5-why">${w.why}</div>
+          </div>
+        </button>`; }).join('')}
+    </div>`;
+}
+document.getElementById('watch5').innerHTML = watch5Markup();
+
+document.getElementById('watch5').addEventListener('click', (e) => {
+  const card = e.target.closest('.watch5-card');
+  if (!card) return;
+  const ti = +card.dataset.team, pi = +card.dataset.player;
+  if (filterRole !== 0) { filterRole = 0; renderFilterbar(); applyFilter(); }
+  const teamCard = document.querySelector(`.player-card[data-team="${ti}"][data-player="${pi}"]`);
+  if (teamCard) { teamCard.scrollIntoView({ behavior:'smooth', block:'center' }); setTimeout(() => teamCard.click(), 420); }
+});
+
+/* ============================================================
+   ROLE FILTER + SORT (flat cross-team view)
+   ============================================================ */
+const ROLE_FILTERS = [ {k:0,l:'All'}, {k:1,l:'Carry'}, {k:2,l:'Mid'}, {k:3,l:'Offlane'}, {k:4,l:'Soft Sup'}, {k:5,l:'Hard Sup'} ];
+let filterRole = 0, sortKey = 'rank';
+
+function rankNum(p){ const o = RANK_OVERRIDE[p.handle]; if (!o) return 99999; const m = o.match(/#(\d+)/); return m ? +m[1] : 99999; }
+function earnNum(p){ return EARNINGS[p.handle] || 0; }
+
+function renderFilterbar(){
+  const chips = ROLE_FILTERS.map(r => `<button class="fb-chip ${r.k===filterRole?'active':''}" data-role="${r.k}" type="button">${r.l}</button>`).join('');
+  document.getElementById('filterbar').innerHTML = `
+    <div class="fb-label">Filter by role</div>
+    <div class="fb-chips">${chips}</div>
+    <div class="fb-sort ${filterRole===0?'hide':''}"><span>Sort</span><select id="fb-sortsel">
+      <option value="rank">Ladder rank</option><option value="earnings">Earnings</option><option value="name">Name</option>
+    </select></div>`;
+  const sel = document.getElementById('fb-sortsel');
+  if (sel) { sel.value = sortKey; sel.addEventListener('change', (e) => { sortKey = e.target.value; applyFilter(); }); }
+}
+
+function flatCard(t, ti, p, pi){
+  return `
+    <button class="player-card flat" data-flat-team="${ti}" data-flat-player="${pi}" style="--team:${t.team}" type="button">
+      <div class="player-photo-wrap">
+        ${photoMarkup(p, 'player-photo')}
+        <div class="player-pos-badge"><span class="player-pos-num">${p.pos}</span><span class="player-pos-role">${ROLE[p.pos]}</span></div>
+        <span class="player-flag" title="${p.country}">${flagImg(p.country)}</span>
+      </div>
+      <div class="player-card-body">
+        <div class="flat-team"><img src="${t.logo}" alt="" onerror="this.style.display='none'"> ${t.name}</div>
+        <div class="player-handle">${p.handle}</div>
+        <div class="player-real">${p.real || '&nbsp;'}</div>
+      </div>
+    </button>`;
+}
+
+function applyFilter(){
+  const teamsEl = document.getElementById('teams');
+  const flatEl = document.getElementById('flatview');
+  const navEl = document.getElementById('teamnav');
+  if (filterRole === 0) { teamsEl.style.display = ''; navEl.style.display = ''; flatEl.style.display = 'none'; return; }
+  teamsEl.style.display = 'none'; navEl.style.display = 'none'; flatEl.style.display = '';
+  const list = [];
+  TEAMS.forEach((t, ti) => t.players.forEach((p, pi) => { if (p.pos === filterRole) list.push({ t, ti, p, pi }); }));
+  if (sortKey === 'rank') list.sort((a,b) => rankNum(a.p) - rankNum(b.p));
+  else if (sortKey === 'earnings') list.sort((a,b) => earnNum(b.p) - earnNum(a.p));
+  else if (sortKey === 'name') list.sort((a,b) => a.p.handle.localeCompare(b.p.handle));
+  const label = ROLE_FILTERS.find(r => r.k===filterRole).l;
+  flatEl.innerHTML = `
+    <div class="flat-head"><span>Every ${label} · ${list.length} players</span><div class="line"></div></div>
+    <div class="player-grid flat-grid">${list.map(x => flatCard(x.t, x.ti, x.p, x.pi)).join('')}</div>
+    <div class="player-detail" id="detail-flat"><div class="player-detail-pointer"></div><button class="detail-close" type="button" aria-label="Close">✕</button><div class="player-detail-inner"></div></div>`;
+}
+
+document.getElementById('filterbar').addEventListener('click', (e) => {
+  const chip = e.target.closest('.fb-chip');
+  if (!chip) return;
+  filterRole = +chip.dataset.role;
+  renderFilterbar();
+  applyFilter();
+  const fb = document.getElementById('filterbar');
+  window.scrollTo({ top: fb.getBoundingClientRect().top + window.scrollY - 64, behavior:'smooth' });
+});
+
+let flatOpenKey = null;
+document.getElementById('flatview').addEventListener('click', (e) => {
+  const panel = document.getElementById('detail-flat');
+  const close = e.target.closest('.detail-close');
+  if (close) { panel.classList.remove('open'); document.querySelectorAll('.player-card.flat.active').forEach(c => c.classList.remove('active')); flatOpenKey = null; return; }
+  const card = e.target.closest('.player-card.flat');
+  if (!card) return;
+  const ti = +card.dataset.flatTeam, pi = +card.dataset.flatPlayer, key = ti + ':' + pi;
+  if (flatOpenKey === key) { panel.classList.remove('open'); card.classList.remove('active'); flatOpenKey = null; return; }
+  document.querySelectorAll('.player-card.flat.active').forEach(c => c.classList.remove('active'));
+  card.classList.add('active');
+  panel.style.setProperty('--team', TEAMS[ti].team);
+  panel.querySelector('.player-detail-inner').innerHTML = detailMarkup(TEAMS[ti], TEAMS[ti].players[pi]);
+  panel.classList.add('open');
+  flatOpenKey = key;
+  const grid = card.parentElement, pointer = panel.querySelector('.player-detail-pointer');
+  pointer.style.left = Math.max(10, Math.min(card.offsetLeft + card.offsetWidth / 2 - 7, grid.offsetWidth - 24)) + 'px';
+  requestAnimationFrame(() => { const r = panel.getBoundingClientRect(); if (r.bottom > window.innerHeight) panel.scrollIntoView({ behavior:'smooth', block:'nearest' }); });
+});
+
+renderFilterbar();
+applyFilter();
+</script>
+
+<!-- ===== rdy vitrals masthead backdrop (recoloured Cologne shader) ===== -->
+<script>
+(function () {
+  const VERT = `#version 300 es
+    in vec2 a_pos; void main(){ gl_Position = vec4(a_pos, 0.0, 1.0); }`;
+  const FRAG = `#version 300 es
+    precision highp float;
+    uniform vec2 u_res; uniform float u_time; uniform vec2 u_winPos;
+    uniform float u_winScale; uniform float u_windowOn; uniform float u_amp; uniform float u_px; uniform float u_cn;
+    out vec4 fragColor;
+    const float bayer[16] = float[16](
+       0.0/16.0,  8.0/16.0,  2.0/16.0, 10.0/16.0, 12.0/16.0,  4.0/16.0, 14.0/16.0,  6.0/16.0,
+       3.0/16.0, 11.0/16.0,  1.0/16.0,  9.0/16.0, 15.0/16.0,  7.0/16.0, 13.0/16.0,  5.0/16.0);
+    mat2 rot(float a){ return mat2(cos(a),-sin(a),sin(a),cos(a)); }
+    float rayBand(vec2 uv, vec2 o, float ang, float lenS, float wS){
+      vec2 p = uv - o; p = rot(-ang)*p; if(p.y < 0.0) return 0.0;
+      return exp(-(p.x*p.x)/(wS*wS)) * exp(-(p.y/lenS)*0.95); }
+    float windowMask(vec2 uv, vec2 c, float s){
+      vec2 p = (uv-c)/s;
+      float rect = smoothstep(0.52,0.48,abs(p.x)) * smoothstep(1.02,0.98,p.y) * step(0.0,p.y);
+      float dl = length(p-vec2(0.5,0.0)), dr = length(p-vec2(-0.5,0.0));
+      float arch = smoothstep(1.02,0.98,max(dl,dr)) * step(p.y,0.0);
+      return clamp(max(rect,arch),0.0,1.0); }
+    vec3 windowGlass(vec2 uv, vec2 c, float s, float pulse){
+      vec2 p = (uv-c)/s; vec3 col;
+      if(p.x < -0.15)      col = vec3(1.00, 0.28, 0.26);   // dire red
+      else if(p.x < 0.15)  col = vec3(1.05, 0.82, 0.34);   // TI gold
+      else                 col = vec3(0.28, 0.52, 1.05);   // radiant blue
+      if(p.y > 0.20 && p.y < 0.55) col = mix(col, vec3(0.06, 0.86, 0.42), 0.7); // rdy green band
+      return col * pulse; }
+    void main(){
+      vec2 coord = floor(gl_FragCoord.xy/u_px)*u_px; vec2 uv = coord/u_res; uv.y = 1.0-uv.y;
+      vec2 auv = vec2(uv.x*u_res.x/u_res.y, uv.y); vec2 acen = vec2(u_winPos.x*u_res.x/u_res.y, u_winPos.y);
+      float t = u_time;
+      vec3 bg = vec3(0.022, 0.016, 0.009);
+      float sunPulse = 0.70 + 0.30*sin(t*6.2832/22.0);
+      float a1 = sin((uv.x+uv.y*0.8)*7.0 + t*0.09)*0.5+0.5, a2 = sin((uv.x*1.3-uv.y*0.6)*5.5 - t*0.06 + 2.1)*0.5+0.5;
+      float winDist = distance(auv, acen);
+      vec3 lit = vec3(0.85, 0.58, 0.22) * (a1*a2) * 0.020 * exp(-winDist*winDist*1.8);
+      float mistMask = smoothstep(0.50, 1.05, uv.y);
+      float m1 = sin(uv.x*2.4 + t*0.06)*0.5+0.5, m2 = sin(uv.y*5.5 - t*0.04 + 1.3)*0.5+0.5, m3 = sin(uv.x*1.6 - uv.y*2.2 + t*0.05 + 2.7)*0.5+0.5;
+      lit += vec3(0.58, 0.50, 0.34) * (((m1*m2 + m2*m3 + m1*m3)/3.0) * mistMask * 0.16);
+      vec2 origin = acen + vec2(0.0, u_winScale*0.90);
+      float sp = sunPulse;
+      lit += vec3(0.30, 0.55, 1.05) * rayBand(auv, origin, radians(-28.0), 1.90, 0.160) * sp;  // radiant blue
+      lit += vec3(0.95, 0.72, 0.30) * rayBand(auv, origin, radians(-36.0), 1.90, 0.168) * sp;  // gold
+      lit += vec3(1.05, 0.82, 0.36) * rayBand(auv, origin, radians(-44.0), 2.18, 0.192) * sp;  // bright gold
+      lit += vec3(1.05, 0.30, 0.26) * rayBand(auv, origin, radians(-52.0), 1.90, 0.168) * sp;  // dire red
+      lit += vec3(0.08, 0.85, 0.42) * rayBand(auv, origin, radians(-60.0), 1.90, 0.160) * sp;  // rdy green
+      lit *= u_amp;
+      lit += vec3(1.00, 0.74, 0.30) * (exp(-winDist*winDist*22.0) * 0.40 * sunPulse * u_windowOn);
+      float wm = windowMask(auv, acen, u_winScale) * u_windowOn;
+      vec3 glass = windowGlass(auv, acen, u_winScale, sunPulse) * 1.30;
+      int bx = int(mod(coord.x/u_px, 4.0)), by = int(mod(coord.y/u_px, 4.0)); float thr = bayer[by*4+bx];
+      vec3 dl, dg;
+      for(int i=0;i<3;i++){
+        float v=clamp(lit[i],0.0,1.0), s=v*(u_cn-1.0); dl[i]=((fract(s)>thr)?ceil(s):floor(s))/(u_cn-1.0);
+        float v2=clamp(glass[i],0.0,1.0), s2=v2*(u_cn-1.0); dg[i]=((fract(s2)>thr)?ceil(s2):floor(s2))/(u_cn-1.0);
+      }
+      vec3 final = mix(bg+dl, dg, wm); final = mix(bg, final, 0.88); fragColor = vec4(final, 1.0); }`;
+  function mk(gl,ty,src){ const s=gl.createShader(ty); gl.shaderSource(s,src); gl.compileShader(s);
+    if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){ console.error(gl.getShaderInfoLog(s)); return null; } return s; }
+  const S = { winPos:[1.00,-0.15], winScale:0.15, windowOn:1.0, amp:0.42, px:3.0, cn:11.0 };
+  const canvas = document.getElementById('vitrals');
+  const gl = canvas.getContext('webgl2', { antialias:false, alpha:false });
+  if(!gl){ canvas.style.display='none'; return; }
+  const prog = gl.createProgram();
+  gl.attachShader(prog, mk(gl, gl.VERTEX_SHADER, VERT));
+  gl.attachShader(prog, mk(gl, gl.FRAGMENT_SHADER, FRAG));
+  gl.linkProgram(prog); gl.useProgram(prog);
+  const vao = gl.createVertexArray(); gl.bindVertexArray(vao);
+  const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+  const aPos = gl.getAttribLocation(prog,'a_pos'); gl.enableVertexAttribArray(aPos); gl.vertexAttribPointer(aPos,2,gl.FLOAT,false,0,0);
+  const U={}; ['u_res','u_time','u_winPos','u_winScale','u_windowOn','u_amp','u_px','u_cn'].forEach(n=>U[n]=gl.getUniformLocation(prog,n));
+  function resize(){ const dpr=Math.min(window.devicePixelRatio||1,2);
+    canvas.width=Math.max(1,Math.floor(canvas.clientWidth*dpr)); canvas.height=Math.max(1,Math.floor(canvas.clientHeight*dpr));
+    gl.viewport(0,0,canvas.width,canvas.height); gl.uniform2f(U.u_res,canvas.width,canvas.height); }
+  addEventListener('resize', resize); resize();
+  // dim the backdrop as you scroll past the masthead (Cologne-deck behaviour):
+  // full glow + window on at the top, easing to a dim ambient once into the rosters.
+  const ampFull = S.amp, ampDim = 0.12;
+  let curAmp = ampFull, curWin = S.windowOn;
+  const t0 = performance.now();
+  (function frame(){
+    const sy = window.scrollY || document.documentElement.scrollTop || 0;
+    const fade = Math.min(1, Math.max(0, (sy - 60) / 460));   // 0 at masthead, 1 in content
+    curAmp += ((ampFull + (ampDim - ampFull) * fade) - curAmp) * 0.10;
+    curWin += ((S.windowOn * (1.0 - fade)) - curWin) * 0.10;
+    gl.uniform1f(U.u_time,(performance.now()-t0)/1000);
+    gl.uniform2f(U.u_winPos,S.winPos[0],S.winPos[1]); gl.uniform1f(U.u_winScale,S.winScale);
+    gl.uniform1f(U.u_windowOn,curWin); gl.uniform1f(U.u_amp,curAmp); gl.uniform1f(U.u_px,S.px); gl.uniform1f(U.u_cn,S.cn);
+    gl.drawArrays(gl.TRIANGLE_STRIP,0,4); requestAnimationFrame(frame);
+  })();
+})();
+</script>
+</body>
+</html>

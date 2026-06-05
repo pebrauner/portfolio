@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gold Vitrals — Background Study — rdy.gg Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --gold: #C9A84C; --gold-bright: #F0C840; --green: #00D161; --mono: 'IBM Plex Mono', monospace; --disp: 'Roboto Condensed', sans-serif; }
+
+  html, body { height: 100%; overflow: hidden; background: #07060c; }
+  body { font-family: var(--mono); color: #e9e4d6; }
+
+  #bg { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; z-index: 0; }
+
+  /* sample masthead, to preview the background behind real content */
+  .stage { position: fixed; inset: 0; z-index: 2; pointer-events: none; }
+  .masthead { position: absolute; top: 17%; left: 7%; max-width: 760px; }
+  .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 4px; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 18px; text-shadow: 0 0 16px rgba(201,168,76,0.5);
+  }
+  .title {
+    font-family: var(--disp); font-weight: 800; font-size: clamp(48px, 7vw, 104px);
+    line-height: 0.92; letter-spacing: 0.5px; text-transform: uppercase; color: #fff;
+    text-shadow: 0 2px 40px rgba(0,0,0,0.75);
+  }
+  .title em { font-style: normal; color: var(--gold); }
+  .stand { margin-top: 22px; font-size: 15px; line-height: 1.7; color: #c8c1b1; max-width: 46ch; }
+  .byline { margin-top: 18px; font-size: 12px; letter-spacing: 1px; color: #8a8474; text-transform: uppercase; }
+
+  .botright { position: fixed; bottom: 24px; right: 28px; z-index: 2; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #6f6a5e; }
+  .botright b { color: var(--gold); }
+
+  .panel {
+    position: fixed; z-index: 6; bottom: 24px; left: 30px; width: 250px;
+    background: rgba(10, 9, 14, 0.72); border: 1px solid rgba(201,168,76,0.22);
+    border-radius: 10px; backdrop-filter: blur(14px); padding: 16px 16px 18px;
+  }
+  .panel-title {
+    font-family: var(--disp); font-size: 11px; font-weight: 800; letter-spacing: 1.6px;
+    text-transform: uppercase; color: var(--gold); margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+  }
+  .panel-title::after { content: ''; flex: 1; height: 1px; background: rgba(201,168,76,0.2); }
+  .ctrl { margin-bottom: 12px; } .ctrl:last-child { margin-bottom: 0; }
+  .ctrl-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .ctrl-label { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: #a59f90; }
+  .ctrl-val { font-size: 10px; color: var(--gold); font-variant-numeric: tabular-nums; }
+  input[type="range"] {
+    -webkit-appearance: none; appearance: none; width: 100%; height: 3px; margin-top: 8px;
+    background: rgba(255,255,255,0.12); border-radius: 3px; outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 13px; height: 13px; border-radius: 50%; background: var(--gold); cursor: pointer; box-shadow: 0 0 8px rgba(201,168,76,0.7); }
+  input[type="range"]::-moz-range-thumb { width: 13px; height: 13px; border: none; border-radius: 50%; background: var(--gold); cursor: pointer; }
+
+  .back {
+    position: fixed; top: 26px; right: 30px; z-index: 6; font-size: 10px; letter-spacing: 2px;
+    text-transform: uppercase; color: #8a8474; text-decoration: none;
+    border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; padding: 7px 12px; transition: all 0.2s;
+  }
+  .back:hover { color: var(--gold); border-color: rgba(201,168,76,0.4); }
+
+  /* rdy brand mark */
+  .brandbar { position: fixed; top: 24px; left: 32px; z-index: 6; display: flex; align-items: center; gap: 11px; }
+  .logo-text { font-family: var(--disp); font-size: 23px; font-weight: 800; color: #fff; letter-spacing: -0.5px; text-decoration: none; }
+  .logo-text span { color: var(--green); }
+  .brand-tag { font-family: var(--mono); font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: #06120a; background: var(--green); padding: 2px 7px; border-radius: 3px; font-weight: 600; }
+
+  @media (max-width: 640px) {
+    .masthead { left: 6%; top: 14%; } .stand { display: none; }
+    .panel { left: 16px; right: 16px; width: auto; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bg" aria-hidden="true"></canvas>
+
+<div class="brandbar"><a href="/" class="logo-text">rdy<span>.gg</span></a><span class="brand-tag">Lab</span></div>
+
+<div class="stage">
+  <div class="masthead">
+    <div class="kicker">The International 2026 · Aegis of Champions</div>
+    <div class="title">Guide to <em>every player</em> at TI 2026</div>
+    <p class="stand">Everything you need to know about the rosters chasing the Aegis. The Cologne vitrals, recoloured to the rdy palette and dithered the same way.</p>
+    <div class="byline">By the rdy.gg team · Background study</div>
+  </div>
+</div>
+
+<div class="botright">Gold vitrals · <b>rdy.gg lab</b></div>
+
+<a class="back" href="/lab/dota-prot/">← Dota Lab</a>
+
+<div class="panel">
+  <div class="panel-title">Background Controls</div>
+  <div class="ctrl"><div class="ctrl-row"><span class="ctrl-label">Glow</span><span class="ctrl-val" id="v-amp">0.42</span></div><input type="range" id="r-amp" min="0" max="1.1" step="0.01" value="0.42"></div>
+  <div class="ctrl"><div class="ctrl-row"><span class="ctrl-label">Window X</span><span class="ctrl-val" id="v-wx">1.00</span></div><input type="range" id="r-wx" min="0" max="1" step="0.01" value="1"></div>
+  <div class="ctrl"><div class="ctrl-row"><span class="ctrl-label">Window Y</span><span class="ctrl-val" id="v-wy">-0.15</span></div><input type="range" id="r-wy" min="-0.3" max="0.7" step="0.01" value="-0.15"></div>
+  <div class="ctrl"><div class="ctrl-row"><span class="ctrl-label">Window size</span><span class="ctrl-val" id="v-ws">0.15</span></div><input type="range" id="r-ws" min="0.15" max="0.62" step="0.01" value="0.15"></div>
+  <div class="ctrl"><div class="ctrl-row"><span class="ctrl-label">Pixel size</span><span class="ctrl-val" id="v-px">3</span></div><input type="range" id="r-px" min="1" max="5" step="1" value="3"></div>
+  <div class="ctrl"><div class="ctrl-row"><span class="ctrl-label">Color levels</span><span class="ctrl-val" id="v-cn">11</span></div><input type="range" id="r-cn" min="3" max="16" step="1" value="11"></div>
+</div>
+
+<!-- ================================================================
+     GOLD VITRALS — the Cologne cathedral shader, palette recolored to
+     a single gold ramp instead of the multi-colour stained glass.
+     Structure (rays, window, halo, dither, sun-pulse) is unchanged.
+     ================================================================ -->
+<script>
+(function () {
+  const VERT = `#version 300 es
+    in vec2 a_pos; void main(){ gl_Position = vec4(a_pos, 0.0, 1.0); }`;
+
+  const FRAG = `#version 300 es
+    precision highp float;
+    uniform vec2 u_res; uniform float u_time; uniform vec2 u_winPos;
+    uniform float u_winScale; uniform float u_windowOn; uniform float u_amp; uniform float u_px; uniform float u_cn;
+    out vec4 fragColor;
+
+    const float bayer[16] = float[16](
+       0.0/16.0,  8.0/16.0,  2.0/16.0, 10.0/16.0,
+      12.0/16.0,  4.0/16.0, 14.0/16.0,  6.0/16.0,
+       3.0/16.0, 11.0/16.0,  1.0/16.0,  9.0/16.0,
+      15.0/16.0,  7.0/16.0, 13.0/16.0,  5.0/16.0);
+
+    mat2 rot(float a){ return mat2(cos(a),-sin(a),sin(a),cos(a)); }
+
+    float rayBand(vec2 uv, vec2 origin, float ang, float lenS, float wS){
+      vec2 p = uv - origin; p = rot(-ang)*p; if(p.y < 0.0) return 0.0;
+      return exp(-(p.x*p.x)/(wS*wS)) * exp(-(p.y/lenS)*0.95); }
+
+    float windowMask(vec2 uv, vec2 c, float s){
+      vec2 p = (uv-c)/s;
+      float rect = smoothstep(0.52,0.48,abs(p.x)) * smoothstep(1.02,0.98,p.y) * step(0.0,p.y);
+      float dl = length(p-vec2(0.5,0.0)), dr = length(p-vec2(-0.5,0.0));
+      float arch = smoothstep(1.02,0.98,max(dl,dr)) * step(p.y,0.0);
+      return clamp(max(rect,arch),0.0,1.0); }
+
+    // rdy palette glass: dire red / TI gold / radiant blue + an rdy-green band.
+    vec3 windowGlass(vec2 uv, vec2 c, float s, float pulse){
+      vec2 p = (uv-c)/s; vec3 col;
+      if(p.x < -0.15)      col = vec3(1.00, 0.28, 0.26);   // dire red
+      else if(p.x < 0.15)  col = vec3(1.05, 0.82, 0.34);   // TI gold
+      else                 col = vec3(0.28, 0.52, 1.05);   // radiant blue
+      if(p.y > 0.20 && p.y < 0.55) col = mix(col, vec3(0.06, 0.86, 0.42), 0.7); // rdy green band
+      return col * pulse; }
+
+    void main(){
+      vec2 coord = floor(gl_FragCoord.xy/u_px)*u_px; vec2 uv = coord/u_res; uv.y = 1.0-uv.y;
+      vec2 auv = vec2(uv.x*u_res.x/u_res.y, uv.y); vec2 acen = vec2(u_winPos.x*u_res.x/u_res.y, u_winPos.y);
+      float t = u_time;
+
+      vec3 bg = vec3(0.022, 0.016, 0.009);                 // near-black, faint warm
+      float sunPulse = 0.70 + 0.30*sin(t*6.2832/22.0);
+
+      float a1 = sin((uv.x+uv.y*0.8)*7.0 + t*0.09)*0.5+0.5;
+      float a2 = sin((uv.x*1.3-uv.y*0.6)*5.5 - t*0.06 + 2.1)*0.5+0.5;
+      float winDist = distance(auv, acen);
+      vec3 lit = vec3(0.85, 0.58, 0.22) * (a1*a2) * 0.020 * exp(-winDist*winDist*1.8);  // warm-gold atmosphere
+
+      float mistMask = smoothstep(0.50, 1.05, uv.y);
+      float m1 = sin(uv.x*2.4 + t*0.06)*0.5+0.5, m2 = sin(uv.y*5.5 - t*0.04 + 1.3)*0.5+0.5, m3 = sin(uv.x*1.6 - uv.y*2.2 + t*0.05 + 2.7)*0.5+0.5;
+      float mist = ((m1*m2 + m2*m3 + m1*m3)/3.0) * mistMask * 0.16;
+      lit += vec3(0.58, 0.50, 0.34) * mist;                // warm grey-gold mist
+
+      vec2 origin = acen + vec2(0.0, u_winScale*0.90);
+      float a_r1=radians(-28.0), a_r2=radians(-36.0), a_r3=radians(-44.0), a_r4=radians(-52.0), a_r5=radians(-60.0);
+      float sp = sunPulse;
+      // five rays in the rdy palette, gold kept as the central hero
+      lit += vec3(0.30, 0.55, 1.05) * rayBand(auv, origin, a_r1, 1.90, 0.160) * sp;  // radiant blue
+      lit += vec3(0.95, 0.72, 0.30) * rayBand(auv, origin, a_r2, 1.90, 0.168) * sp;  // gold
+      lit += vec3(1.05, 0.82, 0.36) * rayBand(auv, origin, a_r3, 2.18, 0.192) * sp;  // bright gold (hero)
+      lit += vec3(1.05, 0.30, 0.26) * rayBand(auv, origin, a_r4, 1.90, 0.168) * sp;  // dire red
+      lit += vec3(0.08, 0.85, 0.42) * rayBand(auv, origin, a_r5, 1.90, 0.160) * sp;  // rdy green
+      lit *= u_amp;
+
+      float halo = exp(-winDist*winDist*22.0) * 0.40 * sunPulse * u_windowOn;
+      lit += vec3(1.00, 0.74, 0.30) * halo;                // gold halo
+
+      float wm = windowMask(auv, acen, u_winScale) * u_windowOn;
+      vec3 glass = windowGlass(auv, acen, u_winScale, sunPulse) * 1.30;
+
+      int bx = int(mod(coord.x/u_px, 4.0)), by = int(mod(coord.y/u_px, 4.0));
+      float thr = bayer[by*4+bx];
+      vec3 dl, dg;
+      for(int i=0;i<3;i++){
+        float v=clamp(lit[i],0.0,1.0), s=v*(u_cn-1.0); dl[i]=((fract(s)>thr)?ceil(s):floor(s))/(u_cn-1.0);
+        float v2=clamp(glass[i],0.0,1.0), s2=v2*(u_cn-1.0); dg[i]=((fract(s2)>thr)?ceil(s2):floor(s2))/(u_cn-1.0);
+      }
+      vec3 final = mix(bg+dl, dg, wm);
+      final = mix(bg, final, 0.88);
+      fragColor = vec4(final, 1.0); }`;
+
+  function mk(gl, ty, src){ const s=gl.createShader(ty); gl.shaderSource(s,src); gl.compileShader(s);
+    if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){ console.error(gl.getShaderInfoLog(s)); return null; } return s; }
+
+  const state = { winPos: [1.00, -0.15], winScale: 0.15, windowOn: 1.0, amp: 0.42, px: 3.0, cn: 11.0 };
+
+  const canvas = document.getElementById('bg');
+  const gl = canvas.getContext('webgl2', { antialias: false, alpha: false });
+  if (!gl) { canvas.style.background = '#0a0805'; return; }
+
+  const prog = gl.createProgram();
+  gl.attachShader(prog, mk(gl, gl.VERTEX_SHADER, VERT));
+  gl.attachShader(prog, mk(gl, gl.FRAGMENT_SHADER, FRAG));
+  gl.linkProgram(prog); gl.useProgram(prog);
+
+  const vao = gl.createVertexArray(); gl.bindVertexArray(vao);
+  const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+  const aPos = gl.getAttribLocation(prog, 'a_pos'); gl.enableVertexAttribArray(aPos); gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+  const U = {}; ['u_res','u_time','u_winPos','u_winScale','u_windowOn','u_amp','u_px','u_cn'].forEach(n => U[n] = gl.getUniformLocation(prog, n));
+
+  function resize(){ const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.floor(innerWidth*dpr); canvas.height = Math.floor(innerHeight*dpr);
+    gl.viewport(0, 0, canvas.width, canvas.height); gl.uniform2f(U.u_res, canvas.width, canvas.height); }
+  addEventListener('resize', resize); resize();
+
+  // controls
+  const bind = (id, vid, key, idx) => {
+    const el = document.getElementById(id), out = document.getElementById(vid);
+    el.addEventListener('input', e => {
+      const val = +e.target.value;
+      if (idx === undefined) state[key] = val; else state[key][idx] = val;
+      out.textContent = (key === 'px' || key === 'cn') ? val : val.toFixed(2);
+    });
+  };
+  bind('r-amp','v-amp','amp'); bind('r-wx','v-wx','winPos',0); bind('r-wy','v-wy','winPos',1);
+  bind('r-ws','v-ws','winScale'); bind('r-px','v-px','px'); bind('r-cn','v-cn','cn');
+
+  const t0 = performance.now();
+  (function frame(){
+    gl.uniform1f(U.u_time, (performance.now()-t0)/1000);
+    gl.uniform2f(U.u_winPos, state.winPos[0], state.winPos[1]);
+    gl.uniform1f(U.u_winScale, state.winScale); gl.uniform1f(U.u_windowOn, state.windowOn);
+    gl.uniform1f(U.u_amp, state.amp); gl.uniform1f(U.u_px, state.px); gl.uniform1f(U.u_cn, state.cn);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    requestAnimationFrame(frame);
+  })();
+})();
+</script>
+
+</body>
+</html>
