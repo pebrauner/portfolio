@@ -421,7 +421,6 @@ main { position: relative; z-index: 1; max-width: 1280px; margin: 0 auto; paddin
     linear-gradient(90deg, color-mix(in srgb, var(--team) 26%, transparent) 0%, color-mix(in srgb, var(--team) 6%, transparent) 36%, transparent 70%),
     var(--card);
   border: 1px solid var(--border);
-  border-left: 4px solid var(--team);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 .team-crest {
@@ -791,7 +790,6 @@ main { position: relative; z-index: 1; max-width: 1280px; margin: 0 auto; paddin
   margin-top: 18px; padding: 13px 16px;
   background: color-mix(in srgb, var(--green) 8%, var(--card-alt));
   border: 1px solid color-mix(in srgb, var(--green) 28%, transparent);
-  border-left: 3px solid var(--green);
   border-radius: var(--radius);
 }
 .team-verdict-head { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
@@ -809,8 +807,8 @@ main { position: relative; z-index: 1; max-width: 1280px; margin: 0 auto; paddin
 .rdy-read {
   margin: 2px 0 16px; padding: 11px 14px;
   background: color-mix(in srgb, var(--green) 7%, var(--card));
-  border-left: 3px solid var(--green);
-  border-radius: 0 var(--radius) var(--radius) 0;
+  border: 1px solid color-mix(in srgb, var(--green) 22%, transparent);
+  border-radius: var(--radius);
 }
 .rdy-read .lbl {
   display: block; margin-bottom: 5px;
@@ -862,13 +860,12 @@ main { position: relative; z-index: 1; max-width: 1280px; margin: 0 auto; paddin
   display: block; padding: 14px 16px;
   background: var(--card);
   border: 1px solid var(--border);
-  border-left: 2px solid transparent;
   border-radius: var(--radius);
   transition: transform 0.16s ease, background 0.16s ease, border-color 0.16s ease;
 }
 .archive-item:hover {
   background: var(--card-alt);
-  border-left-color: var(--green);
+  border-color: color-mix(in srgb, var(--green) 32%, transparent);
   opacity: 1;
   transform: translateX(2px);
 }
@@ -1079,9 +1076,9 @@ main { position: relative; z-index: 1; max-width: 1280px; margin: 0 auto; paddin
 
   <footer class="guide-footer">
     <p class="proto-note">
-      <b>Prototype.</b> Layout ported from The Guardian's "guide to all 1,248 players". Seed data covers four
-      rosters with verified positions, names and nationalities from Liquipedia, plus real career earnings and live dota2.com ladder ranks. Signature
-      heroes, win rates and past teams are illustrative placeholders. Extend the <code>TEAMS</code> array to add the rest of the field.
+      <b>Prototype.</b> Seed data covers four rosters with verified positions, names and nationalities from Liquipedia,
+      plus real career earnings and live dota2.com ladder ranks. Signature heroes, win rates and past teams are
+      illustrative placeholders. Extend the <code>TEAMS</code> array to add the rest of the field.
     </p>
     <div class="credit">Built by rdy<span>.gg</span></div>
   </footer>
