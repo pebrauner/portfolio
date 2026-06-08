@@ -1454,6 +1454,65 @@ const PAST = {
   'Mira': ['Team Spirit', 'Cascade'],
   'kaori': ['Natus Vincere', 'PuckChamp', 'PSG Quest'],
 };
+/* real per-map stats + top heroes (last 365 days) from rdy.gg */
+const HERO_FIX = { "Nature's Prophet":'furion', 'Windranger':'windrunner', 'Queen of Pain':'queenofpain', 'Centaur Warrunner':'centaur', 'Underlord':'abyssal_underlord', 'Doom':'doom_bringer', 'Timbersaw':'shredder', 'Shadow Fiend':'nevermore', 'Clockwerk':'rattletrap', 'Magnus':'magnataur', 'Lifestealer':'life_stealer', 'Ring Master':'ringmaster' };
+function heroFile(name){ return HERO_FIX[name] || name.toLowerCase().replace(/['’`.]/g,'').replace(/\s+/g,'_'); }
+const RDY = {
+  // Team Liquid
+  'miCKe':{g:702,x:819,k:8.4,w:45,m:529,wd:0.2,h:[['Tiny',61,44],['Monkey King',58,43],['Kez',63,35],["Nature's Prophet",63,32],['Windranger',66,32]]},
+  'Nisha':{g:603,x:762,k:9.2,w:45,m:546,wd:2.5,h:[['Storm Spirit',53,68],['Ember Spirit',64,66],['Puck',57,65],['Void Spirit',49,37],['Queen of Pain',49,35]]},
+  'Ace':{g:547,x:695,k:6.5,w:45,m:506,wd:0.2,h:[['Centaur Warrunner',68,53],['Underlord',68,40],['Tidehunter',53,40],['Dawnbreaker',56,34],['Axe',39,28]]},
+  'Boxi':{g:323,x:481,k:4.4,w:45,m:525,wd:22.2,h:[['Tusk',55,73],['Dark Willow',59,51],['Muerta',67,42],['Batrider',66,38],['Hoodwink',53,36]]},
+  'tOfu':{g:347,x:476,k:4.8,w:45,m:502,wd:26.9,h:[['Muerta',63,52],['Mirana',52,25],['Jakiro',67,24],['Warlock',70,23],['Tusk',45,20]]},
+  // BoomBoys / BetBoom
+  'Kiritych':{g:709,x:814,k:8.3,w:48,m:330,wd:0.2,h:[['Gyrocopter',70,27],['Kez',76,25],['Ursa',46,24],['Abaddon',64,22],['Lifestealer',58,19]]},
+  'gpk':{g:611,x:774,k:10.5,w:48,m:490,wd:2.5,h:[['Puck',60,60],['Storm Spirit',49,37],['Ember Spirit',66,35],['Void Spirit',55,29],['Pangolier',71,28]]},
+  'MieRo':{g:550,x:682,k:8,w:48,m:550,wd:0.4,h:[['Beastmaster',69,52],['Centaur Warrunner',53,40],['Axe',59,37],['Doom',57,28],['Mars',54,28]]},
+  'Save-':{g:338,x:498,k:7,w:48,m:550,wd:18.7,h:[['Hoodwink',59,74],['Muerta',64,74],['Shadow Demon',58,52],['Shadow Shaman',61,44],['Windranger',61,44]]},
+  'Kataomi':{g:327,x:461,k:4.5,w:48,m:535,wd:34.2,h:[['Tusk',57,63],['Bane',73,51],['Jakiro',60,50],['Warlock',41,39],['Silencer',62,37]]},
+  // Xtreme Gaming
+  'Ame':{g:727,x:839,k:7.1,w:46,m:496,wd:0.4,h:[['Terrorblade',58,33],['Morphling',72,32],['Gyrocopter',45,31],['Ursa',52,23],['Kez',40,20]]},
+  'NothingToSay':{g:573,x:728,k:7.3,w:46,m:389,wd:1.9,h:[['Ember Spirit',66,35],['Pangolier',59,34],['Puck',38,29],['Sand King',67,24],['Storm Spirit',46,24]]},
+  'Xxs':{g:553,x:700,k:6.9,w:46,m:395,wd:0.2,h:[['Mars',56,43],['Centaur Warrunner',63,38],['Bristleback',50,28],['Slardar',71,24],['Tidehunter',45,22]]},
+  'fy':{g:318,x:477,k:4.7,w:46,m:208,wd:13,h:[['Hoodwink',60,30],['Shadow Demon',71,24],['Tusk',53,19],['Lion',40,15],['Shadow Shaman',40,15]]},
+  'xNova':{g:317,x:445,k:4.5,w:46,m:313,wd:41.4,h:[['Phoenix',47,51],['Warlock',55,44],['Disruptor',56,25],['Jakiro',55,22],['Enchantress',33,21]]},
+  // LGD Gaming
+  'Wisper':{g:597,x:735,k:7.9,w:58,m:402,wd:1.7,h:[['Dark Seer',57,28],['Batrider',70,27],['Enigma',56,27],['Magnus',62,26],['Mars',52,25]]},
+  'TaiLung':{g:599,x:740,k:8.5,w:58,m:160,wd:1.8,h:[['Viper',52,21],['Puck',53,19],['Ember Spirit',36,14],['Huskar',71,14],['Beastmaster',44,9]]},
+  'Yuma':{g:686,x:817,k:8.5,w:58,m:432,wd:0.2,h:[['Ursa',53,43],['Gyrocopter',65,26],['Meepo',44,25],['Abaddon',35,23],['Dragon Knight',58,19]]},
+  'KJ':{g:323,x:455,k:4.8,w:58,m:437,wd:37.7,h:[['Shadow Demon',69,36],['Phoenix',52,33],['Chen',52,29],['Bane',48,27],['Jakiro',36,25]]},
+  'Thiolicor':{g:335,x:476,k:4.4,w:58,m:292,wd:16.5,h:[['Shadow Shaman',46,35],['Hoodwink',57,30],['Lion',46,24],['Muerta',71,21],['Tusk',30,20]]},
+  // Aurora Gaming
+  'Nightfall':{g:724,x:846,k:9.9,w:51,m:512,wd:0.2,h:[['Ursa',67,67],['Abaddon',67,45],['Tiny',45,44],['Windranger',71,42],['Phantom Assassin',63,32]]},
+  'Mikoto':{g:604,x:761,k:10.3,w:51,m:433,wd:2.2,h:[['Puck',61,64],['Storm Spirit',55,60],['Ember Spirit',51,37],['Queen of Pain',46,37],['Lina',71,31]]},
+  'Ws':{g:559,x:700,k:7.8,w:51,m:484,wd:0.2,h:[['Mars',65,49],['Timbersaw',60,43],['Centaur Warrunner',63,40],['Doom',64,33],['Largo',67,30]]},
+  'Mira':{g:321,x:472,k:3.6,w:51,m:488,wd:21.1,h:[['Hoodwink',59,86],['Tusk',55,55],['Shadow Shaman',66,47],['Dark Willow',63,46],['Lion',64,44]]},
+  'kaori':{g:349,x:485,k:5,w:51,m:469,wd:30.7,h:[['Warlock',65,97],['Phoenix',65,91],['Jakiro',73,62],['Shadow Demon',58,31],['Enchantress',59,22]]},
+  // Team Yandex
+  'watson':{g:701,x:808,k:8.9,w:48,m:477,wd:0.1,h:[['Terrorblade',53,51],['Templar Assassin',72,50],['Morphling',52,31],['Ursa',77,30],['Shadow Fiend',59,27]]},
+  'CHIRA_JUNIOR':{g:575,x:710,k:8.1,w:48,m:395,wd:2,h:[['Invoker',69,36],['Pangolier',54,35],['Slardar',64,28],['Dragon Knight',58,24],['Monkey King',67,24]]},
+  'DM':{g:552,x:676,k:8.1,w:48,m:449,wd:0.1,h:[['Enigma',72,47],['Centaur Warrunner',68,44],['Bristleback',73,40],['Beastmaster',54,35],['Dark Seer',63,32]]},
+  'Malady':{g:335,x:473,k:4.4,w:48,m:427,wd:23.7,h:[['Jakiro',65,71],['Warlock',59,44],['Tusk',54,24],['Chen',67,21],['Clockwerk',61,18]]},
+  'Saksa':{g:352,x:524,k:4.6,w:48,m:504,wd:21,h:[['Tusk',68,59],['Shadow Demon',69,45],['Tiny',58,45],['Shadow Shaman',71,38],['Batrider',71,31]]},
+  // 1w Team (ex-Tundra)
+  'Pure':{g:740,x:883,k:7.9,w:52,m:475,wd:0.3,h:[['Ursa',57,37],['Templar Assassin',74,34],['Gyrocopter',61,31],['Kez',57,28],['Lifestealer',76,25]]},
+  'bzm':{g:628,x:762,k:8.9,w:52,m:497,wd:2.6,h:[['Invoker',68,79],['Ember Spirit',71,42],['Storm Spirit',48,42],['Beastmaster',71,35],['Tiny',78,32]]},
+  '33':{g:587,x:716,k:7,w:52,m:529,wd:0.1,h:[['Doom',66,82],['Beastmaster',55,49],['Axe',60,40],['Timbersaw',58,38],['Sand King',65,37]]},
+  'Ari':{g:320,x:479,k:4.7,w:52,m:340,wd:14.9,h:[['Hoodwink',53,47],['Shadow Shaman',66,41],['Batrider',55,38],['Keeper of the Light',59,29],['Dark Willow',56,25]]},
+  'Whitemon':{g:349,x:494,k:5.3,w:52,m:511,wd:36.7,h:[['Phoenix',69,70],['Jakiro',61,49],['Warlock',61,44],['Bane',74,39],['Pugna',61,33]]},
+  // Team Falcons (skiter, ATF, Cr1t-, Sneyking; Malr1ne kept illustrative)
+  'skiter':{g:679,x:797,k:8.3,w:47,m:488,wd:0.1,h:[['Dragon Knight',65,46],['Gyrocopter',61,38],['Tiny',68,34],['Abaddon',52,33],['Sven',57,30]]},
+  'ATF':{g:603,x:762,k:6.7,w:47,m:491,wd:0.3,h:[['Bristleback',55,80],['Mars',59,66],['Pangolier',58,48],['Doom',75,44],['Timbersaw',66,32]]},
+  'Cr1t-':{g:339,x:510,k:5.2,w:47,m:491,wd:18.7,h:[['Hoodwink',56,61],['Ring Master',61,41],['Muerta',60,40],['Bounty Hunter',67,39],['Lion',69,32]]},
+  'Sneyking':{g:381,x:517,k:4.5,w:47,m:491,wd:33.4,h:[['Chen',64,59],['Enchantress',68,57],['Jakiro',62,52],['Crystal Maiden',59,44],['Pugna',67,42]]},
+  // PARIVISION (Satanic, No[o]ne-, 9Class, Dukalis; SSS kept illustrative)
+  'Satanic':{g:771,x:875,k:8.9,w:53,m:524,wd:0.2,h:[['Terrorblade',59,51],['Templar Assassin',70,37],['Kez',67,36],['Morphling',64,33],['Shadow Fiend',66,32]]},
+  'No[o]ne-':{g:612,x:761,k:8.9,w:53,m:526,wd:1.6,h:[['Pangolier',77,48],['Storm Spirit',60,48],['Ember Spirit',69,45],['Puck',67,45],['Invoker',66,35]]},
+  '9Class':{g:361,x:485,k:4.2,w:53,m:526,wd:19.8,h:[['Batrider',69,42],['Keeper of the Light',63,35],['Dark Willow',55,33],['Rubick',79,33],['Marci',73,30]]},
+  'Dukalis':{g:329,x:453,k:5.4,w:53,m:515,wd:30.9,h:[['Chen',68,57],['Jakiro',67,54],['Disruptor',63,32],['Ancient Apparition',55,31],['Pugna',58,31]]},
+};
+/* swap each player's card heroes to their real rdy.gg top three */
+TEAMS.forEach(t => t.players.forEach(p => { const rd = RDY[p.handle]; if (rd && rd.h && rd.h.length) p.heroes = rd.h.slice(0,3).map(x => heroFile(x[0])); }));
 function flagImg(country, cls) {
   const code = ISO[country];
   if (!code) return '';
@@ -1637,8 +1696,11 @@ renderTeams('');
 function detailMarkup(t, p) {
   const circles = Array.from({length:5}, (_,i) =>
     `<span class="detail-circle ${i < p.rating ? 'on' : ''}"></span>`).join('');
-  const heroes = p.heroes.map(h =>
-    `<div class="detail-hero">${heroIcon(h)}<span class="dh-name">${heroLabel(h)}</span><span class="dh-wr">${heroWR(p.handle, h)}%</span></div>`).join('');
+  const rd = RDY[p.handle];
+  const heroes = (rd ? rd.h.slice(0,5).map(x =>
+    `<div class="detail-hero">${heroIcon(heroFile(x[0]))}<span class="dh-name">${x[0]}</span><span class="dh-wr">${x[1]}%</span></div>`)
+    : p.heroes.map(h =>
+    `<div class="detail-hero">${heroIcon(h)}<span class="dh-name">${heroLabel(h)}</span><span class="dh-wr">${heroWR(p.handle, h)}%</span></div>`)).join('');
   const results = (t.results || []).map(r => `
         <div class="result-row" title="${r.event || ''}">
           <span class="result-badge ${r.win ? 'w' : 'l'}">${r.win ? 'W' : 'L'}</span>
@@ -1650,11 +1712,14 @@ function detailMarkup(t, p) {
   const past = PAST[p.handle] || [];
   const core = p.pos <= 3;
   const ladder = RANK_OVERRIDE[p.handle] || 'Unlisted';   // not on the live board
+  const gpm = rd ? rd.g : stat(p.handle, 'gpm', 470, 720);
+  const xpm = rd ? rd.x : stat(p.handle, 'xpm', 510, 760);
+  const wrd = rd ? rd.wd : stat(p.handle, 'wrd', 12, 27);
   const STATS = [
     { v: ladder, l: 'Ladder rank', mute: !RANK_OVERRIDE[p.handle] },
-    core ? { v: stat(p.handle, 'gpm', 470, 720), l: 'GPM' } : { v: (stat(p.handle, 'stk', 55, 205) / 10).toFixed(1), l: 'Stacks/g' },
-    core ? { v: stat(p.handle, 'xpm', 510, 760), l: 'XPM' } : { v: stat(p.handle, 'wrd', 12, 27), l: 'Wards/g' },
-    { v: fmtNum(stat(p.handle, 'mch', 620, 2200)), l: 'Matches' },
+    { v: gpm, l: 'GPM' },
+    core ? { v: xpm, l: 'XPM' } : { v: wrd, l: 'Wards/map' },
+    rd ? { v: rd.k, l: 'KDA' } : { v: fmtNum(stat(p.handle, 'mch', 620, 2200)), l: 'Matches' },
     EARNINGS[p.handle] ? { v: fmtMoney(EARNINGS[p.handle]), l: 'Earnings', gold: true } : null,
   ].filter(Boolean);
   const statStrip = `<div class="detail-stats">${STATS.map(s => `<div class="dstat"><span class="dstat-v${s.gold ? ' gold' : ''}${s.mute ? ' mute' : ''}">${s.v}</span><span class="dstat-l">${s.l}</span></div>`).join('')}</div>`;
@@ -1667,7 +1732,7 @@ function detailMarkup(t, p) {
       ${statStrip}
       <p class="detail-note">${p.note}</p>
       ${p.read ? `<div class="rdy-read"><span class="lbl">rdy read</span><p>${p.read}</p></div>` : ''}
-      <div class="detail-heroes-label">Signature heroes</div>
+      <div class="detail-heroes-label">Top heroes · last year</div>
       <div class="detail-heroes">${heroes}</div>
       <a class="detail-profile" href="${profile}" target="_blank" rel="noopener">Full rdy.gg profile →</a>
     </div>
