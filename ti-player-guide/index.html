@@ -930,7 +930,8 @@ main { position: relative; z-index: 1; max-width: 1280px; margin: 0 auto; paddin
 /* ============================================================
    ROLE FILTER BAR + FLAT VIEW
    ============================================================ */
-.filterbar { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 30px; }
+.filterbar { display: flex; flex-direction: column; align-items: stretch; gap: 12px; margin-bottom: 30px; }
+.fb-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .fb-label { font-family: var(--font-display); font-size: 10px; font-weight: 800; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.2px; }
 .fb-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .fb-chip {
@@ -1072,7 +1073,7 @@ const ROLE = { 1:'Carry', 2:'Mid', 3:'Offlane', 4:'Soft Sup', 5:'Hard Sup' };
 const TEAMS = [
   {
     key:'parivision', name:'PARIVISION', logo:'assets/teams/Parivision.webp',
-    team:'#9A6BFF', region:'Eastern Europe', tag:'EEU', status:'qualifier', rank:2, coach:'Puppey',
+    team:'#9A6BFF', region:'Europe', tag:'EU', status:'qualifier', rank:2, coach:'Puppey',
     bio:'Reigning DreamLeague Season 29 champions who, somehow, missed the direct TI invites and have to grind the qualifier. Satanic is on loan from Spirit, No[o]ne brings a decade of mid lane scar tissue.',
     strengths:'Drafting brain and a sky-high individual ceiling.',
     weaknesses:'Freshly assembled and still learning to lose together.',
@@ -1092,7 +1093,7 @@ const TEAMS = [
     watch:1,
     players:[
       { handle:'Satanic', real:'Alan Gallyamov', country:'Russia', flag:'🇷🇺', pos:1, photo:'assets/players/Parivision/Satanic.png', heroes:['faceless_void','morphling','slark'], rating:4, note:'On loan from Spirit, a carry with title pedigree and a quick clock on the map.', read:'Spirit did not loan him out because he is bad. Watch the first ten minutes and you will see why they want him back.' },
-      { handle:'No[o]ne-', real:'Volodymyr Minenko', country:'Ukraine', flag:'🇺🇦', pos:2, photo:'assets/players/Parivision/Noone.png', heroes:['invoker','storm_spirit','puck'], rating:5, note:'The veteran mid and a CIS mainstay for the better part of a decade. Still the reference point for tempo.', read:'Old enough to coach half this field, still the scariest first-phase mid pick in the bracket.' },
+      { handle:'No[o]ne-', real:'Volodymyr Minenko', country:'Ukraine', flag:'🇺🇦', pos:2, photo:'assets/players/Parivision/Noone.png', heroes:['invoker','storm_spirit','puck'], rating:5, note:'The veteran mid and a fixture of the European scene for the better part of a decade. Still the reference point for tempo.', read:'Old enough to coach half this field, still the scariest first-phase mid pick in the bracket.' },
       { handle:'SSS', real:'Valery Lazarev', country:'Russia', flag:'🇷🇺', pos:3, photo:'assets/players/Parivision/SSS.png', heroes:['bristleback','dragon_knight','doom_bringer'], rating:4, note:'A durable offlane spine who buys his cores the time they need.', read:'Does the unglamorous job so well you forget he is there, until he has tanked the entire enemy team.' },
       { handle:'9Class', real:'Edgar Naltakian', country:'Russia', flag:'🇷🇺', pos:4, photo:'assets/players/Parivision/9class.png', heroes:['tusk','mirana','vengefulspirit'], rating:4, note:'A former core playing the four, so the damage never really stops.', read:'A carry pretending to be a support, and the scoreboard keeps catching him in the act.' },
       { handle:'Dukalis', real:'Andrey Kuropatkin', country:'Russia', flag:'🇷🇺', pos:5, photo:'assets/players/Parivision/Dukalis.png', heroes:['lion','rubick','grimstroke'], rating:4, note:'A crafty five with a habit of stealing the spells that matter.', read:'If your big spell goes missing mid-fight, check the Dukalis inventory first.' },
@@ -1100,8 +1101,8 @@ const TEAMS = [
   },
   {
     key:'yandex', name:'Team Yandex', logo:'assets/teams/Yandex.webp',
-    team:'#FF4D2E', region:'CIS', tag:'CIS', status:'invited', rank:7, coach:'Accell',
-    bio:'A veteran-led CIS side built around Saksa’s tactical mind and watson’s move to the safelane. There is experience everywhere you look on this roster.',
+    team:'#FF4D2E', region:'Europe', tag:'EU', status:'invited', rank:7, coach:'Accell',
+    bio:'A veteran-led European side built around Saksa’s tactical mind and watson’s move to the safelane. There is experience everywhere you look on this roster.',
     strengths:'Macro discipline and real draft depth.',
     weaknesses:'Raw firepower in the cores can run cold.',
     projection:'Contender',
@@ -1222,7 +1223,7 @@ const TEAMS = [
   },
   {
     key:'boomboys', name:'BoomBoys', logo:'assets/teams/boomboys.png',
-    team:'#FF3142', region:'CIS', tag:'CIS', status:'invited', rank:5, coach:'boolk',
+    team:'#FF3142', region:'Europe', tag:'EU', status:'invited', rank:5, coach:'boolk',
     bio:'BetBoom competing as BoomBoys at TI thanks to the gambling-brand ban, with Save- captaining one of the most fearless sides in the field.',
     strengths:'Aggression, draft creativity and a top-tier support core.',
     weaknesses:'Boom-or-bust tendencies can cost them tight series.',
@@ -1244,7 +1245,7 @@ const TEAMS = [
   },
   {
     key:'1w', name:'1w Team', logo:'assets/teams/1win.png',
-    team:'#8A93A8', region:'CIS', tag:'CIS', status:'invited', rank:6, coach:'MoonMeander',
+    team:'#8A93A8', region:'Europe', tag:'EU', status:'invited', rank:6, coach:'MoonMeander',
     bio:'The Tundra Esports roster under a new banner, anchored by the offlane of 33 and the mid lane of bzm.',
     strengths:'Composure, vision control and clean late-game execution.',
     weaknesses:'A slow starter that can fall behind early tempo teams.',
@@ -1266,7 +1267,7 @@ const TEAMS = [
   },
   {
     key:'aurora', name:'Aurora Gaming', logo:'assets/teams/aurora.png',
-    team:'#38A6F0', region:'CIS', tag:'CIS', status:'invited', rank:8, coach:'kpii',
+    team:'#38A6F0', region:'Europe', tag:'EU', status:'invited', rank:8, coach:'kpii',
     bio:'A pan-regional Aurora side blending the carry pedigree of Nightfall with the aggressive offlane of Ws.',
     strengths:'Individually dangerous across the map.',
     weaknesses:'Still building the chemistry the top teams already have.',
@@ -1289,7 +1290,7 @@ const TEAMS = [
 ];
 
 /* Region grouping for the quick-nav, in display order */
-const REGION_ORDER = ['Eastern Europe', 'CIS', 'Europe', 'South America'];
+const REGION_ORDER = ['Europe', 'China', 'South America'];
 
 /* ============================================================
    RENDER
@@ -1315,7 +1316,7 @@ function stat(handle, key, min, max){ return min + hashStr(handle + ':' + key) %
 function fmtNum(n){ return n.toLocaleString('en-US'); }
 function fmtMoney(n){ return n >= 1000000 ? '$' + (n / 1000000).toFixed(2) + 'M' : '$' + Math.round(n / 1000) + 'K'; }
 /* dota2.com ranked leaderboard: region by roster region + pinned real positions */
-const LADDER_REGION = { 'Eastern Europe': 'EU', 'CIS': 'EU', 'Europe': 'EU', 'South America': 'AM', 'China': 'CN', 'Southeast Asia': 'SEA' };
+const LADDER_REGION = { 'Europe': 'EU', 'South America': 'AM', 'China': 'CN', 'Southeast Asia': 'SEA', 'North America': 'AM' };
 const RANK_OVERRIDE = {      // live positions from dota2.com/leaderboards, Europe division (Jun 2026)
   'Satanic': 'EU #1', 'NIKU': 'EU #2', 'watson': 'EU #3', 'TaiLung': 'EU #5',
   'No[o]ne-': 'EU #16', 'Wisper': 'EU #18', 'Saksa': 'EU #20', 'CHIRA_JUNIOR': 'EU #28',
@@ -1574,22 +1575,23 @@ function teamBlock(t, ti) {
   </section>`;
 }
 
-function teamnavMarkup() {
+function teamnavMarkup(region) {
   const chip = t => `
         <a class="teamnav-chip" href="#team-${t.key}" style="--chip:${t.team}">
           <img src="${t.logo}${LOGOV}" alt="" onerror="this.outerHTML='<span class=&quot;chip-mark&quot; style=&quot;--chip:${t.team}&quot;>${initials(t.name)}</span>'">
           ${t.name}
         </a>`;
-  const byStatus = s => TEAMS.filter(t => t.status === s).sort((a, b) => a.rank - b.rank).map(chip).join('');
-  return `
-    <div class="teamnav-region"><span class="teamnav-region-name">Invited</span>${byStatus('invited')}</div>
-    <div class="teamnav-region"><span class="teamnav-region-name">Qualifiers</span>${byStatus('qualifier')}<span class="teamnav-tbd">+ ${QUALIFIER_TBD.length} TBD</span></div>`;
+  const byStatus = s => TEAMS.filter(t => t.status === s && (!region || t.region === region)).sort((a, b) => a.rank - b.rank).map(chip).join('');
+  const inv = byStatus('invited'), qual = byStatus('qualifier');
+  let html = '';
+  if (inv) html += `<div class="teamnav-region"><span class="teamnav-region-name">Invited</span>${inv}</div>`;
+  if (qual || !region) html += `<div class="teamnav-region"><span class="teamnav-region-name">Qualifiers</span>${qual}${!region ? `<span class="teamnav-tbd">+ ${QUALIFIER_TBD.length} TBD</span>` : ''}</div>`;
+  return html;
 }
 
 /* qualifier placeholder slots (set these as teams qualify) */
 const QUALIFIER_TBD = [
-  { tag:'WEU', label:'Western Europe' },
-  { tag:'EEU', label:'Eastern Europe' },
+  { tag:'EU',  label:'Europe' },
   { tag:'CN',  label:'China' },
   { tag:'SEA', label:'Southeast Asia' },
   { tag:'NA',  label:'North America' },
@@ -1616,13 +1618,18 @@ function tbdBlock(q) {
 const _idx = TEAMS.map((t, ti) => ({ t, ti }));
 const _inv = _idx.filter(x => x.t.status === 'invited').sort((a, b) => a.t.rank - b.t.rank);
 const _qual = _idx.filter(x => x.t.status === 'qualifier').sort((a, b) => a.t.rank - b.t.rank);
+function renderTeams(region){
+  const inv = _inv.filter(x => !region || x.t.region === region);
+  const qual = _qual.filter(x => !region || x.t.region === region);
+  const showTbd = !region;
+  let html = '';
+  if (inv.length) html += groupHeader('Direct invites', inv.length) + inv.map(x => teamBlock(x.t, x.ti)).join('');
+  if (qual.length || (showTbd && QUALIFIER_TBD.length))
+    html += groupHeader('Qualifiers', qual.length + (showTbd ? QUALIFIER_TBD.length : 0)) + qual.map(x => teamBlock(x.t, x.ti)).join('') + (showTbd ? QUALIFIER_TBD.map(q => tbdBlock(q)).join('') : '');
+  document.getElementById('teams').innerHTML = html || `<div class="filter-empty">No ${region} teams in the field yet.</div>`;
+}
 document.getElementById('teamnav-regions').innerHTML = teamnavMarkup();
-document.getElementById('teams').innerHTML =
-  groupHeader('Direct invites', _inv.length) +
-  _inv.map(x => teamBlock(x.t, x.ti)).join('') +
-  groupHeader('Qualifiers', _qual.length + QUALIFIER_TBD.length) +
-  _qual.map(x => teamBlock(x.t, x.ti)).join('') +
-  QUALIFIER_TBD.map(q => tbdBlock(q)).join('');
+renderTeams('');
 
 /* ============================================================
    PLAYER DETAIL — open / close with Guardian-style pointer
@@ -1778,7 +1785,7 @@ document.getElementById('watch5').addEventListener('click', (e) => {
   const card = e.target.closest('.watch5-card');
   if (!card) return;
   const ti = +card.dataset.team, pi = +card.dataset.player;
-  if (filterRole !== 0) { filterRole = 0; renderFilterbar(); applyFilter(); }
+  if (filterRole !== 0 || filterRegion !== '') { filterRole = 0; filterRegion = ''; renderFilterbar(); applyFilter(); }
   const teamCard = document.querySelector(`.player-card[data-team="${ti}"][data-player="${pi}"]`);
   if (teamCard) { teamCard.scrollIntoView({ behavior:'smooth', block:'center' }); setTimeout(() => teamCard.click(), 420); }
 });
@@ -1787,19 +1794,27 @@ document.getElementById('watch5').addEventListener('click', (e) => {
    ROLE FILTER + SORT (flat cross-team view)
    ============================================================ */
 const ROLE_FILTERS = [ {k:0,l:'All'}, {k:1,l:'Carry'}, {k:2,l:'Mid'}, {k:3,l:'Offlane'}, {k:4,l:'Soft Sup'}, {k:5,l:'Hard Sup'} ];
-let filterRole = 0, sortKey = 'rank';
+const REGION_FILTERS = [...new Set(TEAMS.map(t => t.region))];
+let filterRole = 0, sortKey = 'rank', filterRegion = '';
 
 function rankNum(p){ const o = RANK_OVERRIDE[p.handle]; if (!o) return 99999; const m = o.match(/#(\d+)/); return m ? +m[1] : 99999; }
 function earnNum(p){ return EARNINGS[p.handle] || 0; }
 
 function renderFilterbar(){
   const chips = ROLE_FILTERS.map(r => `<button class="fb-chip ${r.k===filterRole?'active':''}" data-role="${r.k}" type="button">${r.l}</button>`).join('');
+  const regionChips = [{v:'',l:'All'}].concat(REGION_FILTERS.map(r => ({v:r,l:r}))).map(r => `<button class="fb-chip ${r.v===filterRegion?'active':''}" data-region="${r.v}" type="button">${r.l}</button>`).join('');
   document.getElementById('filterbar').innerHTML = `
-    <div class="fb-label">Filter by role</div>
-    <div class="fb-chips">${chips}</div>
-    <div class="fb-sort ${filterRole===0?'hide':''}"><span>Sort</span><select id="fb-sortsel">
-      <option value="rank">Ladder rank</option><option value="earnings">Earnings</option><option value="name">Name</option>
-    </select></div>`;
+    <div class="fb-row">
+      <div class="fb-label">Filter by role</div>
+      <div class="fb-chips">${chips}</div>
+      <div class="fb-sort ${filterRole===0?'hide':''}"><span>Sort</span><select id="fb-sortsel">
+        <option value="rank">Ladder rank</option><option value="earnings">Earnings</option><option value="name">Name</option>
+      </select></div>
+    </div>
+    <div class="fb-row">
+      <div class="fb-label">Filter by region</div>
+      <div class="fb-chips">${regionChips}</div>
+    </div>`;
   const sel = document.getElementById('fb-sortsel');
   if (sel) { sel.value = sortKey; sel.addEventListener('change', (e) => { sortKey = e.target.value; applyFilter(); }); }
 }
@@ -1824,16 +1839,22 @@ function applyFilter(){
   const teamsEl = document.getElementById('teams');
   const flatEl = document.getElementById('flatview');
   const navEl = document.getElementById('teamnav');
-  if (filterRole === 0) { teamsEl.style.display = ''; navEl.style.display = ''; flatEl.style.display = 'none'; return; }
+  if (filterRole === 0) {
+    teamsEl.style.display = ''; navEl.style.display = ''; flatEl.style.display = 'none';
+    renderTeams(filterRegion);
+    document.getElementById('teamnav-regions').innerHTML = teamnavMarkup(filterRegion);
+    return;
+  }
   teamsEl.style.display = 'none'; navEl.style.display = 'none'; flatEl.style.display = '';
   const list = [];
-  TEAMS.forEach((t, ti) => t.players.forEach((p, pi) => { if (p.pos === filterRole) list.push({ t, ti, p, pi }); }));
+  TEAMS.forEach((t, ti) => t.players.forEach((p, pi) => { if (p.pos === filterRole && (!filterRegion || t.region === filterRegion)) list.push({ t, ti, p, pi }); }));
   if (sortKey === 'rank') list.sort((a,b) => rankNum(a.p) - rankNum(b.p));
   else if (sortKey === 'earnings') list.sort((a,b) => earnNum(b.p) - earnNum(a.p));
   else if (sortKey === 'name') list.sort((a,b) => a.p.handle.localeCompare(b.p.handle));
   const label = ROLE_FILTERS.find(r => r.k===filterRole).l;
+  const rgn = filterRegion ? ` · ${filterRegion}` : '';
   flatEl.innerHTML = `
-    <div class="flat-head"><span>Every ${label} · ${list.length} players</span><div class="line"></div></div>
+    <div class="flat-head"><span>Every ${label}${rgn} · ${list.length} ${list.length===1?'player':'players'}</span><div class="line"></div></div>
     <div class="player-grid flat-grid">${list.map(x => flatCard(x.t, x.ti, x.p, x.pi)).join('')}</div>
     <div class="player-detail" id="detail-flat"><div class="player-detail-pointer"></div><button class="detail-close" type="button" aria-label="Close">✕</button><div class="player-detail-inner"></div></div>`;
 }
@@ -1841,7 +1862,8 @@ function applyFilter(){
 document.getElementById('filterbar').addEventListener('click', (e) => {
   const chip = e.target.closest('.fb-chip');
   if (!chip) return;
-  filterRole = +chip.dataset.role;
+  if (chip.hasAttribute('data-region')) filterRegion = chip.dataset.region;
+  else filterRole = +chip.dataset.role;
   renderFilterbar();
   applyFilter();
   const fb = document.getElementById('filterbar');
