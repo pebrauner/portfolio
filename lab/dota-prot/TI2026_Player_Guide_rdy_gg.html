@@ -958,6 +958,33 @@ main { position: relative; z-index: 1; max-width: 1280px; margin: 0 auto; paddin
 }
 
 /* ============================================================
+   TEAM STATUS · GROUP HEADERS · TBD SLOTS · INITIALS
+   ============================================================ */
+.team-status { font-family: var(--font-display); font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; padding: 2px 9px; border-radius: 100px; margin-bottom: 6px; }
+.team-status.invited { color: #07140c; background: var(--green); }
+.team-status.qualifier { color: var(--text-muted); background: transparent; border: 1px solid var(--border-solid); }
+
+.group-head { display: flex; align-items: center; gap: 12px; margin: 4px 0 24px; }
+.group-head-title { font-family: var(--font-display); font-size: 15px; font-weight: 800; color: var(--text-primary); text-transform: uppercase; letter-spacing: 1.6px; }
+.group-head-count { font-family: var(--font-display); font-size: 12px; font-weight: 800; color: #07090d; background: var(--gold); padding: 1px 10px; border-radius: 100px; }
+.group-head .line { flex: 1; height: 1px; background: var(--border); }
+
+.team-block.tbd { margin-bottom: 16px; opacity: 0.78; }
+.team-block.tbd .team-head { border-style: dashed; }
+.tbd-name { color: var(--text-muted); }
+.tbd-body { padding: 14px 20px; background: var(--card); border: 1px dashed var(--border-solid); border-top: none; border-radius: 0 0 var(--radius-lg) var(--radius-lg); font-size: 13px; color: var(--text-muted); }
+
+.team-watch-initials, .detail-portrait-initials, .watch5-initials {
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-weight: 800; color: color-mix(in srgb, var(--team) 72%, #fff);
+}
+.team-watch-initials { font-size: 30px; }
+.detail-portrait-initials { font-size: 46px; }
+.watch5-initials { font-size: 38px; }
+
+.teamnav-tbd { font-family: var(--font-display); font-size: 11px; font-weight: 700; color: var(--text-dim); letter-spacing: 0.5px; align-self: center; }
+
+/* ============================================================
    RESPONSIVE
    ============================================================ */
 @media (max-width: 1000px) {
@@ -1097,7 +1124,7 @@ const ROLE = { 1:'Carry', 2:'Mid', 3:'Offlane', 4:'Soft Sup', 5:'Hard Sup' };
 const TEAMS = [
   {
     key:'parivision', name:'PARIVISION', logo:'assets/teams/Parivision.webp',
-    team:'#9A6BFF', region:'Eastern Europe', tag:'EEU', rank:1, coach:'Puppey',
+    team:'#9A6BFF', region:'Eastern Europe', tag:'EEU', status:'qualifier', rank:2, coach:'Puppey',
     bio:'Reigning DreamLeague Season 29 champions who, somehow, missed the direct TI invites and have to grind the qualifier. Satanic is on loan from Spirit, No[o]ne brings a decade of mid lane scar tissue.',
     strengths:'Drafting brain and a sky-high individual ceiling.',
     weaknesses:'Freshly assembled and still learning to lose together.',
@@ -1125,7 +1152,7 @@ const TEAMS = [
   },
   {
     key:'yandex', name:'Team Yandex', logo:'assets/teams/Yandex.webp',
-    team:'#FF4D2E', region:'CIS', tag:'CIS', rank:2, coach:'Accell',
+    team:'#FF4D2E', region:'CIS', tag:'CIS', status:'invited', rank:7, coach:'Accell',
     bio:'A veteran-led CIS side built around Saksa’s tactical mind and watson’s move to the safelane. There is experience everywhere you look on this roster.',
     strengths:'Macro discipline and real draft depth.',
     weaknesses:'Raw firepower in the cores can run cold.',
@@ -1152,36 +1179,8 @@ const TEAMS = [
     ]
   },
   {
-    key:'navi', name:'Natus Vincere', logo:'assets/teams/NAVI.webp',
-    team:'#F2C94C', region:'Europe', tag:'EU', rank:3, coach:'Cy-',
-    bio:'Natus Vincere handed the keys to their academy and the Junior core ran with it. An all-action, all-Ukrainian five that would rather make a mistake forward than sit still.',
-    strengths:'Relentless tempo and fearless laning.',
-    weaknesses:'Can play themselves into trouble just as fast.',
-    projection:'Long shot',
-    verdict:'Fresh off crashing out of the EWC 2026 qualifiers, the academy experiment keeps running into the wall the main stage builds. Tempo for days, consistency still pending.',
-    articles:[
-      { tag:'Report', title:'NAVI crash out of EWC 2026 qualifiers after stunning lower bracket upset', date:'Jun 2026', read:5, author:'Div' },
-      { tag:'Interview', title:'gotthejuice and the Weight of the NAVI Jersey', date:'Mar 2026', read:6 },
-      { tag:'Film Room', title:'All Gas, No Brakes: Deconstructing NAVI Chaos Dota', date:'Feb 2026', read:5 },
-      { tag:'Timeline', title:'From Junior to the Main Stage: A NAVI Story', date:'Jan 2026', read:4 },
-    ],
-    results:[
-      { opp:'Team Falcons', opplogo:'assets/teams/falcons.png', score:'1-2', win:false, event:'ESL One Raleigh' },
-      { opp:'OG', opplogo:'assets/teams/og.png', score:'2-1', win:true,  event:'DreamLeague S29' },
-      { opp:'Team Liquid', opplogo:'assets/teams/liquid.png', score:'2-1', win:true,  event:'FISSURE Universe 5' },
-    ],
-    watch:1,
-    players:[
-      { handle:'gotthejuice', real:'Taras Linnikov', country:'Ukraine', flag:'🇺🇦', pos:1, photo:'assets/players/NAVI/GOTTHEJUICE.png', heroes:['faceless_void','juggernaut','terrorblade'], rating:4, note:'The Junior-era carry handed the keys to NAVI’s revival, and happy to gamble for tempo.', read:'Carries the jersey and the expectations. So far the shoulders are holding.' },
-      { handle:'NIKU', real:'Artem Bachkur', country:'Ukraine', flag:'🇺🇦', pos:2, photo:'assets/players/NAVI/NIKU.png', heroes:['storm_spirit','invoker','puck'], rating:4, note:'A high-tempo mid who plays on the front foot and drags the map forward.', read:'Will lose you the lane and win you the game in the same breath.' },
-      { handle:'pma', real:'Yurii Prots', country:'Ukraine', flag:'🇺🇦', pos:3, photo:'assets/players/NAVI/PMA.png', heroes:['mars','tidehunter','dawnbreaker'], rating:4, note:'A space-creating offlaner who is comfortable being the one to start the fight.', read:'Throws his body into fights like rent is due. Usually it pays off.' },
-      { handle:'ZAYAC', real:'Bakyt Emilzhanov', country:'Kyrgyzstan', flag:'🇰🇬', pos:4, photo:'assets/players/NAVI/ZAYAC.png', heroes:['tusk','earth_spirit','hoodwink'], rating:3, note:'A roaming four with a roving streak. NAVI now field daze in this slot.', read:'The roam never stops, and neither does the chaos he leaves behind.' },
-      { handle:'Riddys', real:'Stanislav Mitroshkyn', country:'Ukraine', flag:'🇺🇦', pos:5, photo:'assets/players/NAVI/RIDDYS.png', heroes:['lion','shadow_shaman','witch_doctor'], rating:3, note:'The hard support anchoring the back line of a very young roster.', read:'Twenty years old and already babysitting a roster. Growing up fast.' },
-    ]
-  },
-  {
     key:'heroic', name:'LGD Gaming', logo:'assets/teams/lgd-gaming.png',
-    team:'#F23A4D', region:'South America', tag:'SA', rank:4, coach:'kaffs',
+    team:'#F23A4D', region:'South America', tag:'SA', status:'qualifier', rank:9, coach:'kaffs',
     bio:'The South American core that made its name as HEROIC, now flying the LGD Gaming flag. Yuma and TaiLung can trade with anyone on a good day and travel into chaos on a bad one.',
     strengths:'Explosive cores and genuine regional pedigree.',
     weaknesses:'Inconsistency tends to pack its bags with them.',
@@ -1207,6 +1206,108 @@ const TEAMS = [
       { handle:'KJ', real:'Matheus Diniz', country:'Brazil', flag:'🇧🇷', pos:5, photo:'assets/players/Heroic/KJ.png', heroes:['shadow_shaman','lion','dazzle'], rating:3, note:'A selfless five whose whole job is keeping the cores alive.', read:'Will die ten times so his cores die zero. The math works out.' },
     ]
   },
+  {
+    key:'falcons', name:'Team Falcons', logo:'assets/teams/falcons.png',
+    team:'#19A34E', region:'Europe', tag:'EU', status:'invited', rank:1, coach:'Aui_2000',
+    bio:'The Saudi-backed superteam assembled to win everything, with skiter farming behind a Western support core that has lifted trophies before.',
+    strengths:'Star power at every position and deep pockets behind it.',
+    weaknesses:'Egos and expectations weigh heavy when results stall.',
+    projection:'Favourite',
+    verdict:'On paper the best roster money could buy. The only thing left to prove is that the parts add up under Aegis pressure.',
+    watch:0,
+    players:[
+      { handle:'skiter', real:'Oliver Lepko', country:'Slovakia', pos:1, heroes:['faceless_void','juggernaut','terrorblade'], rating:5, note:'A relentless farming carry with the laning to match.' },
+      { handle:'Malr1ne', real:'Stanislav Potorak', country:'Russia', pos:2, heroes:['invoker','storm_spirit','queenofpain'], rating:5, note:'A young mid with a frightening ceiling and a deep pool.' },
+      { handle:'ATF', real:'Ammar Al-Assaf', country:'Jordan', pos:3, heroes:['mars','beastmaster','axe'], rating:4, note:'A fearless offlaner who lives on the front line.' },
+      { handle:'Cr1t-', real:'Andreas Nielsen', country:'Denmark', pos:4, heroes:['tusk','earthshaker','hoodwink'], rating:5, note:'A decorated playmaking four and the in-game shotcaller.' },
+      { handle:'Sneyking', real:'Wu Jingjun', country:'United States', pos:5, heroes:['wisp','warlock','undying'], rating:5, note:'A TI-winning captain holding the back line together.' },
+    ]
+  },
+  {
+    key:'xtreme', name:'Xtreme Gaming', logo:'assets/teams/xtreme.png',
+    team:'#D63A33', region:'China', tag:'CN', status:'invited', rank:3, coach:'xiao8',
+    bio:'The leading Chinese side, built on the monstrous farm of Ame and a battle-tested support pairing in fy and xNova.',
+    strengths:'World-class farm patterns and home advantage in Shanghai.',
+    weaknesses:'Can be drafted into a corner against the best Western tempo.',
+    projection:'Top 4',
+    verdict:'Playing TI on home soil with a carry who can take over any game. Few teams scale better into the late game.',
+    watch:0,
+    players:[
+      { handle:'Ame', real:'Wang Chunyu', country:'China', pos:1, heroes:['faceless_void','spectre','terrorblade'], rating:5, note:'A generational farming carry who simply does not stop.' },
+      { handle:'NothingToSay', real:'Cheng Jin Xiang', country:'Malaysia', pos:2, heroes:['invoker','storm_spirit','leshrac'], rating:5, note:'An explosive mid who answers fire with fire.' },
+      { handle:'Xxs', real:'Lin Jing', country:'China', pos:3, heroes:['mars','tidehunter','centaur'], rating:4, note:'A steady offlane anchor for the cores.' },
+      { handle:'fy', real:'Xu Linsen', country:'China', pos:4, heroes:['earth_spirit','rubick','mirana'], rating:5, note:'A veteran four with a museum of highlight plays.' },
+      { handle:'xNova', real:'Yap Jian Wei', country:'Malaysia', pos:5, heroes:['shadow_shaman','lion','warlock'], rating:4, note:'A calm captain steering the draft.' },
+    ]
+  },
+  {
+    key:'liquid', name:'Team Liquid', logo:'assets/teams/liquid.png',
+    team:'#3A5BD0', region:'Europe', tag:'EU', status:'invited', rank:4, coach:'Blitz',
+    bio:'The Western mainstay built around the mid-lane brilliance of Nisha and the steadiest support duo in Europe.',
+    strengths:'Cohesion and big-stage experience nobody else can match.',
+    weaknesses:'Can lack the raw firepower of the very top cores.',
+    projection:'Top 4',
+    verdict:'No team prepares like Liquid. If the meta rewards discipline over chaos, they are a nightmare to draft against.',
+    watch:1,
+    players:[
+      { handle:'miCKe', real:'Michael Vu', country:'Sweden', pos:1, heroes:['terrorblade','faceless_void','drow_ranger'], rating:4, note:'A fierce competitor who plays his carries on the edge.' },
+      { handle:'Nisha', real:'Michal Jankowski', country:'Poland', pos:2, heroes:['invoker','storm_spirit','kunkka'], rating:5, note:'One of the finest mids of his generation, comfortable on anything.' },
+      { handle:'Ace', real:'Marcus Hoelgaard', country:'Denmark', pos:3, heroes:['mars','dragon_knight','primal_beast'], rating:4, note:'A reliable offlane that lets the cores breathe.' },
+      { handle:'Boxi', real:'Samuel Svahn', country:'Sweden', pos:4, heroes:['tusk','earthshaker','batrider'], rating:4, note:'A creative four always two moves ahead.' },
+      { handle:'tOfu', real:'Erik Engel', country:'Germany', pos:5, heroes:['shadow_shaman','lion','grimstroke'], rating:4, note:'A dependable five who never drops the basics.' },
+    ]
+  },
+  {
+    key:'boomboys', name:'BoomBoys', logo:'assets/teams/betboom.png',
+    team:'#FF3142', region:'CIS', tag:'CIS', status:'invited', rank:5, coach:'boolk',
+    bio:'BetBoom competing as BoomBoys at TI thanks to the gambling-brand ban, with Save- captaining one of the most fearless sides in the field.',
+    strengths:'Aggression, draft creativity and a top-tier support core.',
+    weaknesses:'Boom-or-bust tendencies can cost them tight series.',
+    projection:'Top 4',
+    verdict:'The most entertaining team to watch in the bracket and dangerous when their chaos clicks. Live by the gank, die by the gank.',
+    watch:3,
+    players:[
+      { handle:'Kiritych', real:'Ilya Ulyanov', country:'Russia', pos:1, heroes:['faceless_void','juggernaut','morphling'], rating:4, note:'A hyper-aggressive carry who fights from minute zero.' },
+      { handle:'gpk', real:'Danil Skutin', country:'Russia', pos:2, heroes:['storm_spirit','leshrac','invoker'], rating:5, note:'A flamboyant mid with a flair for the impossible.' },
+      { handle:'MieRo', real:'Matvey Vasyunin', country:'Russia', pos:3, heroes:['mars','beastmaster','dawnbreaker'], rating:4, note:'An offlaner who loves to make the first move.' },
+      { handle:'Save-', real:'Vitalie Melnic', country:'Moldova', pos:4, heroes:['earthshaker','tusk','rubick'], rating:5, note:'EU number six and the conductor of the chaos.' },
+      { handle:'Kataomi', real:'Vladislav Semenov', country:'Russia', pos:5, heroes:['shadow_shaman','warlock','lion'], rating:4, note:'A workhorse five enabling the madness.' },
+    ]
+  },
+  {
+    key:'1w', name:'1w Team', logo:'assets/teams/1win.png',
+    team:'#8A93A8', region:'CIS', tag:'CIS', status:'invited', rank:6, coach:'MoonMeander',
+    bio:'The Tundra Esports roster under a new banner, anchored by the offlane of 33 and the mid lane of bzm.',
+    strengths:'Composure, vision control and clean late-game execution.',
+    weaknesses:'A slow starter that can fall behind early tempo teams.',
+    projection:'Top 6',
+    verdict:'A methodical, mistake-free side that grinds opponents down. Give them a lead and the game is usually over.',
+    watch:1,
+    players:[
+      { handle:'Pure', real:'Ivan Moskalenko', country:'Russia', pos:1, heroes:['faceless_void','juggernaut','morphling'], rating:4, note:'A flashy carry with a taste for the spotlight.' },
+      { handle:'bzm', real:'Bozhidar Bogdanov', country:'Bulgaria', pos:2, heroes:['storm_spirit','invoker','leshrac'], rating:5, note:'A mid who can outfarm and outfight in the same game.' },
+      { handle:'33', real:'Neta Shapira', country:'Israel', pos:3, heroes:['mars','beastmaster','brewmaster'], rating:5, note:'A cerebral offlaner and the brain of the operation.' },
+      { handle:'Ari', real:'Matthew Walker', country:'United Kingdom', pos:4, heroes:['tusk','earth_spirit','hoodwink'], rating:5, note:'A roaming four who sets the pace, EU number eight.' },
+      { handle:'Whitemon', real:'Matthew Filemon', country:'Indonesia', pos:5, heroes:['wisp','warlock','undying'], rating:4, note:'A vision-obsessed five who keeps the map lit.' },
+    ]
+  },
+  {
+    key:'aurora', name:'Aurora Gaming', logo:'assets/teams/aurora.png',
+    team:'#38A6F0', region:'CIS', tag:'CIS', status:'invited', rank:8, coach:'kpii',
+    bio:'A pan-regional Aurora side blending the carry pedigree of Nightfall with the aggressive offlane of Ws.',
+    strengths:'Individually dangerous across the map.',
+    weaknesses:'Still building the chemistry the top teams already have.',
+    projection:'Top 8',
+    verdict:'A roster of proven names looking for one more run. On their day they can beat anyone; the question is consistency.',
+    watch:0,
+    players:[
+      { handle:'Nightfall', real:'Egor Grigorenko', country:'Russia', pos:1, heroes:['faceless_void','alchemist','terrorblade'], rating:4, note:'A veteran carry who has carried deep TI runs before.' },
+      { handle:'Mikoto', real:'Rafli Fathur Rahman', country:'Indonesia', pos:2, heroes:['invoker','storm_spirit','puck'], rating:4, note:'A SEA mid import with serious mechanics.' },
+      { handle:'Ws', real:'Chung Wei Shen', country:'Malaysia', pos:3, heroes:['axe','mars','beastmaster'], rating:4, note:'An offlaner famous for game-ending initiations.' },
+      { handle:'Mira', real:'Myroslav Kolpakov', country:'Ukraine', pos:4, heroes:['tusk','earth_spirit','snapfire'], rating:4, note:'A roaming four who never sits still.' },
+      { handle:'kaori', real:'Oleh Medvedok', country:'Ukraine', pos:5, heroes:['lion','shadow_shaman','dazzle'], rating:3, note:'A hard support who plays for the team first.' },
+    ]
+  },
 ];
 
 /* Region grouping for the quick-nav, in display order */
@@ -1223,6 +1324,9 @@ const initials = s => s.replace(/[^A-Za-z0-9]/g,'').slice(0,2).toUpperCase();
 const ISO = {
   'Russia':'ru', 'Ukraine':'ua', 'Kazakhstan':'kz', 'North Macedonia':'mk',
   'Nicaragua':'ni', 'Peru':'pe', 'Bolivia':'bo', 'Brazil':'br', 'Kyrgyzstan':'kg',
+  'Slovakia':'sk', 'Jordan':'jo', 'Denmark':'dk', 'United States':'us', 'Sweden':'se',
+  'Poland':'pl', 'Germany':'de', 'Malaysia':'my', 'Indonesia':'id', 'Israel':'il',
+  'United Kingdom':'gb', 'Bulgaria':'bg', 'Moldova':'md', 'China':'cn',
 };
 const slugify = s => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
@@ -1240,6 +1344,11 @@ const RANK_OVERRIDE = {      // live positions from dota2.com/leaderboards, Euro
   'Thiolicor': 'EU #47', '9Class': 'EU #63', 'SSS': 'EU #69', 'gotthejuice': 'EU #71',
   'DM': 'EU #75', 'Dukalis': 'EU #87', 'KJ': 'EU #111', 'Riddys': 'EU #126',
   'pma': 'EU #146', 'Yuma': 'EU #181',
+  // invited teams (dota2.com, Jun 2026)
+  'Save-': 'EU #6', 'Ari': 'EU #8', 'Nightfall': 'EU #11', 'bzm': 'EU #13', 'Pure': 'EU #17',
+  'gpk': 'EU #22', 'Kiritych': 'EU #26', 'tOfu': 'EU #44', 'Malr1ne': 'EU #50', 'skiter': 'EU #58',
+  'Mikoto': 'EU #60', 'MieRo': 'EU #71', 'Sneyking': 'EU #105', 'Cr1t-': 'EU #134',
+  'Whitemon': 'EU #135', 'Mira': 'EU #170', '33': 'EU #235', 'Boxi': 'EU #321',
 };
 /* career earnings (USD) — Approx. Total Winnings, Liquipedia (Jun 2026) */
 const EARNINGS = {
@@ -1290,7 +1399,8 @@ function crestMarkup(t) {
 }
 
 function photoMarkup(p, cls) {
-  // photo with graceful fallback to initials over the team-color wash
+  // initials fallback when there is no photo, or if the image fails to load
+  if (!p.photo) return `<div class="player-photo-fallback">${initials(p.handle)}</div>`;
   return `<img class="${cls}" src="${encodeURI(p.photo)}" alt="${p.handle}" loading="lazy"
     onerror="this.style.display='none'; this.insertAdjacentHTML('afterend','<div class=&quot;player-photo-fallback&quot;>${initials(p.handle)}</div>')">`;
 }
@@ -1344,6 +1454,7 @@ function teamBlock(t, ti) {
         <div class="team-coach"><span class="lbl">Coach</span> <b>${t.coach}</b></div>
       </div>
       <div class="team-rank">
+        <span class="team-status ${t.status}">${t.status === 'invited' ? 'Invited' : 'Qualifier'}</span>
         <span class="team-rank-label">rdy rank</span>
         <span class="team-rank-num">${t.rank}</span>
       </div>
@@ -1367,8 +1478,7 @@ function teamBlock(t, ti) {
       <div class="team-watch">
         <div class="team-watch-label">★ Player to watch</div>
         <div class="team-watch-body">
-          <img class="team-watch-photo" src="${encodeURI(w.photo)}" alt="${w.handle}"
-            onerror="this.style.visibility='hidden'">
+          ${w.photo ? `<img class="team-watch-photo" src="${encodeURI(w.photo)}" alt="${w.handle}" onerror="this.style.visibility='hidden'">` : `<div class="team-watch-photo team-watch-initials">${initials(w.handle)}</div>`}
           <div>
             <div class="team-watch-name">${w.handle}</div>
             <div class="team-watch-role">${w.pos} · ${ROLE[w.pos]}</div>
@@ -1394,22 +1504,54 @@ function teamBlock(t, ti) {
 }
 
 function teamnavMarkup() {
-  return REGION_ORDER.map(region => {
-    const chips = TEAMS
-      .filter(t => t.region === region)
-      .map(t => `
+  const chip = t => `
         <a class="teamnav-chip" href="#team-${t.key}" style="--chip:${t.team}">
           <img src="${t.logo}" alt="" onerror="this.outerHTML='<span class=&quot;chip-mark&quot; style=&quot;--chip:${t.team}&quot;>${initials(t.name)}</span>'">
           ${t.name}
-        </a>`).join('');
-    if (!chips) return '';
-    return `<div class="teamnav-region"><span class="teamnav-region-name">${region}</span>${chips}</div>`;
-  }).join('');
+        </a>`;
+  const byStatus = s => TEAMS.filter(t => t.status === s).sort((a, b) => a.rank - b.rank).map(chip).join('');
+  return `
+    <div class="teamnav-region"><span class="teamnav-region-name">Invited</span>${byStatus('invited')}</div>
+    <div class="teamnav-region"><span class="teamnav-region-name">Qualifiers</span>${byStatus('qualifier')}<span class="teamnav-tbd">+ ${QUALIFIER_TBD.length} TBD</span></div>`;
 }
 
-/* mount */
+/* qualifier placeholder slots (set these as teams qualify) */
+const QUALIFIER_TBD = [
+  { tag:'WEU', label:'Western Europe' },
+  { tag:'EEU', label:'Eastern Europe' },
+  { tag:'CN',  label:'China' },
+  { tag:'SEA', label:'Southeast Asia' },
+  { tag:'NA',  label:'North America' },
+  { tag:'SA',  label:'South America' },
+];
+function groupHeader(title, count) {
+  return `<div class="group-head"><span class="group-head-title">${title}</span><span class="group-head-count">${count}</span><div class="line"></div></div>`;
+}
+function tbdBlock(q) {
+  return `
+  <section class="team-block tbd" style="--team:#3e4557">
+    <div class="team-head">
+      <div class="team-crest-fallback">?</div>
+      <div class="team-head-id">
+        <div class="team-name tbd-name">Team TBD</div>
+        <div class="team-region-line"><span class="team-region-tag">${q.tag}</span><span>${q.label} qualifier</span></div>
+      </div>
+      <div class="team-rank"><span class="team-status qualifier">Qualifier</span></div>
+    </div>
+    <div class="tbd-body">Spot reserved for the ${q.label} qualifier winner.</div>
+  </section>`;
+}
+/* mount — direct invites first, then qualifiers + open TBD slots */
+const _idx = TEAMS.map((t, ti) => ({ t, ti }));
+const _inv = _idx.filter(x => x.t.status === 'invited').sort((a, b) => a.t.rank - b.t.rank);
+const _qual = _idx.filter(x => x.t.status === 'qualifier').sort((a, b) => a.t.rank - b.t.rank);
 document.getElementById('teamnav-regions').innerHTML = teamnavMarkup();
-document.getElementById('teams').innerHTML = TEAMS.map((t, ti) => teamBlock(t, ti)).join('');
+document.getElementById('teams').innerHTML =
+  groupHeader('Direct invites', _inv.length) +
+  _inv.map(x => teamBlock(x.t, x.ti)).join('') +
+  groupHeader('Qualifiers', _qual.length + QUALIFIER_TBD.length) +
+  _qual.map(x => teamBlock(x.t, x.ti)).join('') +
+  QUALIFIER_TBD.map(q => tbdBlock(q)).join('');
 
 /* ============================================================
    PLAYER DETAIL — open / close with Guardian-style pointer
@@ -1435,11 +1577,11 @@ function detailMarkup(t, p) {
     core ? { v: stat(p.handle, 'gpm', 470, 720), l: 'GPM' } : { v: (stat(p.handle, 'stk', 55, 205) / 10).toFixed(1), l: 'Stacks/g' },
     core ? { v: stat(p.handle, 'xpm', 510, 760), l: 'XPM' } : { v: stat(p.handle, 'wrd', 12, 27), l: 'Wards/g' },
     { v: fmtNum(stat(p.handle, 'mch', 620, 2200)), l: 'Matches' },
-    { v: fmtMoney(EARNINGS[p.handle] || 0), l: 'Earnings', gold: true },
-  ];
+    EARNINGS[p.handle] ? { v: fmtMoney(EARNINGS[p.handle]), l: 'Earnings', gold: true } : null,
+  ].filter(Boolean);
   const statStrip = `<div class="detail-stats">${STATS.map(s => `<div class="dstat"><span class="dstat-v${s.gold ? ' gold' : ''}${s.mute ? ' mute' : ''}">${s.v}</span><span class="dstat-l">${s.l}</span></div>`).join('')}</div>`;
   return `
-    <img class="detail-portrait" src="${encodeURI(p.photo)}" alt="${p.handle}" onerror="this.style.visibility='hidden'">
+    ${p.photo ? `<img class="detail-portrait" src="${encodeURI(p.photo)}" alt="${p.handle}" onerror="this.style.visibility='hidden'">` : `<div class="detail-portrait detail-portrait-initials">${initials(p.handle)}</div>`}
     <div class="detail-main">
       <div class="detail-pos"><span class="num">${p.pos}</span><span class="role">${ROLE[p.pos]}</span></div>
       <div class="detail-handle">${p.handle}</div>
@@ -1538,19 +1680,19 @@ document.addEventListener('keydown', (e) => {
    RDY'S 5 TO WATCH
    ============================================================ */
 const WATCH5 = [
-  { ti:0, pi:0, why:'World number one on the EU ladder and the engine of the DreamLeague S29 champions.' },     // Satanic
-  { ti:1, pi:0, why:'Converted carry at EU #3, topping the BLAST Slam VII standings.' },                          // watson
-  { ti:1, pi:3, why:'The most decorated head in the room, steering Yandex past Spirit and into the playoffs.' },  // Saksa
-  { ti:0, pi:1, why:'A decade in the mid lane and still the scariest first-phase pick at the table.' },           // No[o]ne-
-  { ti:3, pi:1, why:'A South American mixtape mid sitting quietly at EU #5 with LGD.' },                          // TaiLung
+  { key:'falcons',  pi:0, why:'Slovakian carry of the Saudi-backed superteam, EU #58 and built to win it all.' },     // skiter
+  { key:'xtreme',   pi:0, why:'China number-one farmer playing TI on home soil; when Ame gets going, games end.' },    // Ame
+  { key:'liquid',   pi:1, why:'The West most complete mid, the constant in every deep Liquid run.' },                  // Nisha
+  { key:'boomboys', pi:3, why:'EU #6 on the ladder, conducting the chaos for BetBoom under the BoomBoys banner.' },    // Save-
+  { key:'1w',       pi:1, why:'EU #13 mid carrying the ex-Tundra core into TI under their new 1w colours.' },          // bzm
 ];
 function watch5Markup(){
   return `
     <div class="watch5-head"><span>★ rdy's 5 to watch</span><div class="line"></div></div>
     <div class="watch5-grid">
-      ${WATCH5.map(w => { const t = TEAMS[w.ti], p = t.players[w.pi]; return `
-        <button class="watch5-card" data-team="${w.ti}" data-player="${w.pi}" style="--team:${t.team}" type="button">
-          <img class="watch5-photo" src="${encodeURI(p.photo)}" alt="${p.handle}" onerror="this.style.visibility='hidden'">
+      ${WATCH5.map(w => { const ti = TEAMS.findIndex(t => t.key === w.key); const t = TEAMS[ti], p = t.players[w.pi]; return `
+        <button class="watch5-card" data-team="${ti}" data-player="${w.pi}" style="--team:${t.team}" type="button">
+          ${p.photo ? `<img class="watch5-photo" src="${encodeURI(p.photo)}" alt="${p.handle}" onerror="this.style.visibility='hidden'">` : `<div class="watch5-photo watch5-initials">${initials(p.handle)}</div>`}
           <div class="watch5-body">
             <div class="watch5-top"><span class="watch5-pos">${p.pos}</span><span class="watch5-team">${t.name}</span></div>
             <div class="watch5-handle">${p.handle}</div>
