@@ -1524,6 +1524,19 @@ function heroIcon(h, cls) {
 }
 
 const LOGOV = '?v=3';  // cache-bust token for team logos; bump if a logo file is swapped
+/* real rdy.gg profile IDs (team keys / player handles) */
+const TEAM_ID = { parivision:342, yandex:445, heroic:725, falcons:53, xtreme:72, liquid:48, boomboys:56, '1w':482, aurora:464 };
+const PLAYER_ID = {
+  'Satanic':16091,'No[o]ne-':5425,'SSS':14431,'9Class':13521,'Dukalis':5080,
+  'watson':5701,'CHIRA_JUNIOR':6405,'DM':5044,'Saksa':5543,'Malady':14209,
+  'Yuma':5749,'TaiLung':22302,'Wisper':5708,'Thiolicor':5649,'KJ':5232,
+  'skiter':5966,'Malr1ne':5336,'ATF':4911,'Cr1t-':5031,'Sneyking':5593,
+  'Ame':4937,'NothingToSay':5427,'Xxs':5724,'fy':5833,'xNova':5996,
+  'miCKe':5907,'Nisha':5420,'Ace':4920,'Boxi':4998,'tOfu':5977,
+  'Kiritych':5258,'gpk':5839,'MieRo':5363,'Save-':5553,'Kataomi':5242,
+  'Pure':5482,'bzm':5788,'33':4887,'Ari':5386,'Whitemon':5706,
+  'Nightfall':5415,'Mikoto':5365,'Ws':5710,'Mira':5369,'kaori':5877,
+};
 function crestMarkup(t) {
   return `<img class="team-crest" src="${t.logo}${LOGOV}" alt="${t.name}" onerror="this.outerHTML='<div class=&quot;team-crest-fallback&quot;>${initials(t.name)}</div>'">`;
 }
@@ -1577,7 +1590,7 @@ function teamBlock(t, ti) {
     <div class="team-head">
       ${crestMarkup(t)}
       <div class="team-head-id">
-        <a class="team-name" href="https://rdy.gg/en/dota2/teams/${slugify(t.name)}" target="_blank" rel="noopener">${t.name}<span class="ext">↗</span></a>
+        <a class="team-name" href="https://rdy.gg/en/dota2/teams/${TEAM_ID[t.key] || slugify(t.name)}" target="_blank" rel="noopener">${t.name}<span class="ext">↗</span></a>
         <div class="team-region-line">
           <span class="team-region-tag">${t.tag}</span>
           <span>${t.region}</span>
@@ -1708,7 +1721,7 @@ function detailMarkup(t, p) {
           <span class="result-opp">${r.opp}</span>
           <span class="result-score">${r.score}</span>
         </div>`).join('');
-  const profile = `https://rdy.gg/dota/players/${slugify(p.handle)}`;
+  const profile = PLAYER_ID[p.handle] ? `https://rdy.gg/en/dota2/players/${PLAYER_ID[p.handle]}` : `https://rdy.gg/en/dota2/players/${slugify(p.handle)}`;
   const past = PAST[p.handle] || [];
   const core = p.pos <= 3;
   const ladder = RANK_OVERRIDE[p.handle] || 'Unlisted';   // not on the live board
