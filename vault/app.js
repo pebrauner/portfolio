@@ -1,0 +1,2565 @@
+/* =====================================================================
+   The Vault — MTG collection & deck tracker
+   Vanilla JS · Scryfall data · localStorage persistence
+   ===================================================================== */
+'use strict';
+
+const STORE_KEY = 'mtg-vault-v1';
+const SCRYFALL = 'https://api.scryfall.com/cards/collection';
+
+/* ---------- prefs constants (must exist before load()/migrate() run at boot) ---------- */
+const THEMES = ['grimoire', 'arcane', 'tome', 'verdant', 'ember'];
+const TILE_MIN = 110, TILE_MAX = 280, TILE_DEF = 168;
+function clampTile(n) { n = Number(n); if (!Number.isFinite(n)) return TILE_DEF; return Math.min(TILE_MAX, Math.max(TILE_MIN, Math.round(n))); }
+
+/* ---------- state ---------- */
+let state = load();
+let currentDeckId = null;
+let invSearch = '';
+let invFilter = 'all';
+let invFacet = null;   // { kind:'guild', colors:['R','G'], label:'Gruul' } | { kind:'tribe', value:'Goblin' }
+let invColors = [];    // selected colour filters, e.g. ['R','G']; 'C' = colourless
+let invColorOnly = false; // when true, show only cards confined to the selected colours
+let invType = 'all';   // category filter (matches category())
+let invRarity = 'all'; // rarity filter
+let invSort = 'name';  // 'name' | 'price-desc' | 'price-asc'
+let buyDeckSel = [];          // deck ids to include in the buy list; [] = every deck
+let buyExclude = new Set();   // name-keys the user unchecked from the export
+let invMode = 'art';          // inventory display: 'art' gallery | 'text' list
+let buyMode = 'art';          // buy list display: 'art' gallery | 'text' list
+let buySort = 'price-desc';   // buy list sort: 'name' | 'price-desc' | 'price-asc' | 'rarity-desc' | 'rarity-asc' | 'color' | 'type' | 'set'
+let invTile = clampTile(state.prefs.invTile);   // inventory gallery tile min-width (px)
+let buyTile = clampTile(state.prefs.buyTile);   // buy list gallery tile min-width (px)
+let deckView = state.prefs.deckView;            // deck detail display: 'list' rows | 'stacks' overlapping art
+let deckTile = clampTile(state.prefs.deckTile); // stacks-view column width (px)
+let deckEdit = false;                            // deck-detail recipe-editing mode (transient)
+let deckAcItems = [], deckAcSeq = 0;             // add-card autocomplete state
+// --- Browse (Scryfall search) — transient, in-memory only ---
+let browseQuery = '';                            // last raw user text
+let browseResults = [];                          // RAW Scryfall card objects for the current query (accumulates across pages)
+let browseIds = [];                              // colour-identity filter pips, e.g. ['R','G']; 'C' = colourless
+let browseCmdrOnly = true;                        // Commander-first default
+let browseOrder = 'edhrec';                       // Scryfall order
+let browseNextPage = null;                        // next_page URL when has_more, else null
+let browseTotal = 0;                              // total_cards from the response
+let browseLoading = false;                        // guards double-fires
+let browseSeq = 0;                                // stale-guard for out-of-order responses
+let browseTile = clampTile(state.prefs.browseTile);
+let browseMode = 'cards';                          // 'cards' | 'sets' | 'decks'
+let setsCache = null, setsLoading = false;         // /sets result, loaded once per session
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) return migrate(JSON.parse(raw));
+  } catch (e) { /* ignore */ }
+  return migrate({ decks: [], variants: {}, cards: {}, art: {} });
+}
+// Bring older saves (per-name counts in `owned`) up to the variant model.
+function migrate(s) {
+  s.decks ||= [];
+  s.cards ||= {};
+  s.art ||= {};   // name-key -> chosen display printing { image, art, set, set_name, collector, scryfallId }
+  s.wishlist ||= {};   // name-key -> desired qty (manual buy list, fed from Browse)
+  if (!s.variants) {
+    s.variants = {};
+    if (s.owned) for (const [k, n] of Object.entries(s.owned)) {
+      if (n > 0) s.variants[k] = [newVariant({ qty: n })];
+    }
+  }
+  delete s.owned;
+  // unified UI preferences (theme, gallery tile sizes, deck-detail view mode)
+  s.prefs ||= {};
+  s.prefs.theme = THEMES.includes(s.prefs.theme) ? s.prefs.theme : 'grimoire';
+  s.prefs.invTile = clampTile(s.prefs.invTile);
+  s.prefs.buyTile = clampTile(s.prefs.buyTile);
+  s.prefs.deckView = (s.prefs.deckView === 'stacks') ? 'stacks' : 'list';
+  s.prefs.deckTile = clampTile(s.prefs.deckTile != null ? s.prefs.deckTile : 200);
+  s.prefs.browseTile = clampTile(s.prefs.browseTile);
+  s.prefs.showLegality = !!s.prefs.showLegality;
+  return s;
+}
+function save() { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+
+/* ---------- helpers ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const key = (n) => n.toLowerCase();
+const money = (n) => '$' + (n || 0).toFixed(2);
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+function card(name) {
+  return state.cards[key(name)] || { name, type_line: 'Unknown', colors: [], price: 0, notFound: true };
+}
+// The art the user picked to represent this card, falling back to the fetched default printing.
+const chosenArt = (name) => state.art[key(name)] || null;
+const displayImage = (name) => { const a = chosenArt(name); return (a && a.image) || card(name).image || ''; };
+const displayArt = (name) => { const a = chosenArt(name); return (a && a.art) || card(name).art || ''; };
+
+/* ---------- ownership: per-variant rows ---------- */
+const CONDITIONS = ['NM', 'LP', 'MP', 'HP', 'DMG'];
+const COND_LABEL = { NM: 'Near Mint', LP: 'Lightly Played', MP: 'Moderately Played', HP: 'Heavily Played', DMG: 'Damaged' };
+// ManaBox / common condition strings -> our codes.
+const CSV_COND = { mint: 'NM', near_mint: 'NM', excellent: 'LP', good: 'LP', lightly_played: 'LP', light_played: 'LP', played: 'MP', moderately_played: 'MP', heavily_played: 'HP', poor: 'DMG', damaged: 'DMG' };
+
+function newVariant(o = {}) {
+  return {
+    id: uid(),
+    qty: Math.max(0, o.qty ?? 1),
+    foil: !!o.foil,
+    condition: o.condition || 'NM',
+    set: (o.set || '').toUpperCase(),
+    collector: o.collector || '',
+    scryfallId: o.scryfallId || '',
+    notes: o.notes || ''
+  };
+}
+const variantsOf = (name) => state.variants[key(name)] || [];
+const ownedOf = (name) => variantsOf(name).reduce((a, v) => a + (v.qty || 0), 0);
+const wishOf = (name) => state.wishlist[key(name)] || 0;
+function addToWishlist(name, n = 1) {
+  const k = key(name);
+  state.wishlist[k] = Math.max(0, (state.wishlist[k] || 0) + n);
+  if (!state.wishlist[k]) delete state.wishlist[k];
+  save();
+}
+
+// Effective unit price of a card = the chosen display printing's price when set, else the fetched default.
+// This is what makes the displayed price follow the art the user picks.
+function priceOf(name) {
+  const a = chosenArt(name);
+  if (a && a.price > 0) return a.price;
+  return card(name).price || 0;
+}
+function foilPriceOf(name) {
+  const a = chosenArt(name);
+  if (a && a.price_foil > 0) return a.price_foil;
+  if (a && a.price > 0) return a.price;            // chosen printing has no foil price → use its non-foil
+  const meta = card(name);
+  return meta.price_foil || meta.price || 0;
+}
+function variantPrice(name, v) {
+  return v.foil ? foilPriceOf(name) : priceOf(name);
+}
+function ownedValueOf(name) {
+  return variantsOf(name).reduce((a, v) => a + variantPrice(name, v) * v.qty, 0);
+}
+// Per-copy value of a card: the richest printing owned (foil-aware), else the unit price.
+function unitPrice(name) {
+  const vs = variantsOf(name);
+  if (vs.length) return Math.max(...vs.map(v => variantPrice(name, v)));
+  return priceOf(name);
+}
+// Price spans for the card viewer — reflect the chosen printing.
+function pricesHtml(name) {
+  const p = priceOf(name), pf = foilPriceOf(name);
+  const out = [];
+  if (p) out.push(`<span class="cv-price">${money(p)}</span>`);
+  if (pf && pf !== p) out.push(`<span class="cv-foil">${money(pf)} foil</span>`);
+  return out.join('');
+}
+// Set/edition label for the card viewer — reflects the chosen printing when one is set.
+function setTagHtml(name) {
+  const a = chosenArt(name), meta = card(name);
+  const set = (a && a.set) || meta.set;
+  const sn = (a && a.set_name) || meta.set_name;
+  return set ? `${esc(set)}${sn ? ' · ' + esc(sn) : ''}` : '';
+}
+
+// Merge a printing into a matching variant (same foil + condition + set) or add a new one.
+function addVariant(name, a = {}) {
+  const k = key(name);
+  const list = (state.variants[k] ||= []);
+  const foil = !!a.foil, condition = a.condition || 'NM', set = (a.set || '').toUpperCase();
+  const m = list.find(v => v.foil === foil && (v.condition || 'NM') === condition && (v.set || '') === set);
+  if (m) m.qty += (a.qty || 1);
+  else list.push(newVariant(a));
+}
+
+// Total owned for a name, adjusting a plain "base" variant — used by steppers/toggles outside the variant editor.
+function setOwned(name, n) {
+  n = Math.max(0, n);
+  const k = key(name);
+  const list = state.variants[k] || [];
+  const total = list.reduce((a, v) => a + v.qty, 0);
+  const delta = n - total;
+  if (delta === 0) { save(); return; }
+  if (n === 0) { delete state.variants[k]; save(); return; }
+  if (!list.length) { state.variants[k] = [newVariant({ qty: n })]; save(); return; }
+  const base = list.find(v => !v.foil && (v.condition || 'NM') === 'NM' && !v.set);
+  if (delta > 0) {
+    if (base) base.qty += delta; else list.push(newVariant({ qty: delta }));
+  } else {
+    let rem = -delta;
+    const order = base ? [base, ...list.filter(v => v !== base)] : [...list];
+    for (const v of order) { const take = Math.min(v.qty, rem); v.qty -= take; rem -= take; if (rem <= 0) break; }
+    const kept = list.filter(v => v.qty > 0);
+    if (kept.length) state.variants[k] = kept; else delete state.variants[k];
+  }
+  save();
+}
+
+/* ---------- decklist parsing ---------- */
+const SECTION_RE = /^(deck|sideboard|maybeboard|commander|companion|sb:|maindeck|lands?|creatures?|spells?|planeswalkers?)\s*:?\s*$/i;
+
+function cleanName(raw) {
+  let n = raw.trim();
+  n = n.replace(/ \/ /g, ' // ');                               // split/DFC: "Road / Ruin" -> "Road // Ruin"
+  // Order matters: Archidekt is "Name (set) collector [Category]", Moxfield is "Name (SET) collector *F*".
+  n = n.replace(/\s*\[[^\]]*\]\s*$/, '');                       // [Category] / [Maybeboard{noDeck}…] (Archidekt)
+  n = n.replace(/\s*\*[A-Za-z★]+\*\s*$/i, '');                  // *F* / *E* foil / etched / *CMDR* markers
+  n = n.replace(/\s+\([A-Za-z0-9]{2,6}\)\s*[\dA-Za-z\-★]*\s*$/, ''); // (set) collector-number
+  n = n.replace(/\s+#.*$/, '');                                // #trailing tags
+  return n.trim();
+}
+
+function parseDecklist(text) {
+  const out = new Map();
+  let inCommander = false;   // track a "Commander" section so its cards are tagged
+  for (let line of text.split('\n')) {
+    line = line.trim();
+    if (!line || line.startsWith('//')) continue;
+    if (SECTION_RE.test(line)) { inCommander = /^commanders?\s*:?\s*$/i.test(line); continue; }
+    const m = line.match(/^(\d+)\s*[xX]?\s+(.+)$/);
+    let qty = 1, namePart = line;
+    if (m) { qty = parseInt(m[1], 10); namePart = m[2]; }
+    // commander markers: a Commander section, Moxfield *CMDR*, or an Archidekt [Commander…] category
+    const isCmd = inCommander || /\*CMDR\*/i.test(namePart) || /\[Commander[^\]]*\]/i.test(namePart);
+    // Capture the exact printing (set + collector) before cleanName strips it,
+    // so we price each card as the specific printing the list calls out.
+    let set = '', collector = '';
+    const sc = namePart.match(/\(([A-Za-z0-9]{2,6})\)\s*([0-9A-Za-z★-]+)?/);
+    if (sc) { set = sc[1]; collector = sc[2] || ''; }
+    const name = cleanName(namePart);
+    if (!name) continue;
+    const k = name.toLowerCase();
+    const existing = out.get(k);
+    if (existing) { existing.qty += qty; if (isCmd) existing.commander = true; }
+    else out.set(k, { name, qty, set, collector, commander: isCmd });
+  }
+  return [...out.values()];
+}
+
+/* ---------- CSV parsing (ManaBox / generic collection exports) ---------- */
+// Minimal RFC-4180 reader: handles quoted fields, escaped quotes, and commas inside names.
+function parseCSV(text) {
+  const rows = [];
+  let row = [], field = '', inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQuotes) {
+      if (ch === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else inQuotes = false; }
+      else field += ch;
+    } else if (ch === '"') inQuotes = true;
+    else if (ch === ',') { row.push(field); field = ''; }
+    else if (ch === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+    else if (ch !== '\r') field += ch;
+  }
+  if (field.length || row.length) { row.push(field); rows.push(row); }
+  return rows;
+}
+
+// Aggregate a ManaBox-style CSV into per-variant entries, keyed by name + set + collector + foil + condition.
+function parseCardCSV(text) {
+  const rows = parseCSV(text);
+  if (rows.length < 2) return [];
+  const header = rows[0].map(h => h.trim().toLowerCase());
+  const col = (...names) => { for (const n of names) { const i = header.indexOf(n); if (i >= 0) return i; } return -1; };
+  const iName = col('name'), iQty = col('quantity', 'count', 'qty'), iSet = col('set code', 'set'),
+        iColl = col('collector number', 'collector', 'card number'), iSid = col('scryfall id', 'scryfall_id'),
+        iFoil = col('foil'), iCond = col('condition');
+  if (iName < 0) return [];
+  const out = new Map();
+  for (let r = 1; r < rows.length; r++) {
+    const row = rows[r];
+    const name = (row[iName] || '').trim();
+    if (!name) continue;
+    const qty = iQty >= 0 ? (parseInt(row[iQty], 10) || 0) : 1;
+    if (qty <= 0) continue;
+    const set = iSet >= 0 ? (row[iSet] || '').trim() : '';
+    const collector = iColl >= 0 ? (row[iColl] || '').trim() : '';
+    const foilRaw = iFoil >= 0 ? (row[iFoil] || '').trim().toLowerCase() : '';
+    const foil = !!foilRaw && !['normal', 'false', 'no', '0', ''].includes(foilRaw);
+    const condition = CSV_COND[iCond >= 0 ? (row[iCond] || '').trim().toLowerCase() : ''] || 'NM';
+    const scryfallId = iSid >= 0 ? (row[iSid] || '').trim() : '';
+    const mk = `${name.toLowerCase()}|${set.toLowerCase()}|${collector}|${foil ? 'f' : 'n'}|${condition}`;
+    const cur = out.get(mk);
+    if (cur) cur.qty += qty;
+    else out.set(mk, { name, qty, set, collector, scryfallId, foil, condition });
+  }
+  return [...out.values()];
+}
+
+/* ---------- Scryfall fetch ---------- */
+// Split / double-faced cards ("A // B") only match on the front-face name in Scryfall's collection API.
+const frontFace = (n) => (n.includes(' // ') ? n.split(' // ')[0].trim() : n);
+
+async function postIdentifiers(ids) {
+  const found = [];
+  for (let i = 0; i < ids.length; i += 75) {
+    const chunk = ids.slice(i, i + 75);
+    const res = await fetch(SCRYFALL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identifiers: chunk })
+    });
+    if (!res.ok) throw new Error('Scryfall ' + res.status);
+    const data = await res.json();
+    (data.data || []).forEach(c => found.push(c));
+    if (i + 75 < ids.length) await sleep(120);
+  }
+  return found;
+}
+
+// entries: [{name, set, collector}] — prefer the exact printing (set + collector) for accurate pricing,
+// falling back to name (front-face for splits). Any printing miss is retried by name.
+async function fetchCardData(entries) {
+  const seen = new Map();
+  entries.forEach(e => { if (!seen.has(key(e.name))) seen.set(key(e.name), e); });
+  const unique = [...seen.values()];
+  const index = {};      // lower(name or front-face) -> card
+
+  const idFor = (e) => e.scryfallId ? { id: e.scryfallId }
+    : (e.set && e.collector) ? { set: e.set.toLowerCase(), collector_number: String(e.collector) }
+    : { name: frontFace(e.name) };
+
+  const absorb = (cards) => cards.forEach(c => {
+    index[key(c.name)] = c;
+    if (c.card_faces && c.card_faces[0]) index[key(c.card_faces[0].name)] = c;
+  });
+
+  absorb(await postIdentifiers(unique.map(idFor)));
+
+  // Printings that didn't resolve (wrong/stale collector number) — retry by name.
+  const unresolved = unique.filter(e => !index[key(e.name)]);
+  if (unresolved.length) absorb(await postIdentifiers(unresolved.map(e => ({ name: frontFace(e.name) }))));
+
+  return index;
+}
+
+function distill(c) {
+  const face = c.card_faces && c.card_faces[0] ? c.card_faces[0] : c;
+  const img = (c.image_uris || face.image_uris || {});
+  const prices = c.prices || {};
+  const usd = parseFloat(prices.usd || prices.usd_foil || 0) || 0;
+  const usdFoil = parseFloat(prices.usd_foil || prices.usd || 0) || 0;
+  return {
+    name: c.name,
+    mana_cost: c.mana_cost || face.mana_cost || '',
+    cmc: c.cmc ?? 0,
+    type_line: c.type_line || face.type_line || '',
+    colors: c.color_identity || [],
+    rarity: c.rarity || '',
+    set: (c.set || '').toUpperCase(),
+    set_name: c.set_name || '',
+    price: usd,
+    price_foil: usdFoil,
+    image: img.normal || img.large || img.small || '',
+    art: img.art_crop || '',
+    uri: c.scryfall_uri || '',
+    tcg: (c.purchase_uris || {}).tcgplayer || '',
+    legalities: c.legalities || {}   // { standard:'legal'|'not_legal'|'banned'|'restricted', ... }
+  };
+}
+
+// Outbound "buy" links for a card. TCGplayer uses Scryfall's exact product link when
+// available (else a name search); Card Kingdom has no Scryfall data, so we link a search.
+function buyLinks(meta) {
+  const q = encodeURIComponent(meta.name || '');
+  const tcg = meta.tcg || `https://www.tcgplayer.com/search/magic/product?q=${q}`;
+  const ck = `https://www.cardkingdom.com/catalog/search?search=header&filter%5Bname%5D=${q}`;
+  return `<a class="cv-buy tcg" href="${esc(tcg)}" target="_blank" rel="noopener">TCGplayer ↗</a>
+    <a class="cv-buy ck" href="${esc(ck)}" target="_blank" rel="noopener">Card Kingdom ↗</a>`;
+}
+
+/* ---------- card category ---------- */
+function category(name) {
+  const t = (card(name).type_line || '').toLowerCase().split(' // ')[0]; // categorise by front face
+  if (t.includes('land')) return 'Lands';
+  if (t.includes('creature')) return 'Creatures';
+  if (t.includes('planeswalker')) return 'Planeswalkers';
+  if (t.includes('instant')) return 'Instants';
+  if (t.includes('sorcery')) return 'Sorceries';
+  if (t.includes('artifact')) return 'Artifacts';
+  if (t.includes('enchantment')) return 'Enchantments';
+  return 'Other';
+}
+const CAT_ORDER = ['Creatures', 'Planeswalkers', 'Instants', 'Sorceries', 'Artifacts', 'Enchantments', 'Lands', 'Other'];
+
+/* ---------- format legality (keys are exact Scryfall legalities keys) ---------- */
+const LEGAL_FORMATS = [
+  ['standard', 'Standard'], ['pioneer', 'Pioneer'], ['modern', 'Modern'],
+  ['legacy', 'Legacy'], ['vintage', 'Vintage'], ['commander', 'Commander'], ['pauper', 'Pauper']
+];
+// Playable iff legal or restricted (restricted = Vintage 1-copy cap, which we don't enforce).
+const PLAYABLE = s => s === 'legal' || s === 'restricted';
+
+/* ---------- mana-font iconography (authentic MTG glyphs rendered as gold/brass ink) ---------- */
+// Card-type glyph per CAT_ORDER bucket, with finer overrides (Saga, Token) read from the type line.
+const TYPE_ICON = { Creatures: 'ms-creature', Planeswalkers: 'ms-planeswalker', Instants: 'ms-instant', Sorceries: 'ms-sorcery', Artifacts: 'ms-artifact', Enchantments: 'ms-enchantment', Lands: 'ms-land', Other: 'ms-multiple' };
+// Wear glyph for off-NM condition badges.
+const COND_ICON = { LP: 'ms-counter-shield', MP: 'ms-counter-shield', HP: 'ms-counter-damage', DMG: 'ms-counter-damage' };
+function typeIconClass(name) {
+  const tl = (card(name).type_line || '').toLowerCase();
+  if (tl.includes('saga')) return 'ms-saga';
+  if (tl.includes('token')) return 'ms-token';
+  return TYPE_ICON[category(name)] || 'ms-multiple';
+}
+// Inline card-type glyph for a card by name.
+function typeIcon(name) {
+  return `<i class="ms ${typeIconClass(name)} type-ico" title="${esc(category(name))}" aria-hidden="true"></i>`;
+}
+// Card-type glyph for a category label (group headers); inherits the header's brass colour.
+function catIcon(cat) {
+  return `<i class="ms ${TYPE_ICON[cat] || 'ms-multiple'} gh-ico" aria-hidden="true"></i>`;
+}
+// Rarity gem, tinted per tier via the rar-* colour classes (RARITY_LABEL is defined later; only read at call time).
+function rarityIcon(rarity) {
+  if (!rarity) return '';
+  return `<i class="ms ms-rarity rar rar-${esc(rarity)}" title="${esc(RARITY_LABEL[rarity] || rarity)}" aria-hidden="true"></i>`;
+}
+// Foil shimmer glyph — one coherent sparkle used wherever a foil copy is marked.
+const FOIL_SPARK = '<i class="ms ms-dfc-spark foil-spark" title="Foil" aria-hidden="true"></i>';
+// Rarity ordering for sorting (higher = rarer).
+const RARITY_RANK = { common: 1, uncommon: 2, rare: 3, mythic: 4, special: 5, bonus: 5, masterpiece: 6 };
+const rarityRank = (name) => RARITY_RANK[card(name).rarity] || 0;
+
+/* ---------- mana / colour rendering ---------- */
+// Authentic mana-font cost symbols. Each {token} maps to an ms-cost pip:
+// colours {W}->ms-w, generic {3}->ms-3, hybrid {W/U}->ms-wu, phyrexian {W/P}->ms-wp, {X}->ms-x, {C}->ms-c, {S}->ms-s.
+function manaSymbols(cost) {
+  if (!cost) return '';
+  const toks = cost.match(/\{[^}]+\}/g) || [];
+  if (!toks.length) return '';
+  return '<span class="mc">' + toks.map(t => {
+    const s = t.slice(1, -1).toLowerCase().replace(/\//g, '');
+    return `<i class="ms ms-cost ms-shadow ms-${esc(s)}" aria-hidden="true"></i>`;
+  }).join('') + '</span>';
+}
+// A single authentic MTG mana symbol (Mana font). `pip` class carries our sizing hooks.
+function manaPip(c) {
+  return `<i class="ms ms-cost ms-shadow ms-${(c || 'C').toLowerCase()} pip"></i>`;
+}
+function pips(colors) {
+  const cs = (colors && colors.length) ? colors : ['C'];
+  return cs.map(manaPip).join('');
+}
+
+/* A faint colour-identity glow for a deck card, keyed to its primary colour. */
+function deckAura(deck) {
+  const cols = deckColors(deck);
+  const map = { W: '244,234,208', U: '74,143,214', B: '138,111,163', R: '212,69,47', G: '63,168,106' };
+  if (!cols.length) return 'rgba(201,162,39,.16)';
+  return `rgba(${map[cols[0]] || '201,162,39'},.20)`;
+}
+
+/* Tiny heraldic corner flourish (gold) for the four corners of a deck card. */
+const DECK_CORNER_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M3 15 L3 6 Q3 3 6 3 L15 3" stroke-width="1.6"/><path d="M15 3 Q20 3 20 8" stroke-width="1.3" opacity=".75"/><circle cx="6.4" cy="6.4" r=".9" fill="currentColor" stroke="none"/></svg>`;
+const DECK_CORNERS = ['tl', 'tr', 'bl', 'br'].map(p => `<span class="corner ${p}">${DECK_CORNER_SVG}</span>`).join('');
+
+/* Count a numeric stat up from zero, restoring its exact text at the end. */
+function animateStat(el) {
+  const raw = el.textContent.trim();
+  const m = raw.match(/^([^\d-]*)([\d,]+(?:\.\d+)?)(.*)$/);
+  if (!m) return;
+  const pre = m[1], end = parseFloat(m[2].replace(/,/g, '')), suf = m[3], isInt = !m[2].includes('.');
+  const t0 = performance.now(), dur = 900;
+  (function step(t) {
+    const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3), v = end * e;
+    el.textContent = pre + (isInt ? Math.round(v).toLocaleString() : v.toFixed(2)) + suf;
+    if (k < 1) requestAnimationFrame(step); else el.textContent = raw;
+  })(t0);
+}
+
+/* =====================================================================
+   AGGREGATIONS
+   ===================================================================== */
+function allCardNames() {
+  const set = new Set();
+  state.decks.forEach(d => d.cards.forEach(c => set.add(c.name)));
+  Object.keys(state.variants).forEach(k => {
+    const real = Object.values(state.cards).find(c => key(c.name) === k);
+    if (real) set.add(real.name); else set.add(k);
+  });
+  Object.keys(state.wishlist).forEach(k => {
+    const real = Object.values(state.cards).find(c => key(c.name) === k);
+    set.add(real ? real.name : k);
+  });
+  return [...set];
+}
+
+function decksUsing(name) {
+  return state.decks.filter(d => d.cards.some(c => key(c.name) === key(name)));
+}
+function maxRequired(name) {
+  let m = 0;
+  state.decks.forEach(d => d.cards.forEach(c => { if (key(c.name) === key(name)) m = Math.max(m, c.qty); }));
+  return m;
+}
+
+function deckStats(deck) {
+  let total = 0, ownedFull = 0, completeCost = 0, value = 0;
+  deck.cards.forEach(c => {
+    total += c.qty;
+    const have = ownedOf(c.name);
+    const p = priceOf(c.name);
+    value += Math.min(have, c.qty) * p;
+    if (have >= c.qty) ownedFull += c.qty;
+    else { completeCost += (c.qty - have) * p; ownedFull += have; }
+  });
+  return { total, ownedFull, completeCost, value, pct: total ? Math.round(ownedFull / total * 100) : 0 };
+}
+
+function deckColors(deck) {
+  const set = new Set();
+  deck.cards.forEach(c => (card(c.name).colors || []).forEach(x => set.add(x)));
+  return ['W', 'U', 'B', 'R', 'G'].filter(x => set.has(x));
+}
+
+// Per-format verdict for a deck. status: 'legal' | 'illegal' | 'unknown'.
+// 'unknown' = one or more cards have no legalities data yet (old cache / notFound) — re-check to resolve.
+function deckLegality(deck) {
+  const seen = new Map();
+  deck.cards.forEach(c => { if (!seen.has(key(c.name))) seen.set(key(c.name), c.name); });
+  const names = [...seen.values()];
+  const out = {};
+  LEGAL_FORMATS.forEach(([fmt]) => {
+    const bad = [], missing = [];
+    names.forEach(n => {
+      const leg = card(n).legalities;
+      if (!leg || Object.keys(leg).length === 0) { missing.push(n); return; }
+      const s = leg[fmt];
+      if (s === undefined) { missing.push(n); return; }
+      if (!PLAYABLE(s)) bad.push(n);
+    });
+    out[fmt] = { status: missing.length ? 'unknown' : (bad.length ? 'illegal' : 'legal'), bad, missing };
+  });
+  const anyUnknown = names.some(n => { const l = card(n).legalities; return !l || Object.keys(l).length === 0; });
+  return { formats: out, anyUnknown };
+}
+// A card can be a deck's commander if it's a legendary creature.
+function canBeCommander(name) {
+  const tl = (card(name).type_line || '').toLowerCase();
+  return tl.includes('legendary') && tl.includes('creature');
+}
+// The deck's commander, but only if it's still one of the deck's cards.
+function deckCommander(deck) {
+  return (deck.commander && deck.cards.some(c => key(c.name) === key(deck.commander))) ? deck.commander : null;
+}
+function deckArt(deck) {
+  const cmd = deckCommander(deck);
+  if (cmd && displayArt(cmd)) return displayArt(cmd);   // a commander defines the deck's identity
+  for (const c of deck.cards) {
+    const meta = card(c.name);
+    if (displayArt(c.name) && !(meta.type_line || '').toLowerCase().includes('land')) return displayArt(c.name);
+  }
+  for (const c of deck.cards) { if (displayArt(c.name)) return displayArt(c.name); }
+  return '';
+}
+
+function statsFor(names) {
+  let ownedCount = 0, ownedValue = 0, buyCost = 0;
+  names.forEach(n => {
+    const have = ownedOf(n), need = maxRequired(n), p = priceOf(n);
+    ownedCount += have;
+    ownedValue += ownedValueOf(n);
+    buyCost += Math.max(0, need - have) * p;
+  });
+  return { unique: names.length, ownedCount, ownedValue, buyCost };
+}
+function globalStats() {
+  return { decks: state.decks.length, ...statsFor(allCardNames()) };
+}
+
+/* ---------- forge: collection lens for deck-building ---------- */
+const COLOR_NAME = { W: 'White', U: 'Blue', B: 'Black', R: 'Red', G: 'Green', C: 'Colourless' };
+const COLOR_ORDER = ['W', 'U', 'B', 'R', 'G', 'C'];
+const GUILDS = { WU: 'Azorius', WB: 'Orzhov', WR: 'Boros', WG: 'Selesnya', UB: 'Dimir', UR: 'Izzet', UG: 'Simic', BR: 'Rakdos', BG: 'Golgari', RG: 'Gruul' };
+
+// Creature subtypes from a card's front-face type line ("Legendary Creature — Elf Druid" -> [Elf, Druid]).
+function subtypesOf(meta) {
+  const tl = meta.type_line || '';
+  if (!/creature/i.test(tl)) return [];
+  const front = tl.split('//')[0];
+  const idx = front.indexOf('—');
+  if (idx < 0) return [];
+  return front.slice(idx + 1).trim().split(/\s+/).filter(Boolean);
+}
+
+// Aggregate owned cards by colour identity and creature subtype.
+function forgeData() {
+  const colors = {};
+  COLOR_ORDER.forEach(c => colors[c] = { copies: 0, unique: 0, value: 0 });
+  const tribes = {};
+  allCardNames().forEach(n => {
+    const have = ownedOf(n);
+    if (have <= 0) return;
+    const meta = card(n);
+    const val = ownedValueOf(n);
+    const cols = (meta.colors && meta.colors.length) ? meta.colors : ['C'];
+    cols.forEach(c => { const b = colors[c]; if (b) { b.unique++; b.copies += have; b.value += val; } });
+    subtypesOf(meta).forEach(sub => { tribes[sub] = (tribes[sub] || 0) + have; });
+  });
+  return { colors, tribes };
+}
+
+function renderForge() {
+  const el = $('#forgeBody');
+  if (!el) return;
+  const { colors, tribes } = forgeData();
+
+  if (!COLOR_ORDER.some(c => colors[c].copies > 0)) {
+    el.innerHTML = `<div class="empty-state"><span class="empty-mark"><i class="ms ms-ability-craft" aria-hidden="true"></i></span><h2>Nothing forged yet</h2><p>Mark cards as owned and the Forge will reveal what you can build.</p></div>`;
+    return;
+  }
+
+  const maxC = Math.max(...COLOR_ORDER.map(c => colors[c].copies), 1);
+  const colorRows = COLOR_ORDER.filter(c => colors[c].copies > 0).map(c => {
+    const b = colors[c];
+    return `<div class="cspread-row">
+      ${manaPip(c)}
+      <span class="cs-name">${COLOR_NAME[c]}</span>
+      <div class="cs-bar"><i class="${c}" style="width:${Math.round(b.copies / maxC * 100)}%"></i></div>
+      <span class="cs-copies">${b.copies}</span>
+      <span class="cs-unique">${b.unique} unique</span>
+      <span class="cs-val"><i class="ms ms-counter-gold cs-coin" aria-hidden="true"></i>${money(b.value)}</span>
+    </div>`;
+  }).join('');
+
+  // Strongest two-colour pairings, ranked by the weaker colour (the realistic ceiling for a build).
+  const colored = COLOR_ORDER.filter(c => c !== 'C' && colors[c].copies > 0);
+  const pairs = [];
+  for (let i = 0; i < colored.length; i++) for (let j = i + 1; j < colored.length; j++) {
+    const k = ['W', 'U', 'B', 'R', 'G'].filter(x => x === colored[i] || x === colored[j]).join('');
+    if (!GUILDS[k]) continue;
+    pairs.push({ a: colored[i], b: colored[j], guild: GUILDS[k], depth: Math.min(colors[colored[i]].copies, colors[colored[j]].copies) });
+  }
+  pairs.sort((x, y) => y.depth - x.depth);
+  const sugg = pairs.slice(0, 3).filter(p => p.depth > 0).map(p =>
+    `<span class="sug-chip" data-colors="${p.a}${p.b}" data-guild="${p.guild}"><i class="ms ms-guild-${p.guild.toLowerCase()} guild-crest" aria-hidden="true"></i>${manaPip(p.a)}${manaPip(p.b)}<b>${p.guild}</b><span class="sug-n">~${p.depth} per colour</span></span>`
+  ).join('');
+  const suggBlock = sugg ? `<div class="forge-suggest"><span class="sug-label">Strongest pairings</span><div class="sug-row">${sugg}</div></div>` : '';
+
+  const tribeList = Object.entries(tribes).sort((a, b) => b[1] - a[1]);
+  const maxT = tribeList.length ? tribeList[0][1] : 1;
+  const tribeRows = tribeList.slice(0, 16).map(([name, count]) => {
+    const verdict = count >= 12 ? '<span class="tribe-verdict ready"><i class="ms ms-ability-craft" aria-hidden="true"></i> Deck-ready</span>'
+      : count >= 6 ? '<span class="tribe-verdict brew"><i class="ms ms-creature" aria-hidden="true"></i> Brewing</span>' : '<span class="tribe-verdict"></span>';
+    return `<div class="tribe-row" data-tribe="${esc(name)}">
+      <i class="ms ms-creature tribe-ico" aria-hidden="true"></i>
+      <span class="tribe-name">${esc(name)}</span>
+      <div class="tribe-bar"><i style="width:${Math.round(count / maxT * 100)}%"></i></div>
+      <span class="tribe-count">${count}</span>
+      ${verdict}
+    </div>`;
+  }).join('');
+  const tribeHead = `<div class="group-head"><i class="ms ms-creature gh-ico" aria-hidden="true"></i>Tribal Potential</div>`;
+  const tribeBlock = tribeList.length
+    ? `${tribeHead}<div class="forge-tribes">${tribeRows}</div>`
+    : `${tribeHead}<p class="view-sub" style="padding:8px 2px">No creature types catalogued yet.</p>`;
+
+  el.innerHTML = `<div class="group-head">Colour Spread</div><div class="forge-colors">${colorRows}</div>${suggBlock}${tribeBlock}`;
+}
+
+/* ---------- inventory facet (drill-down from the Forge) ---------- */
+function renderFacetBar() {
+  const bar = $('#invFacetBar');
+  if (!bar) return;
+  if (!invFacet) { bar.hidden = true; bar.innerHTML = ''; return; }
+  bar.hidden = false;
+  const tag = invFacet.kind === 'guild'
+    ? `<i class="ms ms-guild-${(invFacet.label || '').toLowerCase()} guild-crest" aria-hidden="true"></i>${invFacet.colors.map(manaPip).join('')}<span>${esc(invFacet.label)} — castable cards</span>`
+    : `<i class="ms ms-creature facet-creature" aria-hidden="true"></i><span>Tribe · ${esc(invFacet.value)}</span>`;
+  bar.innerHTML = `<span class="facet-tag">${tag}</span><button class="facet-clear" id="facetClear">✕ clear</button>`;
+}
+function syncSeg() {
+  $$('#invFilter .seg-btn').forEach(x => x.classList.toggle('is-active', x.dataset.filter === invFilter));
+}
+function applyFacet(facet) {
+  invFacet = facet;
+  invFilter = 'all';            // inventory is already owned-only
+  syncSeg();
+  setView('inventory');
+  renderInventory();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* =====================================================================
+   RENDERING
+   ===================================================================== */
+function render() {
+  renderDecks();
+  if (currentDeckId) renderDeckDetail();
+  renderInventory();
+  renderForge();
+  renderBuyList();
+  renderBrowse();
+}
+
+function renderDecks() {
+  const g = globalStats();
+  $('#ledgerSummary').innerHTML = state.decks.length ? `
+    <div class="stat-card"><div class="label"><i class="ms ms-saga stat-ic" aria-hidden="true"></i>Decks</div><div class="value">${g.decks}</div></div>
+    <div class="stat-card"><div class="label"><i class="ms ms-multiple stat-ic" aria-hidden="true"></i>Unique Cards</div><div class="value">${g.unique}</div><div class="sub">${g.ownedCount} owned copies</div></div>
+    <div class="stat-card"><div class="label"><i class="ms ms-counter-gold stat-ic" aria-hidden="true"></i>Collection Value</div><div class="value gold">${money(g.ownedValue)}</div><div class="sub">at market price</div></div>
+    <div class="stat-card"><div class="label"><i class="ms ms-counter-gold stat-ic" aria-hidden="true"></i>Cost to Complete All</div><div class="value">${money(g.buyCost)}</div><div class="sub">still to acquire</div></div>` : '';
+
+  const grid = $('#deckGrid');
+  $('#decksEmpty').hidden = state.decks.length > 0;
+  grid.innerHTML = state.decks.map(d => {
+    const s = deckStats(d);
+    const art = deckArt(d);
+    return `<article class="deck-card" data-deck="${d.id}" style="--aura:${deckAura(d)}">
+      <div class="glare"></div>
+      <div class="crest">
+        ${art ? `<div class="art" style="background-image:url('${esc(art)}')"></div>` : ''}
+        <div class="pips">${pips(deckColors(d))}</div>
+      </div>
+      <div class="body">
+        <h3>${esc(d.name)}</h3>
+        <div class="meta">${s.total} cards · ${s.pct}% complete</div>
+        <div class="progress"><i style="width:${s.pct}%"></i></div>
+        <div class="foot">
+          <span class="have">${s.ownedFull}/${s.total} owned</span>
+          <span class="cost ${s.completeCost === 0 ? 'zero' : ''}">${s.completeCost === 0 ? '✓ Complete' : '<i class="ms ms-counter-gold foot-coin" aria-hidden="true"></i>' + money(s.completeCost) + ' to finish'}</span>
+        </div>
+      </div>
+      ${DECK_CORNERS}
+    </article>`;
+  }).join('');
+
+  $$('#ledgerSummary .value').forEach(animateStat);
+}
+
+function renderDeckDetail() {
+  const deck = state.decks.find(d => d.id === currentDeckId);
+  if (!deck) { currentDeckId = null; setView('decks'); return; }
+  const s = deckStats(deck);
+
+  const cmd = deckCommander(deck);
+  const groups = {};
+  deck.cards.forEach(c => { if (cmd && key(c.name) === key(cmd)) return; (groups[category(c.name)] ||= []).push(c); });
+
+  let body = `<div class="deck-hero">
+    <div>
+      <div class="deck-title">
+        <h2 data-deck-title="${deck.id}">${esc(deck.name)}</h2>
+        <button class="rename" data-rename-deck="${deck.id}" title="Rename deck" aria-label="Rename deck"><i class="ms ms-artist-nib" aria-hidden="true"></i></button>
+      </div>
+      <div class="pips">${pips(deckColors(deck))}</div>
+    </div>
+    <div class="spacer"></div>
+    <div class="seg" id="deckViewMode" title="Switch between a text list and stacked card art">
+      <button class="seg-btn ${deckView === 'stacks' ? 'is-active' : ''}" data-mode="stacks"><i class="ms ms-token" aria-hidden="true"></i> Stacks</button>
+      <button class="seg-btn ${deckView === 'list' ? 'is-active' : ''}" data-mode="list"><i class="ms ms-multiple" aria-hidden="true"></i> List</button>
+    </div>
+    ${deckView === 'stacks' ? `<label class="size-ctl" id="deckSizeWrap" title="Card size">
+      <i class="ms ms-token size-ic size-ic--sm" aria-hidden="true"></i>
+      <input type="range" id="deckSizeRange" class="size-range" min="110" max="280" step="2" value="${deckTile}" aria-label="Card size" />
+      <i class="ms ms-token size-ic size-ic--lg" aria-hidden="true"></i>
+    </label>` : ''}
+    <button class="lg-toggle ${deckEdit ? 'on' : ''}" data-deckedit title="Add / remove cards in this deck"><i class="ms ms-ability-craft" aria-hidden="true"></i> Edit</button>
+    <button class="lg-toggle ${state.prefs.showLegality ? 'on' : ''}" data-lgtoggle title="Show format legality"><i class="ms ms-counter-shield" aria-hidden="true"></i> Legality</button>
+    <div class="hero-stat"><div class="v">${s.pct}%</div><div class="l">Complete</div></div>
+    <div class="hero-stat"><div class="v">${money(s.value)}</div><div class="l"><i class="ms ms-counter-gold stat-ic" aria-hidden="true"></i>Owned Value</div></div>
+    <div class="hero-stat"><div class="v">${money(s.completeCost)}</div><div class="l"><i class="ms ms-counter-gold stat-ic" aria-hidden="true"></i>To Finish</div></div>
+    <button class="del" data-del-deck="${deck.id}"><i class="ms ms-counter-skull" aria-hidden="true"></i> Delete</button>
+  </div>`;
+
+  if (state.prefs.showLegality) body += legalityBar(deck);
+  if (deckEdit) body += deckAddBar();
+
+  if (deckView === 'stacks') {
+    body += renderDeckCards(groups, cmd);
+  } else {
+    if (cmd) {
+      const cq = (deck.cards.find(c => key(c.name) === key(cmd)) || {}).qty || 1;
+      body += `<div class="group-head cmd-head"><i class="ms ms-commander" aria-hidden="true"></i>Commander</div><div class="card-table">${cardRow(cmd, cq, true)}</div>`;
+    }
+    CAT_ORDER.forEach(cat => {
+      const rows = groups[cat];
+      if (!rows || !rows.length) return;
+      const count = rows.reduce((a, c) => a + c.qty, 0);
+      body += `<div class="group-head">${catIcon(cat)}${cat} · ${count}</div><div class="card-table">`;
+      body += rows.sort((a, b) => a.name.localeCompare(b.name)).map(c => cardRow(c.name, c.qty, true)).join('');
+      body += `</div>`;
+    });
+  }
+
+  $('#app').classList.toggle('wide', deckView === 'stacks');
+  $('#deckDetail').innerHTML = body;
+}
+
+/* ---------- deck rename (inline) ---------- */
+function startRenameDeck(id) {
+  const deck = state.decks.find(d => d.id === id);
+  if (!deck) return;
+  const h2 = document.querySelector(`[data-deck-title="${id}"]`);
+  if (!h2 || h2.querySelector('input')) return;
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'deck-rename-input';
+  input.value = deck.name;
+  input.maxLength = 80;
+  h2.replaceChildren(input);
+  input.focus();
+  input.select();
+  let done = false;
+  const commit = () => {
+    if (done) return; done = true;
+    deck.name = input.value.trim() || deck.name || 'Untitled Deck';
+    save();
+    render();
+  };
+  const cancel = () => { if (done) return; done = true; render(); };
+  input.addEventListener('keydown', ev => {
+    if (ev.key === 'Enter') { ev.preventDefault(); commit(); }
+    else if (ev.key === 'Escape') { ev.preventDefault(); cancel(); }
+  });
+  input.addEventListener('blur', commit);
+}
+
+/* ---------- Archidekt-style stacked deck view ---------- */
+function renderDeckCards(groups, cmd) {
+  let html = `<div class="deck-stacks" style="--stack-w:${deckTile}px">`;
+  if (cmd) {
+    const deck = state.decks.find(d => d.id === currentDeckId);
+    const cq = ((deck && deck.cards.find(c => key(c.name) === key(cmd))) || {}).qty || 1;
+    html += deckCardColumn('Commander', [{ name: cmd, qty: cq }]);
+  }
+  CAT_ORDER.forEach(cat => {
+    const rows = groups[cat];
+    if (rows && rows.length) html += deckCardColumn(cat, rows);
+  });
+  return html + '</div>';
+}
+function deckCardColumn(cat, rows) {
+  const sorted = rows.slice().sort((a, b) => a.name.localeCompare(b.name));
+  const qty = sorted.reduce((a, c) => a + c.qty, 0);
+  const total = sorted.reduce((a, c) => a + c.qty * priceOf(c.name), 0);
+  const headIcon = cat === 'Commander' ? '<i class="ms ms-commander gh-ico" aria-hidden="true"></i>' : catIcon(cat);
+  let html = `<section class="stack-col${cat === 'Commander' ? ' cmd-col' : ''}">
+    <header class="stack-head">${headIcon}<span class="sh-name">${esc(cat)}</span><span class="sh-qty">${qty}</span><span class="sh-price">${money(total)}</span></header>
+    <div class="stack-cards">`;
+  sorted.forEach((c, i) => {
+    const meta = card(c.name);
+    const src = displayImage(c.name);
+    const art = src
+      ? `<img class="sc-art" src="${esc(src)}" alt="${esc(c.name)}" loading="lazy"/>`
+      : `<div class="sc-art sc-fallback"><i class="ms ms-dfc-back" aria-hidden="true"></i></div>`;
+    const pr = priceOf(c.name);
+    const price = pr ? money(pr) : '—';
+    const owned = ownedOf(c.name) > 0;
+    const rm = deckEdit ? `<button class="sc-remove" data-deckremove="${esc(c.name)}" title="Remove from deck" aria-label="Remove">✕</button>` : '';
+    html += `<div class="stack-card nm${owned ? '' : ' not-owned'}" data-name="${esc(c.name)}" style="z-index:${i + 1}" title="${esc(c.name)}${owned ? '' : ' — not owned'}">
+      ${art}
+      <span class="sc-strip"><span class="sc-qty">${c.qty}×</span><span class="sc-name">${esc(c.name)}</span><span class="sc-price">${price}</span></span>
+      ${rm}
+    </div>`;
+  });
+  return html + `</div></section>`;
+}
+
+/* ---------- deck format legality ---------- */
+function legalityBar(deck) {
+  const { formats, anyUnknown } = deckLegality(deck);
+  const chips = LEGAL_FORMATS.map(([fmt, label]) => {
+    const v = formats[fmt];
+    const count = v.bad.length;
+    const tip = v.status === 'legal' ? 'Legal' : v.status === 'unknown' ? 'Unknown — re-check' : count + ' card' + (count === 1 ? '' : 's') + ' not legal';
+    const badge = v.status === 'illegal' ? `<span class="lg-count">${count}</span>`
+      : v.status === 'unknown' ? `<span class="lg-count q">?</span>` : `<i class="ms ms-counter-shield lg-ok" aria-hidden="true"></i>`;
+    return `<button class="lg-chip ${v.status}" data-lgfmt="${fmt}" title="${esc(label)} — ${esc(tip)}" aria-expanded="false">
+      <span class="lg-name">${esc(label)}</span>${badge}<i class="ms ms-ability-investigate lg-i" aria-hidden="true"></i>
+    </button>`;
+  }).join('');
+  const panels = LEGAL_FORMATS.map(([fmt, label]) => {
+    const v = formats[fmt];
+    if (v.status === 'legal') return '';
+    const list = (names, kind) => names.length
+      ? `<div class="lg-list ${kind}">${names.map(n => `<button class="lg-card nm" data-name="${esc(n)}">${esc(n)}</button>`).join('')}</div>` : '';
+    const body = `${v.bad.length ? `<div class="lg-sub">Not legal in ${esc(label)}</div>${list(v.bad, 'bad')}` : ''}`
+      + `${v.missing.length ? `<div class="lg-sub">Unknown — re-check to confirm</div>${list(v.missing, 'unknown')}` : ''}`;
+    return `<div class="lg-panel" data-lgpanel="${fmt}" hidden>${body}</div>`;
+  }).join('');
+  const recheck = anyUnknown
+    ? `<button class="lg-recheck" data-lgrecheck="${deck.id}"><i class="ms ms-ability-investigate" aria-hidden="true"></i> Re-check legality</button>` : '';
+  return `<div class="deck-legality"><div class="lg-row">${chips}${recheck}</div>${panels}</div>`;
+}
+async function recheckDeckLegality(deckId) {
+  const deck = state.decks.find(d => d.id === deckId);
+  if (!deck) return;
+  toast('Re-checking legality…');
+  try {
+    await resolveCards(deck.cards.map(c => ({ name: c.name, qty: c.qty })));
+    save();
+    render();
+    toast('Legality updated.');
+  } catch (e) {
+    toast('Scryfall lookup failed — try again.');
+  }
+}
+
+/* ---------- deck editing (add / remove / qty) ---------- */
+function deckAddBar() {
+  return `<div class="deck-add-bar">
+    <div class="deck-add-field">
+      <i class="ms ms-counter-plus deck-add-ic" aria-hidden="true"></i>
+      <input type="text" id="deckAddInput" class="deck-add-input" placeholder="Add a card to this deck…" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="false" aria-controls="deckAddMenu" />
+      <div class="deck-ac" id="deckAddMenu" role="listbox" hidden></div>
+    </div>
+    <span class="deck-add-hint">Pick a suggestion or press Enter to add.</span>
+  </div>`;
+}
+function deckHideAc() { const m = $('#deckAddMenu'); if (m) { m.hidden = true; m.innerHTML = ''; } deckAcItems = []; }
+async function deckFetchAc(q) {
+  const seq = ++deckAcSeq;
+  try {
+    const res = await fetch('https://api.scryfall.com/cards/autocomplete?q=' + encodeURIComponent(q));
+    if (!res.ok) return;
+    const data = await res.json();
+    if (seq !== deckAcSeq) return;
+    const menu = $('#deckAddMenu'); if (!menu) return;
+    deckAcItems = (data.data || []).slice(0, 10);
+    if (!deckAcItems.length) { deckHideAc(); return; }
+    menu.innerHTML = deckAcItems.map((n, i) => `<button type="button" class="ac-item" role="option" data-deckac="${i}">${esc(n)}</button>`).join('');
+    menu.hidden = false;
+  } catch (e) { /* offline — silently no-op */ }
+}
+const deckAcDebounced = (() => { let t; return (q) => { clearTimeout(t); t = setTimeout(() => deckFetchAc(q), 170); }; })();
+
+async function addCardToDeck(name) {
+  const deck = state.decks.find(d => d.id === currentDeckId);
+  if (!deck || !name) return;
+  let canonical = name;
+  try { const { resolved } = await resolveCards([{ name, qty: 1 }]); if (resolved && resolved[0]) canonical = resolved[0].name; } catch (e) { /* keep typed name */ }
+  const existing = deck.cards.find(c => key(c.name) === key(canonical));
+  if (existing) existing.qty += 1;
+  else deck.cards.push({ name: canonical, qty: 1 });
+  save();
+  render();
+  const ni = $('#deckAddInput'); if (ni) ni.focus();   // re-rendered input
+  toast(`Added ${canonical} to “${deck.name}”.`);
+}
+function removeCardFromDeck(name) {
+  const deck = state.decks.find(d => d.id === currentDeckId);
+  if (!deck) return;
+  deck.cards = deck.cards.filter(c => key(c.name) !== key(name));
+  if (deck.commander && key(deck.commander) === key(name)) deck.commander = null;
+  save();
+  render();
+}
+function setDeckQty(name, delta) {
+  const deck = state.decks.find(d => d.id === currentDeckId);
+  if (!deck) return;
+  const c = deck.cards.find(x => key(x.name) === key(name));
+  if (!c) return;
+  c.qty = Math.max(1, c.qty + delta);
+  save();
+  render();
+}
+
+function cardRow(name, reqQty, showStepper) {
+  const meta = card(name);
+  if (deckEdit) {
+    return `<div class="card-row editing">
+      <div class="deck-qty">
+        <button data-deckqty="-1" data-name="${esc(name)}" aria-label="One fewer">−</button>
+        <span class="n">${reqQty}</span>
+        <button data-deckqty="1" data-name="${esc(name)}" aria-label="One more">+</button>
+      </div>
+      <div class="cname">
+        <span class="nm" data-name="${esc(name)}" data-uri="${esc(meta.uri || '')}" title="${esc(name)}">${esc(name)}</span>
+        ${manaSymbols(meta.mana_cost)}
+      </div>
+      <button class="deck-remove" data-deckremove="${esc(name)}" title="Remove from deck" aria-label="Remove ${esc(name)}">✕</button>
+    </div>`;
+  }
+  const have = ownedOf(name);
+  const cls = have >= reqQty ? 'owned' : have > 0 ? 'partial' : 'missing';
+  const need = Math.max(0, reqQty - have);
+  const priceEach = priceOf(name);
+  const priceCell = need > 0
+    ? `<div class="price"><span class="need">${money(need * priceEach)}</span></div>`
+    : `<div class="price have-all">✓ owned</div>`;
+  const stepper = showStepper ? `
+    <div class="own-step">
+      <button data-step="-1" data-name="${esc(name)}">−</button>
+      <span class="n">${have}<span class="req">/${reqQty}</span></span>
+      <button data-step="1" data-name="${esc(name)}">+</button>
+    </div>` : '';
+  return `<div class="card-row ${cls}">
+    <button class="toggle ${have >= reqQty ? 'on' : ''}" data-toggle="${esc(name)}" data-req="${reqQty}" title="Toggle owned"></button>
+    <div class="cname">
+      <span class="qty">${reqQty}×</span>
+      <span class="nm" data-uri="${esc(meta.uri || '')}" title="${esc(name)}">${esc(name)}</span>
+      ${manaSymbols(meta.mana_cost)}
+    </div>
+    ${stepper}
+    ${priceCell}
+  </div>`;
+}
+
+function renderInventory() {
+  let names = allCardNames().filter(n => ownedOf(n) > 0);   // unowned cards live on the Buy List, not here
+  const q = invSearch.toLowerCase();
+  if (q) names = names.filter(n => n.toLowerCase().includes(q));
+  names = names.filter(n => {
+    const have = ownedOf(n), need = maxRequired(n);
+    if (invFilter === 'owned') return have > 0;
+    if (invFilter === 'needed') return need > have;
+    if (invFilter === 'loose') return have > 0 && decksUsing(n).length === 0;
+    return true;
+  });
+  if (invFacet) names = names.filter(n => {
+    const meta = card(n);
+    if (invFacet.kind === 'guild') return (meta.colors || []).every(c => invFacet.colors.includes(c));
+    if (invFacet.kind === 'tribe') return subtypesOf(meta).includes(invFacet.value);
+    return true;
+  });
+  if (invColors.length) names = names.filter(n => {
+    const cols = card(n).colors || [];
+    if (invColorOnly) {
+      // "only" mode: the card must be confined to the selected colours
+      if (cols.length === 0) return invColors.includes('C');
+      return cols.every(c => invColors.includes(c));
+    }
+    return invColors.some(c => c === 'C' ? cols.length === 0 : cols.includes(c));
+  });
+  if (invType !== 'all') names = names.filter(n => category(n) === invType);
+  if (invRarity !== 'all') names = names.filter(n => (card(n).rarity || '') === invRarity);
+  if (invSort === 'price-desc') names.sort((a, b) => unitPrice(b) - unitPrice(a) || a.localeCompare(b));
+  else if (invSort === 'price-asc') names.sort((a, b) => unitPrice(a) - unitPrice(b) || a.localeCompare(b));
+  else if (invSort === 'rarity-desc') names.sort((a, b) => rarityRank(b) - rarityRank(a) || a.localeCompare(b));
+  else if (invSort === 'rarity-asc') names.sort((a, b) => rarityRank(a) - rarityRank(b) || a.localeCompare(b));
+  else names.sort((a, b) => a.localeCompare(b));
+
+  renderFacetBar();
+  $('#invFilterClear').hidden = !(invColors.length || invColorOnly || invType !== 'all' || invRarity !== 'all' || invSort !== 'name');
+
+  const faceted = !!invFacet;
+  const g = faceted ? statsFor(names) : globalStats();
+  $('#invStats').innerHTML = `
+    <div class="s"><div class="v">${g.unique}</div><div class="l"><i class="ms ms-multiple stat-ic" aria-hidden="true"></i>${faceted ? 'Cards Shown' : 'Unique Cards'}</div></div>
+    <div class="s"><div class="v">${g.ownedCount}</div><div class="l"><i class="ms ms-library stat-ic" aria-hidden="true"></i>Owned Copies</div></div>
+    <div class="s"><div class="v">${money(g.ownedValue)}</div><div class="l"><i class="ms ms-counter-gold stat-ic" aria-hidden="true"></i>${faceted ? 'Value Shown' : 'Collection Value'}</div></div>
+    <div class="s"><div class="v">${money(g.buyCost)}</div><div class="l"><i class="ms ms-counter-gold stat-ic" aria-hidden="true"></i>Still to Buy</div></div>`;
+
+  const table = $('#inventoryTable');
+  table.classList.toggle('gallery', invMode === 'art');
+  table.style.setProperty('--tile', invTile + 'px');
+  const invSizeWrap = $('#invSizeWrap');
+  if (invSizeWrap) { invSizeWrap.hidden = invMode !== 'art'; const r = $('#invSizeRange'); if (r) r.value = invTile; }
+  if (!names.length) {
+    table.innerHTML = `<div class="view-sub" style="padding:30px 0">No cards match.</div>`;
+  } else if (invMode === 'art') {
+    table.innerHTML = names.map(n => inventoryArtTile(n)).join('');
+  } else {
+    table.innerHTML = names.map(n => inventoryCardBlock(n)).join('');
+  }
+}
+
+// A full-card-art tile for the gallery view (aggregates a card's variants).
+function artTile(name, badge, valueHtml, extra = '') {
+  const meta = card(name);
+  const src = displayImage(name);
+  const img = src
+    ? `<img src="${esc(src)}" alt="${esc(name)}" loading="lazy"/>`
+    : `<div class="art-fallback"><i class="ms ms-dfc-back" aria-hidden="true"></i></div>`;
+  const marks = `<span class="art-marks">${typeIcon(name)}${rarityIcon(meta.rarity)}</span>`;
+  return `<div class="art-img">${img}${badge ? `<span class="art-qty">${badge}</span>` : ''}${marks}${extra}</div>
+    <div class="art-info"><span class="art-name">${esc(name)}</span>${valueHtml}</div>`;
+}
+function inventoryArtTile(name) {
+  const meta = card(name);
+  const have = ownedOf(name);
+  const anyFoil = variantsOf(name).some(v => v.foil);
+  const foilTag = anyFoil ? `<span class="art-foil" title="Foil copy">${FOIL_SPARK}</span>` : '';
+  return `<button class="art-tile art-open" data-name="${esc(name)}">
+    ${artTile(name, have + '×', `<span class="art-val">${money(ownedValueOf(name))}</span>`, foilTag)}
+  </button>`;
+}
+
+function whereCell(name) {
+  const used = decksUsing(name);
+  return used.length
+    ? `<span class="where"><i class="ms ms-saga where-ic" aria-hidden="true"></i>in <b>${used.map(d => esc(d.name)).join('</b>, <b>')}</b></span>`
+    : `<span class="where unlinked" style="color:var(--brass)"><i class="ms ms-land where-ic" aria-hidden="true"></i>unlinked</span>`;
+}
+
+// One card = its own variant rows (foil / printing / condition split out).
+// Editing the properties lives in the card viewer now — click the card to open it.
+function inventoryCardBlock(name) {
+  const vs = variantsOf(name);
+  if (!vs.length) return '';
+  return `<div class="inv-card">${vs.map(v => inventoryVariantRow(name, v)).join('')}</div>`;
+}
+
+function inventoryVariantRow(name, v) {
+  const meta = card(name);
+  const unit = variantPrice(name, v);
+  const badges = [
+    v.foil ? `<span class="vbadge foil">${FOIL_SPARK} Foil</span>` : '',
+    (v.condition && v.condition !== 'NM') ? `<span class="vbadge cond"><i class="ms ${COND_ICON[v.condition] || 'ms-counter-shield'}" aria-hidden="true"></i> ${esc(v.condition)}</span>` : '',
+    v.set ? `<span class="vbadge set"><i class="ms ms-fw ms-multiple" aria-hidden="true"></i> ${esc(v.set)}${v.collector ? ' ' + esc(v.collector) : ''}</span>` : '',
+    v.notes ? `<span class="vbadge note" title="${esc(v.notes)}"><i class="ms ms-artist-nib" aria-hidden="true"></i> ${esc(v.notes)}</span>` : ''
+  ].join('');
+  return `<div class="variant-wrap" data-vwrap="${v.id}">
+    <div class="card-row owned">
+      <span class="toggle on" title="Owned"></span>
+      <div class="cname">
+        <span class="row-marks">${typeIcon(name)}${rarityIcon(meta.rarity)}</span>
+        <span class="nm" data-name="${esc(name)}" data-uri="${esc(meta.uri || '')}" title="${esc(name)}">${esc(name)}</span>
+        ${manaSymbols(meta.mana_cost)}
+        ${badges}
+      </div>
+      <div class="own-step">
+        <button data-vstep="-1" data-vid="${v.id}" data-name="${esc(name)}">−</button>
+        <span class="n">${v.qty}</span>
+        <button data-vstep="1" data-vid="${v.id}" data-name="${esc(name)}">+</button>
+      </div>
+      ${whereCell(name)}
+      <div class="price">${money(unit)}<br><span style="color:var(--gold-soft)">${money(unit * v.qty)}</span></div>
+    </div>
+  </div>`;
+}
+
+// Variant property editor — rendered inside the card viewer ("Edit copies").
+function cardVariantsEditor(name) {
+  const vs = variantsOf(name);
+  const rows = vs.map(v => `
+    <div class="cvv-row" data-cvwrap="${v.id}">
+      <div class="cvv-top">
+        <div class="own-step">
+          <button data-vstep="-1" data-vid="${v.id}" data-name="${esc(name)}">−</button>
+          <span class="n">${v.qty}</span>
+          <button data-vstep="1" data-vid="${v.id}" data-name="${esc(name)}">+</button>
+        </div>
+        <label class="ve-toggle"><input type="checkbox" data-vfoil="${v.id}" ${v.foil ? 'checked' : ''}/> ${FOIL_SPARK} Foil</label>
+        <button class="ve-print" data-vprint="${v.id}" data-name="${esc(name)}" title="Choose this copy's printing"><i class="ms ms-artist-nib" aria-hidden="true"></i> ${v.set ? esc(v.set) : 'Printing'}</button>
+        <button class="ve-del" data-vdel="${v.id}" data-name="${esc(name)}" title="Remove this copy">Delete</button>
+      </div>
+      <div class="cvv-strip" data-vstripwrap="${v.id}" hidden></div>
+      <div class="cvv-fields">
+        <label class="ve-field"><span>Condition</span>
+          <select data-vcond="${v.id}">${CONDITIONS.map(c => `<option value="${c}" ${v.condition === c ? 'selected' : ''}>${COND_LABEL[c]}</option>`).join('')}</select>
+        </label>
+        <label class="ve-field"><span>Set</span><input type="text" data-vset="${v.id}" value="${esc(v.set || '')}" placeholder="CMM" maxlength="6"/></label>
+        <label class="ve-field"><span>Collector №</span><input type="text" data-vcoll="${v.id}" value="${esc(v.collector || '')}" placeholder="—" maxlength="12"/></label>
+        <label class="ve-field grow"><span>Notes / tags</span><input type="text" data-vnotes="${v.id}" value="${esc(v.notes || '')}" placeholder="signed, altered, traded…"/></label>
+      </div>
+    </div>`).join('');
+  return `${rows || '<p class="cvv-empty">No copies catalogued yet — add one below.</p>'}
+    <button class="add-variant" data-addvar="${esc(name)}"><i class="ms ms-token" aria-hidden="true"></i> add a printing or foil</button>`;
+}
+function refreshCardEditor() {
+  const box = $('#cvVariants');
+  if (box && !box.hidden && cardViewName) box.innerHTML = cardVariantsEditor(cardViewName);
+}
+
+// Decks currently included in the buy list (empty selection = all decks).
+function buyDecksActive() {
+  return buyDeckSel.length ? state.decks.filter(d => buyDeckSel.includes(d.id)) : state.decks;
+}
+// Highest copy-count a card is required at, limited to a given set of decks.
+// How many copies of a card are "wanted" for the buy list = the max of the deck requirement
+// (across the active decks) and the manual wishlist. MAX, not sum — an EDH singleton you both
+// run and wishlist still only needs one copy.
+function requiredFor(name, decks) {
+  let m = wishOf(name);
+  decks.forEach(d => d.cards.forEach(c => { if (key(c.name) === key(name)) m = Math.max(m, c.qty); }));
+  return m;
+}
+
+function renderBuyDeckFilter() {
+  const bar = $('#buyDeckFilter');
+  if (!bar) return;
+  if (state.decks.length <= 1) { bar.hidden = true; bar.innerHTML = ''; return; }
+  bar.hidden = false;
+  const chips = state.decks.map(d => {
+    const on = buyDeckSel.length === 0 || buyDeckSel.includes(d.id);
+    return `<button class="buy-deck-chip ${on ? 'on' : ''}" data-deck="${d.id}">${esc(d.name)}</button>`;
+  }).join('');
+  bar.innerHTML = `<span class="buy-filter-label"><i class="ms ms-library" aria-hidden="true"></i> Decks</span>${chips}` +
+    (buyDeckSel.length ? `<button class="buy-deck-chip clear" data-deck="all">↺ All decks</button>` : '');
+}
+
+// Single source of truth for buy-list ordering — shared by renderBuyList, buyListText, buyExportRows.
+// `decks` is the active deck filter (price sorts use the line cost). Name is the stable secondary key.
+function buyCompare(sort, decks) {
+  const subOf = n => (requiredFor(n, decks) - ownedOf(n)) * priceOf(n);
+  const byName = (a, b) => a.localeCompare(b);
+  const colorKey = n => {
+    const cs = card(n).colors || [];
+    if (cs.length === 0) return COLOR_ORDER.indexOf('C');     // colourless
+    if (cs.length > 1) return COLOR_ORDER.length + cs.length; // multicolour after all monos & colourless
+    return COLOR_ORDER.indexOf(cs[0]);                        // mono W/U/B/R/G
+  };
+  const typeKey = n => CAT_ORDER.indexOf(category(n));
+  const setKey = n => (card(n).set || '￿');              // missing set sorts last
+  switch (sort) {
+    case 'name':        return byName;
+    case 'price-asc':   return (a, b) => subOf(a) - subOf(b) || byName(a, b);
+    case 'rarity-desc': return (a, b) => rarityRank(b) - rarityRank(a) || byName(a, b);
+    case 'rarity-asc':  return (a, b) => rarityRank(a) - rarityRank(b) || byName(a, b);
+    case 'color':       return (a, b) => colorKey(a) - colorKey(b) || byName(a, b);
+    case 'type':        return (a, b) => typeKey(a) - typeKey(b) || byName(a, b);
+    case 'set':         return (a, b) => setKey(a).localeCompare(setKey(b)) || byName(a, b);
+    default:            return (a, b) => subOf(b) - subOf(a) || byName(a, b); // price-desc: biggest line cost first
+  }
+}
+function colorGroupLabel(n) {
+  const cs = card(n).colors || [];
+  if (cs.length === 0) return 'Colourless';
+  if (cs.length > 1) return 'Multicolour';
+  return COLOR_NAME[cs[0]] || 'Colourless';
+}
+
+function renderBuyList() {
+  renderBuyDeckFilter();
+  const decks = buyDecksActive();
+  const names = allCardNames().filter(n => requiredFor(n, decks) > ownedOf(n));
+  names.sort(buyCompare(buySort, decks));
+  let total = 0, copies = 0, picked = 0, pickedCost = 0;
+  const rowData = names.map(n => {
+    const need = requiredFor(n, decks) - ownedOf(n);
+    const sub = need * priceOf(n);
+    total += sub; copies += need;
+    const included = !buyExclude.has(key(n));
+    if (included) { picked += need; pickedCost += sub; }
+    const used = decks.filter(d => d.cards.some(c => key(c.name) === key(n)));
+    return { n, need, sub, included, used, wished: wishOf(n) > 0 };
+  });
+  const deckCount = new Set(names.flatMap(n => decks.filter(d => d.cards.some(c => key(c.name) === key(n))).map(d => d.id))).size;
+  const selecting = picked !== copies;
+  $('#buyListSub').textContent = names.length
+    ? (selecting
+        ? `${picked} of ${copies} cards selected · ${money(pickedCost)} of ${money(total)}`
+        : `${copies} cards across ${deckCount} deck${deckCount === 1 ? '' : 's'} · ${money(total)} total`)
+    : (buyDeckSel.length ? 'Nothing to buy for the selected decks.' : 'Nothing to buy — every deck is complete.');
+
+  const table = $('#buyTable');
+  table.classList.toggle('gallery', buyMode === 'art');
+  table.style.setProperty('--tile', buyTile + 'px');
+  const buySizeWrap = $('#buySizeWrap');
+  if (buySizeWrap) { buySizeWrap.hidden = buyMode !== 'art'; const r = $('#buySizeRange'); if (r) r.value = buyTile; }
+  if (!names.length) {
+    table.innerHTML = `<div class="empty-state"><span class="empty-mark"><i class="ms ms-counter-shield" aria-hidden="true"></i></span><h2>Fully stocked</h2><p>You own everything your decks require.</p></div>`;
+  } else if (buyMode === 'art') {
+    table.innerHTML = rowData.map(buyArtTile).join('');
+  } else {
+    // Colour/type sorts get section dividers so a printed seller list reads like a binder.
+    const grouping = buySort === 'color' || buySort === 'type';
+    let last = null;
+    table.innerHTML = rowData.map(rd => {
+      let head = '';
+      if (grouping) {
+        const g = buySort === 'color' ? colorGroupLabel(rd.n) : category(rd.n);
+        if (g !== last) { head = `<div class="buy-group-head">${esc(g)}</div>`; last = g; }
+      }
+      return head + buyRow(rd);
+    }).join('');
+  }
+}
+function buyRow({ n, need, sub, included, used, wished }) {
+  const meta = card(n);
+  const where = used.length
+    ? `<i class="ms ms-saga where-ic" aria-hidden="true"></i>for <b>${used.map(d => esc(d.name)).join('</b>, <b>')}</b>${wished ? ' <b class="wish-tag">＋ wishlist</b>' : ''}`
+    : `<i class="ms ms-counter-gold where-ic" aria-hidden="true"></i><b class="wish-tag">Wishlist</b>`;
+  return `<div class="card-row missing ${included ? '' : 'excluded'}">
+    <input type="checkbox" class="buy-pick" data-pick="${esc(n)}" ${included ? 'checked' : ''} title="Include in the exported list" />
+    <div class="cname"><span class="row-marks">${typeIcon(n)}${rarityIcon(meta.rarity)}</span><span class="qty">${need}×</span><span class="nm" data-name="${esc(n)}" data-uri="${esc(meta.uri || '')}">${esc(n)}</span>${manaSymbols(meta.mana_cost)}</div>
+    <span class="where">${where}</span>
+    <div class="price"><span class="need">${money(sub)}</span></div>
+  </div>`;
+}
+function buyArtTile({ n, need, sub, included }) {
+  const pick = `<input type="checkbox" class="buy-pick art-pick" data-pick="${esc(n)}" ${included ? 'checked' : ''} title="Include in the exported list" />`;
+  return `<div class="art-tile buy ${included ? '' : 'excluded'}">
+    ${pick}
+    <button class="art-open" data-name="${esc(n)}">
+      ${artTile(n, need + '×', `<span class="art-val need">${money(sub)}</span>`)}
+    </button>
+  </div>`;
+}
+
+/* =====================================================================
+   VIEW ROUTING
+   ===================================================================== */
+function setView(v) {
+  $$('.view').forEach(s => s.classList.remove('is-active'));
+  $('#view-' + v).classList.add('is-active');
+  $$('.tab').forEach(t => t.classList.toggle('is-active', t.dataset.view === v));
+  if (v !== 'deck') $('#app').classList.remove('wide');   // stacks-view wide layout is deck-only
+}
+function openDeck(id) {
+  currentDeckId = id;
+  deckEdit = false;
+  renderDeckDetail();
+  $$('.view').forEach(s => s.classList.remove('is-active'));
+  $('#view-deck').classList.add('is-active');
+  $$('.tab').forEach(t => t.classList.remove('is-active'));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* =====================================================================
+   IMPORT FLOW
+   ===================================================================== */
+// Fetch + cache parsed cards, returning canonical {name, qty} list and miss count.
+async function resolveCards(parsed) {
+  const index = await fetchCardData(parsed);
+  let missing = 0;
+  const resolved = parsed.map(p => {
+    const found = index[key(p.name)];
+    let canonical = p.name;
+    if (found) {
+      const d = distill(found);
+      state.cards[key(d.name)] = d;
+      canonical = d.name;
+    } else {
+      state.cards[key(p.name)] = { name: p.name, type_line: 'Unknown', colors: [], price: 0, mana_cost: '', notFound: true };
+      missing++;
+    }
+    return { ...p, name: canonical };
+  });
+  return { resolved, missing };
+}
+
+async function importDeck() {
+  const name = $('#deckNameInput').value.trim() || 'Untitled Deck';
+  const text = $('#decklistInput').value;
+  const ownAll = $('#ownAllInput').checked;
+  const parsed = parseDecklist(text);
+  const status = $('#importStatus');
+  if (!parsed.length) { status.textContent = 'No cards detected — check the list.'; return; }
+
+  status.innerHTML = `<span class="spin"></span>Summoning ${parsed.length} cards from Scryfall…`;
+  $('#confirmImport').disabled = true;
+  try {
+    const { resolved, missing } = await resolveCards(parsed);
+    if (ownAll) resolved.forEach(c => setOwned(c.name, Math.max(ownedOf(c.name), c.qty)));
+    const cmd = resolved.find(c => c.commander);
+    const deck = { id: uid(), name, cards: resolved.map(c => ({ name: c.name, qty: c.qty })) };
+    if (cmd) deck.commander = cmd.name;
+    state.decks.push(deck);
+    save();
+    closeImport();
+    render();
+    setView('decks');
+    toast(`“${name}” catalogued${cmd ? ` · ${esc(cmd.name)} set as commander` : ''}${missing ? ` · ${missing} card${missing > 1 ? 's' : ''} not found` : ''}.`);
+  } catch (e) {
+    status.textContent = 'Scryfall lookup failed — check your connection and retry.';
+  } finally {
+    $('#confirmImport').disabled = false;
+  }
+}
+
+function openImport() { $('#importModal').hidden = false; $('#deckNameInput').focus(); }
+function closeImport() {
+  $('#importModal').hidden = true;
+  $('#deckNameInput').value = '';
+  $('#decklistInput').value = '';
+  $('#ownAllInput').checked = false;
+  $('#importStatus').textContent = '';
+}
+
+/* add loose owned cards (not tied to any deck) */
+async function addLooseCards() {
+  const text = $('#addInput') ? $('#addInput').value : '';
+  const tagEntries = addTags.map(t => ({ name: t.name, qty: t.qty, foil: t.foil }));
+  const combined = [...tagEntries, ...parseDecklist(text)];
+  const status = $('#addStatus');
+  if (!combined.length) { status.textContent = 'No cards yet — search to add some, or paste a list.'; return; }
+
+  status.innerHTML = `<span class="spin"></span>Looking up ${combined.length} cards…`;
+  $('#confirmAdd').disabled = true;
+  try {
+    const { resolved, missing } = await resolveCards(combined);
+    resolved.forEach(c => addVariant(c.name, { qty: c.qty, foil: !!c.foil }));
+    save();
+    closeAdd();
+    render();
+    setView('inventory');
+    const n = resolved.length;
+    toast(`Added ${n} card${n > 1 ? 's' : ''} to your vault${missing ? ` · ${missing} not found` : ''}.`);
+  } catch (e) {
+    status.textContent = 'Scryfall lookup failed — check your connection and retry.';
+  } finally {
+    $('#confirmAdd').disabled = false;
+  }
+}
+
+// Import a ManaBox / collection CSV as owned (unlinked) inventory.
+async function importCSV(file) {
+  const status = $('#addStatus');
+  let parsed;
+  try { parsed = parseCardCSV(await file.text()); }
+  catch (e) { status.textContent = 'Could not read that file.'; return; }
+  if (!parsed.length) { status.textContent = 'No cards found — is this a ManaBox CSV export?'; return; }
+
+  status.innerHTML = `<span class="spin"></span>Importing ${parsed.length} cards from “${esc(file.name)}”…`;
+  $('#confirmAdd').disabled = true;
+  $('#csvBtn').disabled = true;
+  try {
+    const { resolved, missing } = await resolveCards(parsed);
+    resolved.forEach(c => addVariant(c.name, { qty: c.qty, foil: c.foil, condition: c.condition, set: c.set, collector: c.collector, scryfallId: c.scryfallId }));
+    save();
+    closeAdd();
+    render();
+    setView('inventory');
+    const copies = resolved.reduce((a, c) => a + c.qty, 0);
+    toast(`Imported ${copies} cards from CSV${missing ? ` · ${missing} not found` : ''}.`);
+  } catch (e) {
+    status.textContent = 'Import failed — check your connection and retry.';
+  } finally {
+    $('#confirmAdd').disabled = false;
+    $('#csvBtn').disabled = false;
+  }
+}
+
+/* ---------- cheapest printing (same card, different set) ---------- */
+const cheapestCache = {};   // nameKey -> { price, set, set_name, uri } | null
+async function cheapestPrinting(name) {
+  const k = key(name);
+  if (k in cheapestCache) return cheapestCache[k];
+  const q = encodeURIComponent(`!"${frontFace(name)}"`);
+  try {
+    const res = await fetch(`https://api.scryfall.com/cards/search?unique=prints&q=${q}`);
+    if (!res.ok) { cheapestCache[k] = null; return null; }
+    const data = await res.json();
+    const priced = (data.data || [])
+      .map(c => ({ c, usd: parseFloat(c.prices && c.prices.usd) }))
+      .filter(x => x.usd > 0)
+      .sort((a, b) => a.usd - b.usd);
+    if (!priced.length) { cheapestCache[k] = null; return null; }
+    const c = priced[0].c;
+    const out = { price: priced[0].usd, set: (c.set || '').toUpperCase(), set_name: c.set_name || '', uri: c.scryfall_uri || '' };
+    cheapestCache[k] = out;
+    return out;
+  } catch (e) { cheapestCache[k] = null; return null; }
+}
+
+/* ---------- every printing of a card (for the art / printing picker) ---------- */
+const printingsCache = {};   // nameKey -> [{ id, set, set_name, collector, image, art, small, rarity, price }]
+async function loadPrintings(name) {
+  const k = key(name);
+  if (k in printingsCache) return printingsCache[k];
+  const q = encodeURIComponent(`!"${frontFace(name)}"`);
+  try {
+    const res = await fetch(`https://api.scryfall.com/cards/search?unique=prints&order=released&q=${q}`);
+    if (!res.ok) { printingsCache[k] = []; return []; }
+    const data = await res.json();
+    const out = (data.data || []).map(c => {
+      const face = c.card_faces && c.card_faces[0] ? c.card_faces[0] : c;
+      const img = c.image_uris || face.image_uris || {};
+      return {
+        id: c.id,
+        set: (c.set || '').toUpperCase(),
+        set_name: c.set_name || '',
+        collector: c.collector_number || '',
+        image: img.normal || img.large || img.small || '',
+        art: img.art_crop || '',
+        small: img.small || img.normal || '',
+        rarity: c.rarity || '',
+        price: parseFloat((c.prices || {}).usd) || 0,
+        price_foil: parseFloat((c.prices || {}).usd_foil) || 0
+      };
+    }).filter(p => p.image);
+    printingsCache[k] = out;
+    return out;
+  } catch (e) { printingsCache[k] = []; return []; }
+}
+
+/* ---------- curated budget swaps (functionally similar, cheaper) ---------- */
+const SWAPS = {
+  'mana crypt': ['Sol Ring', 'Arcane Signet', 'Mind Stone', 'Fellwar Stone'],
+  'mana vault': ['Sol Ring', 'Worn Powerstone', 'Mind Stone'],
+  'cyclonic rift': ['Evacuation', "River's Rebuke", 'Devastation Tide', 'Coastal Breach'],
+  'rhystic study': ['Mystic Remora', 'Verge Rangers'],
+  'smothering tithe': ['Tempting Contract', 'Storm the Vault'],
+  'the great henge': ["Garruk's Uprising", 'Elemental Bond', 'Colossal Majesty'],
+  'dockside extortionist': ['Treasure Map', 'Brass Knuckles'],
+  'mana drain': ['Counterspell', 'Dissipate', 'Cancel'],
+  'force of will': ['Counterspell', 'Negate', 'Swan Song'],
+  'craterhoof behemoth': ['End-Raze Forerunners', 'Pathbreaker Ibex', 'Overwhelming Stampede', 'Overrun'],
+  'esper sentinel': ['Mystic Remora', 'Rhystic Study', 'Tithe'],
+  'sword of feast and famine': ['Loxodon Warhammer', 'Bonesplitter', 'Maul of the Skyclaves'],
+  'scalding tarn': ['Evolving Wilds', 'Terramorphic Expanse', 'Fabled Passage'],
+  'misty rainforest': ['Evolving Wilds', 'Terramorphic Expanse', 'Fabled Passage'],
+  'verdant catacombs': ['Evolving Wilds', 'Terramorphic Expanse', 'Fabled Passage'],
+  'steam vents': ['Izzet Guildgate', 'Highland Lake', 'Swiftwater Cliffs'],
+  'sacred foundry': ['Boros Guildgate', 'Wind-Scarred Crag', 'Stone Quarry'],
+  'gaea\'s cradle': ['Growing Rites of Itlimoc', 'Itlimoc, Cradle of the Sun', 'Nykthos, Shrine to Nyx'],
+  'doubling season': ['Parallel Lives', 'Primal Vigor', 'Anointed Procession'],
+  'teferi\'s protection': ['Heroic Intervention', "Boros Charm", 'Flawless Maneuver'],
+  'demonic tutor': ['Diabolic Tutor', 'Grim Tutor', 'Dark Petition'],
+  'vampiric tutor': ['Diabolic Intent', 'Grim Tutor', 'Mastermind\'s Acquisition']
+};
+
+/* ---------- card art viewer ---------- */
+const RARITY_LABEL = { common: 'Common', uncommon: 'Uncommon', rare: 'Rare', mythic: 'Mythic', special: 'Special', bonus: 'Bonus' };
+let cardViewName = null;
+function openCardView(name) {
+  cardViewName = name;
+  const meta = card(name);
+  const img = $('#cardViewImg');
+  const fb = $('#cardViewFallback');
+  const heroSrc = displayImage(name);
+  if (heroSrc) {
+    img.onerror = () => { img.hidden = true; fb.hidden = false; };
+    img.onload = () => { img.hidden = false; fb.hidden = true; };
+    img.src = heroSrc; img.alt = meta.name; img.hidden = false; fb.hidden = true;
+  } else {
+    img.removeAttribute('src'); img.hidden = true; fb.hidden = false;
+  }
+  // Commander assignment — only when viewing a legendary creature that's in the currently-open deck.
+  const deckCtx = currentDeckId ? state.decks.find(d => d.id === currentDeckId) : null;
+  const showCmd = deckCtx && deckCtx.cards.some(c => key(c.name) === key(name)) && canBeCommander(name);
+  const isCmd = showCmd && key(deckCtx.commander || '') === key(name);
+  const commanderHtml = showCmd
+    ? `<label class="cv-commander${isCmd ? ' on' : ''}"><input type="checkbox" id="cvCommander" ${isCmd ? 'checked' : ''}/> <i class="ms ms-commander" aria-hidden="true"></i> Commander of “${esc(deckCtx.name)}”</label>`
+    : '';
+  $('#cardViewMeta').innerHTML = `
+    <h3>${esc(meta.name)}</h3>
+    ${meta.type_line ? `<div class="cv-type">${typeIcon(meta.name)}${esc(meta.type_line)}</div>` : ''}
+    ${meta.mana_cost ? `<div class="cv-cost">${manaSymbols(meta.mana_cost)}</div>` : ''}
+    ${commanderHtml}
+    <div class="cv-tags">
+      <span class="cv-set" id="cvSet">${setTagHtml(name)}</span>
+      ${meta.rarity ? `<span class="cv-rarity ${esc(meta.rarity)}"><i class="ms ms-rarity" aria-hidden="true"></i> ${esc(RARITY_LABEL[meta.rarity] || meta.rarity)}</span>` : ''}
+    </div>
+    <div class="cv-prices" id="cvPrices">${pricesHtml(name)}</div>
+    <div class="cv-arts" id="cvArts">
+      <button class="cv-art-btn" id="cvArtBtn"><i class="ms ms-artist-brush" aria-hidden="true"></i> Choose art / printing</button>
+      <div class="cv-art-strip" id="cvArtStrip" hidden></div>
+    </div>
+    <div class="cv-cheapest" id="cvCheapest"></div>
+    ${meta.notFound ? `<div class="cv-missing">No printing matched on Scryfall — re-import to fetch its art.</div>` : ''}
+    ${meta.uri ? `<a class="cv-link" href="${esc(meta.uri)}" target="_blank" rel="noopener">View on Scryfall ↗</a>` : ''}
+    <div class="cv-buys">${buyLinks(meta)}</div>
+    <div class="cv-edit">
+      <button class="cv-edit-btn" id="cvEditBtn"><i class="ms ms-token" aria-hidden="true"></i> Edit copies${ownedOf(name) ? ` <span class="cv-edit-n">${ownedOf(name)}</span>` : ''}</button>
+      <div class="cv-variants" id="cvVariants" hidden></div>
+    </div>
+    <div class="cv-swaps" id="cvSwaps"></div>`;
+  $('#cardModal').hidden = false;
+  if (!meta.notFound) loadCheapest(name, meta);
+  renderSwaps(name);
+}
+function closeCardView() { $('#cardModal').hidden = true; cardViewName = null; $('#cardViewImg').removeAttribute('src'); }
+
+// Reveal the strip of every printing so the user can pick which art represents this card.
+async function revealPrintings(name) {
+  const strip = $('#cvArtStrip'), btn = $('#cvArtBtn');
+  if (!strip) return;
+  if (!strip.hidden) { strip.hidden = true; btn.classList.remove('on'); return; }
+  strip.hidden = false; btn.classList.add('on');
+  strip.innerHTML = `<span class="spin"></span><span class="cv-cheap-label">Loading printings…</span>`;
+  const prints = await loadPrintings(name);
+  if (cardViewName !== name || !$('#cvArtStrip')) return;
+  if (!prints.length) { $('#cvArtStrip').innerHTML = `<span class="cv-art-empty">No alternate printings found.</span>`; return; }
+  const cur = chosenArt(name);
+  const curId = cur && cur.scryfallId;
+  const curSet = card(name).set || '';
+  // printings the user owns — matched by exact Scryfall id, or set (+ collector when both have one)
+  const vs = variantsOf(name);
+  const ownsPrinting = (p) => vs.some(v =>
+    (v.scryfallId && v.scryfallId === p.id) ||
+    (v.set && v.set === p.set && (!v.collector || !p.collector || v.collector === p.collector)));
+  $('#cvArtStrip').innerHTML = prints.map((p, i) => {
+    const on = curId ? p.id === curId : p.set === curSet;
+    const owned = ownsPrinting(p);
+    return `<button type="button" class="cv-art ${on ? 'on' : ''}${owned ? ' owned' : ''}" data-printidx="${i}" title="${esc(p.set_name || p.set)}${p.collector ? ' · #' + esc(p.collector) : ''}${owned ? ' · owned' : ''}${p.price ? ' · ' + money(p.price) : ''}">
+      <img src="${esc(p.small)}" alt="${esc(p.set_name)}" loading="lazy"/>
+      <span class="cv-art-set">${esc(p.set)}</span>
+      <span class="cv-art-price">${p.price ? money(p.price) : '—'}</span>
+    </button>`;
+  }).join('');
+}
+
+// Lock a chosen printing's art as this card's display art.
+function pickPrinting(name, idx) {
+  const prints = printingsCache[key(name)] || [];
+  const p = prints[idx];
+  if (!p) return;
+  state.art[key(name)] = { image: p.image, art: p.art, set: p.set, set_name: p.set_name, collector: p.collector, scryfallId: p.id, price: p.price, price_foil: p.price_foil };
+  save();
+  const img = $('#cardViewImg'), fb = $('#cardViewFallback');
+  if (img) { img.onload = () => { img.hidden = false; if (fb) fb.hidden = true; }; img.src = p.image; img.hidden = false; if (fb) fb.hidden = true; }
+  $$('#cvArtStrip .cv-art').forEach((b, bi) => b.classList.toggle('on', bi === idx));
+  const pricesEl = $('#cvPrices'); if (pricesEl) pricesEl.innerHTML = pricesHtml(name);
+  const setEl = $('#cvSet'); if (setEl) setEl.innerHTML = setTagHtml(name);
+  renderInventory();   // the inventory tile behind the modal now shows the new art + price
+  toast(`Art set to ${p.set_name || p.set}${p.price ? ' · ' + money(p.price) : ''}.`);
+}
+
+// Reveal a per-copy printing strip inside the "Edit copies" editor so a single
+// owned copy can be tagged with the exact set/collector it is.
+async function revealCopyPrintings(name, vid, btn) {
+  const strip = document.querySelector(`.cvv-strip[data-vstripwrap="${vid}"]`);
+  if (!strip) return;
+  if (!strip.hidden) { strip.hidden = true; btn.classList.remove('on'); return; }
+  // close any other open copy strips first
+  $$('.cvv-strip').forEach(s => { if (s !== strip) { s.hidden = true; s.innerHTML = ''; } });
+  $$('.ve-print').forEach(b => { if (b !== btn) b.classList.remove('on'); });
+  strip.hidden = false; btn.classList.add('on');
+  strip.innerHTML = `<span class="spin"></span><span class="cv-cheap-label">Loading printings…</span>`;
+  const prints = await loadPrintings(name);
+  if (cardViewName !== name || !document.querySelector(`.cvv-strip[data-vstripwrap="${vid}"]`)) return;
+  const box = document.querySelector(`.cvv-strip[data-vstripwrap="${vid}"]`);
+  if (!prints.length) { box.innerHTML = `<span class="cv-art-empty">No alternate printings found.</span>`; return; }
+  const v = variantById(name, vid);
+  box.innerHTML = prints.map((p, i) => {
+    const on = v && (v.scryfallId ? p.id === v.scryfallId : (v.set && p.set === v.set && (!v.collector || p.collector === v.collector)));
+    return `<button type="button" class="cv-art cvv-art ${on ? 'on' : ''}" data-vpick="${i}" data-vid="${vid}" data-name="${esc(name)}" title="${esc(p.set_name || p.set)}${p.collector ? ' · #' + esc(p.collector) : ''}${p.price ? ' · ' + money(p.price) : ''}">
+      <img src="${esc(p.small)}" alt="${esc(p.set_name)}" loading="lazy"/>
+      <span class="cv-art-set">${esc(p.set)}${p.collector ? ' · ' + esc(p.collector) : ''}</span>
+      <span class="cv-art-price">${p.price ? money(p.price) : '—'}</span>
+    </button>`;
+  }).join('');
+}
+
+// Tag a specific owned copy with a chosen printing's set / collector / id.
+function pickCopyPrinting(name, vid, idx) {
+  const prints = printingsCache[key(name)] || [];
+  const p = prints[idx];
+  const v = variantById(name, vid);
+  if (!p || !v) return;
+  v.set = p.set; v.collector = p.collector; v.scryfallId = p.id;
+  save(); render(); refreshCardEditor();
+  toast(`Copy tagged ${p.set_name || p.set}${p.collector ? ' #' + p.collector : ''}.`);
+}
+
+// Primary "cheaper option": the cheapest printing of the same card across all sets.
+async function loadCheapest(name, meta) {
+  const el = $('#cvCheapest');
+  if (!el) return;
+  el.innerHTML = `<span class="spin"></span><span class="cv-cheap-label"><i class="ms ms-counter-gold" aria-hidden="true"></i> Finding cheapest printing…</span>`;
+  const cp = await cheapestPrinting(name);
+  if (cardViewName !== name || !$('#cvCheapest')) return;
+  const box = $('#cvCheapest');
+  if (!cp) { box.innerHTML = ''; return; }
+  const listed = priceOf(name);
+  const save = listed - cp.price;
+  if (listed && save > 0.01) {
+    box.innerHTML = `<div class="cv-cheap hit">
+      <span class="cv-cheap-label"><i class="ms ms-counter-gold" aria-hidden="true"></i> Cheapest printing</span>
+      <b>${money(cp.price)}</b>
+      <span class="cv-cheap-set">${esc(cp.set)}${cp.set_name ? ' · ' + esc(cp.set_name) : ''}</span>
+      <span class="cv-cheap-save">save ${money(save)}</span>
+    </div>`;
+  } else {
+    box.innerHTML = `<div class="cv-cheap ok"><i class="ms ms-counter-shield" aria-hidden="true"></i> Cheapest printing is ${money(cp.price)} (${esc(cp.set)})</div>`;
+  }
+}
+
+// Secondary, opt-in: functionally similar cheaper cards from the curated list.
+function renderSwaps(name) {
+  const wrap = $('#cvSwaps');
+  if (!wrap) return;
+  const list = SWAPS[key(name)];
+  if (!list || !list.length) { wrap.innerHTML = ''; return; }
+  wrap.innerHTML = `<button class="cv-swap-btn" id="cvSwapBtn"><i class="ms ms-loyalty-down" aria-hidden="true"></i> Show ${list.length} budget alternative${list.length > 1 ? 's' : ''}</button><div class="cv-swap-list" id="cvSwapList" hidden></div>`;
+}
+
+async function revealSwaps(name, btn) {
+  const list = SWAPS[key(name)] || [];
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spin"></span>Pricing alternatives…`;
+  const need = list.filter(n => { const m = state.cards[key(n)]; return !m || m.notFound; });
+  if (need.length) {
+    try {
+      const idx = await fetchCardData(need.map(n => ({ name: n })));
+      need.forEach(n => { const f = idx[key(n)]; if (f) state.cards[key(f.name)] = distill(f); });
+      save();
+    } catch (e) { /* show names without prices */ }
+  }
+  if (cardViewName !== name || !$('#cvSwapList')) return;
+  const box = $('#cvSwapList');
+  box.hidden = false;
+  box.innerHTML = list.map(n => {
+    const m = card(n), p = priceOf(n);
+    return `<button class="cv-swap-chip" data-swap="${esc(m.name)}">
+      <span class="cv-swap-name">${esc(m.name)}</span>
+      <span class="cv-swap-price">${p ? money(p) : '—'}</span>
+    </button>`;
+  }).join('');
+  btn.hidden = true;
+}
+
+/* ---------- Add-Cards autocomplete tag composer ---------- */
+let addTags = [];           // [{ name, qty, foil }]
+let acItems = [];           // current suggestion names
+let acActive = -1;          // keyboard-highlighted index
+let acSeq = 0;              // guards against out-of-order autocomplete responses
+
+async function fetchAutocomplete(q) {
+  const seq = ++acSeq;
+  try {
+    const res = await fetch('https://api.scryfall.com/cards/autocomplete?q=' + encodeURIComponent(q));
+    if (!res.ok) return;
+    const data = await res.json();
+    if (seq !== acSeq) return;            // a newer keystroke already fired
+    showACMenu(data.data || []);
+  } catch (e) { /* offline — silently no-op */ }
+}
+const acDebounced = (() => { let t; return (q) => { clearTimeout(t); t = setTimeout(() => fetchAutocomplete(q), 170); }; })();
+
+/* =====================================================================
+   BROWSE — Scryfall card search (Commander-first)
+   ===================================================================== */
+function setBrowseStatus(msg) { const s = $('#browseStatus'); if (s) s.textContent = msg; }
+
+// Build the Scryfall q-string from the raw user text + current scope/identity filters.
+function buildBrowseQuery(raw) {
+  raw = (raw || '').trim();
+  const looksAdvanced = /[:<>=]|\bor\b|[()"]/i.test(raw);   // power users keep full Scryfall syntax
+  const parts = [];
+  if (raw) parts.push(looksAdvanced ? raw : `(name:${JSON.stringify(raw)} or o:${JSON.stringify(raw)})`);
+  if (browseCmdrOnly) parts.push('legal:commander');
+  if (browseIds.length) {
+    const ci = browseIds.filter(c => c !== 'C').join('').toLowerCase();
+    parts.push(ci ? `id<=${ci}` : 'id=c');   // colour-identity bound; 'C' alone = colourless
+  }
+  parts.push('game:paper');
+  return parts.join(' ');
+}
+
+async function browseSearch(raw, { fresh = true } = {}) {
+  if (!fresh && browseLoading) return;              // block double "Load more"
+  const built = buildBrowseQuery(raw);
+  const meaningful = built.replace(/game:paper/g, '').replace(/legal:commander/g, '').trim();
+  if (!meaningful) { browseResults = []; browseNextPage = null; browseTotal = 0; renderBrowse(); setBrowseStatus(''); return; }
+  const seq = ++browseSeq;                          // bump first so any in-flight search becomes stale
+  let url;
+  if (!fresh && browseNextPage) url = browseNextPage;
+  else {
+    url = `https://api.scryfall.com/cards/search?unique=cards&order=${encodeURIComponent(browseOrder)}&dir=auto&q=${encodeURIComponent(built)}`;
+    if (fresh) { browseResults = []; browseNextPage = null; browseTotal = 0; }
+  }
+  browseLoading = true;
+  setBrowseStatus(fresh ? 'Searching the multiverse…' : 'Loading more…');
+  try {
+    const res = await fetch(url);
+    if (seq !== browseSeq) return;
+    if (res.status === 404) {                        // 404 = zero matches, NOT an error
+      if (fresh) browseResults = [];
+      browseNextPage = null; browseTotal = browseResults.length;
+      renderBrowse(); setBrowseStatus(browseResults.length ? '' : 'No cards match.');
+      return;
+    }
+    if (!res.ok) throw new Error('Scryfall ' + res.status);
+    const data = await res.json();
+    if (seq !== browseSeq) return;
+    (data.data || []).forEach(c => { state.cards[key(c.name)] = distill(c); });   // commit so artTile reads real data
+    browseResults = fresh ? (data.data || []) : browseResults.concat(data.data || []);
+    browseNextPage = data.has_more ? data.next_page : null;
+    browseTotal = data.total_cards || browseResults.length;
+    renderBrowse();
+    setBrowseStatus(`${browseTotal.toLocaleString()} card${browseTotal === 1 ? '' : 's'} found`);
+    await sleep(75);                                 // be polite to Scryfall
+  } catch (e) {
+    if (seq === browseSeq) setBrowseStatus('Scryfall is unreachable — try again.');
+  } finally {
+    if (seq === browseSeq) browseLoading = false;
+  }
+}
+
+// A browse result tile — reuses the inventory artTile() (cards are committed to state.cards on fetch).
+function browseResultTile(c, i) {
+  const name = c.name;
+  const owned = ownedOf(name), wished = wishOf(name);
+  const val = `<span class="art-val">${priceOf(name) ? money(priceOf(name)) : '—'}</span>`;
+  const status = owned ? `<span class="browse-badge owned"><i class="ms ms-counter-shield" aria-hidden="true"></i> ${owned} owned</span>`
+    : wished ? `<span class="browse-badge wished"><i class="ms ms-counter-gold" aria-hidden="true"></i> on buy list</span>` : '';
+  return `<div class="art-tile browse">
+    ${status}
+    <button class="art-open" data-name="${esc(name)}">${artTile(name, '', val)}</button>
+    <div class="browse-actions">
+      <button class="browse-act${wished ? ' on' : ''}" data-bwish="${i}" title="${wished ? 'Remove from buy list' : 'Add to buy list'}"><i class="ms ms-counter-gold" aria-hidden="true"></i></button>
+      <button class="browse-act${owned ? ' on' : ''}" data-bown="${i}" title="Add a copy to your collection"><i class="ms ms-counter-plus" aria-hidden="true"></i></button>
+    </div>
+  </div>`;
+}
+
+// Dispatcher: show the active Browse pane and render it.
+function renderBrowse() {
+  const panes = { cards: $('#browsePaneCards'), sets: $('#browsePaneSets'), decks: $('#browsePaneDecks') };
+  if (!panes.cards) return;
+  for (const [m, el] of Object.entries(panes)) el.hidden = browseMode !== m;
+  if (browseMode === 'cards') renderBrowseCards();
+  else if (browseMode === 'sets') renderBrowseSets();
+  else if (browseMode === 'decks') renderBrowseDecks();
+}
+function setBrowseMode(mode) {
+  browseMode = mode;
+  $$('#browseModes .seg-btn').forEach(b => b.classList.toggle('is-active', b.dataset.bmode === mode));
+  if (mode === 'sets' && !setsCache) loadSets();
+  renderBrowse();
+}
+
+function renderBrowseCards() {
+  const t = $('#browseTable');
+  if (!t) return;
+  t.style.setProperty('--tile', browseTile + 'px');
+  const r = $('#browseSizeRange'); if (r) r.value = browseTile;
+  if (!browseResults.length) {
+    t.innerHTML = browseLoading ? '' : (browseQuery || browseIds.length
+      ? `<div class="empty-state"><span class="empty-mark"><i class="ms ms-ability-investigate" aria-hidden="true"></i></span><h2>No cards match</h2><p>Try a different search or loosen the filters.</p></div>`
+      : `<div class="empty-state"><span class="empty-mark"><i class="ms ms-ability-investigate" aria-hidden="true"></i></span><h2>Browse the multiverse</h2><p>Search any card by name, or use Scryfall syntax like <code>t:creature</code>, <code>o:"flying"</code>, <code>mv&lt;=3</code>.</p></div>`);
+  } else {
+    t.innerHTML = browseResults.map((c, i) => browseResultTile(c, i)).join('');
+  }
+  const more = $('#browseMore'); if (more) more.hidden = !browseNextPage;
+}
+
+/* ---------- Browse: expansions / sets ---------- */
+async function loadSets() {
+  if (setsCache || setsLoading) return;
+  setsLoading = true;
+  renderBrowse();
+  try {
+    const res = await fetch('https://api.scryfall.com/sets');
+    if (!res.ok) throw new Error('sets ' + res.status);
+    const data = await res.json();
+    const today = new Date().toISOString().slice(0, 10);
+    const TYPES = new Set(['core', 'expansion', 'commander', 'masters', 'draft_innovation', 'masterpiece']);
+    setsCache = (data.data || [])
+      .filter(s => !s.digital && s.card_count > 0 && TYPES.has(s.set_type) && (!s.released_at || s.released_at <= today))
+      .sort((a, b) => (b.released_at || '').localeCompare(a.released_at || ''));
+  } catch (e) { setsCache = []; }
+  finally { setsLoading = false; renderBrowse(); }
+}
+function renderBrowseSets() {
+  const g = $('#browseSets');
+  if (!g) return;
+  if (!setsCache) { g.innerHTML = `<div class="view-sub" style="padding:24px 0"><span class="spin"></span> Loading expansions…</div>`; return; }
+  if (!setsCache.length) { g.innerHTML = `<div class="view-sub" style="padding:24px 0">Couldn't load expansions — try again.</div>`; return; }
+  g.innerHTML = setsCache.map(s => {
+    const year = (s.released_at || '').slice(0, 4);
+    return `<button class="set-chip" data-setcode="${esc(s.code)}" title="${esc(s.name)}">
+      ${s.icon_svg_uri ? `<img class="set-icon" src="${esc(s.icon_svg_uri)}" alt="" loading="lazy"/>` : '<span class="set-icon"></span>'}
+      <span class="set-text"><span class="set-name">${esc(s.name)}</span><span class="set-meta">${esc(s.code.toUpperCase())} · ${s.card_count} cards${year ? ' · ' + year : ''}</span></span>
+    </button>`;
+  }).join('');
+}
+function browseSet(code) {
+  browseQuery = 'e:' + code;
+  const inp = $('#browseSearch'); if (inp) inp.value = browseQuery;
+  setBrowseMode('cards');
+  browseSearch(browseQuery, { fresh: true });
+}
+
+/* ---------- Browse: recommended Commander decks (curated starters) ---------- */
+const BROWSE_BASICS = new Set(['plains', 'island', 'swamp', 'mountain', 'forest', 'wastes']);
+// CURATED_DECKS is defined in decks.js (loaded before app.js). Each deck carries its FULL decklist
+// as raw text (`list`); parseDecklist (strips set codes / foil markers) parses it once, on demand.
+const _curatedParsed = new Map();
+function parsedCuratedDeck(d) {
+  if (!_curatedParsed.has(d.id)) _curatedParsed.set(d.id, parseDecklist(d.list));
+  return _curatedParsed.get(d.id);
+}
+
+function renderBrowseDecks() {
+  const g = $('#browseDecks');
+  if (!g) return;
+  g.innerHTML = (typeof CURATED_DECKS !== 'undefined' ? CURATED_DECKS : []).map((d, i) => {
+    const count = parsedCuratedDeck(d).reduce((a, c) => a + c.qty, 0);
+    return `<article class="precon-card">
+      <div class="precon-head">
+        <div class="pips">${pips(d.colors)}</div>
+        <h3>${esc(d.name)}</h3>
+        <div class="precon-cmd"><i class="ms ms-commander" aria-hidden="true"></i> ${esc(d.commander)}</div>
+      </div>
+      <p class="precon-blurb">${esc(d.blurb)}</p>
+      <div class="precon-meta">${count} cards · Commander</div>
+      <div class="precon-actions">
+        <button class="btn ghost" data-recimport="${i}"><i class="ms ms-saga btn-ico" aria-hidden="true"></i>Import as deck</button>
+        <button class="btn ghost" data-recwish="${i}"><i class="ms ms-counter-gold btn-ico" aria-hidden="true"></i>To buy list</button>
+        <button class="btn ghost" data-recown="${i}"><i class="ms ms-counter-plus btn-ico" aria-hidden="true"></i>Mark owned</button>
+      </div>
+    </article>`;
+  }).join('');
+}
+async function recDeckImport(i) {
+  const d = CURATED_DECKS[i];
+  if (!d) return;
+  toast(`Importing ${d.name}…`);
+  try {
+    const { resolved, missing } = await resolveCards(parsedCuratedDeck(d).map(c => ({ name: c.name, qty: c.qty })));
+    const deck = { id: uid(), name: d.name, cards: resolved.map(c => ({ name: c.name, qty: c.qty })), commander: d.commander };
+    state.decks.push(deck);
+    save(); render(); setView('decks');
+    toast(`Imported “${d.name}”${missing ? ` · ${missing} card${missing > 1 ? 's' : ''} not found` : ''}.`);
+  } catch (e) { toast('Scryfall lookup failed — try again.'); }
+}
+async function recDeckWish(i) {
+  const d = CURATED_DECKS[i];
+  if (!d) return;
+  toast(`Adding ${d.name} to your buy list…`);
+  try {
+    const { resolved } = await resolveCards(parsedCuratedDeck(d).map(c => ({ name: c.name, qty: c.qty })));
+    resolved.forEach(c => { if (!BROWSE_BASICS.has(key(c.name))) state.wishlist[key(c.name)] = Math.max(wishOf(c.name), 1); });
+    save(); render();
+    toast(`${d.name} added to your buy list (basics skipped).`);
+  } catch (e) { toast('Scryfall lookup failed — try again.'); }
+}
+async function recDeckOwn(i) {
+  const d = CURATED_DECKS[i];
+  if (!d) return;
+  toast(`Adding ${d.name} to your collection…`);
+  try {
+    const { resolved } = await resolveCards(parsedCuratedDeck(d).map(c => ({ name: c.name, qty: c.qty })));
+    resolved.forEach(c => addVariant(c.name, { qty: c.qty }));
+    save(); render();
+    toast(`${d.name} added to your collection.`);
+  } catch (e) { toast('Scryfall lookup failed — try again.'); }
+}
+
+function commitBrowsed(cardObj) {
+  const d = distill(cardObj);
+  state.cards[key(d.name)] = d;
+  return d.name;
+}
+function addBrowsedToOwned(cardObj) {
+  const n = commitBrowsed(cardObj);
+  addVariant(n, { qty: 1 });
+  save(); render();
+  toast(`Added a copy of ${n} to your vault.`);
+}
+function addBrowsedToWishlist(cardObj) {
+  const n = commitBrowsed(cardObj);
+  if (wishOf(n)) { addToWishlist(n, -wishOf(n)); render(); toast(`${n} removed from your buy list.`); }
+  else { addToWishlist(n, 1); render(); toast(`${n} added to your buy list.`); }
+}
+
+function showACMenu(names) {
+  const menu = $('#acMenu'), input = $('#addAutocomplete');
+  const have = new Set(addTags.map(t => key(t.name)));
+  acItems = names.filter(n => !have.has(key(n))).slice(0, 10);
+  acActive = -1;
+  if (!acItems.length) { hideACMenu(); return; }
+  menu.innerHTML = acItems.map((n, i) => `<button type="button" class="ac-item" role="option" data-acidx="${i}">${esc(n)}</button>`).join('');
+  menu.hidden = false;
+  input.setAttribute('aria-expanded', 'true');
+}
+function hideACMenu() {
+  const menu = $('#acMenu'), input = $('#addAutocomplete');
+  if (menu) { menu.hidden = true; menu.innerHTML = ''; }
+  if (input) input.setAttribute('aria-expanded', 'false');
+  acItems = []; acActive = -1;
+}
+function setACActive(i) {
+  const btns = $$('#acMenu .ac-item');
+  if (!btns.length) return;
+  acActive = (i + btns.length) % btns.length;
+  btns.forEach((b, bi) => b.classList.toggle('active', bi === acActive));
+  btns[acActive].scrollIntoView({ block: 'nearest' });
+}
+function addTagByName(name) {
+  if (!name || addTags.some(t => key(t.name) === key(name))) return;
+  addTags.push({ name, qty: 1, foil: false });
+  renderAddTags();
+  const inp = $('#addAutocomplete');
+  inp.value = ''; hideACMenu(); inp.focus();
+}
+function renderAddTags() {
+  const wrap = $('#addTagList');
+  if (!wrap) return;
+  wrap.innerHTML = addTags.map((t, i) => `
+    <span class="add-tag" data-tagidx="${i}">
+      <span class="at-name" title="${esc(t.name)}">${esc(t.name)}</span>
+      <span class="at-step">
+        <button type="button" data-tagstep="-1" aria-label="One fewer">−</button>
+        <b>${t.qty}</b>
+        <button type="button" data-tagstep="1" aria-label="One more">+</button>
+      </span>
+      <button type="button" class="at-foil ${t.foil ? 'on' : ''}" data-tagfoil title="Foil copy"><i class="ms ms-dfc-spark" aria-hidden="true"></i></button>
+      <button type="button" class="at-x" data-tagremove aria-label="Remove ${esc(t.name)}">✕</button>
+    </span>`).join('');
+}
+
+function openAdd() {
+  $('#addModal').hidden = false;
+  addTags = []; renderAddTags(); hideACMenu();
+  $('#addAutocomplete').value = '';
+  if ($('#addInput')) $('#addInput').value = '';
+  $('#addStatus').textContent = '';
+  $('#addAutocomplete').focus();
+}
+function closeAdd() {
+  $('#addModal').hidden = true;
+  if ($('#addInput')) $('#addInput').value = '';
+  $('#addAutocomplete').value = '';
+  addTags = []; renderAddTags(); hideACMenu();
+  $('#addStatus').textContent = '';
+}
+
+/* =====================================================================
+   BACKUP
+   ===================================================================== */
+function exportBackup() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `vault-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Backup exported.');
+}
+function restoreBackup(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (!data.decks || !data.cards || (!data.variants && !data.owned)) throw new Error('bad shape');
+      state = migrate(data);
+      save();
+      currentDeckId = null;
+      render();
+      setView('decks');
+      toast('Backup restored.');
+    } catch (e) { toast('That file is not a valid Vault backup.'); }
+  };
+  reader.readAsText(file);
+}
+
+/* ---------- buy list export ---------- */
+function buyListText() {
+  const decks = buyDecksActive();
+  const names = allCardNames().filter(n => requiredFor(n, decks) > ownedOf(n) && !buyExclude.has(key(n)));
+  names.sort(buyCompare(buySort, decks));
+  return names.map(n => `${requiredFor(n, decks) - ownedOf(n)} ${card(n).name}`).join('\n');
+}
+// Cards to buy, after deck filter + per-card selection, richest-first (shared by copy + PDF).
+function buyExportRows() {
+  const decks = buyDecksActive();
+  const names = allCardNames().filter(n => requiredFor(n, decks) > ownedOf(n) && !buyExclude.has(key(n)));
+  names.sort(buyCompare(buySort, decks));
+  return names.map(n => {
+    const meta = card(n);
+    const need = requiredFor(n, decks) - ownedOf(n);
+    return { name: meta.name, need, price: priceOf(n), sub: need * priceOf(n), image: meta.image, set: meta.set, set_name: meta.set_name,
+      used: decks.filter(d => d.cards.some(c => key(c.name) === key(n))).map(d => d.name) };
+  });
+}
+
+// Build a printable sheet (8 cards/page · 2×4) and open the browser's print → Save as PDF.
+async function exportBuyPDF() {
+  const rows = buyExportRows();
+  if (!rows.length) { toast('Nothing to buy — every deck is complete.'); return; }
+  const total = rows.reduce((a, r) => a + r.sub, 0);
+  const copies = rows.reduce((a, r) => a + r.need, 0);
+  const scope = buyDeckSel.length ? buyDecksActive().map(d => d.name).join(', ') : 'All decks';
+  const date = new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+
+  const cell = (r) => `<div class="print-card">
+    <div class="pc-art">${r.image ? `<img src="${esc(r.image)}" alt="" />` : `<div class="pc-art-fallback">✶</div>`}<span class="pc-qty">${r.need}×</span></div>
+    <div class="pc-info">
+      <div class="pc-name">${esc(r.name)}</div>
+      ${r.set ? `<div class="pc-set">${esc(r.set)}${r.set_name ? ' · ' + esc(r.set_name) : ''}</div>` : ''}
+      ${r.used.length ? `<div class="pc-decks">for ${esc(r.used.join(', '))}</div>` : ''}
+      <div class="pc-price"><span class="pc-each">${money(r.price)} ea</span><span class="pc-sub">${money(r.sub)}</span></div>
+    </div>
+  </div>`;
+
+  const pages = [];
+  for (let i = 0; i < rows.length; i += 8) pages.push(rows.slice(i, i + 8));
+  const html = pages.map((pg, i) => `<section class="print-page">
+    ${i === 0 ? `<header class="print-head">
+      <h1>Buy List</h1>
+      <div class="print-meta">${copies} card${copies === 1 ? '' : 's'} · ${money(total)} · ${esc(scope)} · ${esc(date)}</div>
+    </header>` : ''}
+    <div class="print-grid">${pg.map(cell).join('')}</div>
+  </section>`).join('');
+
+  const root = $('#printRoot');
+  root.innerHTML = html;
+  const imgs = [...root.querySelectorAll('img')];
+  await Promise.all(imgs.map(img => img.complete ? Promise.resolve() : new Promise(res => { img.onload = img.onerror = res; })));
+  window.print();
+}
+
+// Every owned card as "<qty> <name>", alphabetical — for copying the whole collection.
+function collectionText() {
+  const names = allCardNames().filter(n => ownedOf(n) > 0);
+  names.sort((a, b) => a.localeCompare(b));
+  return names.map(n => `${ownedOf(n)} ${card(n).name}`).join('\n');
+}
+
+// Write text to the clipboard with a graceful textarea fallback; returns true on success.
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch (e) {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch (e2) { ok = false; }
+    ta.remove();
+    return ok;
+  }
+}
+
+async function copyBuyList() {
+  const text = buyListText();
+  if (!text) { toast('Nothing to buy — every deck is complete.'); return; }
+  const lines = text.split('\n').length;
+  toast(await copyText(text)
+    ? `Buy list copied — ${lines} card${lines === 1 ? '' : 's'} ready to send.`
+    : 'Could not access the clipboard.');
+}
+
+async function copyCollection() {
+  const text = collectionText();
+  if (!text) { toast('Your collection is empty — nothing to copy.'); return; }
+  const lines = text.split('\n').length;
+  toast(await copyText(text)
+    ? `Collection copied — ${lines} card${lines === 1 ? '' : 's'}.`
+    : 'Could not access the clipboard.');
+}
+
+/* ---------- toast ---------- */
+let toastTimer;
+function toast(msg) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.hidden = true; }, 3200);
+}
+
+/* =====================================================================
+   EVENTS
+   ===================================================================== */
+$('#tabs').addEventListener('click', e => {
+  const tab = e.target.closest('.tab');
+  if (!tab) return;
+  currentDeckId = null;
+  if (invFacet) { invFacet = null; renderInventory(); }   // tabs give a clean view
+  setView(tab.dataset.view);
+});
+$('#newDeckBtn').addEventListener('click', openImport);
+$('#emptyImportBtn').addEventListener('click', openImport);
+$('#closeImport').addEventListener('click', closeImport);
+$('#confirmImport').addEventListener('click', importDeck);
+$('#importModal').addEventListener('click', e => { if (e.target.id === 'importModal') closeImport(); });
+$('#backToDecks').addEventListener('click', () => { currentDeckId = null; setView('decks'); });
+$('#addCardsBtn').addEventListener('click', openAdd);
+$('#copyCollectionBtn').addEventListener('click', copyCollection);
+$('#closeAdd').addEventListener('click', closeAdd);
+$('#confirmAdd').addEventListener('click', addLooseCards);
+$('#addAutocomplete').addEventListener('input', e => {
+  const q = e.target.value.trim();
+  if (q.length < 2) { hideACMenu(); return; }
+  acDebounced(q);
+});
+$('#addAutocomplete').addEventListener('keydown', e => {
+  if (e.key === 'ArrowDown') { e.preventDefault(); setACActive(acActive + 1); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); setACActive(acActive - 1); }
+  else if (e.key === 'Enter') {
+    const pick = acActive >= 0 ? acItems[acActive] : acItems[0];
+    if (pick) { e.preventDefault(); addTagByName(pick); }
+  } else if (e.key === 'Escape') { hideACMenu(); }
+  else if (e.key === 'Backspace' && !e.target.value && addTags.length) { addTags.pop(); renderAddTags(); }
+});
+$('#addAutocomplete').addEventListener('blur', () => setTimeout(hideACMenu, 120));
+// mousedown (not click) so selection beats the input's blur
+$('#acMenu').addEventListener('mousedown', e => {
+  const it = e.target.closest('.ac-item');
+  if (it) { e.preventDefault(); addTagByName(acItems[+it.dataset.acidx]); }
+});
+$('#addTagList').addEventListener('click', e => {
+  const tagEl = e.target.closest('.add-tag'); if (!tagEl) return;
+  const i = +tagEl.dataset.tagidx, t = addTags[i]; if (!t) return;
+  if (e.target.closest('[data-tagremove]')) { addTags.splice(i, 1); renderAddTags(); return; }
+  if (e.target.closest('[data-tagfoil]')) { t.foil = !t.foil; renderAddTags(); return; }
+  const step = e.target.closest('[data-tagstep]');
+  if (step) { t.qty = Math.max(1, t.qty + (+step.dataset.tagstep)); renderAddTags(); }
+});
+$('#csvBtn').addEventListener('click', () => $('#csvInput').click());
+$('#csvInput').addEventListener('change', e => { if (e.target.files[0]) importCSV(e.target.files[0]); e.target.value = ''; });
+$('#addModal').addEventListener('click', e => { if (e.target.id === 'addModal') closeAdd(); });
+$('#closeCard').addEventListener('click', closeCardView);
+$('#cardModal').addEventListener('click', e => { if (e.target.id === 'cardModal') closeCardView(); });
+$('#cardViewMeta').addEventListener('click', e => {
+  const editBtn = e.target.closest('#cvEditBtn');
+  if (editBtn) {
+    const box = $('#cvVariants');
+    if (box.hidden) { box.innerHTML = cardVariantsEditor(cardViewName); box.hidden = false; editBtn.classList.add('on'); }
+    else { box.hidden = true; editBtn.classList.remove('on'); }
+    return;
+  }
+  const artBtn = e.target.closest('#cvArtBtn');
+  if (artBtn) { revealPrintings(cardViewName); return; }
+  const copyPrintBtn = e.target.closest('.ve-print');
+  if (copyPrintBtn) { revealCopyPrintings(copyPrintBtn.dataset.name, copyPrintBtn.dataset.vprint, copyPrintBtn); return; }
+  const copyPick = e.target.closest('.cvv-art');
+  if (copyPick) { pickCopyPrinting(copyPick.dataset.name, copyPick.dataset.vid, +copyPick.dataset.vpick); return; }
+  const artPick = e.target.closest('.cv-art');
+  if (artPick) { pickPrinting(cardViewName, +artPick.dataset.printidx); return; }
+  const swapBtn = e.target.closest('#cvSwapBtn');
+  if (swapBtn) { revealSwaps(cardViewName, swapBtn); return; }
+  const chip = e.target.closest('.cv-swap-chip');
+  if (chip) openCardView(chip.dataset.swap);
+});
+$('#exportBtn').addEventListener('click', exportBackup);
+$('#importFileBtn').addEventListener('click', () => $('#restoreInput').click());
+$('#restoreInput').addEventListener('change', e => { if (e.target.files[0]) restoreBackup(e.target.files[0]); e.target.value = ''; });
+
+$('#deckGrid').addEventListener('click', e => {
+  const c = e.target.closest('.deck-card');
+  if (c) openDeck(c.dataset.deck);
+});
+
+// All deck-detail delegation in one place (rename, view toggle, legality). .nm/.lg-card fall through to the global handler.
+$('#deckDetail').addEventListener('click', e => {
+  const recheck = e.target.closest('[data-lgrecheck]');
+  if (recheck) { recheckDeckLegality(recheck.dataset.lgrecheck); return; }
+  const rename = e.target.closest('[data-rename-deck]');
+  if (rename) { startRenameDeck(rename.dataset.renameDeck); return; }
+  const seg = e.target.closest('#deckViewMode .seg-btn');
+  if (seg) { deckView = seg.dataset.mode; state.prefs.deckView = deckView; save(); renderDeckDetail(); return; }
+  const lgt = e.target.closest('[data-lgtoggle]');
+  if (lgt) { state.prefs.showLegality = !state.prefs.showLegality; save(); renderDeckDetail(); return; }
+  const editToggle = e.target.closest('[data-deckedit]');
+  if (editToggle) { deckEdit = !deckEdit; deckHideAc(); renderDeckDetail(); return; }
+  const dq = e.target.closest('[data-deckqty]');
+  if (dq) { setDeckQty(dq.dataset.name, parseInt(dq.dataset.deckqty, 10)); return; }
+  const dr = e.target.closest('[data-deckremove]');
+  if (dr) { e.stopPropagation(); removeCardFromDeck(dr.dataset.deckremove); return; }
+  const dac = e.target.closest('[data-deckac]');
+  if (dac) { addCardToDeck(deckAcItems[+dac.dataset.deckac]); return; }
+  const chip = e.target.closest('.lg-chip');
+  if (chip) {
+    const fmt = chip.dataset.lgfmt;
+    const panel = $(`.lg-panel[data-lgpanel="${fmt}"]`, $('#deckDetail'));
+    if (!panel) return;
+    const open = panel.hidden;
+    $$('#deckDetail .lg-panel').forEach(p => p.hidden = true);
+    $$('#deckDetail .lg-chip').forEach(c => c.setAttribute('aria-expanded', 'false'));
+    panel.hidden = !open;
+    chip.setAttribute('aria-expanded', String(open));
+  }
+});
+// stacks-view card-size slider (lives in the deck hero, re-rendered each renderDeckDetail)
+$('#deckDetail').addEventListener('input', e => {
+  const r = e.target.closest('#deckSizeRange');
+  if (r) {
+    deckTile = clampTile(r.value);
+    const stacks = $('.deck-stacks'); if (stacks) stacks.style.setProperty('--stack-w', deckTile + 'px');
+    state.prefs.deckTile = deckTile; save();
+    return;
+  }
+  const add = e.target.closest('#deckAddInput');
+  if (add) {
+    const q = add.value.trim();
+    if (q.length < 2) { deckHideAc(); return; }
+    deckAcDebounced(q);
+  }
+});
+$('#deckDetail').addEventListener('keydown', e => {
+  if (!e.target.closest('#deckAddInput')) return;
+  if (e.key === 'Enter') { e.preventDefault(); const pick = deckAcItems[0] || e.target.value.trim(); if (pick) addCardToDeck(pick); }
+  else if (e.key === 'Escape') { deckHideAc(); }
+});
+$('#deckDetail').addEventListener('focusout', e => { if (e.target.closest('#deckAddInput')) setTimeout(deckHideAc, 150); });
+
+// pointer-driven tilt + glare on deck cards
+$('#deckGrid').addEventListener('pointermove', e => {
+  const c = e.target.closest('.deck-card');
+  if (!c) return;
+  const r = c.getBoundingClientRect();
+  const px = (e.clientX - r.left) / r.width;   // 0..1
+  const py = (e.clientY - r.top) / r.height;   // 0..1
+  c.style.setProperty('--ry', ((px - .5) * 6).toFixed(2) + 'deg');
+  c.style.setProperty('--rx', ((.5 - py) * 5).toFixed(2) + 'deg');
+  c.style.setProperty('--gx', (px * 100).toFixed(1) + '%');
+  c.style.setProperty('--gy', (py * 100).toFixed(1) + '%');
+});
+$('#deckGrid').addEventListener('pointerout', e => {
+  const c = e.target.closest('.deck-card');
+  if (!c || c.contains(e.relatedTarget)) return;
+  c.style.removeProperty('--rx'); c.style.removeProperty('--ry');
+});
+
+// pointer drifts the foil hue on inventory cards
+$('#inventoryTable').addEventListener('pointermove', e => {
+  const img = e.target.closest('.art-img');
+  if (!img || !img.querySelector('.art-foil')) return;
+  const r = img.getBoundingClientRect();
+  const x = (e.clientX - r.left) / r.width;
+  img.style.setProperty('--hue', ((x - .5) * 180).toFixed(0) + 'deg');
+});
+
+$('#invSearch').addEventListener('input', e => { invSearch = e.target.value; renderInventory(); });
+$('#invFilter').addEventListener('click', e => {
+  const b = e.target.closest('.seg-btn');
+  if (!b) return;
+  invFilter = b.dataset.filter;
+  $$('#invFilter .seg-btn').forEach(x => x.classList.toggle('is-active', x === b));
+  renderInventory();
+});
+
+$('#invColorFilter').addEventListener('click', e => {
+  const b = e.target.closest('.cpip');
+  if (!b) return;
+  const c = b.dataset.color;
+  if (invColors.includes(c)) invColors = invColors.filter(x => x !== c);
+  else invColors = [...invColors, c];
+  b.classList.toggle('on', invColors.includes(c));
+  renderInventory();
+});
+$('#invViewMode').addEventListener('click', e => {
+  const b = e.target.closest('.seg-btn');
+  if (!b) return;
+  invMode = b.dataset.mode;
+  $$('#invViewMode .seg-btn').forEach(x => x.classList.toggle('is-active', x === b));
+  renderInventory();
+});
+$('#buyViewMode').addEventListener('click', e => {
+  const b = e.target.closest('.seg-btn');
+  if (!b) return;
+  buyMode = b.dataset.mode;
+  $$('#buyViewMode .seg-btn').forEach(x => x.classList.toggle('is-active', x === b));
+  renderBuyList();
+});
+$('#buySortFilter').addEventListener('change', e => { buySort = e.target.value; renderBuyList(); });
+const invSizeRange = $('#invSizeRange');
+if (invSizeRange) invSizeRange.addEventListener('input', e => {
+  invTile = clampTile(e.target.value);
+  $('#inventoryTable').style.setProperty('--tile', invTile + 'px');
+  state.prefs.invTile = invTile; save();
+});
+const buySizeRange = $('#buySizeRange');
+if (buySizeRange) buySizeRange.addEventListener('input', e => {
+  buyTile = clampTile(e.target.value);
+  $('#buyTable').style.setProperty('--tile', buyTile + 'px');
+  state.prefs.buyTile = buyTile; save();
+});
+
+/* ---------- Browse events ---------- */
+const browseDebounced = (() => { let t; return q => { clearTimeout(t); t = setTimeout(() => browseSearch(q, { fresh: true }), 350); }; })();
+$('#browseSearch').addEventListener('input', e => {
+  browseQuery = e.target.value.trim();
+  if (browseQuery.length < 2 && !browseIds.length) { browseResults = []; browseNextPage = null; browseTotal = 0; renderBrowse(); setBrowseStatus(''); return; }
+  browseDebounced(browseQuery);
+});
+$('#browseSearch').addEventListener('keydown', e => { if (e.key === 'Enter') { browseQuery = e.target.value.trim(); browseSearch(browseQuery, { fresh: true }); } });
+$('#browseCmdrOnly').addEventListener('change', e => { browseCmdrOnly = e.target.checked; browseSearch(browseQuery, { fresh: true }); });
+$('#browseIdFilter').addEventListener('click', e => {
+  const p = e.target.closest('.cpip');
+  if (!p) return;
+  const c = p.dataset.color, i = browseIds.indexOf(c);
+  if (i >= 0) browseIds.splice(i, 1); else browseIds.push(c);
+  p.classList.toggle('on', browseIds.includes(c));
+  browseSearch(browseQuery, { fresh: true });
+});
+$('#browseOrder').addEventListener('change', e => { browseOrder = e.target.value; browseSearch(browseQuery, { fresh: true }); });
+const browseSizeRange = $('#browseSizeRange');
+if (browseSizeRange) browseSizeRange.addEventListener('input', e => {
+  browseTile = clampTile(e.target.value);
+  $('#browseTable').style.setProperty('--tile', browseTile + 'px');
+  state.prefs.browseTile = browseTile; save();
+});
+$('#browseMoreBtn').addEventListener('click', () => browseSearch(browseQuery, { fresh: false }));
+$('#browseTable').addEventListener('click', e => {
+  const w = e.target.closest('[data-bwish]');
+  if (w) { e.stopPropagation(); addBrowsedToWishlist(browseResults[+w.dataset.bwish]); return; }
+  const o = e.target.closest('[data-bown]');
+  if (o) { e.stopPropagation(); addBrowsedToOwned(browseResults[+o.dataset.bown]); return; }
+});
+$('#browseModes').addEventListener('click', e => {
+  const b = e.target.closest('.seg-btn');
+  if (b) setBrowseMode(b.dataset.bmode);
+});
+$('#browseSets').addEventListener('click', e => {
+  const c = e.target.closest('[data-setcode]');
+  if (c) browseSet(c.dataset.setcode);
+});
+$('#browseDecks').addEventListener('click', e => {
+  const imp = e.target.closest('[data-recimport]'); if (imp) { recDeckImport(+imp.dataset.recimport); return; }
+  const wish = e.target.closest('[data-recwish]'); if (wish) { recDeckWish(+wish.dataset.recwish); return; }
+  const own = e.target.closest('[data-recown]'); if (own) { recDeckOwn(+own.dataset.recown); return; }
+});
+$('#invTypeFilter').addEventListener('click', e => {
+  const b = e.target.closest('.tpip');
+  if (!b) return;
+  invType = (invType === b.dataset.type) ? 'all' : b.dataset.type;
+  $$('#invTypeFilter .tpip').forEach(x => x.classList.toggle('on', x.dataset.type === invType));
+  renderInventory();
+});
+$('#invRarityFilter').addEventListener('click', e => {
+  const b = e.target.closest('.rpip');
+  if (!b) return;
+  invRarity = (invRarity === b.dataset.rarity) ? 'all' : b.dataset.rarity;
+  $$('#invRarityFilter .rpip').forEach(x => x.classList.toggle('on', x.dataset.rarity === invRarity));
+  renderInventory();
+});
+$('#invSortFilter').addEventListener('change', e => { invSort = e.target.value; renderInventory(); });
+$('#invColorOnlyInput').addEventListener('change', e => { invColorOnly = e.target.checked; renderInventory(); });
+$('#invFilterClear').addEventListener('click', () => {
+  invColors = []; invColorOnly = false; invType = 'all'; invRarity = 'all'; invSort = 'name';
+  $$('#invColorFilter .cpip').forEach(x => x.classList.remove('on'));
+  $('#invColorOnlyInput').checked = false;
+  $$('#invTypeFilter .tpip').forEach(x => x.classList.remove('on'));
+  $$('#invRarityFilter .rpip').forEach(x => x.classList.remove('on'));
+  $('#invSortFilter').value = 'name';
+  renderInventory();
+});
+$('#copyBuyBtn').addEventListener('click', copyBuyList);
+$('#exportPdfBtn').addEventListener('click', exportBuyPDF);
+window.addEventListener('afterprint', () => { $('#printRoot').innerHTML = ''; });
+
+function toggleBuyDeck(id) {
+  if (buyDeckSel.length === 0) buyDeckSel = state.decks.map(d => d.id);   // materialise "all" before removing one
+  buyDeckSel = buyDeckSel.includes(id) ? buyDeckSel.filter(x => x !== id) : [...buyDeckSel, id];
+  if (buyDeckSel.length === state.decks.length) buyDeckSel = [];          // everything on == no filter
+}
+$('#buyDeckFilter').addEventListener('click', e => {
+  const chip = e.target.closest('[data-deck]');
+  if (!chip) return;
+  if (chip.dataset.deck === 'all') buyDeckSel = [];
+  else toggleBuyDeck(chip.dataset.deck);
+  buyExclude = new Set();   // card selection resets when the deck filter changes
+  renderBuyList();
+});
+$('#buyTable').addEventListener('change', e => {
+  const pick = e.target.closest('.buy-pick');
+  if (!pick) return;
+  const k = key(pick.dataset.pick);
+  if (pick.checked) buyExclude.delete(k); else buyExclude.add(k);
+  renderBuyList();
+});
+
+$('#forgeBody').addEventListener('click', e => {
+  const chip = e.target.closest('.sug-chip');
+  if (chip && chip.dataset.colors) { applyFacet({ kind: 'guild', colors: chip.dataset.colors.split(''), label: chip.dataset.guild }); return; }
+  const row = e.target.closest('.tribe-row');
+  if (row && row.dataset.tribe) applyFacet({ kind: 'tribe', value: row.dataset.tribe });
+});
+$('#invFacetBar').addEventListener('click', e => {
+  if (e.target.closest('#facetClear')) { invFacet = null; renderInventory(); }
+});
+
+/* delegated actions across all card tables */
+/* variant editing (inventory) */
+function variantById(name, id) { return variantsOf(name).find(v => v.id === id); }
+function removeVariant(name, id) {
+  const k = key(name);
+  const kept = variantsOf(name).filter(v => v.id !== id);
+  if (kept.length) state.variants[k] = kept; else delete state.variants[k];
+  save();
+}
+
+document.addEventListener('click', e => {
+  const vstep = e.target.closest('[data-vstep]');
+  if (vstep) {
+    const v = variantById(vstep.dataset.name, vstep.dataset.vid);
+    if (v) {
+      v.qty = Math.max(0, v.qty + parseInt(vstep.dataset.vstep, 10));
+      if (v.qty === 0) removeVariant(vstep.dataset.name, v.id);
+      else save();
+      render();
+      refreshCardEditor();
+    }
+    return;
+  }
+  const vdel = e.target.closest('[data-vdel]');
+  if (vdel) { removeVariant(vdel.dataset.name, vdel.dataset.vdel); render(); refreshCardEditor(); return; }
+  const addvar = e.target.closest('[data-addvar]');
+  if (addvar) {
+    const list = (state.variants[key(addvar.dataset.addvar)] ||= []);
+    list.push(newVariant({ qty: 1 })); save();
+    render(); refreshCardEditor();
+    return;
+  }
+  const toggle = e.target.closest('[data-toggle]');
+  if (toggle) {
+    const name = toggle.dataset.toggle;
+    const req = parseInt(toggle.dataset.req, 10) || 1;
+    setOwned(name, ownedOf(name) >= req ? 0 : req);
+    render();
+    return;
+  }
+  const step = e.target.closest('[data-step]');
+  if (step) {
+    const name = step.dataset.name;
+    setOwned(name, ownedOf(name) + parseInt(step.dataset.step, 10));
+    render();
+    return;
+  }
+  const tile = e.target.closest('.art-open');
+  if (tile) { openCardView(tile.dataset.name); return; }
+  const link = e.target.closest('.nm');
+  if (link) { openCardView(link.dataset.name || link.getAttribute('title') || link.textContent.trim()); return; }
+  const del = e.target.closest('[data-del-deck]');
+  if (del) {
+    const id = del.dataset.delDeck;
+    const deck = state.decks.find(d => d.id === id);
+    if (deck && confirm(`Delete “${deck.name}”? Your owned-card counts are kept.`)) {
+      state.decks = state.decks.filter(d => d.id !== id);
+      save();
+      currentDeckId = null;
+      render();
+      setView('decks');
+    }
+  }
+});
+
+/* variant property edits — fire on commit (blur / selection) to avoid re-render mid-keystroke */
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.id === 'cvCommander') {
+    const deck = state.decks.find(d => d.id === currentDeckId);
+    if (deck) { deck.commander = t.checked ? cardViewName : null; save(); render(); }
+    return;
+  }
+  // The variant editor lives in the card viewer; cardViewName is the card being edited.
+  const nameOf = () => e.target.closest('#cardModal') ? cardViewName : null;
+  const commit = (id, apply) => {
+    const v = variantById(nameOf(), id);
+    if (v) { apply(v); save(); render(); refreshCardEditor(); }
+  };
+  if (t.dataset.vfoil !== undefined) commit(t.dataset.vfoil, v => v.foil = t.checked);
+  else if (t.dataset.vcond !== undefined) commit(t.dataset.vcond, v => v.condition = t.value);
+  else if (t.dataset.vset !== undefined) commit(t.dataset.vset, v => v.set = t.value.trim().toUpperCase());
+  else if (t.dataset.vcoll !== undefined) commit(t.dataset.vcoll, v => v.collector = t.value.trim());
+  else if (t.dataset.vnotes !== undefined) commit(t.dataset.vnotes, v => v.notes = t.value.trim());
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (!$('#cardModal').hidden) closeCardView();
+  if (!$('#importModal').hidden) closeImport();
+  if (!$('#addModal').hidden) closeAdd();
+});
+
+/* ---------- theme ---------- */
+function applyTheme(t) {
+  const theme = THEMES.includes(t) ? t : 'grimoire';
+  document.documentElement.dataset.theme = theme;
+  $$('#themeSwitch .sw').forEach(b => {
+    const on = b.dataset.theme === theme;
+    b.classList.toggle('is-active', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+}
+function setTheme(t) {
+  state.prefs.theme = THEMES.includes(t) ? t : 'grimoire';
+  save();
+  applyTheme(state.prefs.theme);
+}
+$('#themeSwitch').addEventListener('click', e => {
+  const b = e.target.closest('.sw');
+  if (b) setTheme(b.dataset.theme);
+});
+
+/* ---------- boot ---------- */
+applyTheme(state.prefs.theme);
+render();

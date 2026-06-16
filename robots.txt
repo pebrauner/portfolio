@@ -1,6 +1,7 @@
 User-agent: *
 Disallow: /decks/
 Disallow: /track/
+Disallow: /vault/
 
 # Allow the rest of the site
 Allow: /
