@@ -33,6 +33,7 @@ let buyTile = clampTile(state.prefs.buyTile);   // buy list gallery tile min-wid
 let deckView = state.prefs.deckView;            // deck detail display: 'list' rows | 'stacks' overlapping art
 let deckTile = clampTile(state.prefs.deckTile); // stacks-view column width (px)
 let deckEdit = false;                            // deck-detail recipe-editing mode (transient)
+let deckShowOriginal = false;                    // deck-detail "original list" diff panel (transient)
 let deckAcItems = [], deckAcSeq = 0;             // add-card autocomplete state
 // --- Browse (Scryfall search) — transient, in-memory only ---
 let browseQuery = '';                            // last raw user text
@@ -58,6 +59,9 @@ function load() {
 // Bring older saves (per-name counts in `owned`) up to the variant model.
 function migrate(s) {
   s.decks ||= [];
+  // Record each deck's list as first imported so later edits can be diffed/reverted.
+  // Legacy decks (no record yet) are back-filled to their current list as the baseline.
+  s.decks.forEach(d => { if (!d.original) d.original = (d.cards || []).map(c => ({ name: c.name, qty: c.qty })); });
   s.cards ||= {};
   s.art ||= {};   // name-key -> chosen display printing { image, art, set, set_name, collector, scryfallId }
   s.wishlist ||= {};   // name-key -> desired qty (manual buy list, fed from Browse)
@@ -762,6 +766,7 @@ function renderDeckDetail() {
     </label>` : ''}
     <button class="lg-toggle ${deckEdit ? 'on' : ''}" data-deckedit title="Add / remove cards in this deck"><i class="ms ms-ability-craft" aria-hidden="true"></i> Edit</button>
     <button class="lg-toggle ${state.prefs.showLegality ? 'on' : ''}" data-lgtoggle title="Show format legality"><i class="ms ms-counter-shield" aria-hidden="true"></i> Legality</button>
+    <button class="lg-toggle ${deckShowOriginal ? 'on' : ''}" data-origtoggle title="Compare with the original imported list"><i class="ms ms-saga" aria-hidden="true"></i> Original${deckDivergence(deck) ? ` <span class="og-badge">${deckDivergence(deck)}</span>` : ''}</button>
     <div class="hero-stat"><div class="v">${s.pct}%</div><div class="l">Complete</div></div>
     <div class="hero-stat"><div class="v">${money(s.value)}</div><div class="l"><i class="ms ms-counter-gold stat-ic" aria-hidden="true"></i>Owned Value</div></div>
     <div class="hero-stat"><div class="v">${money(s.completeCost)}</div><div class="l"><i class="ms ms-counter-gold stat-ic" aria-hidden="true"></i>To Finish</div></div>
@@ -769,6 +774,7 @@ function renderDeckDetail() {
   </div>`;
 
   if (state.prefs.showLegality) body += legalityBar(deck);
+  if (deckShowOriginal) body += originalPanel(deck);
   if (deckEdit) body += deckAddBar();
 
   if (deckView === 'stacks') {
@@ -902,6 +908,84 @@ async function recheckDeckLegality(deckId) {
   }
 }
 
+/* ---------- deck "original list" record (diff + restore) ---------- */
+// What's changed since the deck was first imported (or last re-baselined).
+function deckDiff(deck) {
+  const orig = deck.original || [];
+  const om = new Map(orig.map(c => [key(c.name), c.qty]));
+  const cm = new Map(deck.cards.map(c => [key(c.name), c.qty]));
+  const disp = {};
+  orig.forEach(c => disp[key(c.name)] = c.name);
+  deck.cards.forEach(c => disp[key(c.name)] = c.name);
+  const added = [], removed = [], changed = [];
+  new Set([...om.keys(), ...cm.keys()]).forEach(k => {
+    const o = om.get(k) || 0, n = cm.get(k) || 0;
+    if (!o && n) added.push({ name: disp[k], qty: n });
+    else if (o && !n) removed.push({ name: disp[k], qty: o });
+    else if (o !== n) changed.push({ name: disp[k], from: o, to: n });
+  });
+  const byName = (a, b) => a.name.localeCompare(b.name);
+  added.sort(byName); removed.sort(byName); changed.sort(byName);
+  return { added, removed, changed, origQty: orig.reduce((a, c) => a + c.qty, 0), origUnique: orig.length };
+}
+function deckDivergence(deck) {
+  if (!deck.original) return 0;
+  const d = deckDiff(deck);
+  return d.added.length + d.removed.length + d.changed.length;
+}
+function originalPanel(deck) {
+  if (!deck.original) return '';
+  const { added, removed, changed, origQty, origUnique } = deckDiff(deck);
+  const unchanged = !added.length && !removed.length && !changed.length;
+  const chip = (n) => `<button class="og-card nm" data-name="${esc(n)}">${esc(n)}</button>`;
+  const section = (cls, icon, label, items) => items.length
+    ? `<div class="og-group ${cls}"><div class="og-sub">${icon} ${label} · ${items.length}</div><div class="og-list">${items.map(it =>
+        cls === 'chg'
+          ? `<button class="og-card nm" data-name="${esc(it.name)}">${esc(it.name)} <span class="og-delta">${it.from}→${it.to}</span></button>`
+          : chip(it.name)).join('')}</div></div>`
+    : '';
+  return `<div class="deck-original">
+    <div class="og-head">
+      <span class="og-title"><i class="ms ms-saga" aria-hidden="true"></i> Original list · ${origQty} cards${origUnique !== origQty ? ` (${origUnique} unique)` : ''}</span>
+      <div class="og-actions">
+        <button class="og-btn" data-origcopy="${deck.id}" title="Copy the original list as text"><i class="ms ms-multiple" aria-hidden="true"></i> Copy</button>
+        <button class="og-btn" data-origrebaseline="${deck.id}" title="Record the current list as the new original"><i class="ms ms-artist-nib" aria-hidden="true"></i> Set current as original</button>
+        <button class="og-btn warn" data-origrestore="${deck.id}" title="Revert this deck to its original list"${unchanged ? ' disabled' : ''}>↺ Restore original</button>
+      </div>
+    </div>
+    ${unchanged
+      ? `<div class="og-empty">Unchanged from the original import.</div>`
+      : `<div class="og-groups">
+          ${section('add', '<i class="ms ms-counter-plus" aria-hidden="true"></i>', 'Added since', added)}
+          ${section('rem', '<i class="ms ms-counter-skull" aria-hidden="true"></i>', 'Removed since', removed)}
+          ${section('chg', '<i class="ms ms-loyalty-up" aria-hidden="true"></i>', 'Quantity changed', changed)}
+        </div>`}
+  </div>`;
+}
+function restoreDeckOriginal(deckId) {
+  const deck = state.decks.find(d => d.id === deckId);
+  if (!deck || !deck.original) return;
+  if (!confirm(`Revert “${deck.name}” to its original ${deck.original.length}-card list? Cards added since will be removed and any cuts restored. (Your owned-card counts are untouched.)`)) return;
+  deck.cards = deck.original.map(c => ({ name: c.name, qty: c.qty }));
+  if (deck.commander && !deck.cards.some(c => key(c.name) === key(deck.commander))) deck.commander = null;
+  save(); render();
+  toast(`Reverted “${deck.name}” to its original list.`);
+}
+function rebaselineDeck(deckId) {
+  const deck = state.decks.find(d => d.id === deckId);
+  if (!deck) return;
+  if (!confirm(`Record the current ${deck.cards.length}-card list of “${deck.name}” as the new original? This replaces the previously recorded original.`)) return;
+  deck.original = deck.cards.map(c => ({ name: c.name, qty: c.qty }));
+  save(); render();
+  toast(`Recorded the current list as the original for “${deck.name}”.`);
+}
+function copyDeckOriginal(deckId) {
+  const deck = state.decks.find(d => d.id === deckId);
+  if (!deck || !deck.original) return;
+  const text = deck.original.slice().sort((a, b) => a.name.localeCompare(b.name)).map(c => `${c.qty} ${c.name}`).join('\n');
+  navigator.clipboard.writeText(text).then(() => toast('Original list copied to clipboard.'), () => toast('Copy failed.'));
+}
+
 /* ---------- deck editing (add / remove / qty) ---------- */
 function deckAddBar() {
   return `<div class="deck-add-bar">
@@ -959,6 +1043,63 @@ function setDeckQty(name, delta) {
   c.qty = Math.max(1, c.qty + delta);
   save();
   render();
+}
+
+/* ---- Assign a card to ANY deck from the card viewer (independent of the open deck) ---- */
+function deckQtyOf(name, deck) {
+  const c = deck.cards.find(x => key(x.name) === key(name));
+  return c ? c.qty : 0;
+}
+// Set the absolute copy-count of `name` in deck `deckId` (0 removes it).
+function setCardInDeck(name, deckId, newQty) {
+  const deck = state.decks.find(d => d.id === deckId);
+  if (!deck || !name) return;
+  newQty = Math.max(0, Math.round(newQty));
+  const c = deck.cards.find(x => key(x.name) === key(name));
+  if (newQty === 0) {
+    deck.cards = deck.cards.filter(x => key(x.name) !== key(name));
+    if (deck.commander && key(deck.commander) === key(name)) deck.commander = null;   // pulled the commander out
+  } else if (c) { c.qty = newQty; }
+  else { deck.cards.push({ name, qty: newQty }); }
+  save();
+  render();                 // inventory "where"/deck views behind the modal stay live
+  refreshDeckAssign(name);  // and the chips in the still-open viewer
+}
+function toggleCardInDeck(name, deckId) {
+  const deck = state.decks.find(d => d.id === deckId);
+  if (!deck) return;
+  const wasIn = deckQtyOf(name, deck) > 0;
+  setCardInDeck(name, deckId, wasIn ? 0 : 1);
+  toast(`${wasIn ? 'Removed' : 'Added'} ${name} ${wasIn ? 'from' : 'to'} “${deck.name}”.`);
+}
+// The "Assign to decks" block inside the card viewer — every deck as a toggle row + qty stepper.
+function deckAssignHtml(name) {
+  if (!state.decks.length) {
+    return `<div class="cv-decks-head"><i class="ms ms-saga" aria-hidden="true"></i> Assign to decks</div>
+      <div class="cv-decks-empty">No decks yet — import or build one first.</div>`;
+  }
+  const rows = state.decks.map(d => {
+    const q = deckQtyOf(name, d);
+    const isCmd = d.commander && key(d.commander) === key(name);
+    return `<div class="cv-deck-row${q ? ' in' : ''}">
+      <button type="button" class="cv-deck-tog" data-assigndeck="${esc(d.id)}" data-name="${esc(name)}" title="${q ? 'Remove from' : 'Add to'} ${esc(d.name)}">
+        <i class="ms ${q ? 'ms-saga' : 'ms-counter-plus'} cv-deck-ic" aria-hidden="true"></i>
+        <span class="cv-deck-name">${esc(d.name)}</span>
+        ${isCmd ? `<i class="ms ms-commander cv-deck-cmd" title="Commander" aria-hidden="true"></i>` : ''}
+      </button>
+      <div class="cv-deck-step">
+        <button type="button" data-assignqty="-1" data-deck="${esc(d.id)}" data-name="${esc(name)}" ${q ? '' : 'disabled'} aria-label="One fewer in ${esc(d.name)}">−</button>
+        <span class="n">${q}</span>
+        <button type="button" data-assignqty="1" data-deck="${esc(d.id)}" data-name="${esc(name)}" aria-label="One more in ${esc(d.name)}">+</button>
+      </div>
+    </div>`;
+  }).join('');
+  return `<div class="cv-decks-head"><i class="ms ms-saga" aria-hidden="true"></i> Assign to decks</div>
+    <div class="cv-decks-list">${rows}</div>`;
+}
+function refreshDeckAssign(name) {
+  const box = $('#cvDeckAssign');
+  if (box && cardViewName && key(cardViewName) === key(name)) box.innerHTML = deckAssignHtml(name);
 }
 
 function cardRow(name, reqQty, showStepper) {
@@ -1297,6 +1438,7 @@ function setView(v) {
 function openDeck(id) {
   currentDeckId = id;
   deckEdit = false;
+  deckShowOriginal = false;
   renderDeckDetail();
   $$('.view').forEach(s => s.classList.remove('is-active'));
   $('#view-deck').classList.add('is-active');
@@ -1341,7 +1483,8 @@ async function importDeck() {
     const { resolved, missing } = await resolveCards(parsed);
     if (ownAll) resolved.forEach(c => setOwned(c.name, Math.max(ownedOf(c.name), c.qty)));
     const cmd = resolved.find(c => c.commander);
-    const deck = { id: uid(), name, cards: resolved.map(c => ({ name: c.name, qty: c.qty })) };
+    const cards = resolved.map(c => ({ name: c.name, qty: c.qty }));
+    const deck = { id: uid(), name, cards, original: cards.map(c => ({ ...c })) };
     if (cmd) deck.commander = cmd.name;
     state.decks.push(deck);
     save();
@@ -1530,6 +1673,7 @@ function openCardView(name) {
       <span class="cv-set" id="cvSet">${setTagHtml(name)}</span>
       ${meta.rarity ? `<span class="cv-rarity ${esc(meta.rarity)}"><i class="ms ms-rarity" aria-hidden="true"></i> ${esc(RARITY_LABEL[meta.rarity] || meta.rarity)}</span>` : ''}
     </div>
+    <div class="cv-deckassign" id="cvDeckAssign">${deckAssignHtml(name)}</div>
     <div class="cv-prices" id="cvPrices">${pricesHtml(name)}</div>
     <div class="cv-arts" id="cvArts">
       <button class="cv-art-btn" id="cvArtBtn"><i class="ms ms-artist-brush" aria-hidden="true"></i> Choose art / printing</button>
@@ -1889,7 +2033,8 @@ async function recDeckImport(i) {
   toast(`Importing ${d.name}…`);
   try {
     const { resolved, missing } = await resolveCards(parsedCuratedDeck(d).map(c => ({ name: c.name, qty: c.qty })));
-    const deck = { id: uid(), name: d.name, cards: resolved.map(c => ({ name: c.name, qty: c.qty })), commander: d.commander };
+    const cards = resolved.map(c => ({ name: c.name, qty: c.qty }));
+    const deck = { id: uid(), name: d.name, cards, original: cards.map(c => ({ ...c })), commander: d.commander };
     state.decks.push(deck);
     save(); render(); setView('decks');
     toast(`Imported “${d.name}”${missing ? ` · ${missing} card${missing > 1 ? 's' : ''} not found` : ''}.`);
@@ -2203,6 +2348,14 @@ $('#cardViewMeta').addEventListener('click', e => {
   if (copyPick) { pickCopyPrinting(copyPick.dataset.name, copyPick.dataset.vid, +copyPick.dataset.vpick); return; }
   const artPick = e.target.closest('.cv-art');
   if (artPick) { pickPrinting(cardViewName, +artPick.dataset.printidx); return; }
+  const assignTog = e.target.closest('[data-assigndeck]');
+  if (assignTog) { toggleCardInDeck(assignTog.dataset.name, assignTog.dataset.assigndeck); return; }
+  const assignStep = e.target.closest('[data-assignqty]');
+  if (assignStep) {
+    const deck = state.decks.find(d => d.id === assignStep.dataset.deck);
+    if (deck) setCardInDeck(assignStep.dataset.name, deck.id, deckQtyOf(assignStep.dataset.name, deck) + (+assignStep.dataset.assignqty));
+    return;
+  }
   const swapBtn = e.target.closest('#cvSwapBtn');
   if (swapBtn) { revealSwaps(cardViewName, swapBtn); return; }
   const chip = e.target.closest('.cv-swap-chip');
@@ -2229,6 +2382,14 @@ $('#deckDetail').addEventListener('click', e => {
   if (lgt) { state.prefs.showLegality = !state.prefs.showLegality; save(); renderDeckDetail(); return; }
   const editToggle = e.target.closest('[data-deckedit]');
   if (editToggle) { deckEdit = !deckEdit; deckHideAc(); renderDeckDetail(); return; }
+  const origToggle = e.target.closest('[data-origtoggle]');
+  if (origToggle) { deckShowOriginal = !deckShowOriginal; renderDeckDetail(); return; }
+  const origCopy = e.target.closest('[data-origcopy]');
+  if (origCopy) { copyDeckOriginal(origCopy.dataset.origcopy); return; }
+  const origRebase = e.target.closest('[data-origrebaseline]');
+  if (origRebase) { rebaselineDeck(origRebase.dataset.origrebaseline); return; }
+  const origRestore = e.target.closest('[data-origrestore]');
+  if (origRestore) { restoreDeckOriginal(origRestore.dataset.origrestore); return; }
   const dq = e.target.closest('[data-deckqty]');
   if (dq) { setDeckQty(dq.dataset.name, parseInt(dq.dataset.deckqty, 10)); return; }
   const dr = e.target.closest('[data-deckremove]');
