@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@400;500;600;700;800&family=Spline+Sans:wght@400;500;600;700&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/mana-font@latest/css/mana.css" rel="stylesheet" type="text/css" />
-  <link rel="stylesheet" href="styles.css?v=2" />
+  <link rel="stylesheet" href="styles.css?v=3" />
 </head>
 <body>
   <div class="grain" aria-hidden="true"></div>
@@ -34,6 +34,7 @@
       <button class="tab" data-view="inventory"><i class="ms ms-library tab-ico" aria-hidden="true"></i>Inventory</button>
       <button class="tab" data-view="forge"><i class="ms ms-ability-craft tab-ico" aria-hidden="true"></i>Forge</button>
       <button class="tab" data-view="buylist"><i class="ms ms-counter-gold tab-ico" aria-hidden="true"></i>Buy List</button>
+      <button class="tab" data-view="selllist"><i class="ms ms-loyalty-up tab-ico" aria-hidden="true"></i>Sell List</button>
       <button class="tab" data-view="browse"><i class="ms ms-ability-investigate tab-ico" aria-hidden="true"></i>Browse</button>
     </nav>
     <div class="topbar-actions">
@@ -172,6 +173,42 @@
       <div class="card-table" id="buyTable"></div>
     </section>
 
+    <!-- Sell list -->
+    <section class="view" id="view-selllist">
+      <div class="view-head">
+        <div>
+          <h2 class="view-title">Sell List</h2>
+          <p class="view-sub" id="sellListSub"></p>
+        </div>
+        <div class="buy-head-actions">
+          <select class="filt-select" id="sellSortFilter" title="Sort cards">
+            <option value="name">Sort: A → Z</option>
+            <option value="price-desc" selected>Sort: Price ↓</option>
+            <option value="price-asc">Sort: Price ↑</option>
+            <option value="rarity-desc">Sort: Rarity ↓</option>
+            <option value="rarity-asc">Sort: Rarity ↑</option>
+            <option value="color">Sort: Colour (WUBRG)</option>
+            <option value="type">Sort: Card type</option>
+            <option value="set">Sort: Set / edition</option>
+          </select>
+          <div class="seg" id="sellViewMode" title="Switch between card art and a text list">
+            <button class="seg-btn is-active" data-mode="art"><i class="ms ms-token" aria-hidden="true"></i> Art</button>
+            <button class="seg-btn" data-mode="text"><i class="ms ms-multiple" aria-hidden="true"></i> List</button>
+          </div>
+          <label class="size-ctl" id="sellSizeWrap" title="Card size">
+            <i class="ms ms-token size-ic size-ic--sm" aria-hidden="true"></i>
+            <input type="range" id="sellSizeRange" class="size-range" min="110" max="280" step="2" value="168" aria-label="Card size" />
+            <i class="ms ms-token size-ic size-ic--lg" aria-hidden="true"></i>
+          </label>
+          <button class="btn ghost" id="sellAddUnlinkedBtn" title="List every owned card that isn't in a deck"><i class="ms ms-land" aria-hidden="true"></i> Add unlinked</button>
+          <button class="btn ghost" id="sellMarkAllBtn" title="Mark everything listed as sold and remove from inventory">✓ Sold all</button>
+          <button class="btn ghost" id="exportSellPdfBtn" title="Export a printable PDF — 8 cards per page">⎙ PDF</button>
+          <button class="btn ghost" id="copySellBtn" title="Copy as text for a buyer">⧉ Copy list</button>
+        </div>
+      </div>
+      <div class="card-table" id="sellTable"></div>
+    </section>
+
     <!-- Browse (Scryfall card search, expansions, recommended decks) -->
     <section class="view" id="view-browse">
       <div class="view-head">
@@ -289,7 +326,7 @@
   <!-- Printable buy-list sheet (only visible when printing) -->
   <div id="printRoot" aria-hidden="true"></div>
 
-  <script src="decks.js?v=2"></script>
-  <script src="app.js?v=2"></script>
+  <script src="decks.js?v=3"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>
