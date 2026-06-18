@@ -971,7 +971,34 @@ html[data-theme="ember"] .topbar { background: linear-gradient(180deg, rgba(31,1
 .art-tile.buy.excluded .art-name, .art-tile.buy.excluded .art-val { opacity: .5; }
 .art-tile.buy.excluded:hover .art-img { opacity: .65; }
 
+/* buy list "bought" button (acquire into inventory) */
+.buy-got { display: inline-flex; align-items: center; gap: 5px; font-family: var(--label); font-size: 10.5px; letter-spacing: .04em; text-transform: uppercase; color: #0f1a0f; background: linear-gradient(180deg, #7cb877, #549058); border: 1px solid #5e9a5e; border-radius: 7px; padding: 6px 11px; cursor: pointer; transition: .15s; white-space: nowrap; }
+.buy-got .ms { font-size: 12px; }
+.buy-got:hover { filter: brightness(1.09); }
+.art-tile.buy .buy-got-tile { position: absolute; top: 8px; right: 8px; z-index: 4; width: 31px; height: 31px; border-radius: 8px; display: grid; place-items: center; border: 1px solid #5e9a5e; background: linear-gradient(180deg, #7cb877, #549058); color: #0f1a0f; cursor: pointer; transition: .14s; box-shadow: 0 2px 8px rgba(0,0,0,.42); }
+.art-tile.buy .buy-got-tile .ms { font-size: 15px; }
+.art-tile.buy .buy-got-tile:hover { filter: brightness(1.1); transform: scale(1.07); }
+
 /* ============ sell list + inventory sell controls ============ */
+/* sell list folders (named lists) */
+.sell-folders { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; margin: 0 0 16px; }
+.sell-folder-wrap { display: inline-flex; align-items: stretch; }
+.sell-folder { display: inline-flex; align-items: center; gap: 6px; font-family: var(--body); font-size: 13px; color: var(--parch-dim); background: var(--ink-2); border: 1px solid var(--edge); border-radius: 9px; padding: 7px 13px; cursor: pointer; transition: .15s; }
+.sell-folder .ms { font-size: 13px; color: var(--brass); }
+.sell-folder:hover { border-color: var(--gold-soft); color: var(--parch); }
+.sell-folder.on { color: var(--ink); background: linear-gradient(180deg, var(--gold-soft), var(--gold)); border-color: var(--gold-soft); font-weight: 600; }
+.sell-folder.on .ms { color: var(--ink); }
+.sell-folder-wrap.on .sell-folder { border-right: none; border-radius: 9px 0 0 9px; }
+.sf-count { display: inline-grid; place-items: center; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; background: rgba(0,0,0,.22); color: inherit; font-family: var(--mono); font-size: 10.5px; }
+.sell-folder:not(.on) .sf-count { background: rgba(201,162,39,.18); color: var(--gold-soft); }
+.sf-icon { display: grid; place-items: center; width: 31px; border: 1px solid var(--gold-soft); border-left: none; background: var(--ink-2); color: var(--parch-dim); cursor: pointer; transition: .15s; }
+.sf-icon:last-child { border-radius: 0 9px 9px 0; }
+.sf-icon .ms { font-size: 12px; }
+.sf-icon:hover { color: var(--bad); background: var(--panel); }
+.sf-icon[data-sellfolder-rename]:hover { color: var(--gold-soft); }
+.sell-folder.add { font-family: var(--body); font-size: 13px; color: var(--muted); border: 1px dashed var(--edge); border-radius: 9px; background: none; padding: 7px 13px; cursor: pointer; transition: .15s; }
+.sell-folder.add:hover { color: var(--gold-soft); border-color: var(--gold-soft); }
+
 .art-tile.inv, .art-tile.sell { position: relative; }
 .art-tile.inv .art-open, .art-tile.sell .art-open { display: block; width: 100%; background: none; border: none; padding: 0; margin: 0; text-align: left; font: inherit; color: inherit; cursor: pointer; }
 /* inventory art tile: corner "list for sale" button — always visible for one-click access */

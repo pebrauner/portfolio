@@ -69,7 +69,15 @@ function migrate(s) {
   s.cards ||= {};
   s.art ||= {};   // name-key -> chosen display printing { image, art, set, set_name, collector, scryfallId }
   s.wishlist ||= {};   // name-key -> desired qty (manual buy list, fed from Browse)
-  s.sellList ||= {};   // variant-id -> copies of that exact variant listed for sale
+  // Sell lists: multiple named "folders", each variant-id -> copies listed.
+  // Migrate the old single `s.sellList` into the first folder.
+  if (!Array.isArray(s.sellLists)) {
+    s.sellLists = [{ id: uid(), name: 'Sell List', items: (s.sellList && typeof s.sellList === 'object') ? s.sellList : {} }];
+  }
+  if (!s.sellLists.length) s.sellLists.push({ id: uid(), name: 'Sell List', items: {} });
+  s.sellLists.forEach(l => { l.items ||= {}; if (!l.name) l.name = 'Sell List'; });
+  if (!s.activeSellList || !s.sellLists.some(l => l.id === s.activeSellList)) s.activeSellList = s.sellLists[0].id;
+  delete s.sellList;
   if (!s.variants) {
     s.variants = {};
     if (s.owned) for (const [k, n] of Object.entries(s.owned)) {
@@ -1480,16 +1488,26 @@ function buyRow({ n, need, sub, included, used, wished }) {
     <div class="cname"><span class="row-marks">${typeIcon(n)}${rarityIcon(meta.rarity)}</span><span class="qty">${need}×</span><span class="nm" data-name="${esc(n)}" data-uri="${esc(meta.uri || '')}">${esc(n)}</span>${manaSymbols(meta.mana_cost)}</div>
     <span class="where">${where}</span>
     <div class="price"><span class="need">${money(sub)}</span></div>
+    <button class="buy-got" data-bought="${esc(n)}" title="I bought ${need} — add to my inventory"><i class="ms ms-counter-shield" aria-hidden="true"></i> Bought</button>
   </div>`;
 }
 function buyArtTile({ n, need, sub, included }) {
   const pick = `<input type="checkbox" class="buy-pick art-pick" data-pick="${esc(n)}" ${included ? 'checked' : ''} title="Include in the exported list" />`;
   return `<div class="art-tile buy ${included ? '' : 'excluded'}">
     ${pick}
+    <button class="buy-got-tile" data-bought="${esc(n)}" title="I bought ${need} — add to my inventory"><i class="ms ms-counter-shield" aria-hidden="true"></i></button>
     <button class="art-open" data-name="${esc(n)}">
       ${artTile(n, need + '×', `<span class="art-val need">${money(sub)}</span>`)}
     </button>
   </div>`;
+}
+// "Bought" — acquire the still-needed copies into inventory; the card then drops off the buy list.
+function markBought(name) {
+  const need = requiredFor(name, buyDecksActive()) - ownedOf(name);
+  if (need <= 0) return;
+  addVariant(name, { qty: need });
+  save(); render();
+  toast(`Bought ${need}× ${name} — added to your inventory.`);
 }
 
 /* =====================================================================
@@ -2328,10 +2346,18 @@ async function copyBuyList() {
 }
 
 /* =====================================================================
-   SELL LIST — list owned copies (per variant) for sale
-   state.sellList = { variantId: copiesListed }
+   SELL LISTS — multiple named "folders", each lists owned copies for sale
+   state.sellLists = [{ id, name, items: { variantId: copiesListed } }]
+   state.activeSellList = id of the folder being viewed / added to
    ===================================================================== */
-const sellQtyOf = (vid) => state.sellList[vid] || 0;
+function activeSellList() {
+  let l = state.sellLists.find(x => x.id === state.activeSellList);
+  if (!l) { l = state.sellLists[0]; if (l) state.activeSellList = l.id; }
+  return l;
+}
+function sellItems() { const l = activeSellList(); return l ? l.items : {}; }
+function sellListName() { const l = activeSellList(); return l ? l.name : 'Sell List'; }
+const sellQtyOf = (vid) => sellItems()[vid] || 0;
 
 // variantId -> { name (display), v (live variant object) } across the whole collection
 function variantIndex() {
@@ -2342,65 +2368,105 @@ function variantIndex() {
   }
   return idx;
 }
-// Drop sell entries whose variant is gone, and clamp each to the copies still owned.
+// Drop sell entries whose variant is gone, and clamp each to the copies still owned — across ALL folders.
 function pruneSellList() {
   const idx = variantIndex();
   let changed = false;
-  for (const vid of Object.keys(state.sellList)) {
-    const hit = idx.get(vid);
-    const clamped = hit ? Math.min(state.sellList[vid], hit.v.qty) : 0;
-    if (clamped <= 0) { delete state.sellList[vid]; changed = true; }
-    else if (clamped !== state.sellList[vid]) { state.sellList[vid] = clamped; changed = true; }
-  }
+  state.sellLists.forEach(l => {
+    for (const vid of Object.keys(l.items)) {
+      const hit = idx.get(vid);
+      const clamped = hit ? Math.min(l.items[vid], hit.v.qty) : 0;
+      if (clamped <= 0) { delete l.items[vid]; changed = true; }
+      else if (clamped !== l.items[vid]) { l.items[vid] = clamped; changed = true; }
+    }
+  });
   if (changed) save();
 }
 function setSellQty(vid, delta) {
+  const items = sellItems();
   const hit = variantIndex().get(vid);
-  if (!hit) { delete state.sellList[vid]; save(); render(); return; }
-  const next = Math.max(0, Math.min(sellQtyOf(vid) + delta, hit.v.qty));
-  if (next <= 0) delete state.sellList[vid]; else state.sellList[vid] = next;
+  if (!hit) { delete items[vid]; save(); render(); return; }
+  const next = Math.max(0, Math.min((items[vid] || 0) + delta, hit.v.qty));
+  if (next <= 0) delete items[vid]; else items[vid] = next;
   save(); render();
 }
-// Toggle one variant on/off the sell list (default = list every copy of it).
+// Toggle one variant on/off the ACTIVE folder (default = list every copy of it).
 function toggleSellVariant(name, vid) {
   const v = variantById(name, vid);
   if (!v) return;
-  if (sellQtyOf(vid) > 0) delete state.sellList[vid];
-  else if (v.qty > 0) state.sellList[vid] = v.qty;
+  const items = sellItems();
+  if (items[vid] > 0) delete items[vid];
+  else if (v.qty > 0) items[vid] = v.qty;
   save(); render();
 }
 // Toggle every variant of a card at once (used by the inventory art tile).
 function toggleSellCard(name) {
-  const vs = variantsOf(name);
-  const anyListed = vs.some(v => sellQtyOf(v.id) > 0);
-  vs.forEach(v => { if (anyListed) delete state.sellList[v.id]; else if (v.qty > 0) state.sellList[v.id] = v.qty; });
+  const vs = variantsOf(name), items = sellItems();
+  const anyListed = vs.some(v => items[v.id] > 0);
+  vs.forEach(v => { if (anyListed) delete items[v.id]; else if (v.qty > 0) items[v.id] = v.qty; });
   save(); render();
-  toast(anyListed ? `Removed ${name} from your sell list.` : `Listed ${name} for sale.`);
+  toast(anyListed ? `Removed ${name} from “${sellListName()}”.` : `Listed ${name} in “${sellListName()}”.`);
 }
-function removeFromSell(vid) { delete state.sellList[vid]; save(); render(); }
-// List every variant of every "unlinked" owned card (owned, in no deck).
+function removeFromSell(vid) { delete sellItems()[vid]; save(); render(); }
+function removeVariantFromAllSellLists(vid) { state.sellLists.forEach(l => { delete l.items[vid]; }); }
+// List every variant of every "unlinked" owned card (owned, in no deck) into the active folder.
 function addUnlinkedToSell() {
+  const items = sellItems();
   let added = 0;
   allCardNames().forEach(n => {
     if (ownedOf(n) <= 0 || decksUsing(n).length) return;
-    variantsOf(n).forEach(v => { if (v.qty > 0 && sellQtyOf(v.id) <= 0) { state.sellList[v.id] = v.qty; added++; } });
+    variantsOf(n).forEach(v => { if (v.qty > 0 && !(items[v.id] > 0)) { items[v.id] = v.qty; added++; } });
   });
   save(); render();
-  toast(added ? `Listed ${added} unlinked cop${added === 1 ? 'y' : 'ies'} for sale.` : 'No unlinked cards to add — they’re all in decks or already listed.');
+  toast(added ? `Listed ${added} unlinked cop${added === 1 ? 'y' : 'ies'} in “${sellListName()}”.` : 'No unlinked cards to add — they’re all in decks or already listed.');
 }
-// Fresh, sorted sell rows.
+// Fresh, sorted sell rows for the ACTIVE folder.
 function sellRows() {
-  const idx = variantIndex();
+  const idx = variantIndex(), items = sellItems();
   const rows = [];
-  for (const vid of Object.keys(state.sellList)) {
+  for (const vid of Object.keys(items)) {
     const hit = idx.get(vid);
     if (!hit) continue;
-    const qty = Math.min(state.sellList[vid], hit.v.qty);
+    const qty = Math.min(items[vid], hit.v.qty);
     if (qty <= 0) continue;
     const unit = variantPrice(hit.name, hit.v);
     rows.push({ vid, name: hit.name, v: hit.v, qty, unit, sub: unit * qty, used: decksUsing(hit.name) });
   }
   return rows;
+}
+/* sell list folders — create / switch / rename / delete */
+function setActiveSellList(id) { if (state.sellLists.some(l => l.id === id)) { state.activeSellList = id; save(); render(); } }
+function createSellList(name) {
+  const l = { id: uid(), name: (name || '').trim() || `List ${state.sellLists.length + 1}`, items: {} };
+  state.sellLists.push(l); state.activeSellList = l.id; save(); render();
+  toast(`Created sell list “${l.name}”.`);
+}
+function renameSellList(id, name) {
+  const l = state.sellLists.find(x => x.id === id); if (!l) return;
+  const nm = (name || '').trim(); if (!nm) return;
+  l.name = nm; save(); render();
+}
+function deleteSellList(id) {
+  const l = state.sellLists.find(x => x.id === id); if (!l) return;
+  const n = Object.keys(l.items).length;
+  if (n && !confirm(`Delete the sell list “${l.name}” and unlist its ${n} card${n === 1 ? '' : 's'}? (Your inventory is untouched.)`)) return;
+  state.sellLists = state.sellLists.filter(x => x.id !== id);
+  if (!state.sellLists.length) state.sellLists.push({ id: uid(), name: 'Sell List', items: {} });
+  state.activeSellList = state.sellLists[0].id;
+  save(); render();
+  toast(`Deleted sell list “${l.name}”.`);
+}
+function renderSellFolders() {
+  const wrap = $('#sellFolders'); if (!wrap) return;
+  const active = activeSellList();
+  wrap.innerHTML = state.sellLists.map(l => {
+    const count = Object.keys(l.items).length;
+    const on = active && l.id === active.id;
+    return `<span class="sell-folder-wrap${on ? ' on' : ''}">
+      <button class="sell-folder${on ? ' on' : ''}" data-sellfolder="${l.id}"><i class="ms ms-token" aria-hidden="true"></i> ${esc(l.name)}${count ? ` <span class="sf-count">${count}</span>` : ''}</button>
+      ${on ? `<button class="sf-icon" data-sellfolder-rename="${l.id}" title="Rename this list" aria-label="Rename"><i class="ms ms-artist-nib" aria-hidden="true"></i></button><button class="sf-icon" data-sellfolder-del="${l.id}" title="Delete this list" aria-label="Delete">✕</button>` : ''}
+    </span>`;
+  }).join('') + `<button class="sell-folder add" data-sellfolder-new title="Create a new sell list">+ New list</button>`;
 }
 function sellCompare(sort) {
   const byName = (a, b) => a.name.localeCompare(b.name);
@@ -2419,10 +2485,10 @@ function sellCompare(sort) {
 // "Mark sold" — remove the listed copies from inventory and clear the entry.
 function markSold(vid) {
   const hit = variantIndex().get(vid);
-  if (!hit) { delete state.sellList[vid]; save(); render(); return; }
+  if (!hit) { removeVariantFromAllSellLists(vid); save(); render(); return; }
   const qty = Math.min(sellQtyOf(vid), hit.v.qty);
   hit.v.qty -= qty;
-  delete state.sellList[vid];
+  removeVariantFromAllSellLists(vid);
   if (hit.v.qty <= 0) removeVariant(hit.name, vid); else save();
   render();
   toast(`Sold ${qty}× ${hit.name}${hit.v.foil ? ' (foil)' : ''} — removed from inventory.`);
@@ -2431,11 +2497,11 @@ function markAllSold() {
   const rows = sellRows();
   if (!rows.length) return;
   const copies = rows.reduce((a, r) => a + r.qty, 0);
-  if (!confirm(`Mark all ${copies} listed cop${copies === 1 ? 'y' : 'ies'} as sold? They will be removed from your inventory.`)) return;
+  if (!confirm(`Mark all ${copies} listed cop${copies === 1 ? 'y' : 'ies'} in “${sellListName()}” as sold? They will be removed from your inventory.`)) return;
   rows.forEach(r => {
     const v = variantById(r.name, r.vid);
     if (v) { v.qty -= r.qty; if (v.qty <= 0) removeVariant(r.name, r.vid); }
-    delete state.sellList[r.vid];
+    removeVariantFromAllSellLists(r.vid);
   });
   save(); render();
   toast(`Marked ${copies} card${copies === 1 ? '' : 's'} as sold.`);
@@ -2450,14 +2516,15 @@ function variantBadges(v) {
 }
 function renderSellList() {
   pruneSellList();
+  renderSellFolders();
   const rows = sellRows();
   rows.sort(sellCompare(sellSort));
   const copies = rows.reduce((a, r) => a + r.qty, 0);
   const total = rows.reduce((a, r) => a + r.sub, 0);
   const sub = $('#sellListSub');
   if (sub) sub.textContent = rows.length
-    ? `${copies} cop${copies === 1 ? 'y' : 'ies'} of ${rows.length} card${rows.length === 1 ? '' : 's'} · ${money(total)} at market`
-    : 'Nothing listed for sale yet.';
+    ? `“${sellListName()}” · ${copies} cop${copies === 1 ? 'y' : 'ies'} of ${rows.length} card${rows.length === 1 ? '' : 's'} · ${money(total)} at market`
+    : `“${sellListName()}” is empty.`;
   const table = $('#sellTable');
   if (!table) return;
   table.classList.toggle('gallery', sellMode === 'art');
@@ -2525,13 +2592,13 @@ function sellListText() {
 }
 async function copySellList() {
   const text = sellListText();
-  if (!text) { toast('Your sell list is empty.'); return; }
+  if (!text) { toast(`“${sellListName()}” is empty.`); return; }
   const n = text.split('\n').length;
-  toast(await copyText(text) ? `Sell list copied — ${n} card${n === 1 ? '' : 's'} ready to send.` : 'Could not access the clipboard.');
+  toast(await copyText(text) ? `“${sellListName()}” copied — ${n} card${n === 1 ? '' : 's'} ready to send.` : 'Could not access the clipboard.');
 }
 async function exportSellPDF() {
   const rows = sellExportRows();
-  if (!rows.length) { toast('Your sell list is empty.'); return; }
+  if (!rows.length) { toast(`“${sellListName()}” is empty.`); return; }
   const total = rows.reduce((a, r) => a + r.sub, 0);
   const copies = rows.reduce((a, r) => a + r.qty, 0);
   const date = new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
@@ -2551,7 +2618,7 @@ async function exportSellPDF() {
   const pages = [];
   for (let i = 0; i < rows.length; i += 8) pages.push(rows.slice(i, i + 8));
   const html = pages.map((pg, i) => `<section class="print-page">
-    ${i === 0 ? `<header class="print-head"><h1>Sell List</h1><div class="print-meta">${copies} card${copies === 1 ? '' : 's'} · ${money(total)} · ${esc(date)}</div></header>` : ''}
+    ${i === 0 ? `<header class="print-head"><h1>Sell List — ${esc(sellListName())}</h1><div class="print-meta">${copies} card${copies === 1 ? '' : 's'} · ${money(total)} · ${esc(date)}</div></header>` : ''}
     <div class="print-grid">${pg.map(cell).join('')}</div>
   </section>`).join('');
   const root = $('#printRoot');
@@ -2826,6 +2893,16 @@ const copySellBtn = $('#copySellBtn');     if (copySellBtn) copySellBtn.addEvent
 const exportSellPdfBtn = $('#exportSellPdfBtn'); if (exportSellPdfBtn) exportSellPdfBtn.addEventListener('click', exportSellPDF);
 const sellAddUnlinkedBtn = $('#sellAddUnlinkedBtn'); if (sellAddUnlinkedBtn) sellAddUnlinkedBtn.addEventListener('click', addUnlinkedToSell);
 const sellMarkAllBtn = $('#sellMarkAllBtn'); if (sellMarkAllBtn) sellMarkAllBtn.addEventListener('click', markAllSold);
+const sellFolders = $('#sellFolders');
+if (sellFolders) sellFolders.addEventListener('click', e => {
+  const ren = e.target.closest('[data-sellfolder-rename]');
+  if (ren) { const l = state.sellLists.find(x => x.id === ren.dataset.sellfolderRename); const nm = prompt('Rename sell list:', l ? l.name : ''); if (nm != null) renameSellList(ren.dataset.sellfolderRename, nm); return; }
+  const del = e.target.closest('[data-sellfolder-del]');
+  if (del) { deleteSellList(del.dataset.sellfolderDel); return; }
+  if (e.target.closest('[data-sellfolder-new]')) { const nm = prompt('Name this sell list:', `List ${state.sellLists.length + 1}`); if (nm != null) createSellList(nm); return; }
+  const f = e.target.closest('[data-sellfolder]');
+  if (f) { setActiveSellList(f.dataset.sellfolder); return; }
+});
 
 /* ---------- Browse events ---------- */
 const browseDebounced = (() => { let t; return q => { clearTimeout(t); t = setTimeout(() => browseSearch(q, { fresh: true }), 350); }; })();
@@ -2919,6 +2996,10 @@ $('#buyTable').addEventListener('change', e => {
   const k = key(pick.dataset.pick);
   if (pick.checked) buyExclude.delete(k); else buyExclude.add(k);
   renderBuyList();
+});
+$('#buyTable').addEventListener('click', e => {
+  const got = e.target.closest('[data-bought]');
+  if (got) { e.stopPropagation(); markBought(got.dataset.bought); }
 });
 
 $('#forgeBody').addEventListener('click', e => {
