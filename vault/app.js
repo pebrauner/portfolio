@@ -37,6 +37,7 @@ let deckView = state.prefs.deckView;            // deck detail display: 'list' r
 let deckTile = clampTile(state.prefs.deckTile); // stacks-view column width (px)
 let deckEdit = false;                            // deck-detail recipe-editing mode (transient)
 let deckShowOriginal = false;                    // deck-detail "original list" diff panel (transient)
+let deckPendingDelete = null;                    // deck id awaiting delete confirmation (transient)
 let deckAcItems = [], deckAcSeq = 0;             // add-card autocomplete state
 // --- Browse (Scryfall search) — transient, in-memory only ---
 let browseQuery = '';                            // last raw user text
@@ -800,6 +801,8 @@ function renderDeckDetail() {
     });
   }
 
+  if (deckPendingDelete === deck.id) body = deckDeleteBar(deck) + body;
+
   $('#app').classList.toggle('wide', deckView === 'stacks');
   $('#deckDetail').innerHTML = body;
 }
@@ -990,6 +993,57 @@ function copyDeckOriginal(deckId) {
   if (!deck || !deck.original) return;
   const text = deck.original.slice().sort((a, b) => a.name.localeCompare(b.name)).map(c => `${c.qty} ${c.name}`).join('\n');
   navigator.clipboard.writeText(text).then(() => toast('Original list copied to clipboard.'), () => toast('Copy failed.'));
+}
+
+/* ---------- delete a deck (optionally selling off its cards) ---------- */
+// How many owned copies removing this deck's cards would take out of inventory,
+// and which of them are still used by OTHER decks (so we can warn).
+function deckDeleteStats(deck) {
+  let copies = 0, unique = 0;
+  const sharedDecks = new Set();
+  deck.cards.forEach(c => {
+    const take = Math.min(c.qty, ownedOf(c.name));
+    if (take <= 0) return;
+    copies += take; unique++;
+    decksUsing(c.name).forEach(d => { if (d.id !== deck.id) sharedDecks.add(d.name); });
+  });
+  return { copies, unique, sharedDecks: [...sharedDecks] };
+}
+function deckDeleteBar(deck) {
+  const { copies, sharedDecks } = deckDeleteStats(deck);
+  const sharedNote = sharedDecks.length
+    ? `<div class="ddc-warn"><i class="ms ms-counter-shield" aria-hidden="true"></i> Some of these cards are also in <b>${esc(sharedDecks.join('</b>, <b>'))}</b> — removing copies will leave ${sharedDecks.length === 1 ? 'it' : 'them'} short.</div>`
+    : '';
+  return `<div class="deck-delete-confirm">
+    <div class="ddc-head"><i class="ms ms-counter-skull" aria-hidden="true"></i> Delete “${esc(deck.name)}”?</div>
+    <div class="ddc-actions">
+      <button class="ddc-btn" data-confirm-del-only="${deck.id}">Delete deck only<span class="ddc-sub">keep my cards in inventory</span></button>
+      <button class="ddc-btn danger" data-confirm-del-cards="${deck.id}"${copies ? '' : ' disabled'}>Delete &amp; remove ${copies} cop${copies === 1 ? 'y' : 'ies'} from inventory<span class="ddc-sub">I sold this deck</span></button>
+      <button class="ddc-btn ghost" data-confirm-del-cancel>Cancel</button>
+    </div>
+    ${sharedNote}
+  </div>`;
+}
+function deleteDeck(id) {
+  const deck = state.decks.find(d => d.id === id);
+  if (!deck) return;
+  state.decks = state.decks.filter(d => d.id !== id);
+  deckPendingDelete = null; currentDeckId = null;
+  save(); render(); setView('decks');
+  toast(`Deleted “${deck.name}”. Your cards stay in your inventory.`);
+}
+function deleteDeckAndCards(id) {
+  const deck = state.decks.find(d => d.id === id);
+  if (!deck) return;
+  let removed = 0;
+  deck.cards.forEach(c => {
+    const take = Math.min(c.qty, ownedOf(c.name));
+    if (take > 0) { setOwned(c.name, ownedOf(c.name) - take); removed += take; }
+  });
+  state.decks = state.decks.filter(d => d.id !== id);
+  deckPendingDelete = null; currentDeckId = null;
+  save(); render(); setView('decks');
+  toast(`Deleted “${deck.name}” and removed ${removed} cop${removed === 1 ? 'y' : 'ies'} from your inventory.`);
 }
 
 /* ---------- deck editing (add / remove / qty) ---------- */
@@ -1451,6 +1505,7 @@ function openDeck(id) {
   currentDeckId = id;
   deckEdit = false;
   deckShowOriginal = false;
+  deckPendingDelete = null;
   renderDeckDetail();
   $$('.view').forEach(s => s.classList.remove('is-active'));
   $('#view-deck').classList.add('is-active');
@@ -2942,17 +2997,12 @@ document.addEventListener('click', e => {
   const link = e.target.closest('.nm');
   if (link) { openCardView(link.dataset.name || link.getAttribute('title') || link.textContent.trim()); return; }
   const del = e.target.closest('[data-del-deck]');
-  if (del) {
-    const id = del.dataset.delDeck;
-    const deck = state.decks.find(d => d.id === id);
-    if (deck && confirm(`Delete “${deck.name}”? Your owned-card counts are kept.`)) {
-      state.decks = state.decks.filter(d => d.id !== id);
-      save();
-      currentDeckId = null;
-      render();
-      setView('decks');
-    }
-  }
+  if (del) { deckPendingDelete = del.dataset.delDeck; renderDeckDetail(); return; }
+  const delOnly = e.target.closest('[data-confirm-del-only]');
+  if (delOnly) { deleteDeck(delOnly.dataset.confirmDelOnly); return; }
+  const delCards = e.target.closest('[data-confirm-del-cards]');
+  if (delCards) { deleteDeckAndCards(delCards.dataset.confirmDelCards); return; }
+  if (e.target.closest('[data-confirm-del-cancel]')) { deckPendingDelete = null; renderDeckDetail(); return; }
 });
 
 /* variant property edits — fire on commit (blur / selection) to avoid re-render mid-keystroke */

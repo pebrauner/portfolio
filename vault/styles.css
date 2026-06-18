@@ -312,6 +312,23 @@ html[data-theme="ember"] .topbar { background: linear-gradient(180deg, rgba(31,1
 .deck-hero .del { color: var(--faint); font-size: 12px; background: none; border: 1px solid var(--edge); border-radius: 7px; padding: 7px 11px; cursor: pointer; transition: .2s; }
 .deck-hero .del:hover { color: var(--bad); border-color: var(--bad); }
 
+/* deck delete confirmation bar */
+.deck-delete-confirm { margin: 0 0 16px; padding: 16px 18px; border: 1px solid var(--bad); border-radius: 12px; background: linear-gradient(180deg, rgba(180,60,40,.10), var(--ink-2)); }
+.ddc-head { display: flex; align-items: center; gap: 9px; font-family: var(--display); font-size: 18px; color: var(--parch); margin-bottom: 12px; }
+.ddc-head .ms { color: var(--bad); font-size: 17px; }
+.ddc-actions { display: flex; flex-wrap: wrap; gap: 9px; }
+.ddc-btn { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; font-family: var(--body); font-size: 13px; color: var(--parch); background: var(--panel); border: 1px solid var(--edge); border-radius: 9px; padding: 9px 14px; cursor: pointer; transition: .15s; }
+.ddc-btn:hover { border-color: var(--gold-soft); }
+.ddc-btn .ddc-sub { font-size: 11px; color: var(--muted); text-transform: none; letter-spacing: 0; }
+.ddc-btn.danger { background: linear-gradient(180deg, #6e2417, #4a1810); border-color: #8a3a28; color: #f4d9cf; }
+.ddc-btn.danger:hover:not(:disabled) { border-color: var(--bad); background: linear-gradient(180deg, #82301d, #571c12); }
+.ddc-btn.danger .ddc-sub { color: #e7b8ab; }
+.ddc-btn.danger:disabled { opacity: .45; cursor: default; }
+.ddc-btn.ghost { background: none; color: var(--muted); }
+.ddc-btn.ghost:hover { color: var(--parch); border-color: var(--brass); }
+.ddc-warn { display: flex; align-items: center; gap: 7px; margin-top: 12px; font-size: 12.5px; color: var(--warn); }
+.ddc-warn .ms { font-size: 13px; }
+
 /* ---- rename deck (inline) ---- */
 .deck-hero .deck-title { display: flex; align-items: center; gap: 9px; }
 .deck-hero .rename { color: var(--faint); font-size: 13px; line-height: 1; background: none; border: 1px solid var(--edge); border-radius: 7px; padding: 5px 8px; cursor: pointer; transition: .2s; }
