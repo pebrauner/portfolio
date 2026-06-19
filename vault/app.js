@@ -34,6 +34,7 @@ let sellMatchOpen = false;    // sell list "match a pasted wants-list" panel (tr
 let sellMatchText = '';       // the pasted list text
 let sellMatchResult = null;   // { matches:[{name,want,have,price}], misses:[...] } | null
 let sellMatchLoading = false; // resolving the pasted list against Scryfall
+let ckById = null, ckByName = null, ckLoading = false;   // Card Kingdom price index (in-memory, per session)
 let invTile = clampTile(state.prefs.invTile);   // inventory gallery tile min-width (px)
 let buyTile = clampTile(state.prefs.buyTile);   // buy list gallery tile min-width (px)
 let sellTile = clampTile(state.prefs.sellTile); // sell list gallery tile min-width (px)
@@ -100,6 +101,8 @@ function migrate(s) {
   s.prefs.deckTile = clampTile(s.prefs.deckTile != null ? s.prefs.deckTile : 200);
   s.prefs.browseTile = clampTile(s.prefs.browseTile);
   s.prefs.showLegality = !!s.prefs.showLegality;
+  s.prefs.priceSource = (s.prefs.priceSource === 'ck') ? 'ck' : 'tcg';   // 'tcg' (TCGplayer) | 'ck' (Card Kingdom)
+  s.ckPrices ||= {};   // persisted per-collection CK cache: { nameKey: [retail, retailFoil] }
   return s;
 }
 function save() { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
@@ -149,14 +152,36 @@ function addToWishlist(name, n = 1) {
   save();
 }
 
-// Effective unit price of a card = the chosen display printing's price when set, else the fetched default.
-// This is what makes the displayed price follow the art the user picks.
+// ---- Card Kingdom prices (primary, when selected) with TCGplayer fallback ----
+const ckActive = () => state.prefs.priceSource === 'ck';
+// CK retail price (foil-aware) matched by scryfall id → set code → name; uses the in-memory
+// index when loaded this session, else the persisted per-collection cache (state.ckPrices).
+function ckLookup(id, setc, name, foil) {
+  const pick = e => e ? (foil ? (e[1] || e[0]) : e[0]) : 0;
+  if (ckById) {
+    if (id && ckById.has(id)) { const v = pick(ckById.get(id)); if (v > 0) return v; }
+    const bn = ckByName.get(key(name));
+    if (bn) { const v = pick((setc && bn.sets[setc]) || bn.min); if (v > 0) return v; }
+    return 0;
+  }
+  const c = state.ckPrices[key(name)];
+  return c ? pick(c) : 0;
+}
+function ckPriceOf(name, foil) {
+  const a = chosenArt(name), meta = card(name) || {};
+  return ckLookup((a && a.scryfallId) || meta.id, ((a && a.set) || meta.set || '').toUpperCase(), name, foil);
+}
+
+// Effective unit price = Card Kingdom retail when CK is the source & lists the card; else the
+// chosen display printing's price, else the fetched default (TCGplayer). Price follows the chosen art.
 function priceOf(name) {
+  if (ckActive()) { const ck = ckPriceOf(name, false); if (ck > 0) return ck; }
   const a = chosenArt(name);
   if (a && a.price > 0) return a.price;
   return card(name).price || 0;
 }
 function foilPriceOf(name) {
+  if (ckActive()) { const ck = ckPriceOf(name, true); if (ck > 0) return ck; }
   const a = chosenArt(name);
   if (a && a.price_foil > 0) return a.price_foil;
   if (a && a.price > 0) return a.price;            // chosen printing has no foil price → use its non-foil
@@ -164,7 +189,75 @@ function foilPriceOf(name) {
   return meta.price_foil || meta.price || 0;
 }
 function variantPrice(name, v) {
+  if (ckActive()) {
+    const setc = (v.set || (chosenArt(name) || {}).set || (card(name) || {}).set || '').toUpperCase();
+    const ck = ckLookup(v.scryfallId, setc, name, !!v.foil);
+    if (ck > 0) return ck;
+  }
   return v.foil ? foilPriceOf(name) : priceOf(name);
+}
+// Names whose CK price we persist for fast cross-session lookup (the user's actual collection).
+function ckRelevantNames() {
+  const names = new Set();
+  Object.keys(state.variants || {}).forEach(k => names.add(k));
+  (state.decks || []).forEach(d => (d.cards || []).forEach(c => names.add(key(c.name))));
+  Object.keys(state.wishlist || {}).forEach(k => names.add(k));
+  return names;
+}
+function persistCKForCollection() {
+  const out = {};
+  ckRelevantNames().forEach(nk => {
+    const name = (state.cards[nk] && state.cards[nk].name) || nk;
+    const nf = ckPriceOf(name, false), f = ckPriceOf(name, true);
+    if (nf > 0 || f > 0) out[nk] = [nf || 0, f || 0];
+  });
+  state.ckPrices = out;
+}
+// Fetch Card Kingdom's full pricelist (matched to Scryfall ids), build the in-memory index,
+// cache the collection's prices, and switch the app to CK pricing.
+async function refreshCKPrices() {
+  if (ckLoading) return;
+  ckLoading = true; renderPriceSrc();
+  try {
+    const res = await fetch('https://api.cardkingdom.com/api/pricelist');
+    if (!res.ok) throw new Error('CK ' + res.status);
+    const data = (await res.json()).data || [];
+    const byId = new Map(), byName = new Map();
+    for (const e of data) {
+      const r = parseFloat(e.price_retail) || 0;
+      if (r <= 0) continue;
+      const fi = (e.is_foil === 'true' || e.is_foil === true) ? 1 : 0;
+      if (e.scryfall_id) { const cur = byId.get(e.scryfall_id) || [0, 0]; cur[fi] = r; byId.set(e.scryfall_id, cur); }
+      const nk = String(e.name || '').toLowerCase();
+      let bn = byName.get(nk); if (!bn) { bn = { sets: {}, min: [0, 0] }; byName.set(nk, bn); }
+      const setc = String(e.sku || '').split('-')[0].toUpperCase();
+      if (setc) { const s = bn.sets[setc] || [0, 0]; s[fi] = r; bn.sets[setc] = s; }
+      if (!bn.min[fi] || r < bn.min[fi]) bn.min[fi] = r;
+    }
+    ckById = byId; ckByName = byName;
+    persistCKForCollection();
+    state.ckUpdated = Date.now();
+    state.prefs.priceSource = 'ck';
+    save(); render();
+    toast(`Card Kingdom prices loaded — ${byId.size.toLocaleString()} printings.`);
+  } catch (e) {
+    toast('Could not load Card Kingdom prices. Check your connection and try again.');
+  }
+  ckLoading = false; renderPriceSrc();
+}
+function renderPriceSrc() {
+  const el = $('#priceSrc'); if (!el) return;
+  el.querySelectorAll('[data-pricesrc]').forEach(b => b.classList.toggle('on', b.dataset.pricesrc === state.prefs.priceSource));
+  const ref = $('#ckRefresh');
+  if (ref) {
+    ref.classList.toggle('spinning', ckLoading);
+    const when = state.ckUpdated ? new Date(state.ckUpdated).toLocaleDateString() : 'never';
+    ref.title = ckLoading ? 'Loading Card Kingdom prices…' : `Refresh Card Kingdom prices (last: ${when})`;
+  }
+}
+function setPriceSource(src) {
+  if (src === 'ck' && !ckById && !(state.ckPrices && Object.keys(state.ckPrices).length)) { refreshCKPrices(); return; }
+  state.prefs.priceSource = src; save(); render();
 }
 function ownedValueOf(name) {
   return variantsOf(name).reduce((a, v) => a + variantPrice(name, v) * v.qty, 0);
@@ -370,6 +463,7 @@ function distill(c) {
   const usdFoil = parseFloat(prices.usd_foil || prices.usd || 0) || 0;
   return {
     name: c.name,
+    id: c.id || '',          // scryfall id of this printing (for exact Card Kingdom price matching)
     mana_cost: c.mana_cost || face.mana_cost || '',
     cmc: c.cmc ?? 0,
     type_line: c.type_line || face.type_line || '',
@@ -720,6 +814,7 @@ function render() {
   renderBuyList();
   renderSellList();
   renderBrowse();
+  renderPriceSrc();
 }
 
 function renderDecks() {
@@ -2895,6 +2990,12 @@ $('#cardViewMeta').addEventListener('click', e => {
   if (swapBtn) { revealSwaps(cardViewName, swapBtn); return; }
   const chip = e.target.closest('.cv-swap-chip');
   if (chip) openCardView(chip.dataset.swap);
+});
+const priceSrcEl = $('#priceSrc');
+if (priceSrcEl) priceSrcEl.addEventListener('click', e => {
+  if (e.target.closest('#ckRefresh')) { refreshCKPrices(); return; }
+  const opt = e.target.closest('[data-pricesrc]');
+  if (opt) setPriceSource(opt.dataset.pricesrc);
 });
 $('#exportBtn').addEventListener('click', exportBackup);
 $('#importFileBtn').addEventListener('click', () => $('#restoreInput').click());

@@ -38,6 +38,12 @@
       <button class="tab" data-view="browse"><i class="ms ms-ability-investigate tab-ico" aria-hidden="true"></i>Browse</button>
     </nav>
     <div class="topbar-actions">
+      <div class="price-src" id="priceSrc" title="Which price source the whole app uses">
+        <span class="ps-label">Prices</span>
+        <button class="ps-opt" data-pricesrc="tcg">TCG</button>
+        <button class="ps-opt" data-pricesrc="ck">CK</button>
+        <button class="ps-refresh" id="ckRefresh" aria-label="Refresh Card Kingdom prices">↻</button>
+      </div>
       <button class="btn ghost" id="exportBtn" title="Export backup"><i class="ms ms-loyalty-down btn-ico" aria-hidden="true"></i>Export</button>
       <button class="btn ghost" id="importFileBtn" title="Import backup"><i class="ms ms-loyalty-up btn-ico" aria-hidden="true"></i>Restore</button>
       <button class="btn gold" id="newDeckBtn"><i class="ms ms-saga btn-ico" aria-hidden="true"></i>Import Deck</button>
