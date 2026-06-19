@@ -1072,7 +1072,8 @@ html[data-theme="ember"] .topbar { background: linear-gradient(180deg, rgba(31,1
 .ve-sell.on { background: linear-gradient(180deg, var(--gold-soft), var(--gold)); color: var(--ink); border-color: var(--gold-soft); }
 .ve-sell.on .ms { color: var(--ink); }
 /* sell list rows */
-.sell-row { gap: 12px; }
+/* sell rows have no leading checkbox — name(1fr), stepper, price, Sold, ✕ */
+.sell-row { grid-template-columns: 1fr auto auto auto auto; gap: 12px; }
 .sell-row .sell-warn { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--warn); margin-left: 4px; }
 .sell-row .sell-warn .ms { font-size: 12px; }
 .sell-row .price { text-align: right; }
