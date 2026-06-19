@@ -33,6 +33,7 @@ let sellSort = 'price-desc';  // sell list sort (same vocabulary as buySort)
 let sellMatchOpen = false;    // sell list "match a pasted wants-list" panel (transient)
 let sellMatchText = '';       // the pasted list text
 let sellMatchResult = null;   // { matches:[{name,want,have,price}], misses:[...] } | null
+let sellMatchLoading = false; // resolving the pasted list against Scryfall
 let invTile = clampTile(state.prefs.invTile);   // inventory gallery tile min-width (px)
 let buyTile = clampTile(state.prefs.buyTile);   // buy list gallery tile min-width (px)
 let sellTile = clampTile(state.prefs.sellTile); // sell list gallery tile min-width (px)
@@ -2548,9 +2549,10 @@ function renderSellPicker() {
 function closeSellPicker() { const m = $('#sellPickMenu'); if (m) m.hidden = true; sellPickTarget = null; }
 
 /* ---------- match a pasted wants-list against your collection ---------- */
-function matchList(text) {
+// Build the {matches, misses} report from a list of {name, qty} (names already canonical).
+function buildMatchResult(wantList) {
   const want = new Map();
-  parseDecklist(text || '').forEach(p => {
+  wantList.forEach(p => {
     const k = key(p.name);
     if (want.has(k)) want.get(k).qty += p.qty; else want.set(k, { name: p.name, qty: p.qty });
   });
@@ -2563,10 +2565,22 @@ function matchList(text) {
   misses.sort((a, b) => a.name.localeCompare(b.name));
   return { matches, misses };
 }
-function runSellMatch() {
+function matchList(text) { return buildMatchResult(parseDecklist(text || '')); }
+// Resolve the pasted names through Scryfall (canonicalises DFCs / odd spellings / accents,
+// and fetches prices) so matching against the collection is reliable — same as deck import.
+async function runSellMatch() {
   const ta = $('#sellMatchInput'); if (ta) sellMatchText = ta.value;
-  sellMatchResult = matchList(sellMatchText);
-  renderSellList();
+  const parsed = parseDecklist(sellMatchText || '');
+  if (!parsed.length) { sellMatchResult = { matches: [], misses: [] }; renderSellList(); return; }
+  sellMatchLoading = true; renderSellList();
+  try {
+    const { resolved } = await resolveCards(parsed.map(p => ({ name: p.name, qty: p.qty })));
+    sellMatchResult = buildMatchResult(resolved);
+  } catch (e) {
+    sellMatchResult = buildMatchResult(parsed);   // fall back to local exact-name match
+    toast('Scryfall lookup failed — matched names locally instead.');
+  }
+  sellMatchLoading = false; renderSellList();
 }
 function copyMatchHaves() {
   if (!sellMatchResult || !sellMatchResult.matches.length) { toast('Nothing to copy — no matches.'); return; }
@@ -2598,14 +2612,17 @@ function renderMatchResults() {
     ${r.misses.length ? `<div class="sm-sec">Not owned · ${r.misses.length}</div><div class="sm-list">${r.misses.map(missRow).join('')}</div>` : ''}`;
 }
 function sellMatchPanel() {
+  const results = sellMatchLoading
+    ? `<div class="sm-loading"><span class="spin"></span><span>Looking the list up on Scryfall…</span></div>`
+    : renderMatchResults();
   return `<div class="sell-match">
     <div class="sm-intro">Paste a wants-list (Moxfield / Archidekt export, or “1 Card Name” per line) and match it against everything you own.</div>
     <textarea id="sellMatchInput" class="sm-input" placeholder="Paste a list — one card per line, e.g.  1 Lightning Bolt" spellcheck="false">${esc(sellMatchText)}</textarea>
     <div class="sm-controls">
-      <button class="btn" id="sellMatchRun"><i class="ms ms-ability-investigate" aria-hidden="true"></i> Match against my collection</button>
+      <button class="btn" id="sellMatchRun" ${sellMatchLoading ? 'disabled' : ''}><i class="ms ms-ability-investigate" aria-hidden="true"></i> Match against my collection</button>
       <button class="btn ghost" id="sellMatchClear">Clear</button>
     </div>
-    <div class="sm-results">${renderMatchResults()}</div>
+    <div class="sm-results">${results}</div>
   </div>`;
 }
 function sellCompare(sort) {

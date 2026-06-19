@@ -1035,6 +1035,7 @@ html[data-theme="ember"] .topbar { background: linear-gradient(180deg, rgba(31,1
 .sm-price { font-family: var(--mono); font-size: 12.5px; color: var(--gold-soft); min-width: 56px; text-align: right; }
 .sm-x { font-family: var(--label); font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--faint); }
 .sm-empty { font-size: 13px; color: var(--faint); padding: 8px 2px; }
+.sm-loading { display: flex; align-items: center; gap: 11px; padding: 22px 2px; color: var(--muted); font-size: 13px; }
 
 .art-tile.inv, .art-tile.sell { position: relative; }
 .art-tile.inv .art-open, .art-tile.sell .art-open { display: block; width: 100%; background: none; border: none; padding: 0; margin: 0; text-align: left; font: inherit; color: inherit; cursor: pointer; }
