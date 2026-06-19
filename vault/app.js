@@ -16,6 +16,8 @@ function clampTile(n) { n = Number(n); if (!Number.isFinite(n)) return TILE_DEF;
 let state = load();
 let currentDeckId = null;
 let invSearch = '';
+let buySearch = '';           // Buy List name filter (view-only; export/copy stay full)
+let sellSearch = '';          // Sell List name filter (view-only)
 let invFilter = 'all';
 let invFacet = null;   // { kind:'guild', colors:['R','G'], label:'Gruul' } | { kind:'tribe', value:'Goblin' }
 let invColors = [];    // selected colour filters, e.g. ['R','G']; 'C' = colourless
@@ -1580,7 +1582,10 @@ function renderBuyList() {
     return;
   }
   const decks = buyDecksActive();
-  const names = allCardNames().filter(n => requiredFor(n, decks) > ownedOf(n));
+  let names = allCardNames().filter(n => requiredFor(n, decks) > ownedOf(n));
+  const q = buySearch.trim().toLowerCase();
+  const se = $('#buySearch'); if (se && se.value !== buySearch) se.value = buySearch;
+  if (q) names = names.filter(n => n.toLowerCase().includes(q));
   names.sort(buyCompare(buySort, decks));
   let total = 0, copies = 0, picked = 0, pickedCost = 0;
   const rowData = names.map(n => {
@@ -1595,10 +1600,11 @@ function renderBuyList() {
   const deckCount = new Set(names.flatMap(n => decks.filter(d => d.cards.some(c => key(c.name) === key(n))).map(d => d.id))).size;
   const selecting = picked !== copies;
   $('#buyListSub').textContent = names.length
-    ? (selecting
+    ? ((selecting
         ? `${picked} of ${copies} cards selected · ${money(pickedCost)} of ${money(total)}`
-        : `${copies} cards across ${deckCount} deck${deckCount === 1 ? '' : 's'} · ${money(total)} total`)
-    : (buyDeckSel.length ? 'Nothing to buy for the selected decks.' : 'Nothing to buy — every deck is complete.');
+        : `${copies} cards across ${deckCount} deck${deckCount === 1 ? '' : 's'} · ${money(total)} total`) + (q ? ` · matching “${buySearch.trim()}”` : ''))
+    : (q ? `No buy-list cards match “${buySearch.trim()}”.`
+         : (buyDeckSel.length ? 'Nothing to buy for the selected decks.' : 'Nothing to buy — every deck is complete.'));
 
   const table = $('#buyTable');
   table.classList.toggle('gallery', buyMode === 'art');
@@ -1606,7 +1612,9 @@ function renderBuyList() {
   const buySizeWrap = $('#buySizeWrap');
   if (buySizeWrap) { buySizeWrap.hidden = buyMode !== 'art'; const r = $('#buySizeRange'); if (r) r.value = buyTile; }
   if (!names.length) {
-    table.innerHTML = `<div class="empty-state"><span class="empty-mark"><i class="ms ms-counter-shield" aria-hidden="true"></i></span><h2>Fully stocked</h2><p>You own everything your decks require.</p></div>`;
+    table.innerHTML = q
+      ? `<div class="empty-state"><span class="empty-mark"><i class="ms ms-ability-investigate" aria-hidden="true"></i></span><h2>No matches</h2><p>No buy-list cards match “${esc(buySearch.trim())}”.</p></div>`
+      : `<div class="empty-state"><span class="empty-mark"><i class="ms ms-counter-shield" aria-hidden="true"></i></span><h2>Fully stocked</h2><p>You own everything your decks require.</p></div>`;
   } else if (buyMode === 'art') {
     table.innerHTML = rowData.map(buyArtTile).join('');
   } else {
@@ -2933,14 +2941,17 @@ function renderSellList() {
     const t = $('#sellTable'); if (t) { t.classList.remove('gallery'); t.innerHTML = sellMatchPanel(); }
     return;
   }
-  const rows = sellRows();
+  let rows = sellRows();
+  const q = sellSearch.trim().toLowerCase();
+  const ss = $('#sellSearch'); if (ss && ss.value !== sellSearch) ss.value = sellSearch;
+  if (q) rows = rows.filter(r => r.name.toLowerCase().includes(q));
   rows.sort(sellCompare(sellSort));
   const copies = rows.reduce((a, r) => a + r.qty, 0);
   const total = rows.reduce((a, r) => a + r.sub, 0);
   const sub = $('#sellListSub');
   if (sub) sub.textContent = rows.length
-    ? `“${sellListName()}” · ${copies} cop${copies === 1 ? 'y' : 'ies'} of ${rows.length} card${rows.length === 1 ? '' : 's'} · ${money(total)} at market`
-    : `“${sellListName()}” is empty.`;
+    ? `“${sellListName()}” · ${copies} cop${copies === 1 ? 'y' : 'ies'} of ${rows.length} card${rows.length === 1 ? '' : 's'} · ${money(total)} at market${q ? ` · matching “${sellSearch.trim()}”` : ''}`
+    : (q ? `No cards in “${sellListName()}” match “${sellSearch.trim()}”.` : `“${sellListName()}” is empty.`);
   const table = $('#sellTable');
   if (!table) return;
   table.classList.toggle('gallery', sellMode === 'art');
@@ -2948,7 +2959,9 @@ function renderSellList() {
   const wrap = $('#sellSizeWrap');
   if (wrap) { wrap.hidden = sellMode !== 'art'; const r = $('#sellSizeRange'); if (r) r.value = sellTile; }
   if (!rows.length) {
-    table.innerHTML = `<div class="empty-state"><span class="empty-mark"><i class="ms ms-counter-gold" aria-hidden="true"></i></span><h2>Nothing listed for sale</h2><p>List cards from your Inventory (each card has a “Sell” button), or add everything you’re not using in a deck.</p><button class="btn" data-selladd><i class="ms ms-land btn-ico" aria-hidden="true"></i> Add all unlinked cards</button></div>`;
+    table.innerHTML = q
+      ? `<div class="empty-state"><span class="empty-mark"><i class="ms ms-ability-investigate" aria-hidden="true"></i></span><h2>No matches</h2><p>No cards in “${esc(sellListName())}” match “${esc(sellSearch.trim())}”.</p></div>`
+      : `<div class="empty-state"><span class="empty-mark"><i class="ms ms-counter-gold" aria-hidden="true"></i></span><h2>Nothing listed for sale</h2><p>List cards from your Inventory (each card has a “Sell” button), or add everything you’re not using in a deck.</p><button class="btn" data-selladd><i class="ms ms-land btn-ico" aria-hidden="true"></i> Add all unlinked cards</button></div>`;
     return;
   }
   if (sellMode === 'art') {
@@ -3320,6 +3333,7 @@ const copySellBtn = $('#copySellBtn');     if (copySellBtn) copySellBtn.addEvent
 const exportSellPdfBtn = $('#exportSellPdfBtn'); if (exportSellPdfBtn) exportSellPdfBtn.addEventListener('click', exportSellPDF);
 const sellAddUnlinkedBtn = $('#sellAddUnlinkedBtn'); if (sellAddUnlinkedBtn) sellAddUnlinkedBtn.addEventListener('click', addUnlinkedToSell);
 const sellMarkAllBtn = $('#sellMarkAllBtn'); if (sellMarkAllBtn) sellMarkAllBtn.addEventListener('click', markAllSold);
+const sellSearchEl = $('#sellSearch'); if (sellSearchEl) sellSearchEl.addEventListener('input', e => { sellSearch = e.target.value; renderSellList(); });
 const sellMatchBtn = $('#sellMatchBtn'); if (sellMatchBtn) sellMatchBtn.addEventListener('click', () => { sellMatchOpen = !sellMatchOpen; renderSellList(); });
 const sellTableEl = $('#sellTable');
 if (sellTableEl) {
@@ -3457,6 +3471,7 @@ $('#buyTable').addEventListener('change', e => {
   if (pick.checked) buyExclude.delete(k); else buyExclude.add(k);
   renderBuyList();
 });
+const buySearchEl = $('#buySearch'); if (buySearchEl) buySearchEl.addEventListener('input', e => { buySearch = e.target.value; renderBuyList(); });
 const buyMatchBtn = $('#buyMatchBtn'); if (buyMatchBtn) buyMatchBtn.addEventListener('click', () => { buyMatchOpen = !buyMatchOpen; renderBuyList(); });
 $('#buyTable').addEventListener('click', e => {
   const got = e.target.closest('[data-bought]');
