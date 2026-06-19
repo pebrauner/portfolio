@@ -34,7 +34,7 @@ let sellMatchOpen = false;    // sell list "match a pasted wants-list" panel (tr
 let sellMatchText = '';       // the pasted list text
 let sellMatchResult = null;   // { matches:[{name,want,have,price}], misses:[...] } | null
 let sellMatchLoading = false; // resolving the pasted list against Scryfall
-let ckById = null, ckByName = null, ckLoading = false;   // Card Kingdom price index (in-memory, per session)
+let ckById = null, ckBySku = null, ckLoading = false;   // Card Kingdom price index (in-memory, per session): by scryfall id & by "SET-COLLECTOR"
 let invTile = clampTile(state.prefs.invTile);   // inventory gallery tile min-width (px)
 let buyTile = clampTile(state.prefs.buyTile);   // buy list gallery tile min-width (px)
 let sellTile = clampTile(state.prefs.sellTile); // sell list gallery tile min-width (px)
@@ -103,6 +103,7 @@ function migrate(s) {
   s.prefs.showLegality = !!s.prefs.showLegality;
   s.prefs.priceSource = (s.prefs.priceSource === 'ck') ? 'ck' : 'tcg';   // 'tcg' (TCGplayer) | 'ck' (Card Kingdom)
   s.ckPrices ||= {};   // persisted per-collection CK cache: { nameKey: [retail, retailFoil] }
+  if (s.ckCacheV !== 2) { s.ckPrices = {}; s.ckCacheV = 2; }   // drop pre-fix (imprecise) CK cache
   return s;
 }
 function save() { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
@@ -154,22 +155,26 @@ function addToWishlist(name, n = 1) {
 
 // ---- Card Kingdom prices (primary, when selected) with TCGplayer fallback ----
 const ckActive = () => state.prefs.priceSource === 'ck';
-// CK retail price (foil-aware) matched by scryfall id → set code → name; uses the in-memory
-// index when loaded this session, else the persisted per-collection cache (state.ckPrices).
-function ckLookup(id, setc, name, foil) {
+// CK retail (foil-aware) matched STRICTLY to the exact printing: scryfall id first, then exact
+// set code + collector number (CK's `sku`). NO coarse name/set fallback — a card can have several
+// printings in one set at very different prices, so set-code alone would pick the wrong one.
+// Returns 0 ("no precise CK price → use TCGplayer") rather than guessing.
+function ckLookup(id, setc, coll, name, foil) {
   const pick = e => e ? (foil ? (e[1] || e[0]) : e[0]) : 0;
   if (ckById) {
-    if (id && ckById.has(id)) { const v = pick(ckById.get(id)); if (v > 0) return v; }
-    const bn = ckByName.get(key(name));
-    if (bn) { const v = pick((setc && bn.sets[setc]) || bn.min); if (v > 0) return v; }
+    if (id) { const v = pick(ckById.get(id)); if (v > 0) return v; }
+    if (setc && coll) { const v = pick(ckBySku.get(`${setc}-${coll}`.toUpperCase())); if (v > 0) return v; }
     return 0;
   }
-  const c = state.ckPrices[key(name)];
+  const c = state.ckPrices[key(name)];   // cross-session cache (by name = the card's default printing)
   return c ? pick(c) : 0;
 }
 function ckPriceOf(name, foil) {
   const a = chosenArt(name), meta = card(name) || {};
-  return ckLookup((a && a.scryfallId) || meta.id, ((a && a.set) || meta.set || '').toUpperCase(), name, foil);
+  const id = (a && a.scryfallId) || meta.id;
+  const setc = ((a && a.set) || meta.set || '').toUpperCase();
+  const coll = (a && a.collector) || meta.collector || '';
+  return ckLookup(id, setc, coll, name, foil);
 }
 
 // Effective unit price = Card Kingdom retail when CK is the source & lists the card; else the
@@ -190,8 +195,11 @@ function foilPriceOf(name) {
 }
 function variantPrice(name, v) {
   if (ckActive()) {
-    const setc = (v.set || (chosenArt(name) || {}).set || (card(name) || {}).set || '').toUpperCase();
-    const ck = ckLookup(v.scryfallId, setc, name, !!v.foil);
+    const a = chosenArt(name), meta = card(name) || {};
+    const id = v.scryfallId || (a && a.scryfallId) || meta.id;
+    const setc = (v.set || (a && a.set) || meta.set || '').toUpperCase();
+    const coll = v.collector || (a && a.collector) || meta.collector || '';
+    const ck = ckLookup(id, setc, coll, name, !!v.foil);
     if (ck > 0) return ck;
   }
   return v.foil ? foilPriceOf(name) : priceOf(name);
@@ -215,32 +223,43 @@ function persistCKForCollection() {
 }
 // Fetch Card Kingdom's full pricelist (matched to Scryfall ids), build the in-memory index,
 // cache the collection's prices, and switch the app to CK pricing.
-async function refreshCKPrices() {
-  if (ckLoading) return;
-  ckLoading = true; renderPriceSrc();
+// Fetch CK's pricelist and build the in-memory exact-match indexes (no side effects beyond them).
+async function ensureCKIndex(force) {
+  if (ckById && !force) return true;
   try {
     const res = await fetch('https://api.cardkingdom.com/api/pricelist');
     if (!res.ok) throw new Error('CK ' + res.status);
     const data = (await res.json()).data || [];
-    const byId = new Map(), byName = new Map();
+    const byId = new Map(), bySku = new Map();
     for (const e of data) {
       const r = parseFloat(e.price_retail) || 0;
       if (r <= 0) continue;
       const fi = (e.is_foil === 'true' || e.is_foil === true) ? 1 : 0;
       if (e.scryfall_id) { const cur = byId.get(e.scryfall_id) || [0, 0]; cur[fi] = r; byId.set(e.scryfall_id, cur); }
-      const nk = String(e.name || '').toLowerCase();
-      let bn = byName.get(nk); if (!bn) { bn = { sets: {}, min: [0, 0] }; byName.set(nk, bn); }
-      const setc = String(e.sku || '').split('-')[0].toUpperCase();
-      if (setc) { const s = bn.sets[setc] || [0, 0]; s[fi] = r; bn.sets[setc] = s; }
-      if (!bn.min[fi] || r < bn.min[fi]) bn.min[fi] = r;
+      if (e.sku) { const sk = String(e.sku).toUpperCase(); const cur = bySku.get(sk) || [0, 0]; cur[fi] = r; bySku.set(sk, cur); }
     }
-    ckById = byId; ckByName = byName;
+    ckById = byId; ckBySku = bySku;
+    return true;
+  } catch (e) { return false; }
+}
+// Full refresh from the price control: rebuild the index, back-fill scryfall ids on old cached
+// cards (so CK matches the EXACT printing, not a guess), re-cache, and switch the app to CK.
+async function refreshCKPrices() {
+  if (ckLoading) return;
+  ckLoading = true; renderPriceSrc();
+  ckById = null; ckBySku = null;
+  const ok = await ensureCKIndex(true);
+  if (ok) {
+    const needIds = [...ckRelevantNames()]
+      .filter(nk => !state.cards[nk] || !state.cards[nk].id)
+      .map(nk => ({ name: (state.cards[nk] && state.cards[nk].name) || nk, qty: 1 }));
+    if (needIds.length) { try { await resolveCards(needIds); } catch (e) { /* keep what we can */ } }
     persistCKForCollection();
     state.ckUpdated = Date.now();
     state.prefs.priceSource = 'ck';
     save(); render();
-    toast(`Card Kingdom prices loaded — ${byId.size.toLocaleString()} printings.`);
-  } catch (e) {
+    toast(`Card Kingdom prices loaded — ${ckById.size.toLocaleString()} printings.`);
+  } else {
     toast('Could not load Card Kingdom prices. Check your connection and try again.');
   }
   ckLoading = false; renderPriceSrc();
@@ -464,6 +483,7 @@ function distill(c) {
   return {
     name: c.name,
     id: c.id || '',          // scryfall id of this printing (for exact Card Kingdom price matching)
+    collector: c.collector_number || '',   // for exact set+collector (CK sku) matching
     mana_cost: c.mana_cost || face.mana_cost || '',
     cmc: c.cmc ?? 0,
     type_line: c.type_line || face.type_line || '',
@@ -1902,6 +1922,14 @@ async function revealPrintings(name) {
   const prints = await loadPrintings(name);
   if (cardViewName !== name || !$('#cvArtStrip')) return;
   if (!prints.length) { $('#cvArtStrip').innerHTML = `<span class="cv-art-empty">No alternate printings found.</span>`; return; }
+  // With CK pricing on, load the CK index so each printing shows its exact CK price (and the
+  // main price re-syncs to CK for the chosen printing).
+  if (ckActive() && !ckById) {
+    $('#cvArtStrip').innerHTML = `<span class="spin"></span><span class="cv-cheap-label">Loading Card Kingdom prices…</span>`;
+    await ensureCKIndex();
+    if (cardViewName !== name || !$('#cvArtStrip')) return;
+    const pe = $('#cvPrices'); if (pe) pe.innerHTML = pricesHtml(name);
+  }
   $('#cvArtStrip').innerHTML = `<input type="text" id="cvArtSearch" class="cv-art-search" placeholder="Filter printings — set, name or № (e.g. “MH2 376”)" autocomplete="off" spellcheck="false" />
     <div class="cv-art-results" id="cvArtResults"></div>`;
   renderPrintings(name, '');
@@ -1927,10 +1955,11 @@ function renderPrintings(name, q) {
     .map(({ p, i }) => {
       const on = curId ? p.id === curId : p.set === curSet;
       const owned = ownsPrinting(p);
-      return `<button type="button" class="cv-art ${on ? 'on' : ''}${owned ? ' owned' : ''}" data-printidx="${i}" title="${esc(p.set_name || p.set)}${p.collector ? ' · #' + esc(p.collector) : ''}${owned ? ' · owned' : ''}${p.price ? ' · ' + money(p.price) : ''}">
+      const pr = (ckActive() && ckById) ? ((ckById.get(p.id) || [0])[0] || 0) : p.price;   // CK retail per printing when CK active
+      return `<button type="button" class="cv-art ${on ? 'on' : ''}${owned ? ' owned' : ''}" data-printidx="${i}" title="${esc(p.set_name || p.set)}${p.collector ? ' · #' + esc(p.collector) : ''}${owned ? ' · owned' : ''}${pr ? ' · ' + money(pr) : ''}">
         <img src="${esc(p.small)}" alt="${esc(p.set_name)}" loading="lazy"/>
         <span class="cv-art-set">${esc(p.set)}${p.collector ? ' ' + esc(p.collector) : ''}</span>
-        <span class="cv-art-price">${p.price ? money(p.price) : '—'}</span>
+        <span class="cv-art-price">${pr ? money(pr) : '—'}</span>
       </button>`;
     }).join('');
   box.innerHTML = html || `<span class="cv-art-empty">No printing matches “${esc(q)}”.</span>`;
