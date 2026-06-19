@@ -34,6 +34,10 @@ let sellMatchOpen = false;    // sell list "match a pasted wants-list" panel (tr
 let sellMatchText = '';       // the pasted list text
 let sellMatchResult = null;   // { matches:[{name,want,have,price}], misses:[...] } | null
 let sellMatchLoading = false; // resolving the pasted list against Scryfall
+let buyMatchOpen = false;     // buy list "match a seller's haves-list" panel (transient)
+let buyMatchText = '';        // the pasted seller list text
+let buyMatchResult = null;    // { wants:[{name,have,need,price}], skip:[...] } | null
+let buyMatchLoading = false;  // resolving the pasted list against Scryfall
 let ckById = null, ckBySku = null, ckLoading = false;   // Card Kingdom price index (in-memory, per session): by scryfall id & by "SET-COLLECTOR"
 let invTile = clampTile(state.prefs.invTile);   // inventory gallery tile min-width (px)
 let buyTile = clampTile(state.prefs.buyTile);   // buy list gallery tile min-width (px)
@@ -1566,6 +1570,13 @@ function colorGroupLabel(n) {
 
 function renderBuyList() {
   renderBuyDeckFilter();
+  const matchBtn = $('#buyMatchBtn'); if (matchBtn) matchBtn.classList.toggle('on', buyMatchOpen);
+  if (buyMatchOpen) {
+    if ($('#buyListSub')) $('#buyListSub').textContent = 'Paste a seller’s list to see what you’d buy.';
+    const wrap = $('#buySizeWrap'); if (wrap) wrap.hidden = true;
+    const t = $('#buyTable'); if (t) { t.classList.remove('gallery'); t.innerHTML = buyMatchPanel(); }
+    return;
+  }
   const decks = buyDecksActive();
   const names = allCardNames().filter(n => requiredFor(n, decks) > ownedOf(n));
   names.sort(buyCompare(buySort, decks));
@@ -2749,6 +2760,71 @@ function sellMatchPanel() {
     <div class="sm-results">${results}</div>
   </div>`;
 }
+// ── Buy list "match a seller's list" — the mirror of the sell matcher. Paste a
+// list someone has FOR SALE and see which of those cards are on your buy list
+// (still needed for your active decks / wishlist), with how many you'd take.
+function buildBuyMatchResult(haveList) {
+  const decks = buyDecksActive();
+  const offered = new Map();
+  haveList.forEach(p => {
+    const k = key(p.name);
+    if (offered.has(k)) offered.get(k).qty += p.qty; else offered.set(k, { name: p.name, qty: p.qty });
+  });
+  const wants = [], skip = [];
+  offered.forEach(o => {
+    const need = requiredFor(o.name, decks) - ownedOf(o.name);
+    (need > 0 ? wants : skip).push({ name: o.name, have: o.qty, need: Math.max(0, need), price: priceOf(o.name) });
+  });
+  wants.sort((a, b) => (b.price * Math.min(b.have, b.need)) - (a.price * Math.min(a.have, a.need)) || a.name.localeCompare(b.name));
+  skip.sort((a, b) => a.name.localeCompare(b.name));
+  return { wants, skip };
+}
+async function runBuyMatch() {
+  const ta = $('#buyMatchInput'); if (ta) buyMatchText = ta.value;
+  const parsed = parseDecklist(buyMatchText || '');
+  if (!parsed.length) { buyMatchResult = { wants: [], skip: [] }; renderBuyList(); return; }
+  buyMatchLoading = true; renderBuyList();
+  try {
+    const { resolved } = await resolveCards(parsed.map(p => ({ name: p.name, qty: p.qty })));
+    buyMatchResult = buildBuyMatchResult(resolved);
+  } catch (e) {
+    buyMatchResult = buildBuyMatchResult(parsed);   // fall back to local exact-name match
+    toast('Scryfall lookup failed — matched names locally instead.');
+  }
+  buyMatchLoading = false; renderBuyList();
+}
+function copyBuyMatchWants() {
+  if (!buyMatchResult || !buyMatchResult.wants.length) { toast('Nothing to copy — no matches.'); return; }
+  const text = buyMatchResult.wants.map(w => `${Math.min(w.have, w.need)} ${w.name}${w.price ? ` — ${money(w.price)} ea` : ''}`).join('\n');
+  copyText(text).then(ok => toast(ok ? `Copied ${buyMatchResult.wants.length} card${buyMatchResult.wants.length === 1 ? '' : 's'} you want.` : 'Could not access the clipboard.'));
+}
+function renderBuyMatchResults() {
+  const r = buyMatchResult; if (!r) return '';
+  const total = r.wants.length + r.skip.length;
+  if (!total) return `<div class="sm-summary">No cards found in that list — paste a Moxfield / Archidekt export (one card per line).</div>`;
+  const cost = r.wants.reduce((a, w) => a + Math.min(w.have, w.need) * w.price, 0);
+  const buyCopies = r.wants.reduce((a, w) => a + Math.min(w.have, w.need), 0);
+  const wantRow = w => `<div class="sm-row have"><span class="sm-name nm" data-name="${esc(w.name)}" title="${esc(w.name)}">${esc(w.name)}</span><span class="sm-qty">they have ${w.have} · <b class="sm-have">you need ${w.need}</b></span><span class="sm-price">${w.price ? money(w.price) : '—'}</span></div>`;
+  const skipRow = s => `<div class="sm-row miss"><span class="sm-name nm" data-name="${esc(s.name)}" title="${esc(s.name)}">${esc(s.name)}</span><span class="sm-qty">they have ${s.have}</span><span class="sm-x">don’t need</span></div>`;
+  return `<div class="sm-summary">You’d buy <b>${r.wants.length}</b> of the <b>${total}</b> offered · ${buyCopies} cop${buyCopies === 1 ? 'y' : 'ies'} · <b>${money(cost)}</b></div>
+    ${r.wants.length ? `<div class="sm-act"><button class="btn ghost" id="buyMatchCopy">⧉ Copy what you want</button></div>` : ''}
+    ${r.wants.length ? `<div class="sm-sec">You want · ${r.wants.length}</div><div class="sm-list">${r.wants.map(wantRow).join('')}</div>` : `<div class="sm-empty">Nothing on that list is on your buy list.</div>`}
+    ${r.skip.length ? `<div class="sm-sec">Don’t need · ${r.skip.length}</div><div class="sm-list">${r.skip.map(skipRow).join('')}</div>` : ''}`;
+}
+function buyMatchPanel() {
+  const results = buyMatchLoading
+    ? `<div class="sm-loading"><span class="spin"></span><span>Looking the list up on Scryfall…</span></div>`
+    : renderBuyMatchResults();
+  return `<div class="sell-match">
+    <div class="sm-intro">Paste a list someone has <b>for sale</b> (Moxfield / Archidekt export, or “1 Card Name” per line) — I’ll show which of those cards you still need for your decks &amp; wishlist.</div>
+    <textarea id="buyMatchInput" class="sm-input" placeholder="Paste a seller’s list — one card per line, e.g.  1 Lightning Bolt" spellcheck="false">${esc(buyMatchText)}</textarea>
+    <div class="sm-controls">
+      <button class="btn" id="buyMatchRun" ${buyMatchLoading ? 'disabled' : ''}><i class="ms ms-ability-investigate" aria-hidden="true"></i> Match against my buy list</button>
+      <button class="btn ghost" id="buyMatchClear">Clear</button>
+    </div>
+    <div class="sm-results">${results}</div>
+  </div>`;
+}
 function sellCompare(sort) {
   const byName = (a, b) => a.name.localeCompare(b.name);
   const colorKey = r => { const cs = card(r.name).colors || []; if (!cs.length) return COLOR_ORDER.indexOf('C'); if (cs.length > 1) return COLOR_ORDER.length + cs.length; return COLOR_ORDER.indexOf(cs[0]); };
@@ -3328,10 +3404,15 @@ $('#buyTable').addEventListener('change', e => {
   if (pick.checked) buyExclude.delete(k); else buyExclude.add(k);
   renderBuyList();
 });
+const buyMatchBtn = $('#buyMatchBtn'); if (buyMatchBtn) buyMatchBtn.addEventListener('click', () => { buyMatchOpen = !buyMatchOpen; renderBuyList(); });
 $('#buyTable').addEventListener('click', e => {
   const got = e.target.closest('[data-bought]');
-  if (got) { e.stopPropagation(); markBought(got.dataset.bought); }
+  if (got) { e.stopPropagation(); markBought(got.dataset.bought); return; }
+  if (e.target.closest('#buyMatchRun')) { runBuyMatch(); return; }
+  if (e.target.closest('#buyMatchClear')) { buyMatchText = ''; buyMatchResult = null; renderBuyList(); return; }
+  if (e.target.closest('#buyMatchCopy')) { copyBuyMatchWants(); return; }
 });
+$('#buyTable').addEventListener('input', e => { if (e.target.id === 'buyMatchInput') buyMatchText = e.target.value; });
 
 $('#forgeBody').addEventListener('click', e => {
   const chip = e.target.closest('.sug-chip');
