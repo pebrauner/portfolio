@@ -38,6 +38,7 @@ let deckTile = clampTile(state.prefs.deckTile); // stacks-view column width (px)
 let deckEdit = false;                            // deck-detail recipe-editing mode (transient)
 let deckShowOriginal = false;                    // deck-detail "original list" diff panel (transient)
 let deckPendingDelete = null;                    // deck id awaiting delete confirmation (transient)
+let deckCardFilter = 'all';                      // deck-detail card filter: 'all' | 'owned' | 'missing' (transient)
 let deckAcItems = [], deckAcSeq = 0;             // add-card autocomplete state
 // --- Browse (Scryfall search) — transient, in-memory only ---
 let browseQuery = '';                            // last raw user text
@@ -758,8 +759,12 @@ function renderDeckDetail() {
   const s = deckStats(deck);
 
   const cmd = deckCommander(deck);
+  const ownedCount = deck.cards.filter(c => ownedOf(c.name) > 0).length;
+  const missingCount = deck.cards.length - ownedCount;
+  const cardShown = (name) => deckCardFilter === 'all' || (deckCardFilter === 'owned' ? ownedOf(name) > 0 : ownedOf(name) <= 0);
+  const showCmd = !!cmd && cardShown(cmd);
   const groups = {};
-  deck.cards.forEach(c => { if (cmd && key(c.name) === key(cmd)) return; (groups[category(c.name)] ||= []).push(c); });
+  deck.cards.forEach(c => { if (cmd && key(c.name) === key(cmd)) return; if (!cardShown(c.name)) return; (groups[category(c.name)] ||= []).push(c); });
 
   let body = `<div class="deck-hero">
     <div>
@@ -773,6 +778,11 @@ function renderDeckDetail() {
     <div class="seg" id="deckViewMode" title="Switch between a text list and stacked card art">
       <button class="seg-btn ${deckView === 'stacks' ? 'is-active' : ''}" data-mode="stacks"><i class="ms ms-token" aria-hidden="true"></i> Stacks</button>
       <button class="seg-btn ${deckView === 'list' ? 'is-active' : ''}" data-mode="list"><i class="ms ms-multiple" aria-hidden="true"></i> List</button>
+    </div>
+    <div class="seg" id="deckCardFilter" title="Show all cards, only the ones you own, or only the ones you're still missing">
+      <button class="seg-btn ${deckCardFilter === 'all' ? 'is-active' : ''}" data-cardfilter="all">All</button>
+      <button class="seg-btn ${deckCardFilter === 'owned' ? 'is-active' : ''}" data-cardfilter="owned">Owned ${ownedCount}</button>
+      <button class="seg-btn ${deckCardFilter === 'missing' ? 'is-active' : ''}" data-cardfilter="missing">Missing ${missingCount}</button>
     </div>
     ${deckView === 'stacks' ? `<label class="size-ctl" id="deckSizeWrap" title="Card size">
       <i class="ms ms-token size-ic size-ic--sm" aria-hidden="true"></i>
@@ -792,10 +802,13 @@ function renderDeckDetail() {
   if (deckShowOriginal) body += originalPanel(deck);
   if (deckEdit) body += deckAddBar();
 
-  if (deckView === 'stacks') {
-    body += renderDeckCards(groups, cmd);
+  const shownTotal = deckCardFilter === 'owned' ? ownedCount : deckCardFilter === 'missing' ? missingCount : deck.cards.length;
+  if (shownTotal === 0) {
+    body += `<div class="empty-state" style="padding:64px 20px"><span class="empty-mark"><i class="ms ms-counter-shield" aria-hidden="true"></i></span><h2>${deckCardFilter === 'missing' ? 'Deck complete' : 'Nothing owned yet'}</h2><p>${deckCardFilter === 'missing' ? 'You own every card in this deck.' : 'You don’t own any of this deck’s cards yet.'}</p></div>`;
+  } else if (deckView === 'stacks') {
+    body += renderDeckCards(groups, showCmd ? cmd : null);
   } else {
-    if (cmd) {
+    if (showCmd) {
       const cq = (deck.cards.find(c => key(c.name) === key(cmd)) || {}).qty || 1;
       body += `<div class="group-head cmd-head"><i class="ms ms-commander" aria-hidden="true"></i>Commander</div><div class="card-table">${cardRow(cmd, cq, true)}</div>`;
     }
@@ -1524,6 +1537,7 @@ function openDeck(id) {
   deckEdit = false;
   deckShowOriginal = false;
   deckPendingDelete = null;
+  deckCardFilter = 'all';
   renderDeckDetail();
   $$('.view').forEach(s => s.classList.remove('is-active'));
   $('#view-deck').classList.add('is-active');
@@ -1789,23 +1803,38 @@ async function revealPrintings(name) {
   const prints = await loadPrintings(name);
   if (cardViewName !== name || !$('#cvArtStrip')) return;
   if (!prints.length) { $('#cvArtStrip').innerHTML = `<span class="cv-art-empty">No alternate printings found.</span>`; return; }
-  const cur = chosenArt(name);
-  const curId = cur && cur.scryfallId;
-  const curSet = card(name).set || '';
-  // printings the user owns — matched by exact Scryfall id, or set (+ collector when both have one)
+  $('#cvArtStrip').innerHTML = `<input type="text" id="cvArtSearch" class="cv-art-search" placeholder="Filter printings — set, name or № (e.g. “MH2 376”)" autocomplete="off" spellcheck="false" />
+    <div class="cv-art-results" id="cvArtResults"></div>`;
+  renderPrintings(name, '');
+  const inp = $('#cvArtSearch'); if (inp) inp.focus();
+}
+// Match a printing against a query: every whitespace-separated term must appear in "set set_name collector".
+function printingMatches(p, q) {
+  if (!q) return true;
+  const hay = `${p.set} ${p.set_name} ${p.collector || ''}`.toLowerCase();
+  return q.toLowerCase().split(/\s+/).filter(Boolean).every(t => hay.includes(t));
+}
+function renderPrintings(name, q) {
+  const box = $('#cvArtResults'); if (!box) return;
+  const prints = printingsCache[key(name)] || [];
+  const cur = chosenArt(name), curId = cur && cur.scryfallId, curSet = card(name).set || '';
   const vs = variantsOf(name);
   const ownsPrinting = (p) => vs.some(v =>
     (v.scryfallId && v.scryfallId === p.id) ||
     (v.set && v.set === p.set && (!v.collector || !p.collector || v.collector === p.collector)));
-  $('#cvArtStrip').innerHTML = prints.map((p, i) => {
-    const on = curId ? p.id === curId : p.set === curSet;
-    const owned = ownsPrinting(p);
-    return `<button type="button" class="cv-art ${on ? 'on' : ''}${owned ? ' owned' : ''}" data-printidx="${i}" title="${esc(p.set_name || p.set)}${p.collector ? ' · #' + esc(p.collector) : ''}${owned ? ' · owned' : ''}${p.price ? ' · ' + money(p.price) : ''}">
-      <img src="${esc(p.small)}" alt="${esc(p.set_name)}" loading="lazy"/>
-      <span class="cv-art-set">${esc(p.set)}</span>
-      <span class="cv-art-price">${p.price ? money(p.price) : '—'}</span>
-    </button>`;
-  }).join('');
+  const html = prints
+    .map((p, i) => ({ p, i }))
+    .filter(({ p }) => printingMatches(p, q))
+    .map(({ p, i }) => {
+      const on = curId ? p.id === curId : p.set === curSet;
+      const owned = ownsPrinting(p);
+      return `<button type="button" class="cv-art ${on ? 'on' : ''}${owned ? ' owned' : ''}" data-printidx="${i}" title="${esc(p.set_name || p.set)}${p.collector ? ' · #' + esc(p.collector) : ''}${owned ? ' · owned' : ''}${p.price ? ' · ' + money(p.price) : ''}">
+        <img src="${esc(p.small)}" alt="${esc(p.set_name)}" loading="lazy"/>
+        <span class="cv-art-set">${esc(p.set)}${p.collector ? ' ' + esc(p.collector) : ''}</span>
+        <span class="cv-art-price">${p.price ? money(p.price) : '—'}</span>
+      </button>`;
+    }).join('');
+  box.innerHTML = html || `<span class="cv-art-empty">No printing matches “${esc(q)}”.</span>`;
 }
 
 // Lock a chosen printing's art as this card's display art.
@@ -1817,7 +1846,7 @@ function pickPrinting(name, idx) {
   save();
   const img = $('#cardViewImg'), fb = $('#cardViewFallback');
   if (img) { img.onload = () => { img.hidden = false; if (fb) fb.hidden = true; }; img.src = p.image; img.hidden = false; if (fb) fb.hidden = true; }
-  $$('#cvArtStrip .cv-art').forEach((b, bi) => b.classList.toggle('on', bi === idx));
+  $$('#cvArtStrip .cv-art').forEach(b => b.classList.toggle('on', +b.dataset.printidx === idx));
   const pricesEl = $('#cvPrices'); if (pricesEl) pricesEl.innerHTML = pricesHtml(name);
   const setEl = $('#cvSet'); if (setEl) setEl.innerHTML = setTagHtml(name);
   renderInventory();   // the inventory tile behind the modal now shows the new art + price
@@ -2746,6 +2775,9 @@ $('#csvInput').addEventListener('change', e => { if (e.target.files[0]) importCS
 $('#addModal').addEventListener('click', e => { if (e.target.id === 'addModal') closeAdd(); });
 $('#closeCard').addEventListener('click', closeCardView);
 $('#cardModal').addEventListener('click', e => { if (e.target.id === 'cardModal') closeCardView(); });
+$('#cardViewMeta').addEventListener('input', e => {
+  if (e.target.id === 'cvArtSearch') renderPrintings(cardViewName, e.target.value.trim());
+});
 $('#cardViewMeta').addEventListener('click', e => {
   const editBtn = e.target.closest('#cvEditBtn');
   if (editBtn) {
@@ -2792,6 +2824,8 @@ $('#deckDetail').addEventListener('click', e => {
   if (rename) { startRenameDeck(rename.dataset.renameDeck); return; }
   const seg = e.target.closest('#deckViewMode .seg-btn');
   if (seg) { deckView = seg.dataset.mode; state.prefs.deckView = deckView; save(); renderDeckDetail(); return; }
+  const cf = e.target.closest('#deckCardFilter .seg-btn');
+  if (cf) { deckCardFilter = cf.dataset.cardfilter; renderDeckDetail(); return; }
   const lgt = e.target.closest('[data-lgtoggle]');
   if (lgt) { state.prefs.showLegality = !state.prefs.showLegality; save(); renderDeckDetail(); return; }
   const editToggle = e.target.closest('[data-deckedit]');
