@@ -1,0 +1,8 @@
+# Keep the Vault's JS/CSS uncached at the Cloudflare edge so a deploy goes live
+# immediately (no ?v= cache-busting needed). HTML is already no-cache via the
+# site-root .htaccess; this mirrors it for the app's scripts and styles.
+<FilesMatch "\.(js|css)$">
+  Header set Cache-Control "no-cache, no-store, must-revalidate"
+  Header set Pragma "no-cache"
+  Header set Expires 0
+</FilesMatch>
