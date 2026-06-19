@@ -30,6 +30,9 @@ let buyMode = 'art';          // buy list display: 'art' gallery | 'text' list
 let buySort = 'price-desc';   // buy list sort: 'name' | 'price-desc' | 'price-asc' | 'rarity-desc' | 'rarity-asc' | 'color' | 'type' | 'set'
 let sellMode = 'art';         // sell list display: 'art' gallery | 'text' list
 let sellSort = 'price-desc';  // sell list sort (same vocabulary as buySort)
+let sellMatchOpen = false;    // sell list "match a pasted wants-list" panel (transient)
+let sellMatchText = '';       // the pasted list text
+let sellMatchResult = null;   // { matches:[{name,want,have,price}], misses:[...] } | null
 let invTile = clampTile(state.prefs.invTile);   // inventory gallery tile min-width (px)
 let buyTile = clampTile(state.prefs.buyTile);   // buy list gallery tile min-width (px)
 let sellTile = clampTile(state.prefs.sellTile); // sell list gallery tile min-width (px)
@@ -2543,6 +2546,68 @@ function renderSellPicker() {
     + `<button class="sp-item sp-new" data-sp-new><span class="sp-check">+</span><span class="sp-name">New list…</span></button>`;
 }
 function closeSellPicker() { const m = $('#sellPickMenu'); if (m) m.hidden = true; sellPickTarget = null; }
+
+/* ---------- match a pasted wants-list against your collection ---------- */
+function matchList(text) {
+  const want = new Map();
+  parseDecklist(text || '').forEach(p => {
+    const k = key(p.name);
+    if (want.has(k)) want.get(k).qty += p.qty; else want.set(k, { name: p.name, qty: p.qty });
+  });
+  const matches = [], misses = [];
+  want.forEach(w => {
+    const have = ownedOf(w.name);
+    (have > 0 ? matches : misses).push({ name: w.name, want: w.qty, have, price: priceOf(w.name) });
+  });
+  matches.sort((a, b) => (b.price * Math.min(b.want, b.have)) - (a.price * Math.min(a.want, a.have)) || a.name.localeCompare(b.name));
+  misses.sort((a, b) => a.name.localeCompare(b.name));
+  return { matches, misses };
+}
+function runSellMatch() {
+  const ta = $('#sellMatchInput'); if (ta) sellMatchText = ta.value;
+  sellMatchResult = matchList(sellMatchText);
+  renderSellList();
+}
+function copyMatchHaves() {
+  if (!sellMatchResult || !sellMatchResult.matches.length) { toast('Nothing to copy — no matches.'); return; }
+  const text = sellMatchResult.matches.map(m => `${Math.min(m.want, m.have)} ${m.name}${m.price ? ` — ${money(m.price)} ea` : ''}`).join('\n');
+  copyText(text).then(ok => toast(ok ? `Copied ${sellMatchResult.matches.length} card${sellMatchResult.matches.length === 1 ? '' : 's'} you have.` : 'Could not access the clipboard.'));
+}
+function addMatchesToSell() {
+  if (!sellMatchResult || !sellMatchResult.matches.length) { toast('No matches to add.'); return; }
+  const items = sellItems();
+  let n = 0;
+  sellMatchResult.matches.forEach(m => variantsOf(m.name).forEach(v => { if (v.qty > 0 && !(items[v.id] > 0)) { items[v.id] = v.qty; n++; } }));
+  save(); render();
+  toast(n ? `Added ${n} matched cop${n === 1 ? 'y' : 'ies'} to “${sellListName()}”.` : 'Those matches are already in this list.');
+}
+function renderMatchResults() {
+  const r = sellMatchResult; if (!r) return '';
+  const total = r.matches.length + r.misses.length;
+  if (!total) return `<div class="sm-summary">No cards found in that list — paste a Moxfield / Archidekt export (one card per line).</div>`;
+  const fulfill = r.matches.reduce((a, m) => a + Math.min(m.want, m.have) * m.price, 0);
+  const haveCopies = r.matches.reduce((a, m) => a + Math.min(m.want, m.have), 0);
+  const matchRow = m => `<div class="sm-row have"><span class="sm-name nm" data-name="${esc(m.name)}" title="${esc(m.name)}">${esc(m.name)}</span><span class="sm-qty">want ${m.want} · <b class="sm-have">have ${m.have}</b></span><span class="sm-price">${m.price ? money(m.price) : '—'}</span></div>`;
+  const missRow = m => `<div class="sm-row miss"><span class="sm-name nm" data-name="${esc(m.name)}" title="${esc(m.name)}">${esc(m.name)}</span><span class="sm-qty">want ${m.want}</span><span class="sm-x">not owned</span></div>`;
+  return `<div class="sm-summary">You have <b>${r.matches.length}</b> of the <b>${total}</b> requested · ${haveCopies} cop${haveCopies === 1 ? 'y' : 'ies'} · <b>${money(fulfill)}</b> at market</div>
+    ${r.matches.length ? `<div class="sm-act">
+      <button class="btn" id="sellMatchAdd"><i class="ms ms-counter-gold" aria-hidden="true"></i> Add matches to “${esc(sellListName())}”</button>
+      <button class="btn ghost" id="sellMatchCopy">⧉ Copy what you have</button>
+    </div>` : ''}
+    ${r.matches.length ? `<div class="sm-sec">You have · ${r.matches.length}</div><div class="sm-list">${r.matches.map(matchRow).join('')}</div>` : `<div class="sm-empty">None of those cards are in your collection.</div>`}
+    ${r.misses.length ? `<div class="sm-sec">Not owned · ${r.misses.length}</div><div class="sm-list">${r.misses.map(missRow).join('')}</div>` : ''}`;
+}
+function sellMatchPanel() {
+  return `<div class="sell-match">
+    <div class="sm-intro">Paste a wants-list (Moxfield / Archidekt export, or “1 Card Name” per line) and match it against everything you own.</div>
+    <textarea id="sellMatchInput" class="sm-input" placeholder="Paste a list — one card per line, e.g.  1 Lightning Bolt" spellcheck="false">${esc(sellMatchText)}</textarea>
+    <div class="sm-controls">
+      <button class="btn" id="sellMatchRun"><i class="ms ms-ability-investigate" aria-hidden="true"></i> Match against my collection</button>
+      <button class="btn ghost" id="sellMatchClear">Clear</button>
+    </div>
+    <div class="sm-results">${renderMatchResults()}</div>
+  </div>`;
+}
 function sellCompare(sort) {
   const byName = (a, b) => a.name.localeCompare(b.name);
   const colorKey = r => { const cs = card(r.name).colors || []; if (!cs.length) return COLOR_ORDER.indexOf('C'); if (cs.length > 1) return COLOR_ORDER.length + cs.length; return COLOR_ORDER.indexOf(cs[0]); };
@@ -2592,6 +2657,13 @@ function variantBadges(v) {
 function renderSellList() {
   pruneSellList();
   renderSellFolders();
+  const matchBtn = $('#sellMatchBtn'); if (matchBtn) matchBtn.classList.toggle('on', sellMatchOpen);
+  if (sellMatchOpen) {
+    if ($('#sellListSub')) $('#sellListSub').textContent = 'Paste a wants-list to see which cards you own.';
+    const wrap = $('#sellSizeWrap'); if (wrap) wrap.hidden = true;
+    const t = $('#sellTable'); if (t) { t.classList.remove('gallery'); t.innerHTML = sellMatchPanel(); }
+    return;
+  }
   const rows = sellRows();
   rows.sort(sellCompare(sellSort));
   const copies = rows.reduce((a, r) => a + r.qty, 0);
@@ -2973,6 +3045,17 @@ const copySellBtn = $('#copySellBtn');     if (copySellBtn) copySellBtn.addEvent
 const exportSellPdfBtn = $('#exportSellPdfBtn'); if (exportSellPdfBtn) exportSellPdfBtn.addEventListener('click', exportSellPDF);
 const sellAddUnlinkedBtn = $('#sellAddUnlinkedBtn'); if (sellAddUnlinkedBtn) sellAddUnlinkedBtn.addEventListener('click', addUnlinkedToSell);
 const sellMarkAllBtn = $('#sellMarkAllBtn'); if (sellMarkAllBtn) sellMarkAllBtn.addEventListener('click', markAllSold);
+const sellMatchBtn = $('#sellMatchBtn'); if (sellMatchBtn) sellMatchBtn.addEventListener('click', () => { sellMatchOpen = !sellMatchOpen; renderSellList(); });
+const sellTableEl = $('#sellTable');
+if (sellTableEl) {
+  sellTableEl.addEventListener('click', e => {
+    if (e.target.closest('#sellMatchRun')) { runSellMatch(); return; }
+    if (e.target.closest('#sellMatchClear')) { sellMatchText = ''; sellMatchResult = null; renderSellList(); return; }
+    if (e.target.closest('#sellMatchAdd')) { addMatchesToSell(); return; }
+    if (e.target.closest('#sellMatchCopy')) { copyMatchHaves(); return; }
+  });
+  sellTableEl.addEventListener('input', e => { if (e.target.id === 'sellMatchInput') sellMatchText = e.target.value; });
+}
 const sellFolders = $('#sellFolders');
 if (sellFolders) sellFolders.addEventListener('click', e => {
   const ren = e.target.closest('[data-sellfolder-rename]');

@@ -1013,6 +1013,28 @@ html[data-theme="ember"] .topbar { background: linear-gradient(180deg, rgba(31,1
 .sp-new { color: var(--muted); border-top: 1px solid var(--edge-soft); margin-top: 4px; border-radius: 0; }
 .sp-new .sp-check { border-style: dashed; }
 .sp-new:hover { color: var(--gold-soft); }
+/* sell list — match a pasted wants-list */
+.sell-match { padding: 4px 2px; }
+.sm-intro { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+.sm-input { width: 100%; box-sizing: border-box; min-height: 130px; resize: vertical; font-family: var(--mono); font-size: 12.5px; line-height: 1.5; color: var(--parch); background: var(--ink-2); border: 1px solid var(--edge); border-radius: 10px; padding: 12px 14px; }
+.sm-input:focus { outline: none; border-color: var(--gold-soft); }
+.sm-input::placeholder { color: var(--faint); }
+.sm-controls { display: flex; gap: 9px; margin: 12px 0 4px; }
+.sm-summary { font-size: 14px; color: var(--parch-dim); padding: 16px 2px 4px; }
+.sm-summary b { color: var(--parch); }
+.sm-act { display: flex; flex-wrap: wrap; gap: 9px; margin: 10px 0 4px; }
+.sm-sec { font-family: var(--label); font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: var(--muted); margin: 18px 0 8px; }
+.sm-list { display: flex; flex-direction: column; gap: 4px; }
+.sm-row { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border: 1px solid var(--edge); border-radius: 8px; background: var(--ink-2); }
+.sm-row.have { border-left: 2px solid var(--ok); }
+.sm-row.miss { border-left: 2px solid var(--edge); opacity: .7; }
+.sm-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--parch); cursor: pointer; }
+.sm-name:hover { color: var(--gold-soft); }
+.sm-qty { font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
+.sm-have { color: var(--ok); }
+.sm-price { font-family: var(--mono); font-size: 12.5px; color: var(--gold-soft); min-width: 56px; text-align: right; }
+.sm-x { font-family: var(--label); font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--faint); }
+.sm-empty { font-size: 13px; color: var(--faint); padding: 8px 2px; }
 
 .art-tile.inv, .art-tile.sell { position: relative; }
 .art-tile.inv .art-open, .art-tile.sell .art-open { display: block; width: 100%; background: none; border: none; padding: 0; margin: 0; text-align: left; font: inherit; color: inherit; cursor: pointer; }
