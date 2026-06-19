@@ -38,6 +38,8 @@ let buyMatchOpen = false;     // buy list "match a seller's haves-list" panel (t
 let buyMatchText = '';        // the pasted seller list text
 let buyMatchResult = null;    // { wants:[{name,have,need,price}], skip:[...] } | null
 let buyMatchLoading = false;  // resolving the pasted list against Scryfall
+let buyMatchOf = '';          // exact textarea text the current buyMatchResult was built from (drift guard)
+let sellMatchOf = '';         // exact textarea text the current sellMatchResult was built from (drift guard)
 let ckById = null, ckBySku = null, ckLoading = false;   // Card Kingdom price index (in-memory, per session): by scryfall id & by "SET-COLLECTOR"
 let invTile = clampTile(state.prefs.invTile);   // inventory gallery tile min-width (px)
 let buyTile = clampTile(state.prefs.buyTile);   // buy list gallery tile min-width (px)
@@ -2705,6 +2707,7 @@ function matchList(text) { return buildMatchResult(parseDecklist(text || '')); }
 // and fetches prices) so matching against the collection is reliable — same as deck import.
 async function runSellMatch() {
   const ta = $('#sellMatchInput'); if (ta) sellMatchText = ta.value;
+  sellMatchOf = sellMatchText;                   // snapshot for the quick-sell drift guard
   const parsed = parseDecklist(sellMatchText || '');
   if (!parsed.length) { sellMatchResult = { matches: [], misses: [] }; renderSellList(); return; }
   sellMatchLoading = true; renderSellList();
@@ -2730,6 +2733,29 @@ function addMatchesToSell() {
   save(); render();
   toast(n ? `Added ${n} matched cop${n === 1 ? 'y' : 'ies'} to “${sellListName()}”.` : 'Those matches are already in this list.');
 }
+// Quick-sell: I sold the matched copies — remove them from inventory (plain
+// copies first via setOwned, keeping special printings/foils), then re-match.
+function quickSellMatches() {
+  const r = sellMatchResult;
+  if (!r || !r.matches.length) { toast('No matched cards to sell.'); return; }
+  const ta = $('#sellMatchInput');
+  if (ta && ta.value.trim() !== (sellMatchOf || '').trim()) { toast('The list changed — click “Match against my collection” again first.'); return; }
+  const copies = r.matches.reduce((a, m) => a + Math.min(m.want, ownedOf(m.name)), 0);   // LIVE owned, not the stale match value
+  if (!copies) { toast('Those copies are no longer in your inventory.'); return; }
+  if (!confirm(`Sell ${copies} matched cop${copies === 1 ? 'y' : 'ies'}? They’ll be removed from your inventory.`)) return;
+  let cards = 0, sold = 0;
+  const remWant = r.matches.map(m => {
+    const have = ownedOf(m.name);               // recompute LIVE so the sold count matches what actually leaves inventory
+    const n = Math.min(m.want, have);
+    if (n > 0) { setOwned(m.name, have - n); cards++; sold += n; }
+    return { name: m.name, qty: m.want - n };   // buyer's want left after this sale
+  });
+  // re-derive the buyer's wants (minus what we just sold) so a second click can't double-sell
+  const wanted = [...remWant, ...r.misses.map(x => ({ name: x.name, qty: x.want }))].filter(w => w.qty > 0);
+  sellMatchResult = buildMatchResult(wanted);
+  save(); render();
+  toast(sold ? `Sold ${sold} cop${sold === 1 ? 'y' : 'ies'} (${cards} card${cards === 1 ? '' : 's'}) — removed from inventory.` : 'Nothing to sell.');
+}
 function renderMatchResults() {
   const r = sellMatchResult; if (!r) return '';
   const total = r.matches.length + r.misses.length;
@@ -2740,7 +2766,8 @@ function renderMatchResults() {
   const missRow = m => `<div class="sm-row miss"><span class="sm-name nm" data-name="${esc(m.name)}" title="${esc(m.name)}">${esc(m.name)}</span><span class="sm-qty">want ${m.want}</span><span class="sm-x">not owned</span></div>`;
   return `<div class="sm-summary">You have <b>${r.matches.length}</b> of the <b>${total}</b> requested · ${haveCopies} cop${haveCopies === 1 ? 'y' : 'ies'} · <b>${money(fulfill)}</b> at market</div>
     ${r.matches.length ? `<div class="sm-act">
-      <button class="btn" id="sellMatchAdd"><i class="ms ms-counter-gold" aria-hidden="true"></i> Add matches to “${esc(sellListName())}”</button>
+      <button class="btn" id="sellMatchSell"><i class="ms ms-counter-gold" aria-hidden="true"></i> Quick-sell · −${haveCopies} from inventory</button>
+      <button class="btn ghost" id="sellMatchAdd">＋ Add to “${esc(sellListName())}”</button>
       <button class="btn ghost" id="sellMatchCopy">⧉ Copy what you have</button>
     </div>` : ''}
     ${r.matches.length ? `<div class="sm-sec">You have · ${r.matches.length}</div><div class="sm-list">${r.matches.map(matchRow).join('')}</div>` : `<div class="sm-empty">None of those cards are in your collection.</div>`}
@@ -2781,6 +2808,7 @@ function buildBuyMatchResult(haveList) {
 }
 async function runBuyMatch() {
   const ta = $('#buyMatchInput'); if (ta) buyMatchText = ta.value;
+  buyMatchOf = buyMatchText;                     // snapshot for the quick-buy drift guard
   const parsed = parseDecklist(buyMatchText || '');
   if (!parsed.length) { buyMatchResult = { wants: [], skip: [] }; renderBuyList(); return; }
   buyMatchLoading = true; renderBuyList();
@@ -2798,6 +2826,27 @@ function copyBuyMatchWants() {
   const text = buyMatchResult.wants.map(w => `${Math.min(w.have, w.need)} ${w.name}${w.price ? ` — ${money(w.price)} ea` : ''}`).join('\n');
   copyText(text).then(ok => toast(ok ? `Copied ${buyMatchResult.wants.length} card${buyMatchResult.wants.length === 1 ? '' : 's'} you want.` : 'Could not access the clipboard.'));
 }
+// Quick-buy: I bought everything I wanted off the seller's list — add those
+// copies straight to inventory, then re-match so the bought cards drop off.
+function quickBuyMatches() {
+  const r = buyMatchResult;
+  if (!r || !r.wants.length) { toast('No matched cards to buy.'); return; }
+  const ta = $('#buyMatchInput');
+  if (ta && ta.value.trim() !== (buyMatchOf || '').trim()) { toast('The list changed — click “Match against my buy list” again first.'); return; }
+  const decks = buyDecksActive();
+  let cards = 0, copies = 0;
+  const remOffer = r.wants.map(w => {
+    const need = requiredFor(w.name, decks) - ownedOf(w.name);   // recompute LIVE — ownership may have changed since the match
+    const n = Math.max(0, Math.min(w.have, need));
+    if (n > 0) { addVariant(w.name, { qty: n }); cards++; copies += n; }
+    return { name: w.name, qty: w.have - n };   // seller's stock left after this buy
+  });
+  // re-derive the offer (depleted by what we bought) so a second click can't re-buy
+  const offered = [...remOffer, ...r.skip.map(s => ({ name: s.name, qty: s.have }))].filter(o => o.qty > 0);
+  buyMatchResult = buildBuyMatchResult(offered);
+  save(); render();
+  toast(copies ? `Bought ${copies} cop${copies === 1 ? 'y' : 'ies'} (${cards} card${cards === 1 ? '' : 's'}) — added to inventory.` : 'Nothing to buy.');
+}
 function renderBuyMatchResults() {
   const r = buyMatchResult; if (!r) return '';
   const total = r.wants.length + r.skip.length;
@@ -2807,7 +2856,10 @@ function renderBuyMatchResults() {
   const wantRow = w => `<div class="sm-row have"><span class="sm-name nm" data-name="${esc(w.name)}" title="${esc(w.name)}">${esc(w.name)}</span><span class="sm-qty">they have ${w.have} · <b class="sm-have">you need ${w.need}</b></span><span class="sm-price">${w.price ? money(w.price) : '—'}</span></div>`;
   const skipRow = s => `<div class="sm-row miss"><span class="sm-name nm" data-name="${esc(s.name)}" title="${esc(s.name)}">${esc(s.name)}</span><span class="sm-qty">they have ${s.have}</span><span class="sm-x">don’t need</span></div>`;
   return `<div class="sm-summary">You’d buy <b>${r.wants.length}</b> of the <b>${total}</b> offered · ${buyCopies} cop${buyCopies === 1 ? 'y' : 'ies'} · <b>${money(cost)}</b></div>
-    ${r.wants.length ? `<div class="sm-act"><button class="btn ghost" id="buyMatchCopy">⧉ Copy what you want</button></div>` : ''}
+    ${r.wants.length ? `<div class="sm-act">
+      <button class="btn" id="buyMatchBuy"><i class="ms ms-counter-shield" aria-hidden="true"></i> Quick-buy · +${buyCopies} to inventory</button>
+      <button class="btn ghost" id="buyMatchCopy">⧉ Copy what you want</button>
+    </div>` : ''}
     ${r.wants.length ? `<div class="sm-sec">You want · ${r.wants.length}</div><div class="sm-list">${r.wants.map(wantRow).join('')}</div>` : `<div class="sm-empty">Nothing on that list is on your buy list.</div>`}
     ${r.skip.length ? `<div class="sm-sec">Don’t need · ${r.skip.length}</div><div class="sm-list">${r.skip.map(skipRow).join('')}</div>` : ''}`;
 }
@@ -3274,6 +3326,7 @@ if (sellTableEl) {
   sellTableEl.addEventListener('click', e => {
     if (e.target.closest('#sellMatchRun')) { runSellMatch(); return; }
     if (e.target.closest('#sellMatchClear')) { sellMatchText = ''; sellMatchResult = null; renderSellList(); return; }
+    if (e.target.closest('#sellMatchSell')) { quickSellMatches(); return; }
     if (e.target.closest('#sellMatchAdd')) { addMatchesToSell(); return; }
     if (e.target.closest('#sellMatchCopy')) { copyMatchHaves(); return; }
   });
@@ -3410,6 +3463,7 @@ $('#buyTable').addEventListener('click', e => {
   if (got) { e.stopPropagation(); markBought(got.dataset.bought); return; }
   if (e.target.closest('#buyMatchRun')) { runBuyMatch(); return; }
   if (e.target.closest('#buyMatchClear')) { buyMatchText = ''; buyMatchResult = null; renderBuyList(); return; }
+  if (e.target.closest('#buyMatchBuy')) { quickBuyMatches(); return; }
   if (e.target.closest('#buyMatchCopy')) { copyBuyMatchWants(); return; }
 });
 $('#buyTable').addEventListener('input', e => { if (e.target.id === 'buyMatchInput') buyMatchText = e.target.value; });
