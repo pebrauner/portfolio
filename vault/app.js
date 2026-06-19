@@ -1286,12 +1286,12 @@ function inventoryArtTile(name) {
   const have = ownedOf(name);
   const anyFoil = variantsOf(name).some(v => v.foil);
   const foilTag = anyFoil ? `<span class="art-foil" title="Foil copy">${FOIL_SPARK}</span>` : '';
-  const listed = variantsOf(name).some(v => sellQtyOf(v.id) > 0);
+  const listed = cardListedAnywhere(name);
   return `<div class="art-tile inv${listed ? ' listed' : ''}">
     <button class="art-open" data-name="${esc(name)}">
       ${artTile(name, have + '×', `<span class="art-val">${money(ownedValueOf(name))}</span>`, foilTag)}
     </button>
-    <button class="inv-sell" data-sellcard="${esc(name)}" title="${listed ? 'Listed for sale — click to unlist' : 'List for sale'}" aria-label="${listed ? 'Remove from sell list' : 'List for sale'}"><i class="ms ms-counter-gold" aria-hidden="true"></i></button>
+    <button class="inv-sell" data-sellcard="${esc(name)}" title="${listed ? 'In a sell list — choose lists' : 'Add to a sell list'}" aria-label="Choose sell lists"><i class="ms ms-counter-gold" aria-hidden="true"></i></button>
   </div>`;
 }
 
@@ -1335,7 +1335,7 @@ function inventoryVariantRow(name, v) {
       </div>
       ${whereCell(name)}
       <div class="price">${money(unit)}<br><span style="color:var(--gold-soft)">${money(unit * v.qty)}</span></div>
-      <button class="inv-sell-btn ${sellQtyOf(v.id) > 0 ? 'on' : ''}" data-sellvar="${v.id}" data-name="${esc(name)}" title="${sellQtyOf(v.id) > 0 ? 'Listed for sale — click to unlist' : 'List this copy for sale'}"><i class="ms ms-counter-gold" aria-hidden="true"></i> ${sellQtyOf(v.id) > 0 ? 'Listed' : 'Sell'}</button>
+      <button class="inv-sell-btn ${variantListedAnywhere(v.id) ? 'on' : ''}" data-sellvar="${v.id}" data-name="${esc(name)}" title="Choose which sell list(s) this copy goes in"><i class="ms ms-counter-gold" aria-hidden="true"></i> ${variantListedAnywhere(v.id) ? 'Listed' : 'Sell'}</button>
     </div>
   </div>`;
 }
@@ -1353,7 +1353,7 @@ function cardVariantsEditor(name) {
         </div>
         <label class="ve-toggle"><input type="checkbox" data-vfoil="${v.id}" ${v.foil ? 'checked' : ''}/> ${FOIL_SPARK} Foil</label>
         <button class="ve-print" data-vprint="${v.id}" data-name="${esc(name)}" title="Choose this copy's printing"><i class="ms ms-artist-nib" aria-hidden="true"></i> ${v.set ? esc(v.set) : 'Printing'}</button>
-        <button class="ve-sell ${sellQtyOf(v.id) > 0 ? 'on' : ''}" data-cvsell="${v.id}" data-name="${esc(name)}" title="${sellQtyOf(v.id) > 0 ? 'Listed for sale — click to unlist' : 'List this copy for sale'}"><i class="ms ms-counter-gold" aria-hidden="true"></i> ${sellQtyOf(v.id) > 0 ? `Listed ${sellQtyOf(v.id)}×` : 'Sell'}</button>
+        <button class="ve-sell ${variantListedAnywhere(v.id) ? 'on' : ''}" data-cvsell="${v.id}" data-name="${esc(name)}" title="Choose which sell list(s) this copy goes in"><i class="ms ms-counter-gold" aria-hidden="true"></i> ${variantListedAnywhere(v.id) ? 'Listed' : 'Sell'}</button>
         <button class="ve-del" data-vdel="${v.id}" data-name="${esc(name)}" title="Remove this copy">Delete</button>
       </div>
       <div class="cvv-strip" data-vstripwrap="${v.id}" hidden></div>
@@ -2468,6 +2468,52 @@ function renderSellFolders() {
     </span>`;
   }).join('') + `<button class="sell-folder add" data-sellfolder-new title="Create a new sell list">+ New list</button>`;
 }
+
+/* an inventory card/copy is "listed" if it's in ANY folder (the gold tile state) */
+function variantListedAnywhere(vid) { return state.sellLists.some(l => l.items[vid] > 0); }
+function cardListedAnywhere(name) { return variantsOf(name).some(v => variantListedAnywhere(v.id)); }
+function variantInList(vid, listId) { const l = state.sellLists.find(x => x.id === listId); return !!(l && l.items[vid] > 0); }
+function cardInList(name, listId) { const l = state.sellLists.find(x => x.id === listId); return !!l && variantsOf(name).some(v => l.items[v.id] > 0); }
+// toggle a card / single copy in a SPECIFIC folder (used by the folder picker)
+function toggleSellVariantIn(name, vid, listId) {
+  const v = variantById(name, vid), l = state.sellLists.find(x => x.id === listId);
+  if (!v || !l) return;
+  const adding = !(l.items[vid] > 0);
+  if (adding) { if (v.qty > 0) l.items[vid] = v.qty; } else delete l.items[vid];
+  save(); render();
+  toast(`${adding ? 'Listed' : 'Unlisted'} ${name} ${adding ? 'in' : 'from'} “${l.name}”.`);
+}
+function toggleSellCardIn(name, listId) {
+  const l = state.sellLists.find(x => x.id === listId); if (!l) return;
+  const vs = variantsOf(name), any = vs.some(v => l.items[v.id] > 0);
+  vs.forEach(v => { if (any) delete l.items[v.id]; else if (v.qty > 0) l.items[v.id] = v.qty; });
+  save(); render();
+  toast(`${any ? 'Removed' : 'Listed'} ${name} ${any ? 'from' : 'in'} “${l.name}”.`);
+}
+
+/* folder-picker popover — choose which sell list(s) an inventory card / copy goes in */
+let sellPickTarget = null;   // { name, vid: null (whole card) | variantId (one copy) }
+function openSellPicker(target, anchorEl) {
+  sellPickTarget = target;
+  const menu = $('#sellPickMenu'); if (!menu) return;
+  renderSellPicker();
+  menu.hidden = false;
+  const r = anchorEl.getBoundingClientRect();
+  const left = Math.max(8, Math.min(r.left, window.innerWidth - menu.offsetWidth - 8));
+  let top = r.bottom + 6;
+  if (top + menu.offsetHeight > window.innerHeight - 8) top = Math.max(8, r.top - menu.offsetHeight - 6);
+  menu.style.left = left + 'px';
+  menu.style.top = top + 'px';
+}
+function renderSellPicker() {
+  const menu = $('#sellPickMenu'); if (!menu || !sellPickTarget) return;
+  const { name, vid } = sellPickTarget;
+  const inIt = (id) => vid ? variantInList(vid, id) : cardInList(name, id);
+  menu.innerHTML = `<div class="sp-head">List “${esc(name)}” in…</div>`
+    + state.sellLists.map(l => `<button class="sp-item${inIt(l.id) ? ' on' : ''}" data-sp-list="${l.id}"><span class="sp-check">${inIt(l.id) ? '✓' : ''}</span><span class="sp-name">${esc(l.name)}</span></button>`).join('')
+    + `<button class="sp-item sp-new" data-sp-new><span class="sp-check">+</span><span class="sp-name">New list…</span></button>`;
+}
+function closeSellPicker() { const m = $('#sellPickMenu'); if (m) m.hidden = true; sellPickTarget = null; }
 function sellCompare(sort) {
   const byName = (a, b) => a.name.localeCompare(b.name);
   const colorKey = r => { const cs = card(r.name).colors || []; if (!cs.length) return COLOR_ORDER.indexOf('C'); if (cs.length > 1) return COLOR_ORDER.length + cs.length; return COLOR_ORDER.indexOf(cs[0]); };
@@ -2903,6 +2949,27 @@ if (sellFolders) sellFolders.addEventListener('click', e => {
   const f = e.target.closest('[data-sellfolder]');
   if (f) { setActiveSellList(f.dataset.sellfolder); return; }
 });
+const sellPickMenu = $('#sellPickMenu');
+if (sellPickMenu) sellPickMenu.addEventListener('click', e => {
+  if (!sellPickTarget) return;
+  const { name, vid } = sellPickTarget;
+  const item = e.target.closest('[data-sp-list]');
+  if (item) { if (vid) toggleSellVariantIn(name, vid, item.dataset.spList); else toggleSellCardIn(name, item.dataset.spList); renderSellPicker(); return; }
+  if (e.target.closest('[data-sp-new]')) {
+    const nm = prompt('Name this sell list:', `List ${state.sellLists.length + 1}`);
+    if (nm == null) return;
+    createSellList(nm);
+    const newId = state.sellLists[state.sellLists.length - 1].id;
+    if (vid) toggleSellVariantIn(name, vid, newId); else toggleSellCardIn(name, newId);
+    renderSellPicker();
+  }
+});
+// close the picker on outside click / Escape (but not when clicking a Sell button or the menu itself)
+document.addEventListener('pointerdown', e => {
+  const m = $('#sellPickMenu');
+  if (m && !m.hidden && !e.target.closest('#sellPickMenu, [data-sellcard], [data-sellvar], [data-cvsell]')) closeSellPicker();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSellPicker(); });
 
 /* ---------- Browse events ---------- */
 const browseDebounced = (() => { let t; return q => { clearTimeout(t); t = setTimeout(() => browseSearch(q, { fresh: true }), 350); }; })();
@@ -3044,13 +3111,13 @@ document.addEventListener('click', e => {
     render(); refreshCardEditor();
     return;
   }
-  // ----- sell list -----
+  // ----- sell list (Sell buttons open a folder picker) -----
   const sellCardBtn = e.target.closest('[data-sellcard]');
-  if (sellCardBtn) { toggleSellCard(sellCardBtn.dataset.sellcard); return; }
+  if (sellCardBtn) { openSellPicker({ name: sellCardBtn.dataset.sellcard, vid: null }, sellCardBtn); return; }
   const sellVarBtn = e.target.closest('[data-sellvar]');
-  if (sellVarBtn) { toggleSellVariant(sellVarBtn.dataset.name, sellVarBtn.dataset.sellvar); return; }
+  if (sellVarBtn) { openSellPicker({ name: sellVarBtn.dataset.name, vid: sellVarBtn.dataset.sellvar }, sellVarBtn); return; }
   const cvSellBtn = e.target.closest('[data-cvsell]');
-  if (cvSellBtn) { toggleSellVariant(cvSellBtn.dataset.name, cvSellBtn.dataset.cvsell); refreshCardEditor(); return; }
+  if (cvSellBtn) { openSellPicker({ name: cvSellBtn.dataset.name, vid: cvSellBtn.dataset.cvsell }, cvSellBtn); return; }
   const sellQtyBtn = e.target.closest('[data-sellqty]');
   if (sellQtyBtn) { setSellQty(sellQtyBtn.dataset.vid, parseInt(sellQtyBtn.dataset.sellqty, 10)); return; }
   const soldBtn = e.target.closest('[data-sold]');

@@ -998,6 +998,17 @@ html[data-theme="ember"] .topbar { background: linear-gradient(180deg, rgba(31,1
 .sf-icon[data-sellfolder-rename]:hover { color: var(--gold-soft); }
 .sell-folder.add { font-family: var(--body); font-size: 13px; color: var(--muted); border: 1px dashed var(--edge); border-radius: 9px; background: none; padding: 7px 13px; cursor: pointer; transition: .15s; }
 .sell-folder.add:hover { color: var(--gold-soft); border-color: var(--gold-soft); }
+/* sell-list folder picker popover */
+.sell-pick { position: fixed; z-index: 200; min-width: 210px; max-width: 290px; max-height: 60vh; overflow-y: auto; padding: 6px; background: var(--panel-2); border: 1px solid var(--brass); border-radius: 11px; box-shadow: var(--shadow); animation: rise .14s ease; }
+.sp-head { font-family: var(--label); font-size: 10.5px; letter-spacing: .8px; text-transform: uppercase; color: var(--muted); padding: 6px 9px 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sp-item { display: flex; align-items: center; gap: 9px; width: 100%; text-align: left; font-family: var(--body); font-size: 13.5px; color: var(--parch-dim); background: none; border: none; border-radius: 7px; padding: 8px 9px; cursor: pointer; transition: .12s; }
+.sp-item:hover { background: var(--ink-2); color: var(--parch); }
+.sp-check { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 5px; border: 1px solid var(--edge); color: var(--gold-soft); font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.sp-item.on .sp-check { background: linear-gradient(180deg, var(--gold-soft), var(--gold)); color: var(--ink); border-color: var(--gold-soft); }
+.sp-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sp-new { color: var(--muted); border-top: 1px solid var(--edge-soft); margin-top: 4px; border-radius: 0; }
+.sp-new .sp-check { border-style: dashed; }
+.sp-new:hover { color: var(--gold-soft); }
 
 .art-tile.inv, .art-tile.sell { position: relative; }
 .art-tile.inv .art-open, .art-tile.sell .art-open { display: block; width: 100%; background: none; border: none; padding: 0; margin: 0; text-align: left; font: inherit; color: inherit; cursor: pointer; }
