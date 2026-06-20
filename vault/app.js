@@ -3290,6 +3290,13 @@ document.addEventListener('click', () => {   // any outside click closes the dro
   $('#buysellGroup') && $('#buysellGroup').classList.remove('open');
   $('#settingsGroup') && $('#settingsGroup').classList.remove('open');
 });
+// hover-intent for the Buy/Sell dropdown: open on enter, close after a grace delay
+let buysellCloseTimer = null;
+const buysellGroupEl = $('#buysellGroup');
+if (buysellGroupEl) {
+  buysellGroupEl.addEventListener('mouseenter', () => { clearTimeout(buysellCloseTimer); buysellGroupEl.classList.add('open'); });
+  buysellGroupEl.addEventListener('mouseleave', () => { clearTimeout(buysellCloseTimer); buysellCloseTimer = setTimeout(() => buysellGroupEl.classList.remove('open'), 280); });
+}
 const histFilterEl = $('#histFilter');
 if (histFilterEl) histFilterEl.addEventListener('click', e => {
   const b = e.target.closest('.seg-btn'); if (!b) return;

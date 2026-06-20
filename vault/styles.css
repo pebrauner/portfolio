@@ -175,7 +175,9 @@ html[data-theme="ember"] .topbar { background: linear-gradient(180deg, rgba(31,1
 /* nav dropdown (Buy/Sell → Buy List · Sell List · History) */
 .nav-group { position: relative; display: inline-flex; }
 .nav-menu { display: none; position: absolute; top: 100%; left: 0; margin-top: 6px; min-width: 184px; background: var(--panel-2); border: 1px solid var(--edge); border-radius: 11px; padding: 6px; box-shadow: var(--shadow); z-index: 40; }
-.nav-group.open > .nav-menu, .nav-group:hover > .nav-menu { display: block; }
+/* invisible bridge over the tab→menu gap so hover doesn't drop in the dead zone */
+.nav-menu::before { content: ''; position: absolute; top: -10px; left: 0; right: 0; height: 10px; }
+.nav-group.open > .nav-menu { display: block; }
 .nav-menu button { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 10px 12px; border: none; background: none; color: var(--parch-dim); font-family: var(--body); font-size: 14px; border-radius: 7px; cursor: pointer; transition: .12s; }
 .nav-menu button:hover { background: var(--panel); color: var(--parch); }
 .nav-menu button.on { color: var(--gold-soft); }
