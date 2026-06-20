@@ -3927,10 +3927,9 @@ async function afterSignIn() {
     if (inSync) {
       if (meta.dirty && localHas) await pushNow();          // we have unsynced local edits → push them up
     } else if (!remoteHas && localHas) {
-      const r = await pushNow();                                            // account empty → upload this device's
-      toast(r.ok ? 'Collection synced to your account.' : 'Couldn’t sync — open Profile and tap “Sync to account”.');
+      await uploadWithOverlay();                                            // account empty → upload this device's
     } else if (remoteHas && !localHas) {
-      adoptRemote(remote.data, remote.updated_at); toast('Collection loaded from your account.');
+      await downloadWithOverlay(remote);                                    // account has it, this device fresh → pull
     } else if (remoteHas && localHas && (!knownRemote || meta.dirty)) {
       // first meeting of this device + account with data on both sides, OR we have
       // unsynced local edits while the account also changed elsewhere → ask which wins
@@ -3939,8 +3938,8 @@ async function afterSignIn() {
         'OK  →  use your ACCOUNT’s collection (replaces what’s on this device)\n' +
         'Cancel  →  keep THIS DEVICE’s collection (replaces the account’s)'
       );
-      if (useRemote) { adoptRemote(remote.data, remote.updated_at); toast('Loaded your account’s collection.'); }
-      else { await pushNow(); toast('Uploaded this device’s collection to your account.'); }
+      if (useRemote) await downloadWithOverlay(remote);
+      else await uploadWithOverlay();
     } else if (remoteHas) {
       adoptRemote(remote.data, remote.updated_at); toast('Synced the latest from your account.');   // account changed elsewhere
     } else {
@@ -4087,6 +4086,45 @@ async function saveProfileEdits() {
     st.textContent = 'Saved.'; renderAccount();
   } catch (e) { st.textContent = 'Could not save — try again.'; }
 }
+// Sync progress overlay — shown on the first upload / first download at sign-in.
+function showSyncOverlay(title) {
+  const m = $('#syncModal'); if (!m) return false;
+  $('#syncTitle').textContent = title;
+  const fill = $('#syncFill');
+  fill.classList.remove('done', 'error');
+  fill.style.transition = 'none'; fill.style.width = '8%';
+  $('#syncStatus').textContent = '';
+  $('#syncDone').hidden = true;
+  m.hidden = false;
+  requestAnimationFrame(() => { fill.style.transition = 'width 1.8s ease'; fill.style.width = '85%'; });   // creep toward 85% while it works
+  return true;
+}
+function finishSyncOverlay(ok, message) {
+  const m = $('#syncModal'); if (!m || m.hidden) return;
+  const fill = $('#syncFill');
+  fill.style.transition = 'width .35s ease'; fill.style.width = '100%';
+  fill.classList.add(ok ? 'done' : 'error');
+  $('#syncTitle').textContent = ok ? 'All synced ✓' : 'Sync failed';
+  $('#syncStatus').textContent = message;
+  $('#syncDone').hidden = false;
+}
+function closeSyncOverlay() { const m = $('#syncModal'); if (m) m.hidden = true; }
+const minDelay = ms => new Promise(res => setTimeout(res, ms));   // keeps the bar visible long enough to read
+async function uploadWithOverlay() {
+  showSyncOverlay('Uploading your collection…');
+  const [r] = await Promise.all([pushNow(), minDelay(900)]);
+  const g = globalStats();
+  if (r.ok) finishSyncOverlay(true, `${g.unique} card${g.unique === 1 ? '' : 's'} · ${g.decks} deck${g.decks === 1 ? '' : 's'} · ${money(g.ownedValue)} now backed up to your account.`);
+  else { finishSyncOverlay(false, (r.error || 'Upload failed') + ' — you can retry from Profile → Sync.'); toast('Sync failed — open Profile to retry.'); }
+}
+async function downloadWithOverlay(remote) {
+  showSyncOverlay('Loading your collection…');
+  await minDelay(700);
+  adoptRemote(remote.data, remote.updated_at);
+  const g = globalStats();
+  finishSyncOverlay(true, `${g.unique} card${g.unique === 1 ? '' : 's'} · ${g.decks} deck${g.decks === 1 ? '' : 's'} loaded from your account.`);
+}
+
 // Manual sync controls (recovery + clear feedback when auto-sync looks off).
 async function forceSyncPush() {
   const st = $('#pfSyncStatus');
@@ -4125,6 +4163,8 @@ const profileBodyEl = $('#profileBody'); if (profileBodyEl) profileBodyEl.addEve
   else if (e.target.closest('#pfPush')) forceSyncPush();
   else if (e.target.closest('#pfPull')) forceSyncPull();
 });
+const syncDoneEl = $('#syncDone'); if (syncDoneEl) syncDoneEl.addEventListener('click', closeSyncOverlay);
+const syncCloseEl = $('#syncClose'); if (syncCloseEl) syncCloseEl.addEventListener('click', closeSyncOverlay);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) syncPullIfNewer(); });
 window.addEventListener('focus', syncPullIfNewer);
 

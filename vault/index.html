@@ -381,6 +381,17 @@
     </div>
   </div>
 
+  <!-- Sync progress overlay (first upload / first download) -->
+  <div class="modal-scrim" id="syncModal" hidden>
+    <div class="modal modal-sm sync-modal">
+      <button class="modal-close" id="syncClose" aria-label="Close">✕</button>
+      <h2 class="modal-title" id="syncTitle">Syncing…</h2>
+      <div class="sync-bar"><div class="sync-fill" id="syncFill"></div></div>
+      <div class="sync-msg" id="syncStatus"></div>
+      <button class="btn gold" id="syncDone" hidden>Done</button>
+    </div>
+  </div>
+
   <div class="toast" id="toast" hidden></div>
 
   <!-- Sell-list folder picker (opens from inventory / card-viewer "Sell" buttons) -->

@@ -1148,6 +1148,15 @@ html[data-theme="ember"] .topbar { background: linear-gradient(180deg, rgba(31,1
 .profile-sync { display: flex; gap: 10px; flex-wrap: wrap; }
 .profile-sync .btn { flex: 1; justify-content: center; min-width: 150px; }
 
+/* sync progress overlay */
+.sync-modal { text-align: center; }
+.sync-bar { height: 10px; background: var(--ink-2); border: 1px solid var(--edge); border-radius: 999px; overflow: hidden; margin: 20px 0 14px; }
+.sync-fill { height: 100%; width: 8%; border-radius: 999px; background: linear-gradient(90deg, var(--gold-soft), var(--gold)); box-shadow: 0 0 10px color-mix(in srgb, var(--gold) 45%, transparent); }
+.sync-fill.done { background: linear-gradient(90deg, var(--ok), color-mix(in srgb, var(--ok) 60%, var(--gold-soft))); box-shadow: 0 0 10px color-mix(in srgb, var(--ok) 45%, transparent); }
+.sync-fill.error { background: linear-gradient(90deg, #b4493a, var(--bad)); box-shadow: none; }
+.sync-msg { font-size: 13px; color: var(--parch-dim); min-height: 20px; margin-bottom: 16px; }
+.sync-modal .btn { min-width: 120px; }
+
 /* ============ toast ============ */
 .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); z-index: 60; display: inline-flex; align-items: center; gap: 14px; background: var(--panel-2); border: 1px solid var(--brass); color: var(--parch); padding: 13px 22px; border-radius: 11px; font-size: 14px; box-shadow: var(--shadow); animation: rise .3s ease; }
 .toast-undo { font-family: var(--label); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink); background: linear-gradient(180deg, var(--gold-soft), var(--gold)); border: none; border-radius: 7px; padding: 6px 12px; cursor: pointer; white-space: nowrap; transition: .15s; }
