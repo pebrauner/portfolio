@@ -2803,6 +2803,8 @@ function deleteSellList(id) {
   state.sellLists = state.sellLists.filter(x => x.id !== id);
   if (!state.sellLists.length) state.sellLists.push({ id: uid(), name: 'Sell List', items: {} });
   state.activeSellList = state.sellLists[0].id;
+  // a shared link pointing at this folder is now orphaned — revoke it so it doesn't linger as a frozen "live" link
+  if (typeof myShares !== 'undefined') myShares.filter(s => s.source === id).forEach(s => revokeShare(s.code));
   save(); render();
   toast(`Deleted sell list “${l.name}”.`);
 }
@@ -3825,6 +3827,7 @@ document.addEventListener('keydown', e => {
   if (!$('#cardModal').hidden) closeCardView();
   if (!$('#importModal').hidden) closeImport();
   if (!$('#addModal').hidden) closeAdd();
+  const sm = $('#shareModal'); if (sm && !sm.hidden) closeShare();
 });
 
 /* ---------- theme ---------- */
@@ -3962,6 +3965,7 @@ async function doAuth() {
 async function signOut() {
   if (!sb) return;
   clearTimeout(syncPushTimer); syncPushTimer = null;   // cancel any queued push so it can't fire under the next user
+  clearTimeout(liveShareTimer); liveShareTimer = null; myShares = [];
   try { await sb.auth.signOut(); } catch (e) {}
   authUser = null; authProfile = null; setSyncMeta({});
   closeProfile(); renderAccount();
@@ -3982,7 +3986,7 @@ async function afterSignIn() {
   syncResolving = true; renderAccount();   // held for the WHOLE function: also blocks echo-pushes during reconciliation
   try {
     await loadProfile();
-    loadStores(); loadStoreCounts();   // refresh shared store list + popularity now we're authed
+    loadStores(); loadStoreCounts(); loadMyShares();   // shared store list + popularity + my shared links
     const uid = authUser && authUser.id;
     if (!uid) return;
     const { data, error } = await sb.from('collections').select('data, updated_at').eq('user_id', uid).maybeSingle();
@@ -4041,6 +4045,7 @@ function scheduleSyncPush() {
   const m = syncMeta(); if (!m.dirty) setSyncMeta({ ...m, dirty: true });   // survives a reload before the push lands
   clearTimeout(syncPushTimer);
   syncPushTimer = setTimeout(() => { syncPushTimer = null; pushNow(); }, 2500);
+  scheduleLiveShareRefresh();   // keep any "live" shared links current too
   renderAccount();
 }
 // Owned/deck/wishlist card metadata must sync (prices/images render offline);
@@ -4083,6 +4088,172 @@ async function syncPullIfNewer() {
       toast('Synced the latest from another device.');
     }
   } catch (e) {}
+}
+
+/* ============ shareable buy/sell lists (Supabase short links) ============ */
+const SHARE_TTL_DAYS = 30;
+let myShares = [];               // this user's shared_lists rows (cache for management + live refresh)
+let liveShareTimer = null;       // debounced live-share refresh
+let shareCtx = { kind: 'buy', folderId: null, live: false };
+let shareLastResult = null;      // {url, live} of the link just created (for the result panel)
+
+function shareCode() {
+  const a = 'abcdefghijkmnpqrstuvwxyz23456789';   // no l/o/0/1 — unambiguous
+  const arr = new Uint8Array(8);
+  if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(arr);
+  else for (let i = 0; i < arr.length; i++) arr[i] = Math.floor(Math.random() * 256);
+  let s = ''; for (const x of arr) s += a[x % a.length];
+  return s;
+}
+function shareBaseUrl() {
+  const p = location.pathname;
+  // keep the directory; if the final segment is a filename (has an extension) drop it, else treat the whole path as a dir
+  const dir = /\.[^/]+$/.test(p) ? p.replace(/[^/]*$/, '') : p.replace(/\/?$/, '/');
+  return location.origin + dir + 'share.html';
+}
+function shareUrl(code) { return shareBaseUrl() + '?id=' + code; }
+function ownerDisplayName() { return (authProfile && (authProfile.display_name || authProfile.username)) || (authUser && (authUser.email || '').split('@')[0]) || 'A player'; }
+
+// The shared buy list is your FULL buy list across every deck — a pure function of saved state,
+// deliberately independent of the current deck-filter / exclude view (so a "live" link can't silently
+// re-scope itself to whatever filter happens to be active when a background refresh fires).
+function shareItemsBuy() {
+  const decks = state.decks;
+  const names = allCardNames().filter(n => requiredFor(n, decks) > ownedOf(n));
+  names.sort((a, b) => a.localeCompare(b));
+  return names.map(n => ({ name: n, qty: requiredFor(n, decks) - ownedOf(n), price: +(priceOf(n) || 0).toFixed(2) }));
+}
+function shareItemsSell(folderId) {
+  const l = state.sellLists.find(x => x.id === folderId);
+  if (!l) return [];
+  const idx = variantIndex(), out = [];
+  for (const vid of Object.keys(l.items)) {
+    const hit = idx.get(vid); if (!hit) continue;
+    const qty = Math.min(l.items[vid], hit.v.qty); if (qty <= 0) continue;
+    out.push({ name: hit.name, qty, price: +(variantPrice(hit.name, hit.v) || 0).toFixed(2), set: hit.v.set || '', foil: !!hit.v.foil });
+  }
+  out.sort((a, b) => a.name.localeCompare(b.name));
+  return out;
+}
+function shareTitleFor(kind, folderId) {
+  if (kind === 'buy') return 'Buy List';
+  const l = state.sellLists.find(x => x.id === folderId);
+  return (l && l.name) || 'Sell List';
+}
+function shareItemsFor(kind, folderId) { return kind === 'buy' ? shareItemsBuy() : shareItemsSell(folderId); }
+function shareDataFor(kind, folderId) { return { owner: ownerDisplayName(), priceSrc: state.prefs.priceSource || 'tcg', items: shareItemsFor(kind, folderId) }; }
+
+async function loadMyShares() {
+  if (!sb || !authUser) { myShares = []; return; }
+  try {
+    const { data, error } = await sb.from('shared_lists').select('*').eq('owner', authUser.id).order('created_at', { ascending: false });
+    if (!error && Array.isArray(data)) myShares = data;
+  } catch (e) {}
+}
+async function createShare(kind, folderId, live) {
+  if (!sb || !authUser) return { error: 'not signed in' };
+  const data = shareDataFor(kind, folderId);
+  if (!data.items.length) return { error: 'empty' };
+  const code = shareCode();
+  const row = {
+    code, owner: authUser.id, kind, title: shareTitleFor(kind, folderId),
+    source: kind === 'buy' ? 'buy' : folderId, live: !!live, data,
+    expires_at: live ? null : new Date(Date.now() + SHARE_TTL_DAYS * 864e5).toISOString()
+  };
+  try {
+    const { data: saved, error } = await sb.from('shared_lists').insert(row).select('*').single();
+    if (error) return { error: error.message };
+    myShares.unshift(saved);
+    return { code, url: shareUrl(code), row: saved };
+  } catch (e) { return { error: e.message }; }
+}
+async function revokeShare(code) {
+  if (!sb || !authUser) return;
+  try { await sb.from('shared_lists').delete().eq('code', code).eq('owner', authUser.id); } catch (e) {}
+  myShares = myShares.filter(s => s.code !== code);
+}
+// keep "live" links current: recompute their items when the source list changes (debounced)
+function scheduleLiveShareRefresh() {
+  if (!sb || !authUser || !myShares.some(s => s.live)) return;
+  clearTimeout(liveShareTimer);
+  liveShareTimer = setTimeout(refreshLiveShares, 3000);
+}
+let liveShareBusy = false;
+async function refreshLiveShares() {
+  if (!sb || !authUser || liveShareBusy) return;
+  const uid = authUser.id;            // the user this refresh is FOR
+  liveShareBusy = true;
+  try {
+    for (const s of myShares.filter(x => x.live)) {
+      if (!authUser || authUser.id !== uid) return;   // signed out / switched user mid-flight → abandon
+      const folderId = s.kind === 'sell' ? s.source : null;
+      if (s.kind === 'sell' && !state.sellLists.some(l => l.id === folderId)) continue;   // folder deleted → stop updating
+      const next = shareDataFor(s.kind, folderId);
+      const title = shareTitleFor(s.kind, folderId);   // propagate sell-folder renames
+      if (JSON.stringify(next) === JSON.stringify(s.data) && title === s.title) continue;   // nothing changed
+      try {
+        const { error } = await sb.from('shared_lists').update({ data: next, title, updated_at: new Date().toISOString() }).eq('code', s.code).eq('owner', uid);
+        if (!error && authUser && authUser.id === uid) { s.data = next; s.title = title; }
+      } catch (e) {}
+    }
+  } finally { liveShareBusy = false; }
+}
+async function copyText(t) { try { await navigator.clipboard.writeText(t); return true; } catch (e) { return false; } }
+
+/* ---------- share modal ---------- */
+function openShare(kind) {
+  shareCtx = { kind, folderId: kind === 'sell' ? state.activeSellList : null, live: false };
+  shareLastResult = null;
+  const m = $('#shareModal'); if (m) m.hidden = false;
+  renderShareModal();
+}
+function closeShare() { const m = $('#shareModal'); if (m) m.hidden = true; }
+function renderShareModal() {
+  const body = $('#shareBody'); if (!body) return;
+  if (!sb || !authUser) {
+    body.innerHTML = `<div class="share-signin"><p>Create a free account to make shareable links — your lists sync across your devices too.</p><button class="btn gold" id="shareSignIn">Sign in / Create account</button></div>`;
+    return;
+  }
+  const { kind, folderId, live } = shareCtx;
+  const title = shareTitleFor(kind, folderId);
+  const items = shareItemsFor(kind, folderId);
+  const count = items.reduce((a, i) => a + i.qty, 0);
+  const existing = myShares.filter(s => s.kind === kind && (kind === 'buy' || s.source === folderId));
+  const result = shareLastResult ? `
+    <div class="share-result">
+      <div class="share-result-h"><i class="ms ms-counter-gold" aria-hidden="true"></i> Link ready${shareLastResult.live ? ' · <b>live</b>' : ''}</div>
+      <div class="share-link-row"><input type="text" id="shareLinkInput" readonly value="${esc(shareLastResult.url)}" /><button class="btn gold" id="shareCopyBtn">Copy</button></div>
+      <p class="share-note">${shareLastResult.live ? 'This link always shows your current list.' : `A snapshot of your list right now — it won’t change. Expires in ${SHARE_TTL_DAYS} days.`} <a href="${esc(shareLastResult.url)}" target="_blank" rel="noopener">Open preview ↗</a></p>
+    </div>` : '';
+  body.innerHTML = `
+    <p class="share-lead">Sharing <b>${esc(title)}</b> — ${count} card${count === 1 ? '' : 's'}${items.length ? '' : ' · <span class="share-empty">this list is empty</span>'}.</p>
+    <div class="share-kindwrap">
+      <button class="share-opt ${!live ? 'on' : ''}" data-sharelive="0"><div class="share-opt-t">Snapshot</div><div class="share-opt-d">Freezes the list as it is now. Best for a single trade.</div></button>
+      <button class="share-opt ${live ? 'on' : ''}" data-sharelive="1"><div class="share-opt-t">Live link</div><div class="share-opt-d">Always shows your current list — updates when you change it.</div></button>
+    </div>
+    <button class="btn gold share-create" id="shareCreateBtn" ${items.length ? '' : 'disabled'}>Create ${live ? 'live ' : ''}link</button>
+    ${result}
+    ${existing.length ? `<div class="share-existing"><div class="share-existing-h">Existing links for this list</div>${existing.map(shareRowHtml).join('')}</div>` : ''}`;
+}
+function shareRowHtml(s) {
+  const exp = s.expires_at ? `expires ${new Date(s.expires_at).toLocaleDateString()}` : 'no expiry';
+  return `<div class="share-ex-row">
+    <span class="share-ex-tag ${s.live ? 'live' : ''}">${s.live ? 'LIVE' : 'SNAP'}</span>
+    <code class="share-ex-code">${esc(s.code)}</code>
+    <span class="share-ex-meta">${esc(s.title || '')} · ${exp}</span>
+    <button class="link-btn" data-sharecopy="${esc(s.code)}">Copy</button>
+    <button class="link-btn danger" data-sharerevoke="${esc(s.code)}">Revoke</button>
+  </div>`;
+}
+async function doCreateShare() {
+  const btn = $('#shareCreateBtn'); if (btn) { btn.disabled = true; btn.textContent = 'Creating…'; }
+  const r = await createShare(shareCtx.kind, shareCtx.folderId, shareCtx.live);
+  if (r.error) { toast(r.error === 'empty' ? 'That list is empty — nothing to share.' : r.error === 'not signed in' ? 'Sign in to create a link.' : 'Could not create the link: ' + r.error); if (btn) { btn.disabled = false; btn.textContent = 'Create ' + (shareCtx.live ? 'live ' : '') + 'link'; } return; }
+  shareLastResult = { url: r.url, live: shareCtx.live };
+  renderShareModal();
+  renderProfileView();   // keep the profile's "Shared links" card in sync (no-ops when that view is hidden)
+  const ok = await copyText(r.url);
+  toast(ok ? 'Share link created & copied ✓' : 'Share link created ✓');
 }
 
 // ---------- account / profile UI ----------
@@ -4542,7 +4713,11 @@ function renderProfileView() {
         <div class="pv-card">
           <div class="pv-card-h"><h3>My lists</h3></div>
           <div class="pv-links"><button class="btn ghost" data-pvgo="buylist"><i class="ms ms-counter-gold btn-ico" aria-hidden="true"></i> Buy List</button><button class="btn ghost" data-pvgo="selllist"><i class="ms ms-loyalty-up btn-ico" aria-hidden="true"></i> Sell List</button></div>
-          <p class="pv-hint">Shareable links &amp; QR codes are coming next.</p>
+          <div class="pv-links" style="margin-top:8px"><button class="btn" data-pvshare="buy"><i class="ms ms-counter-lore btn-ico" aria-hidden="true"></i> Share Buy List</button><button class="btn" data-pvshare="sell"><i class="ms ms-counter-lore btn-ico" aria-hidden="true"></i> Share Sell List</button></div>
+        </div>
+        <div class="pv-card">
+          <div class="pv-card-h"><h3>Shared links</h3><span class="pv-count">${myShares.length}</span></div>
+          ${myShares.length ? `<div class="pv-shares">${myShares.map(shareRowHtml).join('')}</div>` : `<p class="pv-empty">No links yet. Use “Share” on a list to make one.</p>`}
         </div>
         <div class="pv-card">
           <div class="pv-card-h"><h3>My stores</h3></div>
@@ -4571,6 +4746,9 @@ if (profileViewEl) {
     if ((m = e.target.closest('[data-pvstar]'))) { const d = state.decks.find(x => x.id === m.dataset.pvstar); if (d) { d.playing = !d.playing; save(); renderProfileView(); } return; }
     if ((m = e.target.closest('[data-pvdeck]'))) { openDeck(m.dataset.pvdeck); return; }
     if ((m = e.target.closest('[data-pvgo]'))) { setView(m.dataset.pvgo); return; }
+    if ((m = e.target.closest('[data-pvshare]'))) { openShare(m.dataset.pvshare); return; }
+    if ((m = e.target.closest('[data-sharecopy]'))) { copyText(shareUrl(m.dataset.sharecopy)).then(ok => toast(ok ? 'Link copied ✓' : 'Copy failed')); return; }
+    if ((m = e.target.closest('[data-sharerevoke]'))) { const code = m.dataset.sharerevoke; if (confirm('Revoke this link? Anyone holding it will no longer be able to open the list.')) revokeShare(code).then(() => renderProfileView()); return; }
     if (e.target.closest('#pvImportDeck')) { openImport(); return; }
     if (e.target.closest('#pvSetStores')) { startOnboarding(); return; }
   });
@@ -4601,6 +4779,22 @@ const syncDoneEl = $('#syncDone'); if (syncDoneEl) syncDoneEl.addEventListener('
 const syncCloseEl = $('#syncClose'); if (syncCloseEl) syncCloseEl.addEventListener('click', closeSyncOverlay);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) syncPullIfNewer(); });
 window.addEventListener('focus', syncPullIfNewer);
+
+// share buttons + share modal
+const buyShareBtn = $('#buyShareBtn'); if (buyShareBtn) buyShareBtn.addEventListener('click', () => openShare('buy'));
+const sellShareBtn = $('#sellShareBtn'); if (sellShareBtn) sellShareBtn.addEventListener('click', () => openShare('sell'));
+const closeShareEl = $('#closeShare'); if (closeShareEl) closeShareEl.addEventListener('click', closeShare);
+const shareModalEl = $('#shareModal');
+if (shareModalEl) shareModalEl.addEventListener('click', e => {
+  if (e.target.id === 'shareModal') { closeShare(); return; }
+  let m;
+  if (e.target.closest('#shareSignIn')) { closeShare(); openAuth('signin'); return; }
+  if ((m = e.target.closest('[data-sharelive]'))) { shareCtx.live = m.dataset.sharelive === '1'; shareLastResult = null; renderShareModal(); return; }
+  if (e.target.closest('#shareCreateBtn')) { doCreateShare(); return; }
+  if (e.target.closest('#shareCopyBtn')) { const inp = $('#shareLinkInput'); if (inp) copyText(inp.value).then(ok => toast(ok ? 'Link copied ✓' : 'Copy failed')); return; }
+  if ((m = e.target.closest('[data-sharecopy]'))) { copyText(shareUrl(m.dataset.sharecopy)).then(ok => toast(ok ? 'Link copied ✓' : 'Copy failed')); return; }
+  if ((m = e.target.closest('[data-sharerevoke]'))) { const code = m.dataset.sharerevoke; if (confirm('Revoke this link? Anyone holding it will no longer be able to open the list.')) revokeShare(code).then(() => { renderShareModal(); renderProfileView(); }); return; }
+});
 
 /* ---------- boot ---------- */
 applyTheme(state.prefs.theme);

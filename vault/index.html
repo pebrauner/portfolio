@@ -196,6 +196,7 @@
           <button class="btn ghost" id="buyMatchBtn" title="Paste a seller’s list and see which of those cards you still need"><i class="ms ms-ability-investigate" aria-hidden="true"></i> Match a list</button>
           <button class="btn ghost" id="exportPdfBtn" title="Export a printable PDF — 6 cards per page">⎙ PDF</button>
           <button class="btn ghost" id="copyBuyBtn" title="Copy as text for a seller">⧉ Copy list</button>
+          <button class="btn ghost" id="buyShareBtn" title="Create a shareable link to this list"><i class="ms ms-counter-lore" aria-hidden="true"></i> Share</button>
         </div>
       </div>
       <div class="buy-filter" id="buyDeckFilter" hidden></div>
@@ -235,6 +236,7 @@
           <button class="btn ghost" id="sellMarkAllBtn" title="Mark everything listed as sold and remove from inventory">✓ Sold all</button>
           <button class="btn ghost" id="exportSellPdfBtn" title="Export a printable PDF — 8 cards per page">⎙ PDF</button>
           <button class="btn ghost" id="copySellBtn" title="Copy as text for a buyer">⧉ Copy list</button>
+          <button class="btn ghost" id="sellShareBtn" title="Create a shareable link to this list"><i class="ms ms-counter-lore" aria-hidden="true"></i> Share</button>
         </div>
       </div>
       <div class="sell-folders" id="sellFolders"></div>
@@ -403,6 +405,15 @@
       <button class="modal-close" id="closeProfile" aria-label="Close">✕</button>
       <h2 class="modal-title"><i class="ms ms-counter-lore" aria-hidden="true"></i> Profile</h2>
       <div id="profileBody"></div>
+    </div>
+  </div>
+
+  <!-- Share a buy/sell list (creates a short link) -->
+  <div class="modal-scrim" id="shareModal" hidden>
+    <div class="modal modal-sm">
+      <button class="modal-close" id="closeShare" aria-label="Close">✕</button>
+      <h2 class="modal-title"><i class="ms ms-counter-lore" aria-hidden="true"></i> Share a list</h2>
+      <div id="shareBody"></div>
     </div>
   </div>
 
