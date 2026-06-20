@@ -83,6 +83,7 @@ function migrate(s) {
   s.cards ||= {};
   s.art ||= {};   // name-key -> chosen display printing { image, art, set, set_name, collector, scryfallId }
   s.wishlist ||= {};   // name-key -> desired qty (manual buy list, fed from Browse)
+  s.history ||= [];    // activity ledger: [{ t, type:'bought'|'sold'|'added'|'removed', name, qty, unit, value?, foil?, note? }]
   // Sell lists: multiple named "folders", each variant-id -> copies listed.
   // Migrate the old single `s.sellList` into the first folder.
   if (!Array.isArray(s.sellLists)) {
@@ -343,6 +344,85 @@ function setOwned(name, n) {
   }
   save();
 }
+
+/* =====================================================================
+   HISTORY / ACTIVITY LEDGER — every inventory change is logged by day.
+   types: 'bought' | 'sold' | 'added' | 'removed'  (bought/sold = money).
+   ===================================================================== */
+const HIST_CAP = 4000;
+function sameDay(a, b) {
+  const x = new Date(a), y = new Date(b);
+  return x.getFullYear() === y.getFullYear() && x.getMonth() === y.getMonth() && x.getDate() === y.getDate();
+}
+function logEvent(type, name, qty, unit, opts = {}) {
+  qty = Math.round(qty) || 0;
+  if (qty <= 0) return;
+  state.history ||= [];
+  const e = { t: Date.now(), type, name, qty, unit: +unit || 0 };
+  if (opts.value != null) e.value = +opts.value || 0;   // explicit total (bulk summaries where unit*qty isn't meaningful)
+  if (opts.foil) e.foil = true;
+  if (opts.note) e.note = opts.note;
+  const last = state.history[state.history.length - 1];
+  // coalesce rapid repeats of the same card+action within the same day (e.g. stepper spam)
+  if (last && last.type === type && last.name === name && last.value == null && e.value == null
+      && !last.note && !opts.note && !!last.foil === !!opts.foil && sameDay(last.t, e.t)) {
+    last.qty += qty; last.t = e.t; if (e.unit) last.unit = e.unit;
+    return;
+  }
+  state.history.push(e);
+  if (state.history.length > HIST_CAP) state.history = state.history.slice(-HIST_CAP);
+}
+// Log a manual inventory delta (steppers, toggles, copy add/delete) as added/removed.
+function logChange(name, before, after) {
+  const d = (after || 0) - (before || 0);
+  if (d) logEvent(d > 0 ? 'added' : 'removed', name, Math.abs(d), priceOf(name));
+}
+// Log an acquisition of resolved {name,qty,foil} cards: itemise a small batch,
+// summarise a big one (CSV / whole-deck imports) so history isn't flooded.
+function logAcquired(resolved, summaryLabel) {
+  const items = (resolved || []).filter(c => (c.qty || 0) > 0);
+  if (!items.length) return;
+  if (items.length <= 12) {
+    items.forEach(c => logEvent('added', c.name, c.qty, priceOf(c.name), { foil: !!c.foil }));
+  } else {
+    const copies = items.reduce((a, c) => a + c.qty, 0);
+    const value = items.reduce((a, c) => a + c.qty * priceOf(c.name), 0);
+    logEvent('added', summaryLabel, copies, 0, { value, note: 'bulk' });
+  }
+}
+
+/* ---------- undo: snapshot-based reversal of buy/sell/delete actions ---------- */
+let undoStack = [];   // session-only: [{ label, snap }] — most recent last
+const UNDO_MAX = 40;
+function snapshotState() {
+  return JSON.stringify({
+    variants: state.variants, sellLists: state.sellLists, activeSellList: state.activeSellList,
+    wishlist: state.wishlist, decks: state.decks, history: state.history,
+  });
+}
+function pushUndo(label) {
+  undoStack.push({ label, snap: snapshotState() });
+  if (undoStack.length > UNDO_MAX) undoStack.shift();
+  renderUndo();
+}
+function dropUndo() { undoStack.pop(); renderUndo(); }   // discard the last point (action turned out to be a no-op)
+function undo() {
+  const u = undoStack.pop();
+  if (!u) { toast('Nothing to undo.'); renderUndo(); return; }
+  const s = JSON.parse(u.snap);
+  state.variants = s.variants; state.sellLists = s.sellLists; state.activeSellList = s.activeSellList;
+  state.wishlist = s.wishlist; state.decks = s.decks; state.history = s.history;
+  currentDeckId = null;   // a restored/removed deck may no longer match the open detail view
+  save(); render();
+  toast(`Undone — ${u.label}.`);
+}
+function renderUndo() {
+  const b = $('#undoBtn'); if (!b) return;
+  const u = undoStack[undoStack.length - 1];
+  b.hidden = !u;
+  if (u) b.title = `Undo: ${u.label}`;
+}
+const histValue = e => e.value != null ? e.value : e.qty * (e.unit || 0);
 
 /* ---------- decklist parsing ---------- */
 const SECTION_RE = /^(deck|sideboard|maybeboard|commander|companion|sb:|maindeck|lands?|creatures?|spells?|planeswalkers?)\s*:?\s*$/i;
@@ -842,7 +922,79 @@ function render() {
   renderBuyList();
   renderSellList();
   renderBrowse();
+  renderHistory();
+  renderUndo();
   renderPriceSrc();
+}
+
+/* ---------- history / activity ledger ---------- */
+let histFilter = 'all';   // all | bought | sold | adjust
+const HIST_META = {
+  bought:  { label: 'Bought',  ic: 'ms-counter-shield', sign: 'out' },
+  sold:    { label: 'Sold',    ic: 'ms-counter-gold',   sign: 'in'  },
+  added:   { label: 'Added',   ic: 'ms-token',          sign: ''    },
+  removed: { label: 'Removed', ic: 'ms-graveyard',      sign: ''    },
+};
+function clearHistory() {
+  if (!(state.history || []).length) { toast('History is already empty.'); return; }
+  if (!confirm('Clear the entire activity history? This can’t be undone. (Your inventory and prices are not affected.)')) return;
+  state.history = []; save(); render();
+  toast('Activity history cleared.');
+}
+function histRow(e) {
+  const meta = HIST_META[e.type] || HIST_META.added;
+  const time = new Date(e.t).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  const val = histValue(e);
+  const valStr = val ? `${meta.sign === 'in' ? '+' : meta.sign === 'out' ? '−' : ''}${money(val)}` : '—';
+  const isCard = !e.note && state.cards[key(e.name)];
+  const nm = `${esc(e.name)}${e.foil ? ` ${FOIL_SPARK}` : ''}`;
+  const nameHtml = isCard
+    ? `<span class="hr-name nm" data-name="${esc(e.name)}" title="${esc(e.name)}">${nm}</span>`
+    : `<span class="hr-name" title="${esc(e.name)}">${nm}</span>`;
+  return `<div class="hist-row ${e.type}">
+    <span class="hr-badge ${e.type}"><i class="ms ${meta.ic}" aria-hidden="true"></i> ${meta.label}</span>
+    ${nameHtml}
+    <span class="hr-qty">×${e.qty}</span>
+    <span class="hr-val ${meta.sign}">${valStr}</span>
+    <span class="hr-time">${time}</span>
+  </div>`;
+}
+function renderHistory() {
+  const all = (state.history || []).slice().sort((a, b) => b.t - a.t);
+  const boughtVal = all.filter(e => e.type === 'bought').reduce((a, e) => a + histValue(e), 0);
+  const soldVal = all.filter(e => e.type === 'sold').reduce((a, e) => a + histValue(e), 0);
+  const net = soldVal - boughtVal;
+  const sumEl = $('#histSummary');
+  if (sumEl) sumEl.innerHTML = all.length ? `
+    <div class="stat-card"><div class="label"><i class="ms ms-counter-gold stat-ic" aria-hidden="true"></i>Sold</div><div class="value gold">${money(soldVal)}</div><div class="sub">money in</div></div>
+    <div class="stat-card"><div class="label"><i class="ms ms-counter-shield stat-ic" aria-hidden="true"></i>Bought</div><div class="value">${money(boughtVal)}</div><div class="sub">money out</div></div>
+    <div class="stat-card"><div class="label"><i class="ms ms-ability-craft stat-ic" aria-hidden="true"></i>Net</div><div class="value ${net >= 0 ? 'gold' : ''}">${net < 0 ? '−' : ''}${money(Math.abs(net))}</div><div class="sub">sold − bought</div></div>
+    <div class="stat-card"><div class="label"><i class="ms ms-counter-lore stat-ic" aria-hidden="true"></i>Entries</div><div class="value">${all.length}</div><div class="sub">logged events</div></div>` : '';
+  $$('#histFilter .seg-btn').forEach(b => b.classList.toggle('is-active', b.dataset.hfilter === histFilter));
+  const rows = all.filter(e => histFilter === 'all' || (histFilter === 'adjust' ? (e.type === 'added' || e.type === 'removed') : e.type === histFilter));
+  const body = $('#historyBody');
+  if (!body) return;
+  if (!rows.length) {
+    body.innerHTML = `<div class="empty-state"><span class="empty-mark"><i class="ms ms-counter-lore" aria-hidden="true"></i></span><h2>${all.length ? 'Nothing here' : 'No activity yet'}</h2><p>${all.length ? 'No events match this filter.' : 'Buy, sell, or add cards and every change is logged here, day by day.'}</p></div>`;
+    return;
+  }
+  const groups = [];
+  let cur = null;
+  rows.forEach(e => {
+    const dayKey = new Date(e.t).toDateString();
+    if (!cur || cur.key !== dayKey) { cur = { key: dayKey, t: e.t, items: [] }; groups.push(cur); }
+    cur.items.push(e);
+  });
+  body.innerHTML = groups.map(g => {
+    const dBought = g.items.filter(e => e.type === 'bought').reduce((a, e) => a + histValue(e), 0);
+    const dSold = g.items.filter(e => e.type === 'sold').reduce((a, e) => a + histValue(e), 0);
+    const dayLabel = new Date(g.t).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const tally = [dSold ? `<span class="ht-in">+${money(dSold)}</span>` : '', dBought ? `<span class="ht-out">−${money(dBought)}</span>` : ''].filter(Boolean).join(' ');
+    return `<div class="hist-day">
+      <div class="hist-day-head"><span class="hd-date">${dayLabel}</span><span class="hd-tally">${tally}</span></div>
+      ${g.items.map(histRow).join('')}
+    </div>`;
+  }).join('');
 }
 
 function renderDecks() {
@@ -1183,15 +1335,17 @@ function deleteDeck(id) {
 function deleteDeckAndCards(id) {
   const deck = state.decks.find(d => d.id === id);
   if (!deck) return;
-  let removed = 0;
+  pushUndo(`delete of “${deck.name}”`);
+  let removed = 0, removedVal = 0;
   deck.cards.forEach(c => {
     const take = Math.min(c.qty, ownedOf(c.name));
-    if (take > 0) { setOwned(c.name, ownedOf(c.name) - take); removed += take; }
+    if (take > 0) { setOwned(c.name, ownedOf(c.name) - take); removed += take; removedVal += take * priceOf(c.name); }
   });
+  if (removed > 0) logEvent('removed', `${deck.name} (deck sell-off)`, removed, 0, { value: removedVal, note: 'deck sell-off' });
   state.decks = state.decks.filter(d => d.id !== id);
   deckPendingDelete = null; currentDeckId = null;
   save(); render(); setView('decks');
-  toast(`Deleted “${deck.name}” and removed ${removed} cop${removed === 1 ? 'y' : 'ies'} from your inventory.`);
+  toast(`Deleted “${deck.name}” and removed ${removed} cop${removed === 1 ? 'y' : 'ies'} from your inventory.`, { undo: true });
 }
 
 /* ---------- deck editing (add / remove / qty) ---------- */
@@ -1658,9 +1812,11 @@ function buyArtTile({ n, need, sub, included }) {
 function markBought(name) {
   const need = requiredFor(name, buyDecksActive()) - ownedOf(name);
   if (need <= 0) return;
+  pushUndo(`buy of ${need}× ${name}`);
   addVariant(name, { qty: need });
+  logEvent('bought', name, need, priceOf(name));
   save(); render();
-  toast(`Bought ${need}× ${name} — added to your inventory.`);
+  toast(`Bought ${need}× ${name} — added to your inventory.`, { undo: true });
 }
 
 /* =====================================================================
@@ -1720,7 +1876,15 @@ async function importDeck() {
   $('#confirmImport').disabled = true;
   try {
     const { resolved, missing } = await resolveCards(parsed);
-    if (ownAll) resolved.forEach(c => setOwned(c.name, Math.max(ownedOf(c.name), c.qty)));
+    if (ownAll) {
+      let added = 0, addedVal = 0;
+      resolved.forEach(c => {
+        const cur = ownedOf(c.name), tgt = Math.max(cur, c.qty);
+        if (tgt > cur) { added += tgt - cur; addedVal += (tgt - cur) * priceOf(c.name); }
+        setOwned(c.name, tgt);
+      });
+      if (added > 0) logEvent('added', `${name} (deck owned)`, added, 0, { value: addedVal, note: 'deck owned' });
+    }
     const cmd = resolved.find(c => c.commander);
     const cards = resolved.map(c => ({ name: c.name, qty: c.qty }));
     const deck = { id: uid(), name, cards, original: cards.map(c => ({ ...c })) };
@@ -1760,6 +1924,7 @@ async function addLooseCards() {
   try {
     const { resolved, missing } = await resolveCards(combined);
     resolved.forEach(c => addVariant(c.name, { qty: c.qty, foil: !!c.foil }));
+    logAcquired(resolved, `Added ${resolved.length} cards`);
     save();
     closeAdd();
     render();
@@ -1787,6 +1952,7 @@ async function importCSV(file) {
   try {
     const { resolved, missing } = await resolveCards(parsed);
     resolved.forEach(c => addVariant(c.name, { qty: c.qty, foil: c.foil, condition: c.condition, set: c.set, collector: c.collector, scryfallId: c.scryfallId }));
+    logAcquired(resolved, `CSV import (${file.name})`);
     save();
     closeAdd();
     render();
@@ -2321,6 +2487,7 @@ async function recDeckOwn(i) {
   try {
     const { resolved } = await resolveCards(parsedCuratedDeck(d).map(c => ({ name: c.name, qty: c.qty })));
     resolved.forEach(c => addVariant(c.name, { qty: c.qty }));
+    logAcquired(resolved, `${d.name} (deck)`);
     save(); render();
     toast(`${d.name} added to your collection.`);
   } catch (e) { toast('Scryfall lookup failed — try again.'); }
@@ -2334,6 +2501,7 @@ function commitBrowsed(cardObj) {
 function addBrowsedToOwned(cardObj) {
   const n = commitBrowsed(cardObj);
   addVariant(n, { qty: 1 });
+  logEvent('added', n, 1, priceOf(n));
   save(); render();
   toast(`Added a copy of ${n} to your vault.`);
 }
@@ -2425,6 +2593,7 @@ function restoreBackup(file) {
       const data = JSON.parse(reader.result);
       if (!data.decks || !data.cards || (!data.variants && !data.owned)) throw new Error('bad shape');
       state = migrate(data);
+      undoStack = [];   // the restored state is a fresh baseline — pre-restore undo points no longer apply
       save();
       currentDeckId = null;
       render();
@@ -2751,18 +2920,20 @@ function quickSellMatches() {
   const copies = r.matches.reduce((a, m) => a + Math.min(m.want, ownedOf(m.name)), 0);   // LIVE owned, not the stale match value
   if (!copies) { toast('Those copies are no longer in your inventory.'); return; }
   if (!confirm(`Sell ${copies} matched cop${copies === 1 ? 'y' : 'ies'}? They’ll be removed from your inventory.`)) return;
+  pushUndo('quick-sell');
   let cards = 0, sold = 0;
   const remWant = r.matches.map(m => {
     const have = ownedOf(m.name);               // recompute LIVE so the sold count matches what actually leaves inventory
     const n = Math.min(m.want, have);
-    if (n > 0) { setOwned(m.name, have - n); cards++; sold += n; }
+    if (n > 0) { setOwned(m.name, have - n); logEvent('sold', m.name, n, m.price); cards++; sold += n; }   // m.price = price shown at match time
     return { name: m.name, qty: m.want - n };   // buyer's want left after this sale
   });
+  if (!sold) dropUndo();   // nothing actually sold — discard the undo point
   // re-derive the buyer's wants (minus what we just sold) so a second click can't double-sell
   const wanted = [...remWant, ...r.misses.map(x => ({ name: x.name, qty: x.want }))].filter(w => w.qty > 0);
   sellMatchResult = buildMatchResult(wanted);
   save(); render();
-  toast(sold ? `Sold ${sold} cop${sold === 1 ? 'y' : 'ies'} (${cards} card${cards === 1 ? '' : 's'}) — removed from inventory.` : 'Nothing to sell.');
+  toast(sold ? `Sold ${sold} cop${sold === 1 ? 'y' : 'ies'} (${cards} card${cards === 1 ? '' : 's'}) — removed from inventory.` : 'Nothing to sell.', { undo: !!sold });
 }
 function renderMatchResults() {
   const r = sellMatchResult; if (!r) return '';
@@ -2842,18 +3013,20 @@ function quickBuyMatches() {
   const ta = $('#buyMatchInput');
   if (ta && ta.value.trim() !== (buyMatchOf || '').trim()) { toast('The list changed — click “Match against my buy list” again first.'); return; }
   const decks = buyDecksActive();
+  pushUndo('quick-buy');
   let cards = 0, copies = 0;
   const remOffer = r.wants.map(w => {
     const need = requiredFor(w.name, decks) - ownedOf(w.name);   // recompute LIVE — ownership may have changed since the match
     const n = Math.max(0, Math.min(w.have, need));
-    if (n > 0) { addVariant(w.name, { qty: n }); cards++; copies += n; }
+    if (n > 0) { addVariant(w.name, { qty: n }); logEvent('bought', w.name, n, w.price); cards++; copies += n; }   // w.price = price shown at match time
     return { name: w.name, qty: w.have - n };   // seller's stock left after this buy
   });
+  if (!copies) dropUndo();   // nothing actually bought — discard the undo point
   // re-derive the offer (depleted by what we bought) so a second click can't re-buy
   const offered = [...remOffer, ...r.skip.map(s => ({ name: s.name, qty: s.have }))].filter(o => o.qty > 0);
   buyMatchResult = buildBuyMatchResult(offered);
   save(); render();
-  toast(copies ? `Bought ${copies} cop${copies === 1 ? 'y' : 'ies'} (${cards} card${cards === 1 ? '' : 's'}) — added to inventory.` : 'Nothing to buy.');
+  toast(copies ? `Bought ${copies} cop${copies === 1 ? 'y' : 'ies'} (${cards} card${cards === 1 ? '' : 's'}) — added to inventory.` : 'Nothing to buy.', { undo: !!copies });
 }
 function renderBuyMatchResults() {
   const r = buyMatchResult; if (!r) return '';
@@ -2904,24 +3077,27 @@ function markSold(vid) {
   const hit = variantIndex().get(vid);
   if (!hit) { removeVariantFromAllSellLists(vid); save(); render(); return; }
   const qty = Math.min(sellQtyOf(vid), hit.v.qty);
+  pushUndo(`sale of ${qty}× ${hit.name}`);
+  logEvent('sold', hit.name, qty, variantPrice(hit.name, hit.v), { foil: hit.v.foil });
   hit.v.qty -= qty;
   removeVariantFromAllSellLists(vid);
   if (hit.v.qty <= 0) removeVariant(hit.name, vid); else save();
   render();
-  toast(`Sold ${qty}× ${hit.name}${hit.v.foil ? ' (foil)' : ''} — removed from inventory.`);
+  toast(`Sold ${qty}× ${hit.name}${hit.v.foil ? ' (foil)' : ''} — removed from inventory.`, { undo: true });
 }
 function markAllSold() {
   const rows = sellRows();
   if (!rows.length) return;
   const copies = rows.reduce((a, r) => a + r.qty, 0);
   if (!confirm(`Mark all ${copies} listed cop${copies === 1 ? 'y' : 'ies'} in “${sellListName()}” as sold? They will be removed from your inventory.`)) return;
+  pushUndo(`“Sold all” of ${copies} cop${copies === 1 ? 'y' : 'ies'}`);
   rows.forEach(r => {
     const v = variantById(r.name, r.vid);
-    if (v) { v.qty -= r.qty; if (v.qty <= 0) removeVariant(r.name, r.vid); }
+    if (v) { logEvent('sold', r.name, r.qty, r.unit, { foil: v.foil }); v.qty -= r.qty; if (v.qty <= 0) removeVariant(r.name, r.vid); }
     removeVariantFromAllSellLists(r.vid);
   });
   save(); render();
-  toast(`Marked ${copies} card${copies === 1 ? '' : 's'} as sold.`);
+  toast(`Marked ${copies} card${copies === 1 ? '' : 's'} as sold.`, { undo: true });
 }
 
 function variantBadges(v) {
@@ -3068,12 +3244,17 @@ async function copyCollection() {
 
 /* ---------- toast ---------- */
 let toastTimer;
-function toast(msg) {
+function toast(msg, opts = {}) {
   const t = $('#toast');
-  t.textContent = msg;
+  if (opts.undo && undoStack.length) {
+    t.innerHTML = `<span class="toast-msg"></span><button class="toast-undo" id="toastUndo">↶ Undo</button>`;
+    t.querySelector('.toast-msg').textContent = msg;
+  } else {
+    t.textContent = msg;
+  }
   t.hidden = false;
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { t.hidden = true; }, 3200);
+  toastTimer = setTimeout(() => { t.hidden = true; }, opts.undo ? 7000 : 3200);
 }
 
 /* =====================================================================
@@ -3086,6 +3267,14 @@ $('#tabs').addEventListener('click', e => {
   if (invFacet) { invFacet = null; renderInventory(); }   // tabs give a clean view
   setView(tab.dataset.view);
 });
+const histFilterEl = $('#histFilter');
+if (histFilterEl) histFilterEl.addEventListener('click', e => {
+  const b = e.target.closest('.seg-btn'); if (!b) return;
+  histFilter = b.dataset.hfilter; renderHistory();
+});
+const histClearBtn = $('#histClearBtn'); if (histClearBtn) histClearBtn.addEventListener('click', clearHistory);
+const undoBtnEl = $('#undoBtn'); if (undoBtnEl) undoBtnEl.addEventListener('click', undo);
+const toastEl = $('#toast'); if (toastEl) toastEl.addEventListener('click', e => { if (e.target.closest('#toastUndo')) { toastEl.hidden = true; undo(); } });
 $('#newDeckBtn').addEventListener('click', openImport);
 $('#emptyImportBtn').addEventListener('click', openImport);
 $('#closeImport').addEventListener('click', closeImport);
@@ -3508,20 +3697,28 @@ document.addEventListener('click', e => {
   if (vstep) {
     const v = variantById(vstep.dataset.name, vstep.dataset.vid);
     if (v) {
+      const before = ownedOf(vstep.dataset.name);
       v.qty = Math.max(0, v.qty + parseInt(vstep.dataset.vstep, 10));
       if (v.qty === 0) removeVariant(vstep.dataset.name, v.id);
-      else save();
+      logChange(vstep.dataset.name, before, ownedOf(vstep.dataset.name)); save();
       render();
       refreshCardEditor();
     }
     return;
   }
   const vdel = e.target.closest('[data-vdel]');
-  if (vdel) { removeVariant(vdel.dataset.name, vdel.dataset.vdel); render(); refreshCardEditor(); return; }
+  if (vdel) {
+    const before = ownedOf(vdel.dataset.name);
+    removeVariant(vdel.dataset.name, vdel.dataset.vdel);
+    logChange(vdel.dataset.name, before, ownedOf(vdel.dataset.name)); save();
+    render(); refreshCardEditor();
+    return;
+  }
   const addvar = e.target.closest('[data-addvar]');
   if (addvar) {
     const list = (state.variants[key(addvar.dataset.addvar)] ||= []);
-    list.push(newVariant({ qty: 1 })); save();
+    list.push(newVariant({ qty: 1 }));
+    logEvent('added', addvar.dataset.addvar, 1, priceOf(addvar.dataset.addvar)); save();
     render(); refreshCardEditor();
     return;
   }
@@ -3543,14 +3740,18 @@ document.addEventListener('click', e => {
   if (toggle) {
     const name = toggle.dataset.toggle;
     const req = parseInt(toggle.dataset.req, 10) || 1;
-    setOwned(name, ownedOf(name) >= req ? 0 : req);
+    const before = ownedOf(name);
+    setOwned(name, before >= req ? 0 : req);
+    logChange(name, before, ownedOf(name)); save();
     render();
     return;
   }
   const step = e.target.closest('[data-step]');
   if (step) {
     const name = step.dataset.name;
-    setOwned(name, ownedOf(name) + parseInt(step.dataset.step, 10));
+    const before = ownedOf(name);
+    setOwned(name, before + parseInt(step.dataset.step, 10));
+    logChange(name, before, ownedOf(name)); save();
     render();
     return;
   }

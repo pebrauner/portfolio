@@ -36,8 +36,10 @@
       <button class="tab" data-view="buylist"><i class="ms ms-counter-gold tab-ico" aria-hidden="true"></i>Buy List</button>
       <button class="tab" data-view="selllist"><i class="ms ms-loyalty-up tab-ico" aria-hidden="true"></i>Sell List</button>
       <button class="tab" data-view="browse"><i class="ms ms-ability-investigate tab-ico" aria-hidden="true"></i>Browse</button>
+      <button class="tab" data-view="history"><i class="ms ms-counter-lore tab-ico" aria-hidden="true"></i>History</button>
     </nav>
     <div class="topbar-actions">
+      <button class="btn ghost undo-btn" id="undoBtn" hidden>↶ Undo</button>
       <div class="price-src" id="priceSrc" title="Which price source the whole app uses">
         <span class="ps-label">Prices</span>
         <button class="ps-opt" data-pricesrc="tcg">TCG</button>
@@ -271,6 +273,27 @@
         <p class="view-sub" style="margin-bottom:16px">Recommended Commander decks — import as a deck, add to your buy list, or mark the whole deck owned.</p>
         <div class="precon-grid" id="browseDecks"></div>
       </div>
+    </section>
+
+    <!-- History / activity ledger -->
+    <section class="view" id="view-history">
+      <div class="view-head">
+        <div>
+          <h2 class="view-title">History</h2>
+          <p class="view-sub">A day-by-day ledger of everything you buy, sell, and add to the vault.</p>
+        </div>
+        <div class="buy-head-actions">
+          <div class="seg" id="histFilter" title="Filter activity">
+            <button class="seg-btn is-active" data-hfilter="all">All</button>
+            <button class="seg-btn" data-hfilter="bought"><i class="ms ms-counter-shield" aria-hidden="true"></i> Bought</button>
+            <button class="seg-btn" data-hfilter="sold"><i class="ms ms-counter-gold" aria-hidden="true"></i> Sold</button>
+            <button class="seg-btn" data-hfilter="adjust"><i class="ms ms-token" aria-hidden="true"></i> Adjustments</button>
+          </div>
+          <button class="btn ghost" id="histClearBtn" title="Erase the activity history (your inventory is not affected)">✕ Clear history</button>
+        </div>
+      </div>
+      <div class="ledger-summary" id="histSummary"></div>
+      <div id="historyBody"></div>
     </section>
   </main>
 
