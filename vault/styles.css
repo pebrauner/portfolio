@@ -1217,6 +1217,8 @@ html[data-theme="ember"] .topbar { background: linear-gradient(180deg, rgba(31,1
 .onb-chip { padding: 9px 15px; border-radius: 999px; border: 1px solid var(--edge); background: var(--panel); color: var(--parch-dim); font-size: 13px; cursor: pointer; transition: .15s; }
 .onb-chip:hover { border-color: var(--brass); }
 .onb-chip.on { color: var(--ink); background: linear-gradient(180deg, var(--gold-soft), var(--gold)); border-color: var(--gold-soft); }
+.onb-chip-n { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 999px; font-family: var(--mono); font-size: 10px; background: rgba(0,0,0,.28); }
+.onb-chip.on .onb-chip-n { background: rgba(0,0,0,.18); }
 .onb-addrow { display: flex; gap: 8px; margin-top: 12px; }
 .onb-addrow .text-input { flex: 1; }
 .onb-themes { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }

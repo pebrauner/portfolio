@@ -3902,7 +3902,7 @@ function setSyncMeta(m) { try { localStorage.setItem(SYNC_META_KEY, JSON.stringi
 async function initSync() {
   renderAccount();
   if (!sb) return;
-  loadStores();   // community store list for onboarding (fire-and-forget)
+  loadStores(); loadStoreCounts();   // community store list + popularity (fire-and-forget)
   try {
     const { data } = await sb.auth.getSession();
     if (data.session) { authUser = data.session.user; await afterSignIn(); }
@@ -3980,7 +3980,7 @@ async function afterSignIn() {
   syncResolving = true; renderAccount();   // held for the WHOLE function: also blocks echo-pushes during reconciliation
   try {
     await loadProfile();
-    loadStores();   // refresh the shared store list now we're authed
+    loadStores(); loadStoreCounts();   // refresh shared store list + popularity now we're authed
     const uid = authUser && authUser.id;
     if (!uid) return;
     const { data, error } = await sb.from('collections').select('data, updated_at').eq('user_id', uid).maybeSingle();
@@ -4264,6 +4264,15 @@ async function addStoreGlobal(name) {
   if (!storeList.some(s => s.toLowerCase() === name.toLowerCase())) storeList.push(name);
   if (sb && authUser) { try { await sb.from('stores').insert({ name }); } catch (e) {} }   // dup / table-missing / RLS errors ignored
 }
+// how many players picked each store (for the "N players here" badge)
+let storeCounts = {};
+async function loadStoreCounts() {
+  if (!sb) return;
+  try {
+    const { data, error } = await sb.rpc('store_popularity');
+    if (!error && Array.isArray(data)) { const m = {}; data.forEach(r => m[r.name] = Number(r.picks) || 0); storeCounts = m; }
+  } catch (e) {}
+}
 const ONB_THEME_SW = { grimoire: '#c9a227', arcane: '#8a6fa3', tome: '#4a8fd6', verdant: '#3fa86a', ember: '#d4452f' };
 const ONB_EXP = [
   { v: 'new', label: 'New to Magic', sub: 'Just getting into it' },
@@ -4320,7 +4329,15 @@ function onbStepHtml(key) {
       <div class="pf-row2"><label class="ve-field"><span>Country</span><input type="text" id="onbCountry" class="text-input" value="${esc(d.country)}" maxlength="40" /></label>
       <label class="ve-field"><span>City</span><input type="text" id="onbCity" class="text-input" value="${esc(d.city)}" maxlength="40" /></label></div>
       <p class="onb-sub">Your favorite local stores</p>
-      <div class="onb-chips">${[...storeList, ...d.stores.filter(s => !storeList.some(x => x.toLowerCase() === s.toLowerCase()))].map(s => onbChip(s, d.stores.some(x => x.toLowerCase() === s.toLowerCase()), `data-onb-store="${esc(s)}"`)).join('')}</div>
+      <div class="onb-chips">${(() => {
+        const all = [...storeList, ...d.stores.filter(s => !storeList.some(x => x.toLowerCase() === s.toLowerCase()))];
+        all.sort((a, b) => (storeCounts[b] || 0) - (storeCounts[a] || 0) || a.localeCompare(b));   // most-played first
+        return all.map(s => {
+          const on = d.stores.some(x => x.toLowerCase() === s.toLowerCase());
+          const n = storeCounts[s] || 0;
+          return `<button class="onb-chip ${on ? 'on' : ''}" data-onb-store="${esc(s)}" title="${n ? n + ' player' + (n === 1 ? '' : 's') + ' play here' : ''}">${esc(s)}${n > 0 ? ` <span class="onb-chip-n">${n}</span>` : ''}</button>`;
+        }).join('');
+      })()}</div>
       <div class="onb-addrow"><input type="text" id="onbStoreAdd" class="text-input" placeholder="Add another store…" maxlength="40" /><button class="btn ghost" id="onbStoreAddBtn">Add</button></div>`;
     case 'formats': return `<h2 class="onb-q">What do you play?</h2>
       <div class="onb-chips">${ONB_FORMATS.map(f => onbChip(f, d.formats.includes(f), `data-onb-fmt="${esc(f)}"`)).join('')}</div>`;
