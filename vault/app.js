@@ -3831,6 +3831,7 @@ try { if (window.supabase) sb = window.supabase.createClient(SUPA_URL, SUPA_KEY)
 let authUser = null;        // supabase auth user | null
 let authProfile = null;     // profiles row | null
 let authMode = 'signin';    // 'signin' | 'signup'
+let justSignedUp = false;   // set on signup → afterSignIn launches onboarding (Phase 2)
 let syncBusy = false;       // a push is in flight
 let syncPushTimer = null;   // pending debounced push (truthy = dirty/queued)
 let syncResolving = false;  // first sign-in reconciliation in progress
@@ -3867,22 +3868,37 @@ async function initSync() {
 // ---------- auth ----------
 async function doAuth() {
   if (!sb) return;
+  const signup = authMode === 'signup';
   const email = $('#authEmail').value.trim();
   const password = $('#authPassword').value;
+  const username = $('#authUsername').value.trim();
+  const confirmPw = $('#authConfirm').value;
   const status = $('#authStatus');
   if (!email || !password) { status.textContent = 'Enter your email and password.'; return; }
-  if (authMode === 'signup' && password.length < 6) { status.textContent = 'Use a password of at least 6 characters.'; return; }
+  if (signup) {
+    if (!/^[a-zA-Z0-9_.]{3,24}$/.test(username)) { status.textContent = 'Username: 3–24 letters, numbers, “_” or “.”'; return; }
+    if (password.length < 6) { status.textContent = 'Use a password of at least 6 characters.'; return; }
+    if (password !== confirmPw) { status.textContent = 'Those passwords don’t match.'; return; }
+  }
   $('#authSubmit').disabled = true;
-  status.innerHTML = `<span class="spin"></span>${authMode === 'signup' ? 'Creating your account…' : 'Signing in…'}`;
+  status.innerHTML = `<span class="spin"></span>${signup ? 'Creating your account…' : 'Signing in…'}`;
   try {
-    const { data, error } = authMode === 'signup'
-      ? await sb.auth.signUp({ email, password })
+    if (signup) {
+      const { data: avail, error: chkErr } = await sb.rpc('username_available', { name: username });
+      if (!chkErr && avail === false) { status.textContent = 'That username is taken — try another.'; $('#authSubmit').disabled = false; return; }
+    }
+    const { data, error } = signup
+      ? await sb.auth.signUp({ email, password, options: { data: { username } } })
       : await sb.auth.signInWithPassword({ email, password });
     if (error) { status.textContent = error.message; $('#authSubmit').disabled = false; return; }
-    if (authMode === 'signup' && !data.session) {
+    if (signup && !data.session) {
       status.textContent = 'Account created — check your email to confirm, then sign in.';
       $('#authSubmit').disabled = false;
       return;
+    }
+    if (signup && data.user) {
+      justSignedUp = true;   // afterSignIn will launch onboarding
+      try { await sb.from('profiles').update({ username, display_name: username, updated_at: new Date().toISOString() }).eq('id', data.user.id); } catch (e) {}
     }
     closeAuth();   // signed in — onAuthStateChange takes over
   } catch (e) {
@@ -4026,9 +4042,11 @@ function renderAccount() {
 function renderAuthMode() {
   const signup = authMode === 'signup';
   $('#authTitle').textContent = signup ? 'Create account' : 'Sign in';
-  $('#authHint').textContent = signup ? 'Create an account to sync your collection across devices.' : 'Sign in to sync your collection across devices.';
+  $('#authHint').textContent = signup ? 'Create your account — your collection syncs across all your devices.' : 'Sign in to sync your collection across devices.';
   $('#authSubmit').textContent = signup ? 'Create account' : 'Sign in';
   $('#authSwitch').textContent = signup ? 'Already have an account? Sign in' : 'Need an account? Create one';
+  $('#authUsername').hidden = !signup;
+  $('#authConfirm').hidden = !signup;
   $('#authPassword').autocomplete = signup ? 'new-password' : 'current-password';
   $('#authSubmit').disabled = false;
 }
@@ -4039,17 +4057,34 @@ function openAuth(mode) {
   $('#authModal').hidden = false;
   $('#authEmail').focus();
 }
-function closeAuth() { $('#authModal').hidden = true; $('#authPassword').value = ''; }
+function closeAuth() { $('#authModal').hidden = true; $('#authPassword').value = ''; $('#authConfirm').value = ''; }
+function profileInitials(name) {
+  const parts = String(name || '?').trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return '?';
+  return (parts[0][0] + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
+}
+function avatarHue(s) { let h = 0; for (const c of String(s || '')) h = (h * 31 + c.charCodeAt(0)) % 360; return h; }
 function renderProfile() {
   const body = $('#profileBody'); if (!body) return;
   if (!authUser) { body.innerHTML = '<p class="modal-hint">Not signed in.</p>'; return; }
   const g = globalStats();
+  const p = (authProfile && authProfile.prefs) || {};
   const dn = (authProfile && authProfile.display_name) || '';
   const un = (authProfile && authProfile.username) || '';
+  const initials = profileInitials(dn || p.full_name || un || authUser.email);
   body.innerHTML = `
+    <div class="pf-avatar-row">
+      <div class="pf-avatar" style="--ah:${avatarHue(un || dn || authUser.email)}">${esc(initials)}</div>
+      <div class="pf-id"><div class="pf-name">${esc(dn || un || 'Planeswalker')}</div><div class="pf-handle">@${esc(un || '—')}</div></div>
+    </div>
     <div class="profile-fields">
       <label class="ve-field"><span>Display name</span><input type="text" id="pfDisplay" class="text-input" value="${esc(dn)}" maxlength="40" /></label>
       <label class="ve-field"><span>Username</span><input type="text" id="pfUsername" class="text-input" value="${esc(un)}" maxlength="24" placeholder="a unique handle" /></label>
+      <label class="ve-field"><span>Full name <em>(optional)</em></span><input type="text" id="pfFullName" class="text-input" value="${esc(p.full_name || '')}" maxlength="60" placeholder="optional" /></label>
+      <div class="pf-row2">
+        <label class="ve-field"><span>Country</span><input type="text" id="pfCountry" class="text-input" value="${esc(p.country || 'Peru')}" maxlength="40" /></label>
+        <label class="ve-field"><span>City</span><input type="text" id="pfCity" class="text-input" value="${esc(p.city || 'Lima')}" maxlength="40" /></label>
+      </div>
       <label class="ve-field"><span>Email</span><div class="pf-static">${esc(authUser.email || '')}</div></label>
     </div>
     <div class="profile-stats">
@@ -4078,12 +4113,16 @@ async function saveProfileEdits() {
   if (!sb || !authUser) return;
   const display_name = $('#pfDisplay').value.trim();
   const username = $('#pfUsername').value.trim() || null;
+  const prefs = { ...((authProfile && authProfile.prefs) || {}),
+    full_name: $('#pfFullName').value.trim(),
+    country: $('#pfCountry').value.trim(),
+    city: $('#pfCity').value.trim() };
   const st = $('#pfStatus'); st.innerHTML = '<span class="spin"></span>Saving…';
   try {
-    const { error } = await sb.from('profiles').update({ display_name, username, updated_at: new Date().toISOString() }).eq('id', authUser.id);
+    const { error } = await sb.from('profiles').update({ display_name, username, prefs, updated_at: new Date().toISOString() }).eq('id', authUser.id);
     if (error) { st.textContent = /duplicate|unique/i.test(error.message) ? 'That username is already taken.' : error.message; return; }
-    authProfile = { ...(authProfile || {}), display_name, username };
-    st.textContent = 'Saved.'; renderAccount();
+    authProfile = { ...(authProfile || {}), display_name, username, prefs };
+    st.textContent = 'Saved ✓'; renderAccount();
   } catch (e) { st.textContent = 'Could not save — try again.'; }
 }
 // Sync progress overlay — shown on the first upload / first download at sign-in.

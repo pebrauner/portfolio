@@ -1133,6 +1133,13 @@ html[data-theme="ember"] .topbar { background: linear-gradient(180deg, rgba(31,1
 .modal-sm .text-input { width: 100%; margin-top: 10px; }
 .auth-switch { background: none; border: none; color: var(--brass); font-size: 13px; cursor: pointer; padding: 0; text-decoration: underline; text-underline-offset: 3px; }
 .auth-switch:hover { color: var(--gold-soft); }
+.pf-avatar-row { display: flex; align-items: center; gap: 14px; margin: 2px 0 18px; }
+.pf-avatar { width: 56px; height: 56px; flex-shrink: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--display); font-size: 22px; color: var(--ink); background: linear-gradient(150deg, hsl(var(--ah,45) 55% 62%), hsl(calc(var(--ah,45) + 30) 60% 48%)); box-shadow: 0 2px 10px rgba(0,0,0,.35); }
+.pf-id .pf-name { font-family: var(--display); font-size: 19px; color: var(--parch); }
+.pf-id .pf-handle { font-size: 13px; color: var(--brass); }
+.pf-row2 { display: flex; gap: 12px; }
+.pf-row2 .ve-field { flex: 1; }
+.profile-fields .ve-field em { color: var(--faint); font-style: normal; font-size: 10px; }
 .profile-fields { display: flex; flex-direction: column; gap: 12px; margin: 4px 0 18px; }
 .profile-fields .ve-field { display: flex; flex-direction: column; gap: 5px; }
 .profile-fields .ve-field > span { font-family: var(--label); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }

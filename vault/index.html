@@ -362,8 +362,10 @@
       <button class="modal-close" id="closeAuth" aria-label="Close">✕</button>
       <h2 class="modal-title"><i class="ms ms-counter-lore" aria-hidden="true"></i> <span id="authTitle">Sign in</span></h2>
       <p class="modal-hint" id="authHint">Sign in to sync your collection across devices.</p>
+      <input type="text" id="authUsername" class="text-input" placeholder="Username" autocomplete="username" maxlength="24" hidden />
       <input type="email" id="authEmail" class="text-input" placeholder="you@email.com" autocomplete="email" />
       <input type="password" id="authPassword" class="text-input" placeholder="Password" autocomplete="current-password" />
+      <input type="password" id="authConfirm" class="text-input" placeholder="Confirm password" autocomplete="new-password" hidden />
       <div class="modal-foot">
         <button class="auth-switch" id="authSwitch">Need an account? Create one</button>
         <button class="btn gold" id="authSubmit">Sign in</button>
