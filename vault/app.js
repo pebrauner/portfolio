@@ -923,6 +923,7 @@ function render() {
   renderSellList();
   renderBrowse();
   renderHistory();
+  renderProfileView();
   renderUndo();
   renderPriceSrc();
 }
@@ -3964,6 +3965,7 @@ async function signOut() {
   try { await sb.auth.signOut(); } catch (e) {}
   authUser = null; authProfile = null; setSyncMeta({});
   closeProfile(); renderAccount();
+  if ($('#view-profile') && $('#view-profile').classList.contains('is-active')) setView('decks');
   toast('Signed out — this device is now local-only.');
 }
 async function loadProfile() {
@@ -4183,7 +4185,7 @@ async function saveProfileEdits() {
     const { error } = await sb.from('profiles').update({ display_name, username, prefs, updated_at: new Date().toISOString() }).eq('id', authUser.id);
     if (error) { st.textContent = /duplicate|unique/i.test(error.message) ? 'That username is already taken.' : error.message; return; }
     authProfile = { ...(authProfile || {}), display_name, username, prefs };
-    st.textContent = 'Saved ✓'; renderAccount();
+    st.textContent = 'Saved ✓'; renderAccount(); renderProfileView();
   } catch (e) { st.textContent = 'Could not save — try again.'; }
 }
 // Sync progress overlay — shown on the first upload / first download at sign-in.
@@ -4473,8 +4475,114 @@ if (onbBodyEl) onbBodyEl.addEventListener('click', e => {
 if (onbBodyEl) onbBodyEl.addEventListener('change', e => { if (e.target.id === 'onbCsvInput' && e.target.files[0]) onbImportCSV(e.target.files[0]); });
 const onbSkipAllEl = $('#onbSkipAll'); if (onbSkipAllEl) onbSkipAllEl.addEventListener('click', () => finishOnboarding());
 
+/* ---------- profile page (full-page overview; the modal is the editor) ---------- */
+function topOwnedCards(n = 5) {
+  return allCardNames().filter(name => ownedOf(name) > 0)
+    .map(name => ({ name, value: unitPrice(name) }))
+    .filter(c => c.value > 0)
+    .sort((a, b) => b.value - a.value)
+    .slice(0, n);
+}
+async function setPublicPref(key, val) {
+  if (!authProfile) return;
+  authProfile.prefs = { ...(authProfile.prefs || {}), [key]: val };
+  if (sb && authUser) { try { await sb.from('profiles').update({ prefs: authProfile.prefs, updated_at: new Date().toISOString() }).eq('id', authUser.id); } catch (e) {} }
+}
+function renderProfileView() {
+  const el = $('#profileView'); if (!el) return;
+  const view = $('#view-profile');
+  if (view && !view.classList.contains('is-active')) return;   // only build when the page is showing
+  if (!sb || !authUser) {
+    el.innerHTML = `<div class="empty-state"><span class="empty-mark"><i class="ms ms-counter-lore" aria-hidden="true"></i></span><h2>Sign in to see your profile</h2><p>Create an account for a profile, cross-device sync and shareable lists.</p><button class="btn gold" id="pvSignIn">Sign in</button></div>`;
+    return;
+  }
+  const p = (authProfile && authProfile.prefs) || {};
+  const dn = (authProfile && authProfile.display_name) || (authUser.email || '').split('@')[0];
+  const un = (authProfile && authProfile.username) || '';
+  const g = globalStats();
+  const since = authUser.created_at ? new Date(authUser.created_at).toLocaleDateString(undefined, { month: 'long', year: 'numeric' }) : '';
+  const expLabel = { new: 'New to Magic', intermediate: 'Intermediate', veteran: 'Veteran' }[p.experience] || '';
+  const fmts = Array.isArray(p.formats) ? p.formats : [];
+  const decks = [...state.decks].sort((a, b) => (b.playing ? 1 : 0) - (a.playing ? 1 : 0) || a.name.localeCompare(b.name));
+  const stores = Array.isArray(p.favorite_stores) ? p.favorite_stores : [];
+  const top = topOwnedCards(5);
+  const recent = (state.history || []).slice(-6).reverse();
+  const loc = [p.city, p.country].filter(Boolean).join(', ');
+  el.innerHTML = `
+    <div class="pv-hero">
+      <div class="pf-avatar pv-av" style="--ah:${avatarHue(un || dn || authUser.email)}">${esc(profileInitials(dn || p.full_name || un))}</div>
+      <div class="pv-id">
+        <h2 class="pv-name">${esc(p.full_name || dn)}</h2>
+        <div class="pv-handle">@${esc(un || '—')}${loc ? ` · <i class="ms ms-land" aria-hidden="true"></i> ${esc(loc)}` : ''}</div>
+        <div class="pv-badges">${expLabel ? `<span class="pv-badge">${esc(expLabel)}</span>` : ''}${fmts.slice(0, 4).map(f => `<span class="pv-badge soft">${esc(f)}</span>`).join('')}${since ? `<span class="pv-badge soft">Member since ${esc(since)}</span>` : ''}</div>
+      </div>
+      <button class="btn ghost" id="pvEdit"><i class="ms ms-artist-nib btn-ico" aria-hidden="true"></i> Edit profile</button>
+    </div>
+    <div class="pv-stats">
+      <div><b>${g.ownedCount}</b><span>cards</span></div>
+      <div><b>${money(g.ownedValue)}</b><span>value</span></div>
+      <div><b>${g.decks}</b><span>decks</span></div>
+    </div>
+    <div class="pv-grid">
+      <div class="pv-col">
+        <div class="pv-card">
+          <div class="pv-card-h"><h3>My decks</h3><span class="pv-count">${decks.length}</span></div>
+          ${decks.length ? `<div class="pv-decks">${decks.map(d => `
+            <div class="pv-deck ${d.playing ? 'playing' : ''}">
+              <button class="pv-star ${d.playing ? 'on' : ''}" data-pvstar="${d.id}" title="${d.playing ? 'Currently playing — click to unmark' : 'Mark as currently playing'}">★</button>
+              <button class="pv-deck-open" data-pvdeck="${d.id}"><span class="pv-deck-name">${esc(d.name)}</span><span class="pv-deck-sub">${(d.cards || []).reduce((a, c) => a + c.qty, 0)} cards${d.commander ? ' · ' + esc(d.commander) : ''}</span></button>
+            </div>`).join('')}</div>` : `<p class="pv-empty">No decks yet — <button class="link-btn" id="pvImportDeck">import one</button>.</p>`}
+        </div>
+        <div class="pv-card">
+          <div class="pv-card-h"><h3>Recent activity</h3></div>
+          ${recent.length ? `<div class="pv-activity">${recent.map(e => { const meta = HIST_META[e.type] || HIST_META.added; return `<div class="pv-act"><span class="hr-badge ${e.type}">${meta.label}</span><span class="pv-act-name">${esc(e.name)}</span><span class="pv-act-qty">×${e.qty}</span></div>`; }).join('')}</div>` : `<p class="pv-empty">No activity yet.</p>`}
+        </div>
+      </div>
+      <div class="pv-col">
+        <div class="pv-card">
+          <div class="pv-card-h"><h3>My lists</h3></div>
+          <div class="pv-links"><button class="btn ghost" data-pvgo="buylist"><i class="ms ms-counter-gold btn-ico" aria-hidden="true"></i> Buy List</button><button class="btn ghost" data-pvgo="selllist"><i class="ms ms-loyalty-up btn-ico" aria-hidden="true"></i> Sell List</button></div>
+          <p class="pv-hint">Shareable links &amp; QR codes are coming next.</p>
+        </div>
+        <div class="pv-card">
+          <div class="pv-card-h"><h3>My stores</h3></div>
+          ${stores.length ? `<div class="pv-stores">${stores.map(s => `<span class="onb-chip on">${esc(s)}${storeCounts[s] ? ` <span class="onb-chip-n">${storeCounts[s]}</span>` : ''}</span>`).join('')}</div>` : `<p class="pv-empty">None set — <button class="link-btn" id="pvSetStores">add some</button>.</p>`}
+        </div>
+        <div class="pv-card">
+          <div class="pv-card-h"><h3>Top cards</h3></div>
+          ${top.length ? `<div class="pv-top">${top.map((c, i) => `<div class="pv-toprow"><span class="pv-toprank">${i + 1}</span><span class="pv-topname nm" data-name="${esc(c.name)}">${esc(c.name)}</span><span class="pv-topval">${money(c.value)}</span></div>`).join('')}</div>` : `<p class="pv-empty">No owned cards yet.</p>`}
+        </div>
+        <div class="pv-card">
+          <div class="pv-card-h"><h3>Public profile</h3></div>
+          <p class="pv-hint">What others see when you share your profile. Your total collection value always stays private.</p>
+          <label class="pv-toggle"><input type="checkbox" id="pvPubDecks" ${p.publicDecks !== false ? 'checked' : ''}/> Show my decks</label>
+          <label class="pv-toggle"><input type="checkbox" id="pvPubStores" ${p.publicStores !== false ? 'checked' : ''}/> Show my stores</label>
+          <label class="pv-toggle"><input type="checkbox" id="pvPubTop" ${p.publicTopCards ? 'checked' : ''}/> Show my top 5 cards</label>
+        </div>
+      </div>
+    </div>`;
+}
+const profileViewEl = $('#profileView');
+if (profileViewEl) {
+  profileViewEl.addEventListener('click', e => {
+    let m;
+    if (e.target.closest('#pvSignIn')) { openAuth('signin'); return; }
+    if (e.target.closest('#pvEdit')) { openProfile(); return; }
+    if ((m = e.target.closest('[data-pvstar]'))) { const d = state.decks.find(x => x.id === m.dataset.pvstar); if (d) { d.playing = !d.playing; save(); renderProfileView(); } return; }
+    if ((m = e.target.closest('[data-pvdeck]'))) { openDeck(m.dataset.pvdeck); return; }
+    if ((m = e.target.closest('[data-pvgo]'))) { setView(m.dataset.pvgo); return; }
+    if (e.target.closest('#pvImportDeck')) { openImport(); return; }
+    if (e.target.closest('#pvSetStores')) { startOnboarding(); return; }
+  });
+  profileViewEl.addEventListener('change', e => {
+    if (e.target.id === 'pvPubDecks') setPublicPref('publicDecks', e.target.checked);
+    else if (e.target.id === 'pvPubStores') setPublicPref('publicStores', e.target.checked);
+    else if (e.target.id === 'pvPubTop') setPublicPref('publicTopCards', e.target.checked);
+  });
+}
+
 // account / auth / profile listeners
-const accountBtnEl = $('#accountBtn'); if (accountBtnEl) accountBtnEl.addEventListener('click', () => { if (authUser) openProfile(); else openAuth('signin'); });
+const accountBtnEl = $('#accountBtn'); if (accountBtnEl) accountBtnEl.addEventListener('click', () => { if (authUser) { setView('profile'); renderProfileView(); } else openAuth('signin'); });
 const closeAuthEl = $('#closeAuth'); if (closeAuthEl) closeAuthEl.addEventListener('click', closeAuth);
 const authModalEl = $('#authModal'); if (authModalEl) authModalEl.addEventListener('click', e => { if (e.target.id === 'authModal') closeAuth(); });
 const authSubmitEl = $('#authSubmit'); if (authSubmitEl) authSubmitEl.addEventListener('click', doAuth);
