@@ -1124,6 +1124,25 @@ html[data-theme="ember"] .topbar { background: linear-gradient(180deg, rgba(31,1
 .undo-btn { border-color: var(--brass); color: var(--gold-soft); }
 .undo-btn:hover { border-color: var(--gold-soft); background: var(--panel-2); }
 
+/* ============ account / auth / profile ============ */
+.account-btn { display: inline-flex; align-items: center; gap: 7px; }
+.sync-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: var(--ok); box-shadow: 0 0 6px color-mix(in srgb, var(--ok) 60%, transparent); }
+.sync-dot.saving { background: var(--gold-soft); box-shadow: 0 0 6px color-mix(in srgb, var(--gold-soft) 70%, transparent); animation: pulse 1s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+.modal-sm { max-width: 440px; }
+.modal-sm .text-input { width: 100%; margin-top: 10px; }
+.auth-switch { background: none; border: none; color: var(--brass); font-size: 13px; cursor: pointer; padding: 0; text-decoration: underline; text-underline-offset: 3px; }
+.auth-switch:hover { color: var(--gold-soft); }
+.profile-fields { display: flex; flex-direction: column; gap: 12px; margin: 4px 0 18px; }
+.profile-fields .ve-field { display: flex; flex-direction: column; gap: 5px; }
+.profile-fields .ve-field > span { font-family: var(--label); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.profile-fields .text-input { width: 100%; }
+.pf-static { font-size: 14px; color: var(--parch-dim); padding: 10px 14px; background: var(--ink-2); border: 1px solid var(--edge-soft); border-radius: 9px; }
+.profile-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+.profile-stats > div { text-align: center; background: var(--panel); border: 1px solid var(--edge-soft); border-radius: 10px; padding: 12px 6px; }
+.profile-stats b { display: block; font-family: var(--display); font-size: 20px; color: var(--gold-soft); }
+.profile-stats span { font-family: var(--label); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+
 /* ============ toast ============ */
 .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); z-index: 60; display: inline-flex; align-items: center; gap: 14px; background: var(--panel-2); border: 1px solid var(--brass); color: var(--parch); padding: 13px 22px; border-radius: 11px; font-size: 14px; box-shadow: var(--shadow); animation: rise .3s ease; }
 .toast-undo { font-family: var(--label); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink); background: linear-gradient(180deg, var(--gold-soft), var(--gold)); border: none; border-radius: 7px; padding: 6px 12px; cursor: pointer; white-space: nowrap; transition: .15s; }

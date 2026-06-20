@@ -115,7 +115,7 @@ function migrate(s) {
   if (s.ckCacheV !== 2) { s.ckPrices = {}; s.ckCacheV = 2; }   // drop pre-fix (imprecise) CK cache
   return s;
 }
-function save() { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+function save() { localStorage.setItem(STORE_KEY, JSON.stringify(state)); if (typeof scheduleSyncPush === 'function') scheduleSyncPush(); }
 
 /* ---------- helpers ---------- */
 const $ = (s, r = document) => r.querySelector(s);
@@ -3816,6 +3816,273 @@ $('#themeSwitch').addEventListener('click', e => {
   if (b) setTheme(b.dataset.theme);
 });
 
+/* =====================================================================
+   SUPABASE — accounts, profiles & multi-device sync
+   Local localStorage stays the source of truth/cache; the whole `state`
+   blob is mirrored to Supabase per user. Pull on open/focus, debounced
+   push on change, last-write-wins by updated_at.
+   ===================================================================== */
+const SUPA_URL = 'https://yaxczuttvpvqfomhyfbg.supabase.co';
+const SUPA_KEY = 'sb_publishable_le56dg5VAp5Bmfg3BZ4XCQ_c2sSPuOu';
+const SYNC_META_KEY = STORE_KEY + ':sync';
+let sb = null;
+try { if (window.supabase) sb = window.supabase.createClient(SUPA_URL, SUPA_KEY); } catch (e) { sb = null; }
+
+let authUser = null;        // supabase auth user | null
+let authProfile = null;     // profiles row | null
+let authMode = 'signin';    // 'signin' | 'signup'
+let syncBusy = false;       // a push is in flight
+let syncPushTimer = null;   // pending debounced push (truthy = dirty/queued)
+let syncResolving = false;  // first sign-in reconciliation in progress
+let syncSuppress = false;   // adopting remote → don't echo it back as a push
+
+// Does a state blob hold an actual collection (vs an empty shell)?
+function collectionNonEmpty(s) {
+  if (!s) return false;
+  const v = s.variants && Object.values(s.variants).some(list => (list || []).some(x => x.qty > 0));
+  const d = (s.decks || []).length > 0;
+  const w = s.wishlist && Object.keys(s.wishlist).length > 0;
+  return !!(v || d || w);
+}
+function syncMeta() { try { return JSON.parse(localStorage.getItem(SYNC_META_KEY)) || {}; } catch (e) { return {}; } }
+function setSyncMeta(m) { try { localStorage.setItem(SYNC_META_KEY, JSON.stringify(m)); } catch (e) {} }
+
+async function initSync() {
+  renderAccount();
+  if (!sb) return;
+  try {
+    const { data } = await sb.auth.getSession();
+    if (data.session) { authUser = data.session.user; await afterSignIn(); }
+  } catch (e) {}
+  renderAccount();
+  sb.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_IN' && session && (!authUser || authUser.id !== session.user.id)) {
+      authUser = session.user; afterSignIn();
+    } else if (event === 'SIGNED_OUT') {
+      authUser = null; authProfile = null; setSyncMeta({}); renderAccount();
+    }
+  });
+}
+
+// ---------- auth ----------
+async function doAuth() {
+  if (!sb) return;
+  const email = $('#authEmail').value.trim();
+  const password = $('#authPassword').value;
+  const status = $('#authStatus');
+  if (!email || !password) { status.textContent = 'Enter your email and password.'; return; }
+  if (authMode === 'signup' && password.length < 6) { status.textContent = 'Use a password of at least 6 characters.'; return; }
+  $('#authSubmit').disabled = true;
+  status.innerHTML = `<span class="spin"></span>${authMode === 'signup' ? 'Creating your account…' : 'Signing in…'}`;
+  try {
+    const { data, error } = authMode === 'signup'
+      ? await sb.auth.signUp({ email, password })
+      : await sb.auth.signInWithPassword({ email, password });
+    if (error) { status.textContent = error.message; $('#authSubmit').disabled = false; return; }
+    if (authMode === 'signup' && !data.session) {
+      status.textContent = 'Account created — check your email to confirm, then sign in.';
+      $('#authSubmit').disabled = false;
+      return;
+    }
+    closeAuth();   // signed in — onAuthStateChange takes over
+  } catch (e) {
+    status.textContent = 'Something went wrong — try again.';
+    $('#authSubmit').disabled = false;
+  }
+}
+async function signOut() {
+  if (!sb) return;
+  clearTimeout(syncPushTimer); syncPushTimer = null;   // cancel any queued push so it can't fire under the next user
+  try { await sb.auth.signOut(); } catch (e) {}
+  authUser = null; authProfile = null; setSyncMeta({});
+  closeProfile(); renderAccount();
+  toast('Signed out — this device is now local-only.');
+}
+async function loadProfile() {
+  if (!sb || !authUser) return;
+  try {
+    const { data } = await sb.from('profiles').select('*').eq('id', authUser.id).maybeSingle();
+    authProfile = data || { id: authUser.id, display_name: (authUser.email || '').split('@')[0] };
+  } catch (e) { authProfile = { id: authUser.id, display_name: (authUser.email || '').split('@')[0] }; }
+}
+
+// ---------- first sign-in: reconcile this device vs the account ----------
+async function afterSignIn() {
+  if (syncResolving) return;          // re-entrancy guard — onAuthStateChange can fire SIGNED_IN repeatedly (token refresh)
+  syncResolving = true; renderAccount();   // held for the WHOLE function: also blocks echo-pushes during reconciliation
+  try {
+    await loadProfile();
+    const uid = authUser && authUser.id;
+    if (!uid) return;
+    const { data, error } = await sb.from('collections').select('data, updated_at').eq('user_id', uid).maybeSingle();
+    if (error) { toast('Signed in, but sync failed: ' + error.message); return; }
+    if (!authUser || authUser.id !== uid) return;   // signed out / switched user mid-fetch — abandon
+    const remote = data || { data: {}, updated_at: null };
+    const meta = syncMeta();
+    const remoteHas = collectionNonEmpty(remote.data);
+    const localHas = collectionNonEmpty(state);
+    // has THIS device synced with THIS account before (and to which remote version)?
+    const knownRemote = meta.remoteUpdatedAt;
+    const inSync = remote.updated_at && remote.updated_at === knownRemote;   // we already hold the account's latest
+    if (inSync) {
+      if (meta.dirty && localHas) await pushNow();          // we have unsynced local edits → push them up
+    } else if (!remoteHas && localHas) {
+      await pushNow(); toast('Collection synced to your account.');          // account empty → upload this device's
+    } else if (remoteHas && !localHas) {
+      adoptRemote(remote.data, remote.updated_at); toast('Collection loaded from your account.');
+    } else if (remoteHas && localHas && (!knownRemote || meta.dirty)) {
+      // first meeting of this device + account with data on both sides, OR we have
+      // unsynced local edits while the account also changed elsewhere → ask which wins
+      const useRemote = confirm(
+        'Your account has a saved collection and this device has its own (not-yet-synced) one.\n\n' +
+        'OK  →  use your ACCOUNT’s collection (replaces what’s on this device)\n' +
+        'Cancel  →  keep THIS DEVICE’s collection (replaces the account’s)'
+      );
+      if (useRemote) { adoptRemote(remote.data, remote.updated_at); toast('Loaded your account’s collection.'); }
+      else { await pushNow(); toast('Uploaded this device’s collection to your account.'); }
+    } else if (remoteHas) {
+      adoptRemote(remote.data, remote.updated_at); toast('Synced the latest from your account.');   // account changed elsewhere
+    } else {
+      setSyncMeta({ remoteUpdatedAt: remote.updated_at, dirty: false });
+    }
+  } catch (e) { toast('Signed in, but sync failed.'); }
+  finally { syncResolving = false; renderAccount(); }
+}
+function adoptRemote(remoteData, updatedAt) {
+  syncSuppress = true;
+  state = migrate(remoteData);
+  save();
+  syncSuppress = false;
+  setSyncMeta({ remoteUpdatedAt: updatedAt, dirty: false });
+  undoStack = [];
+  render();
+}
+
+// ---------- push / pull ----------
+function scheduleSyncPush() {
+  if (!sb || !authUser || syncResolving || syncSuppress) return;
+  const m = syncMeta(); if (!m.dirty) setSyncMeta({ ...m, dirty: true });   // survives a reload before the push lands
+  clearTimeout(syncPushTimer);
+  syncPushTimer = setTimeout(() => { syncPushTimer = null; pushNow(); }, 2500);
+  renderAccount();
+}
+async function pushNow() {
+  const uid = authUser && authUser.id;            // capture the user this push is FOR
+  if (!sb || !uid) return;
+  clearTimeout(syncPushTimer); syncPushTimer = null;
+  syncBusy = true; renderAccount();
+  const updated_at = new Date().toISOString();
+  try {
+    // write to the captured uid (not authUser.id, which may change mid-flight on signout);
+    // .select() the row back so we store the SERVER's canonical timestamp string
+    // (Postgres timestamptz formats differently than the ISO string we send).
+    const { data, error } = await sb.from('collections').upsert({ user_id: uid, data: state, updated_at }).select('updated_at').single();
+    if (authUser && authUser.id === uid) {          // still the same signed-in user
+      if (!error && data) setSyncMeta({ remoteUpdatedAt: data.updated_at, dirty: false });
+      else scheduleSyncPush();                       // failed → stay dirty and retry (don't get stuck)
+    }
+  } catch (e) { if (authUser && authUser.id === uid) scheduleSyncPush(); }
+  syncBusy = false; renderAccount();
+}
+async function syncPullIfNewer() {
+  if (!sb || !authUser || syncResolving || syncBusy || syncPushTimer || syncMeta().dirty) return;   // skip if local has unsynced changes
+  try {
+    const { data } = await sb.from('collections').select('data, updated_at').eq('user_id', authUser.id).maybeSingle();
+    if (!data || !data.updated_at) return;
+    if (data.updated_at !== syncMeta().remoteUpdatedAt && collectionNonEmpty(data.data)) {
+      adoptRemote(data.data, data.updated_at);
+      toast('Synced the latest from another device.');
+    }
+  } catch (e) {}
+}
+
+// ---------- account / profile UI ----------
+function renderAccount() {
+  const b = $('#accountBtn'); if (!b) return;
+  if (!sb) { b.hidden = true; return; }
+  b.hidden = false;
+  if (authUser) {
+    const name = (authProfile && (authProfile.display_name || authProfile.username)) || (authUser.email || '').split('@')[0];
+    const busy = syncBusy || syncPushTimer || syncResolving;
+    b.innerHTML = `<span class="sync-dot ${busy ? 'saving' : 'ok'}"></span> ${esc(name)}`;
+    b.title = `Signed in as ${authUser.email}${busy ? ' · syncing…' : ' · synced'} — click for profile`;
+  } else {
+    b.innerHTML = 'Sign in';
+    b.title = 'Sign in to sync your collection across devices';
+  }
+}
+function renderAuthMode() {
+  const signup = authMode === 'signup';
+  $('#authTitle').textContent = signup ? 'Create account' : 'Sign in';
+  $('#authHint').textContent = signup ? 'Create an account to sync your collection across devices.' : 'Sign in to sync your collection across devices.';
+  $('#authSubmit').textContent = signup ? 'Create account' : 'Sign in';
+  $('#authSwitch').textContent = signup ? 'Already have an account? Sign in' : 'Need an account? Create one';
+  $('#authPassword').autocomplete = signup ? 'new-password' : 'current-password';
+  $('#authSubmit').disabled = false;
+}
+function openAuth(mode) {
+  authMode = mode || 'signin';
+  renderAuthMode();
+  $('#authStatus').textContent = '';
+  $('#authModal').hidden = false;
+  $('#authEmail').focus();
+}
+function closeAuth() { $('#authModal').hidden = true; $('#authPassword').value = ''; }
+function renderProfile() {
+  const body = $('#profileBody'); if (!body) return;
+  if (!authUser) { body.innerHTML = '<p class="modal-hint">Not signed in.</p>'; return; }
+  const g = globalStats();
+  const dn = (authProfile && authProfile.display_name) || '';
+  const un = (authProfile && authProfile.username) || '';
+  body.innerHTML = `
+    <div class="profile-fields">
+      <label class="ve-field"><span>Display name</span><input type="text" id="pfDisplay" class="text-input" value="${esc(dn)}" maxlength="40" /></label>
+      <label class="ve-field"><span>Username</span><input type="text" id="pfUsername" class="text-input" value="${esc(un)}" maxlength="24" placeholder="a unique handle" /></label>
+      <label class="ve-field"><span>Email</span><div class="pf-static">${esc(authUser.email || '')}</div></label>
+    </div>
+    <div class="profile-stats">
+      <div><b>${g.unique}</b><span>cards</span></div>
+      <div><b>${money(g.ownedValue)}</b><span>value</span></div>
+      <div><b>${g.decks}</b><span>decks</span></div>
+    </div>
+    <div class="modal-status" id="pfStatus"></div>
+    <div class="modal-foot">
+      <button class="btn ghost" id="pfSignOut"><i class="ms ms-loyalty-down" aria-hidden="true"></i> Sign out</button>
+      <button class="btn gold" id="pfSave">Save profile</button>
+    </div>`;
+}
+function openProfile() { renderProfile(); $('#profileModal').hidden = false; }
+function closeProfile() { $('#profileModal').hidden = true; }
+async function saveProfileEdits() {
+  if (!sb || !authUser) return;
+  const display_name = $('#pfDisplay').value.trim();
+  const username = $('#pfUsername').value.trim() || null;
+  const st = $('#pfStatus'); st.innerHTML = '<span class="spin"></span>Saving…';
+  try {
+    const { error } = await sb.from('profiles').update({ display_name, username, updated_at: new Date().toISOString() }).eq('id', authUser.id);
+    if (error) { st.textContent = /duplicate|unique/i.test(error.message) ? 'That username is already taken.' : error.message; return; }
+    authProfile = { ...(authProfile || {}), display_name, username };
+    st.textContent = 'Saved.'; renderAccount();
+  } catch (e) { st.textContent = 'Could not save — try again.'; }
+}
+
+// account / auth / profile listeners
+const accountBtnEl = $('#accountBtn'); if (accountBtnEl) accountBtnEl.addEventListener('click', () => { if (authUser) openProfile(); else openAuth('signin'); });
+const closeAuthEl = $('#closeAuth'); if (closeAuthEl) closeAuthEl.addEventListener('click', closeAuth);
+const authModalEl = $('#authModal'); if (authModalEl) authModalEl.addEventListener('click', e => { if (e.target.id === 'authModal') closeAuth(); });
+const authSubmitEl = $('#authSubmit'); if (authSubmitEl) authSubmitEl.addEventListener('click', doAuth);
+const authSwitchEl = $('#authSwitch'); if (authSwitchEl) authSwitchEl.addEventListener('click', () => { authMode = authMode === 'signup' ? 'signin' : 'signup'; renderAuthMode(); $('#authStatus').textContent = ''; });
+const authPwEl = $('#authPassword'); if (authPwEl) authPwEl.addEventListener('keydown', e => { if (e.key === 'Enter') doAuth(); });
+const closeProfileEl = $('#closeProfile'); if (closeProfileEl) closeProfileEl.addEventListener('click', closeProfile);
+const profileModalEl = $('#profileModal'); if (profileModalEl) profileModalEl.addEventListener('click', e => { if (e.target.id === 'profileModal') closeProfile(); });
+const profileBodyEl = $('#profileBody'); if (profileBodyEl) profileBodyEl.addEventListener('click', e => {
+  if (e.target.closest('#pfSave')) saveProfileEdits();
+  else if (e.target.closest('#pfSignOut')) signOut();
+});
+document.addEventListener('visibilitychange', () => { if (!document.hidden) syncPullIfNewer(); });
+window.addEventListener('focus', syncPullIfNewer);
+
 /* ---------- boot ---------- */
 applyTheme(state.prefs.theme);
 render();
+initSync();

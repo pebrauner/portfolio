@@ -39,6 +39,7 @@
       <button class="tab" data-view="history"><i class="ms ms-counter-lore tab-ico" aria-hidden="true"></i>History</button>
     </nav>
     <div class="topbar-actions">
+      <button class="btn ghost account-btn" id="accountBtn" hidden>Sign in</button>
       <button class="btn ghost undo-btn" id="undoBtn" hidden>↶ Undo</button>
       <div class="price-src" id="priceSrc" title="Which price source the whole app uses">
         <span class="ps-label">Prices</span>
@@ -355,6 +356,31 @@
     </div>
   </div>
 
+  <!-- Account / sign-in modal -->
+  <div class="modal-scrim" id="authModal" hidden>
+    <div class="modal modal-sm">
+      <button class="modal-close" id="closeAuth" aria-label="Close">✕</button>
+      <h2 class="modal-title"><i class="ms ms-counter-lore" aria-hidden="true"></i> <span id="authTitle">Sign in</span></h2>
+      <p class="modal-hint" id="authHint">Sign in to sync your collection across devices.</p>
+      <input type="email" id="authEmail" class="text-input" placeholder="you@email.com" autocomplete="email" />
+      <input type="password" id="authPassword" class="text-input" placeholder="Password" autocomplete="current-password" />
+      <div class="modal-foot">
+        <button class="auth-switch" id="authSwitch">Need an account? Create one</button>
+        <button class="btn gold" id="authSubmit">Sign in</button>
+      </div>
+      <div class="modal-status" id="authStatus"></div>
+    </div>
+  </div>
+
+  <!-- Profile modal -->
+  <div class="modal-scrim" id="profileModal" hidden>
+    <div class="modal modal-sm">
+      <button class="modal-close" id="closeProfile" aria-label="Close">✕</button>
+      <h2 class="modal-title"><i class="ms ms-counter-lore" aria-hidden="true"></i> Profile</h2>
+      <div id="profileBody"></div>
+    </div>
+  </div>
+
   <div class="toast" id="toast" hidden></div>
 
   <!-- Sell-list folder picker (opens from inventory / card-viewer "Sell" buttons) -->
@@ -363,6 +389,7 @@
   <!-- Printable buy-list sheet (only visible when printing) -->
   <div id="printRoot" aria-hidden="true"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="decks.js?v=11"></script>
   <script src="app.js?v=11"></script>
 </body>
