@@ -3840,6 +3840,27 @@ function setTheme(t) {
   state.prefs.theme = THEMES.includes(t) ? t : 'grimoire';
   save();
   applyTheme(state.prefs.theme);
+  pickAppBg();
+}
+// Background art pools — themed scenes per colour + a shared pool of neutral
+// atmospheres; the app backdrop picks randomly each load so it varies.
+const BG = {
+  grimoire: ['grimoire', 'abstract'],
+  arcane: ['arcane'],
+  tome: ['tome', 'tome2'],
+  ember: ['ember'],
+  verdant: [],
+  ambient: ['space1', 'space2', 'space3', 'space4', 'space5', 'manamist1', 'manamist2', 'manamist3', 'manamist4', 'manamist5', 'mountain1', 'mountain2', 'mountain3', 'mountain4', 'archway1', 'archway2', 'archway3'],
+};
+const pickFrom = a => a[Math.floor(Math.random() * a.length)];
+function pickAppBg() {
+  const own = BG[state.prefs.theme] || [];
+  const pick = (own.length && Math.random() < 0.5) ? pickFrom(own) : pickFrom(own.concat(BG.ambient));
+  const el = $('.app-bg');
+  if (el && pick) el.style.backgroundImage = `url("bg/${pick}.jpg")`;
+}
+function pickSigninBg() {
+  document.documentElement.style.setProperty('--signin-bg', `url("bg/${pickFrom(['signin1', 'signin2', 'signin3'])}.jpg")`);
 }
 $('#themeSwitch').addEventListener('click', e => {
   const b = e.target.closest('.sw');
@@ -4089,6 +4110,7 @@ function renderAuthMode() {
 function openAuth(mode) {
   authMode = mode || 'signin';
   renderAuthMode();
+  pickSigninBg();
   $('#authStatus').textContent = '';
   $('#authModal').hidden = false;
   $('#authEmail').focus();
@@ -4441,5 +4463,6 @@ window.addEventListener('focus', syncPullIfNewer);
 
 /* ---------- boot ---------- */
 applyTheme(state.prefs.theme);
+pickAppBg();
 render();
 initSync();
