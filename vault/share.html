@@ -16,79 +16,112 @@
       --edge: #342a17; --edge-soft: #28200f; --parch: #ece0c4; --parch-dim: #b0a384;
       --muted: #8a8070; --faint: #5f5648; --gold: #c9a227; --gold-soft: #e3c869; --brass: #9a7b3f;
       --display: 'Grenze Gotisch', serif; --body: 'EB Garamond', Georgia, serif;
-      --mono: 'Spline Sans Mono', ui-monospace, monospace;
-      --label: 'Spline Sans Mono', ui-monospace, monospace;
+      --mono: 'Spline Sans Mono', ui-monospace, monospace; --label: 'Spline Sans Mono', ui-monospace, monospace;
     }
     * { box-sizing: border-box; }
-    body {
-      margin: 0; min-height: 100vh; color: var(--parch); font-family: var(--body);
-      background: radial-gradient(1100px 700px at 50% -10%, #1a1408, var(--ink) 60%);
-      -webkit-font-smoothing: antialiased;
-    }
-    .wrap { max-width: 720px; margin: 0 auto; padding: 34px 20px 60px; }
-    .brand { display: flex; align-items: center; gap: 9px; justify-content: center; margin-bottom: 26px; }
+    html, body { margin: 0; min-height: 100%; }
+    body { color: var(--parch); font-family: var(--body); background: var(--ink); -webkit-font-smoothing: antialiased; }
+    /* random blurred/darkened background art */
+    .bg { position: fixed; inset: 0; z-index: -2; background-size: cover; background-position: center; filter: blur(3px) brightness(.62) saturate(.95); transform: scale(1.06); }
+    .bg-veil { position: fixed; inset: 0; z-index: -1; background:
+      radial-gradient(1100px 760px at 50% 6%, rgba(18,14,7,.10), rgba(8,7,4,.62) 78%),
+      linear-gradient(180deg, rgba(8,7,4,.34), rgba(8,7,4,.72)); }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 34px 20px 70px; }
+    .brand { display: flex; align-items: center; gap: 9px; justify-content: center; margin-bottom: 24px; }
     .brand .seal { font-size: 22px; color: var(--gold); }
-    .brand .word {
-      font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: .5px;
+    .brand .word { font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: .5px;
       background: linear-gradient(100deg, var(--gold), var(--gold-soft) 40%, #f6e6a8 50%, var(--gold-soft) 60%, var(--gold));
-      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-    }
-    .card {
-      background: linear-gradient(180deg, var(--panel-2), var(--panel));
-      border: 1px solid var(--edge); border-radius: 16px; padding: 26px 26px 30px;
-      box-shadow: 0 24px 60px -30px #000;
-    }
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .card { background: linear-gradient(180deg, rgba(31,23,9,.92), rgba(24,17,7,.94)); border: 1px solid var(--edge);
+      border-radius: 16px; padding: 26px 26px 30px; box-shadow: 0 30px 70px -30px #000; backdrop-filter: blur(3px); }
     .state { text-align: center; color: var(--muted); padding: 40px 10px; font-size: 15px; }
     .state .big { font-size: 40px; color: var(--brass); display: block; margin-bottom: 12px; }
-    .head { display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
-    .kind-tag {
-      font-family: var(--label); font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
-      padding: 5px 10px; border-radius: 999px; color: var(--ink); white-space: nowrap;
-      background: linear-gradient(180deg, var(--gold-soft), var(--gold));
-    }
+    .head { display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+    .kind-tag { font-family: var(--label); font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
+      padding: 5px 10px; border-radius: 999px; color: var(--ink); white-space: nowrap; background: linear-gradient(180deg, var(--gold-soft), var(--gold)); }
     .kind-tag.sell { background: linear-gradient(180deg, #d9b97a, var(--brass)); }
     h1 { font-family: var(--display); font-weight: 700; font-size: 27px; margin: 0; color: var(--parch); line-height: 1.1; }
     .owner { font-size: 14px; color: var(--brass); margin-top: 2px; }
-    .sub { font-family: var(--label); font-size: 11.5px; color: var(--muted); letter-spacing: .03em; margin: 12px 0 18px; }
+    .subbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 12px 0 18px; }
+    .sub { font-family: var(--label); font-size: 11.5px; color: var(--muted); letter-spacing: .03em; }
     .live-dot { color: var(--gold-soft); }
+    .seg { display: inline-flex; border: 1px solid var(--edge); border-radius: 9px; overflow: hidden; }
+    .seg button { font-family: var(--label); font-size: 11px; letter-spacing: .04em; cursor: pointer; border: none;
+      background: transparent; color: var(--muted); padding: 7px 12px; display: inline-flex; align-items: center; gap: 5px; }
+    .seg button.on { color: var(--ink); background: linear-gradient(180deg, var(--gold-soft), var(--gold)); }
+    /* list view */
     table { width: 100%; border-collapse: collapse; }
-    th {
-      font-family: var(--label); font-size: 10px; letter-spacing: .08em; text-transform: uppercase;
-      color: var(--muted); text-align: left; padding: 0 8px 8px; border-bottom: 1px solid var(--edge);
-    }
+    th { font-family: var(--label); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+      text-align: left; padding: 0 8px 8px; border-bottom: 1px solid var(--edge); }
     th.r, td.r { text-align: right; }
     td { padding: 9px 8px; border-bottom: 1px solid var(--edge-soft); font-size: 15px; vertical-align: middle; }
-    tr:last-child td { border-bottom: none; }
+    tbody tr { cursor: pointer; }
+    tbody tr:hover { background: rgba(201,162,39,.06); }
+    tbody tr:hover .nm { color: var(--gold-soft); }
     .qty { font-family: var(--mono); color: var(--gold-soft); white-space: nowrap; }
     .nm { color: var(--parch); }
-    .setbadge {
-      font-family: var(--mono); font-size: 10px; color: var(--muted); text-transform: uppercase;
-      border: 1px solid var(--edge); border-radius: 5px; padding: 1px 5px; margin-left: 7px; white-space: nowrap;
-    }
+    .setbadge { font-family: var(--mono); font-size: 10px; color: var(--muted); text-transform: uppercase;
+      border: 1px solid var(--edge); border-radius: 5px; padding: 1px 5px; margin-left: 7px; white-space: nowrap; }
     .foil { color: var(--gold-soft); margin-left: 6px; font-size: 12px; }
     .price { font-family: var(--mono); color: var(--parch-dim); white-space: nowrap; }
     .line { font-family: var(--mono); color: var(--gold-soft); white-space: nowrap; }
     tfoot td { border-top: 1px solid var(--edge); padding-top: 12px; font-family: var(--mono); }
     tfoot .total { color: var(--gold-soft); font-size: 16px; }
-    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
-    .btn {
-      font-family: var(--label); font-size: 12px; letter-spacing: .04em; cursor: pointer;
-      border: 1px solid var(--edge); background: var(--panel-2); color: var(--parch-dim);
-      border-radius: 9px; padding: 9px 14px; transition: .15s; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
-    }
+    /* art view */
+    .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 14px; }
+    .tile { cursor: pointer; border: none; background: none; padding: 0; text-align: left; }
+    .tile-art { position: relative; aspect-ratio: 488/680; border-radius: 9px; overflow: hidden; border: 1px solid var(--edge);
+      background: #0c0a07 center/cover no-repeat; box-shadow: 0 10px 24px -14px #000; transition: transform .15s, box-shadow .15s; }
+    .tile:hover .tile-art { transform: translateY(-3px); box-shadow: 0 16px 30px -14px #000; }
+    .tile-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .tile-fallback { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--faint); font-size: 26px; padding: 8px; text-align: center; font-family: var(--display); }
+    .tile-qty { position: absolute; top: 7px; left: 7px; font-family: var(--mono); font-size: 12px; color: var(--ink);
+      background: linear-gradient(180deg, var(--gold-soft), var(--gold)); border-radius: 6px; padding: 2px 7px; }
+    .tile-foil { position: absolute; top: 7px; right: 7px; color: var(--gold-soft); font-size: 13px; text-shadow: 0 1px 3px #000; }
+    .tile-cap { display: flex; justify-content: space-between; gap: 6px; margin-top: 6px; font-size: 12px; }
+    .tile-cap .tn { color: var(--parch-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tile-cap .tp { font-family: var(--mono); color: var(--gold-soft); white-space: nowrap; }
+    /* actions */
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 24px; }
+    .btn { font-family: var(--label); font-size: 12px; letter-spacing: .04em; cursor: pointer; border: 1px solid var(--edge);
+      background: var(--panel-2); color: var(--parch-dim); border-radius: 9px; padding: 10px 15px; transition: .15s;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
     .btn:hover { border-color: var(--gold); color: var(--gold-soft); }
+    .btn.gold { color: var(--ink); background: linear-gradient(180deg, var(--gold-soft), var(--gold)); border-color: var(--gold-soft); }
+    .btn.gold:hover { color: var(--ink); filter: brightness(1.05); }
     .foot { text-align: center; margin-top: 26px; font-size: 12px; color: var(--faint); }
     .foot a { color: var(--brass); text-decoration: none; }
     .foot a:hover { color: var(--gold-soft); }
+    /* lightbox */
+    .lb { position: fixed; inset: 0; z-index: 50; display: none; align-items: center; justify-content: center; padding: 24px;
+      background: rgba(6,5,3,.82); backdrop-filter: blur(4px); }
+    .lb.on { display: flex; }
+    .lb-card { display: flex; flex-direction: column; align-items: center; gap: 14px; max-width: 92vw; }
+    .lb-img { width: 340px; max-width: 78vw; border-radius: 16px; box-shadow: 0 30px 70px -20px #000; display: block; }
+    .lb-meta { text-align: center; }
+    .lb-name { font-family: var(--display); font-size: 22px; color: var(--parch); }
+    .lb-info { font-family: var(--label); font-size: 12px; color: var(--muted); margin-top: 5px; letter-spacing: .03em; }
+    .lb-link { display: inline-block; margin-top: 12px; font-family: var(--label); font-size: 12px; color: var(--ink);
+      background: linear-gradient(180deg, var(--gold-soft), var(--gold)); border-radius: 8px; padding: 9px 16px; text-decoration: none; }
+    .lb-close { position: fixed; top: 18px; right: 22px; font-size: 26px; color: var(--parch-dim); background: none; border: none; cursor: pointer; line-height: 1; }
+    .lb-close:hover { color: var(--gold-soft); }
+    @media (max-width: 480px) { .gallery { grid-template-columns: repeat(auto-fill, minmax(116px, 1fr)); } h1 { font-size: 23px; } }
   </style>
 </head>
 <body>
+  <div class="bg" id="bg" aria-hidden="true"></div>
+  <div class="bg-veil" aria-hidden="true"></div>
   <div class="wrap">
     <div class="brand"><span class="seal"><i class="ms ms-counter-lore" aria-hidden="true"></i></span><span class="word">The Vault</span></div>
     <div class="card" id="card">
       <div class="state"><span class="big"><i class="ms ms-ability-investigate"></i></span>Loading shared list…</div>
     </div>
     <div class="foot">Shared from <a href="./" target="_blank" rel="noopener">The Vault</a> — a Magic: The Gathering collection tracker.</div>
+  </div>
+
+  <div class="lb" id="lb" aria-hidden="true">
+    <button class="lb-close" id="lbClose" aria-label="Close">✕</button>
+    <div class="lb-card" id="lbCard"></div>
   </div>
 
   <script>
@@ -98,63 +131,114 @@
 
     const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     const money = (n) => '$' + (Number(n) || 0).toFixed(2);
+    const safeUrl = (u) => { u = String(u || ''); return /^https?:\/\//i.test(u) ? u : ''; };   // block javascript:/data: in src/href
     const PRICE_SRC = { tcg: 'TCGplayer', ck: 'Card Kingdom' };
 
-    function showState(icon, msg) {
-      card.innerHTML = `<div class="state"><span class="big"><i class="ms ${icon}"></i></span>${esc(msg)}</div>`;
-    }
+    // random blurred background art (same image set the app uses)
+    const BG = ['grimoire','abstract','arcane','tome','tome2','ember','space1','space2','space3','space4','space5',
+      'manamist1','manamist2','manamist3','manamist4','manamist5','mountain1','mountain2','mountain3','mountain4','archway1','archway2','archway3'];
+    document.getElementById('bg').style.backgroundImage = `url("bg/${BG[Math.floor(Math.random() * BG.length)]}.jpg")`;
 
-    function render(row) {
-      const d = row.data || {};
-      const items = Array.isArray(d.items) ? d.items : [];
-      const kind = row.kind === 'sell' ? 'sell' : 'buy';
-      const verb = kind === 'sell' ? 'Selling' : 'Buying';
-      const copies = items.reduce((a, i) => a + (Number(i.qty) || 0), 0);
-      const total = items.reduce((a, i) => a + (Number(i.qty) || 0) * (Number(i.price) || 0), 0);
-      const src = PRICE_SRC[d.priceSrc] || 'market';
-      const when = row.updated_at || row.created_at;
-      const dateStr = when ? new Date(when).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '';
+    let ROW = null;     // the loaded shared-list row
+    let view = 'art';   // 'art' | 'list'
 
-      const rows = items.map(it => {
+    function showState(icon, msg) { card.innerHTML = `<div class="state"><span class="big"><i class="ms ${icon}"></i></span>${esc(msg)}</div>`; }
+    const items = () => (ROW && ROW.data && Array.isArray(ROW.data.items)) ? ROW.data.items : [];
+
+    function listView() {
+      const rows = items().map((it, i) => {
         const q = Number(it.qty) || 0, p = Number(it.price) || 0;
         const setBadge = it.set ? `<span class="setbadge">${esc(it.set)}</span>` : '';
         const foil = it.foil ? `<span class="foil" title="Foil">✦ foil</span>` : '';
-        return `<tr>
+        return `<tr data-i="${i}">
           <td class="qty">${q}×</td>
           <td><span class="nm">${esc(it.name)}</span>${setBadge}${foil}</td>
           <td class="r price">${money(p)}</td>
-          <td class="r line">${money(q * p)}</td>
-        </tr>`;
+          <td class="r line">${money(q * p)}</td></tr>`;
       }).join('');
+      const total = items().reduce((a, it) => a + (Number(it.qty) || 0) * (Number(it.price) || 0), 0);
+      const verb = ROW.kind === 'sell' ? 'Asking total' : 'Estimated total';
+      return `<table><thead><tr><th>Qty</th><th>Card</th><th class="r">Each</th><th class="r">Total</th></tr></thead>
+        <tbody>${rows}</tbody>
+        <tfoot><tr><td></td><td>${verb}</td><td></td><td class="r total">${money(total)}</td></tr></tfoot></table>`;
+    }
+    function artView() {
+      return `<div class="gallery">${items().map((it, i) => {
+        const q = Number(it.qty) || 0, p = Number(it.price) || 0, img = safeUrl(it.img);
+        const art = img ? `<img src="${esc(img)}" alt="${esc(it.name)}" loading="lazy" />` : `<div class="tile-fallback">${esc(it.name)}</div>`;
+        const foil = it.foil ? `<span class="tile-foil" title="Foil">✦</span>` : '';
+        return `<button class="tile" data-i="${i}">
+          <div class="tile-art"><span class="tile-qty">${q}×</span>${foil}${art}</div>
+          <div class="tile-cap"><span class="tn">${esc(it.name)}</span><span class="tp">${money(p)}</span></div></button>`;
+      }).join('')}</div>`;
+    }
 
-      const empty = !items.length ? `<div class="state" style="padding:24px 0"><span class="big"><i class="ms ms-token"></i></span>This list is empty right now.</div>` : '';
+    function render() {
+      const d = ROW.data || {};
+      const kind = ROW.kind === 'sell' ? 'sell' : 'buy';
+      const verb = kind === 'sell' ? 'Selling' : 'Buying';
+      const copies = items().reduce((a, it) => a + (Number(it.qty) || 0), 0);
+      const total = items().reduce((a, it) => a + (Number(it.qty) || 0) * (Number(it.price) || 0), 0);
+      const src = PRICE_SRC[d.priceSrc] || 'market';
+      const when = ROW.updated_at || ROW.created_at;
+      const dateStr = when ? new Date(when).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '';
+      const matchLabel = kind === 'sell' ? 'Match with my Buy List' : 'Match with my Sell List';
 
-      card.innerHTML = `
-        <div class="head">
-          <span class="kind-tag ${kind}">${verb}</span>
-          <div style="flex:1;min-width:0">
-            <h1>${esc(row.title || (kind === 'sell' ? 'Sell List' : 'Buy List'))}</h1>
-            ${d.owner ? `<div class="owner">${esc(d.owner)}</div>` : ''}
-          </div>
+      if (!items().length) {
+        card.innerHTML = headHtml(verb, kind, d) + `<div class="state" style="padding:24px 0"><span class="big"><i class="ms ms-token"></i></span>This list is empty right now.</div>`;
+        return;
+      }
+      card.innerHTML = headHtml(verb, kind, d) + `
+        <div class="subbar">
+          <span class="sub">${copies} card${copies === 1 ? '' : 's'} · ${money(total)} at ${esc(src)} price${ROW.live ? ' · <span class="live-dot">● live</span>' : ''}${dateStr ? ` · ${esc(dateStr)}` : ''}</span>
+          <span class="seg"><button data-view="art" class="${view === 'art' ? 'on' : ''}"><i class="ms ms-token"></i> Art</button><button data-view="list" class="${view === 'list' ? 'on' : ''}"><i class="ms ms-multiple"></i> List</button></span>
         </div>
-        <div class="sub">${copies} card${copies === 1 ? '' : 's'} · ${money(total)} at ${esc(src)} price${row.live ? ' · <span class="live-dot">● live — updates automatically</span>' : ''}${dateStr ? ` · ${esc(dateStr)}` : ''}</div>
-        ${items.length ? `<table>
-          <thead><tr><th>Qty</th><th>Card</th><th class="r">Each</th><th class="r">Total</th></tr></thead>
-          <tbody>${rows}</tbody>
-          <tfoot><tr><td></td><td>${kind === 'sell' ? 'Asking total' : 'Estimated total'}</td><td></td><td class="r total">${money(total)}</td></tr></tfoot>
-        </table>` : empty}
+        <div id="body">${view === 'art' ? artView() : listView()}</div>
         <div class="actions">
+          <button class="btn gold" id="matchBtn"><i class="ms ms-ability-investigate"></i> ${matchLabel}</button>
           <button class="btn" id="copyText"><i class="ms ms-multiple"></i> Copy as text</button>
           <a class="btn" href="./" target="_blank" rel="noopener"><i class="ms ms-counter-lore"></i> Track your own collection</a>
         </div>`;
+      wire();
+    }
+    function headHtml(verb, kind, d) {
+      return `<div class="head"><span class="kind-tag ${kind}">${verb}</span>
+        <div style="flex:1;min-width:0"><h1>${esc(ROW.title || (kind === 'sell' ? 'Sell List' : 'Buy List'))}</h1>${d.owner ? `<div class="owner">${esc(d.owner)}</div>` : ''}</div></div>`;
+    }
 
+    function openLightbox(i) {
+      const it = items()[i]; if (!it) return;
+      const img = safeUrl(it.img), uri = safeUrl(it.uri);
+      const bits = [it.set ? esc(it.set) : '', it.foil ? 'Foil' : '', money(it.price)].filter(Boolean).join(' · ');
+      document.getElementById('lbCard').innerHTML =
+        (img ? `<img class="lb-img" src="${esc(img)}" alt="${esc(it.name)}" />` : '') +
+        `<div class="lb-meta"><div class="lb-name">${esc(it.name)}</div><div class="lb-info">${Number(it.qty) || 0}× · ${bits}</div>` +
+        (uri ? `<a class="lb-link" href="${esc(uri)}" target="_blank" rel="noopener">View on Scryfall ↗</a>` : '') + `</div>`;
+      const lb = document.getElementById('lb'); lb.classList.add('on'); lb.setAttribute('aria-hidden', 'false');
+    }
+    function closeLightbox() { const lb = document.getElementById('lb'); lb.classList.remove('on'); lb.setAttribute('aria-hidden', 'true'); }
+
+    function matchInVault() {
+      const text = items().map(it => `${Number(it.qty) || 0} ${it.name}`).join('\n');
+      try { localStorage.setItem('vault:incoming', JSON.stringify({ kind: ROW.kind, text, from: (ROW.data && ROW.data.owner) || '' })); } catch (e) {}
+      location.href = './';
+    }
+
+    function wire() {
+      card.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => { view = b.dataset.view; render(); }));
+      const body = document.getElementById('body');
+      if (body) body.addEventListener('click', e => { const t = e.target.closest('[data-i]'); if (t) openLightbox(+t.dataset.i); });
+      const mb = document.getElementById('matchBtn'); if (mb) mb.addEventListener('click', matchInVault);
       const cp = document.getElementById('copyText');
       if (cp) cp.addEventListener('click', async () => {
-        const text = items.map(it => `${it.qty} ${it.name}${it.set ? ' (' + it.set + ')' : ''}${it.foil ? ' [foil]' : ''}`).join('\n');
-        try { await navigator.clipboard.writeText(text); cp.innerHTML = '<i class="ms ms-counter-gold"></i> Copied ✓'; }
-        catch (e) { cp.textContent = 'Copy failed'; }
+        const text = items().map(it => `${Number(it.qty) || 0} ${it.name}${it.set ? ' (' + it.set + ')' : ''}${it.foil ? ' [foil]' : ''}`).join('\n');
+        try { await navigator.clipboard.writeText(text); cp.innerHTML = '<i class="ms ms-counter-gold"></i> Copied ✓'; } catch (e) { cp.textContent = 'Copy failed'; }
       });
     }
+
+    document.getElementById('lbClose').addEventListener('click', closeLightbox);
+    document.getElementById('lb').addEventListener('click', e => { if (e.target.id === 'lb') closeLightbox(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
 
     (async () => {
       const code = new URLSearchParams(location.search).get('id');
@@ -165,7 +249,8 @@
         const { data, error } = await sb.rpc('get_shared_list', { p_code: code });
         if (error) { showState('ms-counter-shield', 'Could not load this list. It may have been removed.'); return; }
         if (!data || (Array.isArray(data) && !data.length)) { showState('ms-graveyard', 'This link has expired or no longer exists.'); return; }
-        render(Array.isArray(data) ? data[0] : data);
+        ROW = Array.isArray(data) ? data[0] : data;
+        render();
       } catch (e) { showState('ms-counter-shield', 'Something went wrong loading this list.'); }
     })();
   </script>

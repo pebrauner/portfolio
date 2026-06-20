@@ -4121,7 +4121,7 @@ function shareItemsBuy() {
   const decks = state.decks;
   const names = allCardNames().filter(n => requiredFor(n, decks) > ownedOf(n));
   names.sort((a, b) => a.localeCompare(b));
-  return names.map(n => ({ name: n, qty: requiredFor(n, decks) - ownedOf(n), price: +(priceOf(n) || 0).toFixed(2) }));
+  return names.map(n => ({ name: n, qty: requiredFor(n, decks) - ownedOf(n), price: +(priceOf(n) || 0).toFixed(2), img: displayImage(n) || '', uri: (card(n).uri) || '' }));
 }
 function shareItemsSell(folderId) {
   const l = state.sellLists.find(x => x.id === folderId);
@@ -4130,7 +4130,7 @@ function shareItemsSell(folderId) {
   for (const vid of Object.keys(l.items)) {
     const hit = idx.get(vid); if (!hit) continue;
     const qty = Math.min(l.items[vid], hit.v.qty); if (qty <= 0) continue;
-    out.push({ name: hit.name, qty, price: +(variantPrice(hit.name, hit.v) || 0).toFixed(2), set: hit.v.set || '', foil: !!hit.v.foil });
+    out.push({ name: hit.name, qty, price: +(variantPrice(hit.name, hit.v) || 0).toFixed(2), set: hit.v.set || '', foil: !!hit.v.foil, img: displayImage(hit.name) || '', uri: (card(hit.name).uri) || '' });
   }
   out.sort((a, b) => a.name.localeCompare(b.name));
   return out;
@@ -4254,6 +4254,24 @@ async function doCreateShare() {
   renderProfileView();   // keep the profile's "Shared links" card in sync (no-ops when that view is hidden)
   const ok = await copyText(r.url);
   toast(ok ? 'Share link created & copied ✓' : 'Share link created ✓');
+}
+// share.html "Match with my lists" hands a list off via localStorage; consume it on boot.
+// A SELL link (their haves) → match against MY Buy List; a BUY link (their wants) → match against MY Sell List.
+const INCOMING_KEY = 'vault:incoming';
+function consumeIncomingMatch() {
+  let raw; try { raw = localStorage.getItem(INCOMING_KEY); } catch (e) {}
+  if (!raw) return;
+  try { localStorage.removeItem(INCOMING_KEY); } catch (e) {}
+  let inc; try { inc = JSON.parse(raw); } catch (e) { return; }
+  if (!inc || !inc.text) return;
+  const who = (typeof inc.from === 'string' && inc.from.trim()) ? inc.from.trim() + '’s' : 'their';
+  if (inc.kind === 'buy') {
+    sellMatchText = inc.text; sellMatchOpen = true; setView('selllist'); renderSellList(); runSellMatch();
+    toast(`Matched ${who} wants against your Sell List.`);
+  } else {
+    buyMatchText = inc.text; buyMatchOpen = true; setView('buylist'); renderBuyList(); runBuyMatch();
+    toast(`Matched ${who} list against your Buy List.`);
+  }
 }
 
 // ---------- account / profile UI ----------
@@ -4801,3 +4819,4 @@ applyTheme(state.prefs.theme);
 pickAppBg();
 render();
 initSync();
+consumeIncomingMatch();   // a shared list opened via "Match with my lists" lands here
