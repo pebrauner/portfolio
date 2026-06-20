@@ -20,36 +20,53 @@
       <div class="brand-text">
         <h1>The Vault</h1>
         <p>Collection &amp; Deck Ledger</p>
-        <div class="theme-switch" id="themeSwitch" role="group" aria-label="Colour theme">
-          <button class="sw" data-theme="grimoire" title="Grimoire" aria-label="Grimoire" style="--sw:#c9a227"></button>
-          <button class="sw" data-theme="arcane"   title="Arcane"   aria-label="Arcane"   style="--sw:#8a6fa3"></button>
-          <button class="sw" data-theme="tome"     title="Tome"     aria-label="Tome"     style="--sw:#4a8fd6"></button>
-          <button class="sw" data-theme="verdant"  title="Verdant"  aria-label="Verdant"  style="--sw:#3fa86a"></button>
-          <button class="sw" data-theme="ember"    title="Ember"    aria-label="Ember"    style="--sw:#d4452f"></button>
-        </div>
       </div>
     </div>
     <nav class="tabs" id="tabs">
       <button class="tab is-active" data-view="decks"><i class="ms ms-saga tab-ico" aria-hidden="true"></i>Decks</button>
       <button class="tab" data-view="inventory"><i class="ms ms-library tab-ico" aria-hidden="true"></i>Inventory</button>
-      <button class="tab" data-view="forge"><i class="ms ms-ability-craft tab-ico" aria-hidden="true"></i>Forge</button>
-      <button class="tab" data-view="buylist"><i class="ms ms-counter-gold tab-ico" aria-hidden="true"></i>Buy List</button>
-      <button class="tab" data-view="selllist"><i class="ms ms-loyalty-up tab-ico" aria-hidden="true"></i>Sell List</button>
+      <div class="nav-group" id="buysellGroup">
+        <button class="tab" id="buysellTab" data-navgroup aria-haspopup="true" aria-expanded="false"><i class="ms ms-counter-gold tab-ico" aria-hidden="true"></i>Buy / Sell<span class="tab-caret">▾</span></button>
+        <div class="nav-menu" id="buysellMenu" role="menu">
+          <button role="menuitem" data-view="buylist"><i class="ms ms-counter-gold" aria-hidden="true"></i> Buy List</button>
+          <button role="menuitem" data-view="selllist"><i class="ms ms-loyalty-up" aria-hidden="true"></i> Sell List</button>
+          <button role="menuitem" data-view="history"><i class="ms ms-counter-lore" aria-hidden="true"></i> History</button>
+        </div>
+      </div>
       <button class="tab" data-view="browse"><i class="ms ms-ability-investigate tab-ico" aria-hidden="true"></i>Browse</button>
-      <button class="tab" data-view="history"><i class="ms ms-counter-lore tab-ico" aria-hidden="true"></i>History</button>
+      <button class="tab" data-view="forge"><i class="ms ms-ability-craft tab-ico" aria-hidden="true"></i>Forge</button>
     </nav>
     <div class="topbar-actions">
-      <button class="btn ghost account-btn" id="accountBtn" hidden>Sign in</button>
       <button class="btn ghost undo-btn" id="undoBtn" hidden>↶ Undo</button>
-      <div class="price-src" id="priceSrc" title="Which price source the whole app uses">
-        <span class="ps-label">Prices</span>
-        <button class="ps-opt" data-pricesrc="tcg">TCG</button>
-        <button class="ps-opt" data-pricesrc="ck">CK</button>
-        <button class="ps-refresh" id="ckRefresh" aria-label="Refresh Card Kingdom prices">↻</button>
-      </div>
-      <button class="btn ghost" id="exportBtn" title="Export backup"><i class="ms ms-loyalty-down btn-ico" aria-hidden="true"></i>Export</button>
-      <button class="btn ghost" id="importFileBtn" title="Import backup"><i class="ms ms-loyalty-up btn-ico" aria-hidden="true"></i>Restore</button>
       <button class="btn gold" id="newDeckBtn"><i class="ms ms-saga btn-ico" aria-hidden="true"></i>Import Deck</button>
+      <div class="settings-group" id="settingsGroup">
+        <button class="btn ghost cog-btn" id="settingsBtn" aria-label="Settings" aria-haspopup="true" aria-expanded="false">⚙</button>
+        <div class="settings-menu" id="settingsMenu" role="menu">
+          <div class="set-row">
+            <span class="set-label">Prices</span>
+            <div class="price-src" id="priceSrc">
+              <button class="ps-opt" data-pricesrc="tcg">TCG</button>
+              <button class="ps-opt" data-pricesrc="ck">CK</button>
+              <button class="ps-refresh" id="ckRefresh" aria-label="Refresh Card Kingdom prices">↻</button>
+            </div>
+          </div>
+          <div class="set-row">
+            <span class="set-label">Theme</span>
+            <div class="theme-switch" id="themeSwitch" role="group" aria-label="Colour theme">
+              <button class="sw" data-theme="grimoire" title="Grimoire" aria-label="Grimoire" style="--sw:#c9a227"></button>
+              <button class="sw" data-theme="arcane"   title="Arcane"   aria-label="Arcane"   style="--sw:#8a6fa3"></button>
+              <button class="sw" data-theme="tome"     title="Tome"     aria-label="Tome"     style="--sw:#4a8fd6"></button>
+              <button class="sw" data-theme="verdant"  title="Verdant"  aria-label="Verdant"  style="--sw:#3fa86a"></button>
+              <button class="sw" data-theme="ember"    title="Ember"    aria-label="Ember"    style="--sw:#d4452f"></button>
+            </div>
+          </div>
+          <div class="set-actions">
+            <button class="btn ghost" id="exportBtn"><i class="ms ms-loyalty-down btn-ico" aria-hidden="true"></i>Export backup</button>
+            <button class="btn ghost" id="importFileBtn"><i class="ms ms-loyalty-up btn-ico" aria-hidden="true"></i>Restore backup</button>
+          </div>
+        </div>
+      </div>
+      <button class="btn ghost account-btn" id="accountBtn" hidden>Sign in</button>
       <input type="file" id="restoreInput" accept="application/json" hidden />
     </div>
   </header>

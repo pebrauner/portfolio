@@ -1826,6 +1826,8 @@ function setView(v) {
   $$('.view').forEach(s => s.classList.remove('is-active'));
   $('#view-' + v).classList.add('is-active');
   $$('.tab').forEach(t => t.classList.toggle('is-active', t.dataset.view === v));
+  const bs = $('#buysellTab'); if (bs) bs.classList.toggle('is-active', ['buylist', 'selllist', 'history'].includes(v));
+  $$('#buysellMenu [data-view]').forEach(b => b.classList.toggle('on', b.dataset.view === v));
   if (v !== 'deck') $('#app').classList.remove('wide');   // stacks-view wide layout is deck-only
 }
 function openDeck(id) {
@@ -3261,11 +3263,32 @@ function toast(msg, opts = {}) {
    EVENTS
    ===================================================================== */
 $('#tabs').addEventListener('click', e => {
-  const tab = e.target.closest('.tab');
-  if (!tab) return;
+  const grp = e.target.closest('[data-navgroup]');
+  if (grp) {   // the Buy/Sell dropdown tab — toggle its menu
+    e.stopPropagation();
+    const g = $('#buysellGroup'); g.classList.toggle('open');
+    grp.setAttribute('aria-expanded', g.classList.contains('open') ? 'true' : 'false');
+    $('#settingsGroup') && $('#settingsGroup').classList.remove('open');
+    return;
+  }
+  const item = e.target.closest('[data-view]');   // a real tab OR a Buy/Sell menu item
+  if (!item) return;
   currentDeckId = null;
-  if (invFacet) { invFacet = null; renderInventory(); }   // tabs give a clean view
-  setView(tab.dataset.view);
+  if (invFacet) { invFacet = null; renderInventory(); }
+  $('#buysellGroup') && $('#buysellGroup').classList.remove('open');
+  setView(item.dataset.view);
+});
+const settingsBtnEl = $('#settingsBtn');
+if (settingsBtnEl) settingsBtnEl.addEventListener('click', e => {
+  e.stopPropagation();
+  const g = $('#settingsGroup'); g.classList.toggle('open');
+  settingsBtnEl.setAttribute('aria-expanded', g.classList.contains('open') ? 'true' : 'false');
+  $('#buysellGroup') && $('#buysellGroup').classList.remove('open');
+});
+const settingsMenuEl = $('#settingsMenu'); if (settingsMenuEl) settingsMenuEl.addEventListener('click', e => e.stopPropagation());   // stay open while adjusting settings
+document.addEventListener('click', () => {   // any outside click closes the dropdowns
+  $('#buysellGroup') && $('#buysellGroup').classList.remove('open');
+  $('#settingsGroup') && $('#settingsGroup').classList.remove('open');
 });
 const histFilterEl = $('#histFilter');
 if (histFilterEl) histFilterEl.addEventListener('click', e => {

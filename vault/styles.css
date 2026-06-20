@@ -169,8 +169,29 @@ html[data-theme="ember"] .topbar { background: linear-gradient(180deg, rgba(31,1
 }
 .tab:hover { color: var(--parch); background: rgba(255,255,255,.03); }
 .tab.is-active { color: var(--ink); background: linear-gradient(180deg, var(--gold-soft), var(--gold)); }
+.tab[data-navgroup] { display: inline-flex; align-items: center; }
+.tab-caret { margin-left: 5px; font-size: 9px; opacity: .75; }
+
+/* nav dropdown (Buy/Sell → Buy List · Sell List · History) */
+.nav-group { position: relative; display: inline-flex; }
+.nav-menu { display: none; position: absolute; top: 100%; left: 0; margin-top: 6px; min-width: 184px; background: var(--panel-2); border: 1px solid var(--edge); border-radius: 11px; padding: 6px; box-shadow: var(--shadow); z-index: 40; }
+.nav-group.open > .nav-menu, .nav-group:hover > .nav-menu { display: block; }
+.nav-menu button { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 10px 12px; border: none; background: none; color: var(--parch-dim); font-family: var(--body); font-size: 14px; border-radius: 7px; cursor: pointer; transition: .12s; }
+.nav-menu button:hover { background: var(--panel); color: var(--parch); }
+.nav-menu button.on { color: var(--gold-soft); }
+.nav-menu .ms { font-size: 14px; width: 16px; text-align: center; }
 
 .topbar-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+/* settings cog dropdown */
+.settings-group { position: relative; display: inline-flex; }
+.cog-btn { font-size: 16px; line-height: 1; padding: 9px 11px; }
+.settings-menu { display: none; position: absolute; top: 100%; right: 0; margin-top: 8px; width: 268px; background: var(--panel-2); border: 1px solid var(--edge); border-radius: 13px; padding: 15px; box-shadow: var(--shadow); z-index: 55; }
+.settings-group.open > .settings-menu { display: block; }
+.set-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.set-row .theme-switch { margin-top: 0; }
+.set-label { font-family: var(--label); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.set-actions { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--edge-soft); padding-top: 13px; }
+.set-actions .btn { justify-content: center; }
 /* price source control (TCGplayer / Card Kingdom) */
 .price-src { display: inline-flex; align-items: center; gap: 3px; padding: 3px 4px 3px 9px; border: 1px solid var(--edge); border-radius: 9px; background: var(--ink-2); }
 .ps-label { font-family: var(--label); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-right: 3px; }
