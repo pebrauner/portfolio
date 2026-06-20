@@ -3966,6 +3966,7 @@ async function signOut() {
   if (!sb) return;
   clearTimeout(syncPushTimer); syncPushTimer = null;   // cancel any queued push so it can't fire under the next user
   clearTimeout(liveShareTimer); liveShareTimer = null; myShares = [];
+  clearTimeout(publicProfileTimer); publicProfileTimer = null;
   try { await sb.auth.signOut(); } catch (e) {}
   authUser = null; authProfile = null; setSyncMeta({});
   closeProfile(); renderAccount();
@@ -3986,7 +3987,8 @@ async function afterSignIn() {
   syncResolving = true; renderAccount();   // held for the WHOLE function: also blocks echo-pushes during reconciliation
   try {
     await loadProfile();
-    loadStores(); loadStoreCounts(); loadMyShares();   // shared store list + popularity + my shared links
+    loadStores(); loadStoreCounts();   // shared store list + popularity
+    loadMyShares().then(() => { if (publicProfileOn()) publishPublicProfile(true); });   // my shares; refresh public profile if on
     const uid = authUser && authUser.id;
     if (!uid) return;
     const { data, error } = await sb.from('collections').select('data, updated_at').eq('user_id', uid).maybeSingle();
@@ -4045,7 +4047,8 @@ function scheduleSyncPush() {
   const m = syncMeta(); if (!m.dirty) setSyncMeta({ ...m, dirty: true });   // survives a reload before the push lands
   clearTimeout(syncPushTimer);
   syncPushTimer = setTimeout(() => { syncPushTimer = null; pushNow(); }, 2500);
-  scheduleLiveShareRefresh();   // keep any "live" shared links current too
+  scheduleLiveShareRefresh();        // keep any "live" shared links current too
+  schedulePublicProfileRefresh();    // and a public profile snapshot, if enabled
   renderAccount();
 }
 // Owned/deck/wishlist card metadata must sync (prices/images render offline);
@@ -4105,12 +4108,13 @@ function shareCode() {
   let s = ''; for (const x of arr) s += a[x % a.length];
   return s;
 }
-function shareBaseUrl() {
+// Build a URL to a sibling page in the deployed vault dir (handles /vault/, /vault/index.html, extensionless /vault).
+function vaultPageUrl(file) {
   const p = location.pathname;
-  // keep the directory; if the final segment is a filename (has an extension) drop it, else treat the whole path as a dir
   const dir = /\.[^/]+$/.test(p) ? p.replace(/[^/]*$/, '') : p.replace(/\/?$/, '/');
-  return location.origin + dir + 'share.html';
+  return location.origin + dir + file;
 }
+function shareBaseUrl() { return vaultPageUrl('share.html'); }
 function shareUrl(code) { return shareBaseUrl() + '?id=' + code; }
 function ownerDisplayName() { return (authProfile && (authProfile.display_name || authProfile.username)) || (authUser && (authUser.email || '').split('@')[0]) || 'A player'; }
 
@@ -4272,6 +4276,74 @@ function consumeIncomingMatch() {
     buyMatchText = inc.text; buyMatchOpen = true; setView('buylist'); renderBuyList(); runBuyMatch();
     toast(`Matched ${who} list against your Buy List.`);
   }
+}
+
+/* ============ public profile link (a curated, anonymous-readable snapshot) ============ */
+let publicProfileTimer = null;
+function profilePublicUrl() {
+  const un = (authProfile && authProfile.username) || '';
+  return vaultPageUrl('u.html') + '?u=' + encodeURIComponent(un);
+}
+// pick one share link per kind for the profile hub: prefer a live link, else the most recent non-expired one
+function pickProfileShare(kind) {
+  const now = new Date();
+  const cands = myShares.filter(s => s.kind === kind && (s.live || !s.expires_at || new Date(s.expires_at) > now));
+  cands.sort((a, b) => (b.live ? 1 : 0) - (a.live ? 1 : 0) || String(b.created_at || '').localeCompare(String(a.created_at || '')));
+  return cands[0];
+}
+// The public snapshot honours the per-section toggles and NEVER includes total collection value.
+function buildPublicProfileSnapshot() {
+  const p = (authProfile && authProfile.prefs) || {};
+  const un = (authProfile && authProfile.username) || '';
+  const dn = (authProfile && authProfile.display_name) || un;
+  const snap = {
+    username: un, display_name: dn,
+    experience: p.experience || '', formats: Array.isArray(p.formats) ? p.formats : [],
+    since: (authUser && authUser.created_at) || '', avatarHue: avatarHue(un || dn)
+  };
+  // real name + precise location are extra PII — only published when the user explicitly opts in
+  if (p.publicIdentity) { snap.full_name = p.full_name || ''; snap.country = p.country || ''; snap.city = p.city || ''; }
+  if (p.publicDecks !== false) {
+    snap.decks = [...state.decks]
+      .sort((a, b) => (b.playing ? 1 : 0) - (a.playing ? 1 : 0) || a.name.localeCompare(b.name))
+      .map(d => ({ name: d.name, commander: d.commander || '', count: (d.cards || []).reduce((a, c) => a + c.qty, 0), playing: !!d.playing }));
+  }
+  if (p.publicStores !== false) {
+    snap.stores = (Array.isArray(p.favorite_stores) ? p.favorite_stores : []).map(s => ({ name: s, count: storeCounts[s] || 0 }));
+  }
+  if (p.publicTopCards) {
+    snap.topCards = topOwnedCards(5).map(c => ({ name: c.name, value: c.value, img: displayImage(c.name) || '', uri: (card(c.name).uri) || '' }));
+  }
+  // list-link hub (user opted in): at most one Buy + one Sell link
+  snap.lists = [pickProfileShare('buy'), pickProfileShare('sell')].filter(Boolean).map(s => ({ kind: s.kind, code: s.code, title: s.title || '', url: shareUrl(s.code) }));
+  return snap;
+}
+async function publishPublicProfile(makePublic) {
+  if (!sb || !authUser) return { error: 'not signed in' };
+  const username = authProfile && authProfile.username;
+  if (!username) return { error: 'no username' };
+  try {
+    const { error } = await sb.from('public_profiles').upsert({
+      user_id: authUser.id, username, data: buildPublicProfileSnapshot(), public: !!makePublic, updated_at: new Date().toISOString()
+    });
+    if (error) return { error: error.message };
+    return { ok: true, url: profilePublicUrl() };
+  } catch (e) { return { error: e.message }; }
+}
+function publicProfileOn() { return !!(authProfile && authProfile.prefs && authProfile.prefs.profilePublic); }
+function schedulePublicProfileRefresh() {
+  if (!sb || !authUser || !publicProfileOn()) return;
+  clearTimeout(publicProfileTimer);
+  publicProfileTimer = setTimeout(() => publishPublicProfile(true), 3500);
+}
+function maybeRepublishProfile() { if (publicProfileOn()) publishPublicProfile(true); }
+async function togglePublicProfile(on) {
+  if (!(authProfile && authProfile.username)) { toast('Add a username in Edit profile first.'); renderProfileView(); return; }
+  await setPublicPref('profilePublic', on);
+  const r = await publishPublicProfile(on);
+  if (r.error) toast('Could not update public profile: ' + r.error);
+  else { toast(on ? 'Your profile is public ✓' : 'Your profile is now private.'); if (on) copyText(r.url); }
+  renderProfileView();
 }
 
 // ---------- account / profile UI ----------
@@ -4746,11 +4818,17 @@ function renderProfileView() {
           ${top.length ? `<div class="pv-top">${top.map((c, i) => `<div class="pv-toprow"><span class="pv-toprank">${i + 1}</span><span class="pv-topname nm" data-name="${esc(c.name)}">${esc(c.name)}</span><span class="pv-topval">${money(c.value)}</span></div>`).join('')}</div>` : `<p class="pv-empty">No owned cards yet.</p>`}
         </div>
         <div class="pv-card">
-          <div class="pv-card-h"><h3>Public profile</h3></div>
-          <p class="pv-hint">What others see when you share your profile. Your total collection value always stays private.</p>
-          <label class="pv-toggle"><input type="checkbox" id="pvPubDecks" ${p.publicDecks !== false ? 'checked' : ''}/> Show my decks</label>
-          <label class="pv-toggle"><input type="checkbox" id="pvPubStores" ${p.publicStores !== false ? 'checked' : ''}/> Show my stores</label>
-          <label class="pv-toggle"><input type="checkbox" id="pvPubTop" ${p.publicTopCards ? 'checked' : ''}/> Show my top 5 cards</label>
+          <div class="pv-card-h"><h3>Public profile</h3>${p.profilePublic ? '<span class="pv-pub-on">● public</span>' : ''}</div>
+          <p class="pv-hint">A shareable page with your decks, stores &amp; trades. Your total collection value always stays private.</p>
+          <label class="pv-toggle"><input type="checkbox" id="pvPublic" ${p.profilePublic ? 'checked' : ''}/> <b>Make my profile public</b></label>
+          ${p.profilePublic ? `<div class="pv-publiclink"><input type="text" id="pvProfileLink" readonly value="${esc(profilePublicUrl())}"/><button class="btn" data-pvcopyprofile>Copy</button><a class="btn" href="${esc(profilePublicUrl())}" target="_blank" rel="noopener">Open ↗</a></div>` : ''}
+          <div class="pv-pub-subs">
+            <p class="pv-hint">What the page shows (always: your display name &amp; @handle):</p>
+            <label class="pv-toggle"><input type="checkbox" id="pvPubIdentity" ${p.publicIdentity ? 'checked' : ''}/> My real name &amp; city</label>
+            <label class="pv-toggle"><input type="checkbox" id="pvPubDecks" ${p.publicDecks !== false ? 'checked' : ''}/> My decks</label>
+            <label class="pv-toggle"><input type="checkbox" id="pvPubStores" ${p.publicStores !== false ? 'checked' : ''}/> My stores</label>
+            <label class="pv-toggle"><input type="checkbox" id="pvPubTop" ${p.publicTopCards ? 'checked' : ''}/> My top 5 cards</label>
+          </div>
         </div>
       </div>
     </div>`;
@@ -4769,11 +4847,14 @@ if (profileViewEl) {
     if ((m = e.target.closest('[data-sharerevoke]'))) { const code = m.dataset.sharerevoke; if (confirm('Revoke this link? Anyone holding it will no longer be able to open the list.')) revokeShare(code).then(() => renderProfileView()); return; }
     if (e.target.closest('#pvImportDeck')) { openImport(); return; }
     if (e.target.closest('#pvSetStores')) { startOnboarding(); return; }
+    if (e.target.closest('[data-pvcopyprofile]')) { copyText(profilePublicUrl()).then(ok => toast(ok ? 'Profile link copied ✓' : 'Copy failed')); return; }
   });
   profileViewEl.addEventListener('change', e => {
-    if (e.target.id === 'pvPubDecks') setPublicPref('publicDecks', e.target.checked);
-    else if (e.target.id === 'pvPubStores') setPublicPref('publicStores', e.target.checked);
-    else if (e.target.id === 'pvPubTop') setPublicPref('publicTopCards', e.target.checked);
+    if (e.target.id === 'pvPublic') { togglePublicProfile(e.target.checked); }
+    else if (e.target.id === 'pvPubIdentity') { setPublicPref('publicIdentity', e.target.checked).then(maybeRepublishProfile); }
+    else if (e.target.id === 'pvPubDecks') { setPublicPref('publicDecks', e.target.checked).then(maybeRepublishProfile); }
+    else if (e.target.id === 'pvPubStores') { setPublicPref('publicStores', e.target.checked).then(maybeRepublishProfile); }
+    else if (e.target.id === 'pvPubTop') { setPublicPref('publicTopCards', e.target.checked).then(maybeRepublishProfile); }
   });
 }
 
