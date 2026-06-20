@@ -1210,6 +1210,12 @@ html[data-theme="ember"] .topbar { background: linear-gradient(180deg, rgba(31,1
 .onb-theme { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--edge); background: var(--panel); color: var(--parch-dim); cursor: pointer; font-size: 13px; transition: .15s; }
 .onb-theme.on { border-color: var(--gold-soft); color: var(--parch); }
 .onb-theme-sw { width: 16px; height: 16px; border-radius: 50%; display: inline-block; }
+.onb-steps { margin: 16px 0 18px; padding-left: 0; list-style: none; counter-reset: onb; display: flex; flex-direction: column; gap: 11px; }
+.onb-steps li { position: relative; padding-left: 38px; font-size: 14px; color: var(--parch-dim); line-height: 1.45; counter-increment: onb; }
+.onb-steps li::before { content: counter(onb); position: absolute; left: 0; top: -1px; width: 25px; height: 25px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 12px; color: var(--gold-soft); background: var(--panel); border: 1px solid var(--brass); }
+.onb-steps b { color: var(--parch); }
+.onb-importrow { margin-top: 16px; }
+.onb-step .sm-input { width: 100%; min-height: 120px; margin-top: 4px; }
 .onb-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 26px; }
 .onb-nav-r { display: flex; gap: 10px; }
 .onb-rerun { display: block; width: 100%; margin-top: 14px; background: none; border: none; color: var(--brass); font-size: 12px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }

@@ -4248,6 +4248,7 @@ const ONB_GOALS = [
 const ONB_STEPS = ['welcome', 'experience', 'location', 'formats', 'size', 'goals', 'price', 'theme', 'import', 'done'];
 let onboardStep = 0;
 let onboardData = {};
+let onboardImportView = 'choose';   // import step: 'choose' | 'csv' | 'paste'
 let pendingOnboardAfterSync = false;
 
 function startOnboarding() {
@@ -4263,7 +4264,7 @@ function startOnboarding() {
     priceSource: state.prefs.priceSource || 'ck',
     theme: state.prefs.theme || 'grimoire',
   };
-  onboardStep = 0;
+  onboardStep = 0; onboardImportView = 'choose';
   $('#onboardModal').hidden = false;
   renderOnboard();
 }
@@ -4293,8 +4294,29 @@ function onbStepHtml(key) {
       <div class="onb-grid">${onbCard('Card Kingdom', 'What Lima uses', d.priceSource === 'ck', `data-onb-price="ck"`)}${onbCard('TCGplayer', 'US market price', d.priceSource === 'tcg', `data-onb-price="tcg"`)}</div>`;
     case 'theme': return `<h2 class="onb-q">Pick your look</h2>
       <div class="onb-themes">${THEMES.map(t => `<button class="onb-theme ${d.theme === t ? 'on' : ''}" data-onb-theme="${t}"><span class="onb-theme-sw" style="background:${ONB_THEME_SW[t]}"></span>${esc(t[0].toUpperCase() + t.slice(1))}</button>`).join('')}</div>`;
-    case 'import': return `<h2 class="onb-q">Get your collection in</h2><p class="onb-sub">Import now, or add cards anytime later.</p>
-      <div class="onb-grid">${onbCard('Scan with ManaBox', 'Import a ManaBox CSV export', false, `data-onb-import="csv"`)}${onbCard('Paste a decklist', 'From Moxfield, Archidekt, etc.', false, `data-onb-import="deck"`)}${onbCard('I’ll add cards later', 'Jump straight into the app', false, `data-onb-import="later"`)}</div>`;
+    case 'import':
+      if (onboardImportView === 'csv') return `<h2 class="onb-q">Import from ManaBox</h2>
+        <ol class="onb-steps">
+          <li>In the <b>ManaBox</b> app, scan your cards into a collection.</li>
+          <li>Open that collection → <b>⋯ menu → Export</b> → choose <b>CSV</b>.</li>
+          <li>Save it to this device (or AirDrop / email it over).</li>
+          <li>Tap <b>Choose CSV file</b> below and pick it — it goes into your <b>inventory</b>.</li>
+        </ol>
+        <div class="onb-importrow"><button class="btn gold" id="onbCsvBtn"><i class="ms ms-loyalty-up btn-ico" aria-hidden="true"></i> Choose CSV file…</button><input type="file" id="onbCsvInput" accept=".csv,text/csv" hidden /></div>
+        <div class="modal-status" id="onbImportStatus"></div>
+        <button class="onb-rerun" id="onbImportBack">← back to import options</button>`;
+      if (onboardImportView === 'paste') return `<h2 class="onb-q">Paste a list</h2>
+        <ol class="onb-steps">
+          <li>In <b>Moxfield</b> (or Archidekt), open your deck or collection.</li>
+          <li>Click <b>More → Export</b>, then <b>Copy</b> the list.</li>
+          <li>Paste it below and import — every card is added to your <b>inventory</b> as owned.</li>
+        </ol>
+        <textarea id="onbPasteInput" class="sm-input" placeholder="1 Sol Ring&#10;1 Lightning Bolt&#10;1 Counterspell&#10;…" spellcheck="false"></textarea>
+        <div class="onb-importrow"><button class="btn gold" id="onbPasteBtn"><i class="ms ms-multiple btn-ico" aria-hidden="true"></i> Add to my inventory</button></div>
+        <div class="modal-status" id="onbImportStatus"></div>
+        <button class="onb-rerun" id="onbImportBack">← back to import options</button>`;
+      return `<h2 class="onb-q">Get your collection in</h2><p class="onb-sub">Add it now, or skip and add cards anytime later. Imports go straight into your <b>inventory</b> — decks come later.</p>
+        <div class="onb-grid">${onbCard('Scan with ManaBox', 'Import a ManaBox CSV export', false, `data-onb-import="csv"`)}${onbCard('Paste a list', 'From Moxfield, Archidekt, etc.', false, `data-onb-import="paste"`)}${onbCard('I’ll add cards later', 'Jump straight into the app', false, `data-onb-import="later"`)}</div>`;
     case 'done': return `<div class="onb-hero"><div class="onb-mark done"><i class="ms ms-counter-shield" aria-hidden="true"></i></div>
       <h2>You’re all set! 🎉</h2><p>Your collection syncs to your account automatically. Welcome to The Vault.</p></div>`;
   }
@@ -4318,14 +4340,46 @@ function syncOnboardInputs() {
   const c = $('#onbCountry'); if (c) onboardData.country = c.value.trim();
   const ci = $('#onbCity'); if (ci) onboardData.city = ci.value.trim();
 }
-function onboardNext() { syncOnboardInputs(); if (onboardStep >= ONB_STEPS.length - 1) { finishOnboarding(); return; } onboardStep++; renderOnboard(); }
-function onboardBack() { syncOnboardInputs(); if (onboardStep > 0) { onboardStep--; renderOnboard(); } }
-function onboardSkip() { syncOnboardInputs(); if (onboardStep < ONB_STEPS.length - 1) { onboardStep++; renderOnboard(); } }
+function onboardNext() { syncOnboardInputs(); onboardImportView = 'choose'; if (onboardStep >= ONB_STEPS.length - 1) { finishOnboarding(); return; } onboardStep++; renderOnboard(); }
+function onboardBack() { syncOnboardInputs(); onboardImportView = 'choose'; if (onboardStep > 0) { onboardStep--; renderOnboard(); } }
+function onboardSkip() { syncOnboardInputs(); onboardImportView = 'choose'; if (onboardStep < ONB_STEPS.length - 1) { onboardStep++; renderOnboard(); } }
 function onboardImport(kind) {
-  if (kind === 'later') { onboardStep = ONB_STEPS.length - 1; renderOnboard(); return; }
-  finishOnboarding(kind);   // csv/deck → complete setup and open the importer
+  if (kind === 'later') { onboardImportView = 'choose'; onboardStep = ONB_STEPS.length - 1; renderOnboard(); return; }
+  onboardImportView = kind;   // 'csv' or 'paste' → show that source's instructions + importer inline
+  renderOnboard();
 }
-async function finishOnboarding(route) {
+// Onboarding imports go straight into the INVENTORY (owned), never a deck.
+async function onbImportCSV(file) {
+  const st = $('#onbImportStatus'); if (!file) return;
+  let parsed;
+  try { parsed = parseCardCSV(await file.text()); } catch (e) { if (st) st.textContent = 'Could not read that file.'; return; }
+  if (!parsed.length) { if (st) st.textContent = 'No cards found — is this a ManaBox CSV export?'; return; }
+  if (st) st.innerHTML = `<span class="spin"></span>Importing ${parsed.length} cards…`;
+  try {
+    const { resolved, missing } = await resolveCards(parsed);
+    resolved.forEach(c => addVariant(c.name, { qty: c.qty, foil: c.foil, condition: c.condition, set: c.set, collector: c.collector, scryfallId: c.scryfallId }));
+    logAcquired(resolved, 'ManaBox CSV import'); save();
+    onbImportDone(resolved.reduce((a, c) => a + c.qty, 0), missing);
+  } catch (e) { if (st) st.textContent = 'Lookup failed — check your connection and retry.'; }
+}
+async function onbImportPaste() {
+  const st = $('#onbImportStatus');
+  const ta = $('#onbPasteInput'); const parsed = parseDecklist(ta ? ta.value : '');
+  if (!parsed.length) { if (st) st.textContent = 'Paste a list first — one card per line.'; return; }
+  if (st) st.innerHTML = `<span class="spin"></span>Importing ${parsed.length} cards…`;
+  try {
+    const { resolved, missing } = await resolveCards(parsed.map(p => ({ name: p.name, qty: p.qty })));
+    resolved.forEach(c => addVariant(c.name, { qty: c.qty }));
+    logAcquired(resolved, 'Pasted list import'); save();
+    onbImportDone(resolved.reduce((a, c) => a + c.qty, 0), missing);
+  } catch (e) { if (st) st.textContent = 'Lookup failed — check your connection and retry.'; }
+}
+function onbImportDone(copies, missing) {
+  const st = $('#onbImportStatus');
+  if (st) st.textContent = `Added ${copies} card${copies === 1 ? '' : 's'} to your inventory${missing ? ` · ${missing} not found` : ''} ✓`;
+  setTimeout(() => { onboardImportView = 'choose'; onboardStep = ONB_STEPS.length - 1; renderOnboard(); }, 1100);
+}
+async function finishOnboarding() {
   syncOnboardInputs();
   $('#onboardModal').hidden = true;
   if (onboardData.theme) setTheme(onboardData.theme);
@@ -4339,9 +4393,7 @@ async function finishOnboarding(route) {
     authProfile = { ...(authProfile || {}), prefs };
     try { await sb.from('profiles').update({ prefs, updated_at: new Date().toISOString() }).eq('id', authUser.id); } catch (e) {}
   }
-  if (route === 'csv') { openAdd(); setTimeout(() => { const b = $('#csvBtn'); if (b) b.click(); }, 50); }
-  else if (route === 'deck') openImport();
-  else toast('Welcome to The Vault! 🎉');
+  toast('Welcome to The Vault! 🎉');
 }
 const onbBodyEl = $('#onboardBody');
 if (onbBodyEl) onbBodyEl.addEventListener('click', e => {
@@ -4356,10 +4408,14 @@ if (onbBodyEl) onbBodyEl.addEventListener('click', e => {
   if ((m = t.closest('[data-onb-goal]'))) { const g = m.dataset.onbGoal; onboardData.goals = onboardData.goals.includes(g) ? onboardData.goals.filter(x => x !== g) : [...onboardData.goals, g]; m.classList.toggle('on'); return; }
   if (t.closest('#onbStoreAddBtn')) { syncOnboardInputs(); const inp = $('#onbStoreAdd'); const v = (inp && inp.value.trim()) || ''; if (v && !onboardData.stores.includes(v)) onboardData.stores.push(v); renderOnboard(); return; }
   if ((m = t.closest('[data-onb-import]'))) { onboardImport(m.dataset.onbImport); return; }
+  if (t.closest('#onbCsvBtn')) { $('#onbCsvInput') && $('#onbCsvInput').click(); return; }
+  if (t.closest('#onbPasteBtn')) { onbImportPaste(); return; }
+  if (t.closest('#onbImportBack')) { onboardImportView = 'choose'; renderOnboard(); return; }
   if (t.closest('#onbNext')) { onboardNext(); return; }
   if (t.closest('#onbBack')) { onboardBack(); return; }
   if (t.closest('#onbSkip')) { onboardSkip(); return; }
 });
+if (onbBodyEl) onbBodyEl.addEventListener('change', e => { if (e.target.id === 'onbCsvInput' && e.target.files[0]) onbImportCSV(e.target.files[0]); });
 const onbSkipAllEl = $('#onbSkipAll'); if (onbSkipAllEl) onbSkipAllEl.addEventListener('click', () => finishOnboarding());
 
 // account / auth / profile listeners
