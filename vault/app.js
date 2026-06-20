@@ -3927,7 +3927,8 @@ async function afterSignIn() {
     if (inSync) {
       if (meta.dirty && localHas) await pushNow();          // we have unsynced local edits → push them up
     } else if (!remoteHas && localHas) {
-      await pushNow(); toast('Collection synced to your account.');          // account empty → upload this device's
+      const r = await pushNow();                                            // account empty → upload this device's
+      toast(r.ok ? 'Collection synced to your account.' : 'Couldn’t sync — open Profile and tap “Sync to account”.');
     } else if (remoteHas && !localHas) {
       adoptRemote(remote.data, remote.updated_at); toast('Collection loaded from your account.');
     } else if (remoteHas && localHas && (!knownRemote || meta.dirty)) {
@@ -3966,23 +3967,35 @@ function scheduleSyncPush() {
   syncPushTimer = setTimeout(() => { syncPushTimer = null; pushNow(); }, 2500);
   renderAccount();
 }
+// Owned/deck/wishlist card metadata must sync (prices/images render offline);
+// drop browse-only cached cards (re-fetchable) so the blob stays small.
+function pruneForSync() {
+  const refs = new Set(Object.keys(state.variants || {}));
+  (state.decks || []).forEach(d => (d.cards || []).forEach(c => refs.add(key(c.name))));
+  Object.keys(state.wishlist || {}).forEach(k => refs.add(k));
+  const cards = {};
+  for (const k of Object.keys(state.cards || {})) if (refs.has(k)) cards[k] = state.cards[k];
+  return { ...state, cards };
+}
 async function pushNow() {
   const uid = authUser && authUser.id;            // capture the user this push is FOR
-  if (!sb || !uid) return;
+  if (!sb || !uid) return { ok: false, error: 'not signed in' };
   clearTimeout(syncPushTimer); syncPushTimer = null;
   syncBusy = true; renderAccount();
   const updated_at = new Date().toISOString();
+  let result = { ok: false, error: 'unknown' };
   try {
     // write to the captured uid (not authUser.id, which may change mid-flight on signout);
     // .select() the row back so we store the SERVER's canonical timestamp string
     // (Postgres timestamptz formats differently than the ISO string we send).
-    const { data, error } = await sb.from('collections').upsert({ user_id: uid, data: state, updated_at }).select('updated_at').single();
+    const { data, error } = await sb.from('collections').upsert({ user_id: uid, data: pruneForSync(), updated_at }).select('updated_at').single();
     if (authUser && authUser.id === uid) {          // still the same signed-in user
-      if (!error && data) setSyncMeta({ remoteUpdatedAt: data.updated_at, dirty: false });
-      else scheduleSyncPush();                       // failed → stay dirty and retry (don't get stuck)
-    }
-  } catch (e) { if (authUser && authUser.id === uid) scheduleSyncPush(); }
+      if (!error && data) { setSyncMeta({ remoteUpdatedAt: data.updated_at, dirty: false }); result = { ok: true }; }
+      else { scheduleSyncPush(); result = { ok: false, error: (error && error.message) || 'no response' }; }   // failed → stay dirty and retry
+    } else { result = { ok: false, error: 'signed out mid-sync' }; }
+  } catch (e) { if (authUser && authUser.id === uid) scheduleSyncPush(); result = { ok: false, error: e.message }; }
   syncBusy = false; renderAccount();
+  return result;
 }
 async function syncPullIfNewer() {
   if (!sb || !authUser || syncResolving || syncBusy || syncPushTimer || syncMeta().dirty) return;   // skip if local has unsynced changes
@@ -4049,6 +4062,15 @@ function renderProfile() {
     <div class="modal-foot">
       <button class="btn ghost" id="pfSignOut"><i class="ms ms-loyalty-down" aria-hidden="true"></i> Sign out</button>
       <button class="btn gold" id="pfSave">Save profile</button>
+    </div>
+    <div class="profile-syncbox">
+      <div class="psb-title">Sync</div>
+      <p class="psb-hint">Changes sync automatically. If a device looks out of date, force it here.</p>
+      <div class="profile-sync">
+        <button class="btn ghost" id="pfPush"><i class="ms ms-loyalty-up" aria-hidden="true"></i> Sync this device → account</button>
+        <button class="btn ghost" id="pfPull"><i class="ms ms-loyalty-down" aria-hidden="true"></i> Load account → this device</button>
+      </div>
+      <div class="modal-status" id="pfSyncStatus"></div>
     </div>`;
 }
 function openProfile() { renderProfile(); $('#profileModal').hidden = false; }
@@ -4065,6 +4087,28 @@ async function saveProfileEdits() {
     st.textContent = 'Saved.'; renderAccount();
   } catch (e) { st.textContent = 'Could not save — try again.'; }
 }
+// Manual sync controls (recovery + clear feedback when auto-sync looks off).
+async function forceSyncPush() {
+  const st = $('#pfSyncStatus');
+  if (!sb || !authUser) { if (st) st.textContent = 'Not signed in.'; return; }
+  if (st) st.innerHTML = '<span class="spin"></span>Uploading this device’s collection…';
+  const r = await pushNow();
+  if (st) st.textContent = r.ok ? 'Synced to your account ✓' : ('Sync failed: ' + (r.error || 'unknown') + ' — try again.');
+}
+async function forceSyncPull() {
+  const st = $('#pfSyncStatus');
+  if (!sb || !authUser) { if (st) st.textContent = 'Not signed in.'; return; }
+  if (st) st.innerHTML = '<span class="spin"></span>Loading from your account…';
+  try {
+    const { data, error } = await sb.from('collections').select('data, updated_at').eq('user_id', authUser.id).maybeSingle();
+    if (error) { if (st) st.textContent = 'Failed: ' + error.message; return; }
+    if (!data || !collectionNonEmpty(data.data)) { if (st) st.textContent = 'Your account has no saved collection yet. On the device that has your cards, tap “Sync this device → account”.'; return; }
+    if (collectionNonEmpty(state) && !confirm('Replace this device’s collection with the one saved in your account?')) { if (st) st.textContent = 'Cancelled.'; return; }
+    adoptRemote(data.data, data.updated_at);
+    const g = globalStats();
+    if (st) st.textContent = `Loaded ${g.unique} card${g.unique === 1 ? '' : 's'} from your account ✓`;
+  } catch (e) { if (st) st.textContent = 'Failed — check your connection and retry.'; }
+}
 
 // account / auth / profile listeners
 const accountBtnEl = $('#accountBtn'); if (accountBtnEl) accountBtnEl.addEventListener('click', () => { if (authUser) openProfile(); else openAuth('signin'); });
@@ -4078,6 +4122,8 @@ const profileModalEl = $('#profileModal'); if (profileModalEl) profileModalEl.ad
 const profileBodyEl = $('#profileBody'); if (profileBodyEl) profileBodyEl.addEventListener('click', e => {
   if (e.target.closest('#pfSave')) saveProfileEdits();
   else if (e.target.closest('#pfSignOut')) signOut();
+  else if (e.target.closest('#pfPush')) forceSyncPush();
+  else if (e.target.closest('#pfPull')) forceSyncPull();
 });
 document.addEventListener('visibilitychange', () => { if (!document.hidden) syncPullIfNewer(); });
 window.addEventListener('focus', syncPullIfNewer);
