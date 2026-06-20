@@ -3902,6 +3902,7 @@ function setSyncMeta(m) { try { localStorage.setItem(SYNC_META_KEY, JSON.stringi
 async function initSync() {
   renderAccount();
   if (!sb) return;
+  loadStores();   // community store list for onboarding (fire-and-forget)
   try {
     const { data } = await sb.auth.getSession();
     if (data.session) { authUser = data.session.user; await afterSignIn(); }
@@ -3979,6 +3980,7 @@ async function afterSignIn() {
   syncResolving = true; renderAccount();   // held for the WHOLE function: also blocks echo-pushes during reconciliation
   try {
     await loadProfile();
+    loadStores();   // refresh the shared store list now we're authed
     const uid = authUser && authUser.id;
     if (!uid) return;
     const { data, error } = await sb.from('collections').select('data, updated_at').eq('user_id', uid).maybeSingle();
@@ -4248,6 +4250,20 @@ async function forceSyncPull() {
 
 /* ---------- onboarding wizard (full-page, after signup) ---------- */
 const LIMA_STORES = ['Wonderland', 'Control Wavi', 'Carloncho Store', 'La Mazmorra', 'Perú Collectors', '5to Turno'];
+let storeList = [...LIMA_STORES];   // community store list (loaded from Supabase; falls back to the Lima seed)
+async function loadStores() {
+  if (!sb) return;
+  try {
+    const { data, error } = await sb.from('stores').select('name').order('name');
+    if (!error && Array.isArray(data) && data.length) storeList = data.map(s => s.name);
+  } catch (e) {}
+}
+// add a store to the shared list (so everyone can pick it) + locally right away
+async function addStoreGlobal(name) {
+  name = (name || '').trim(); if (!name) return;
+  if (!storeList.some(s => s.toLowerCase() === name.toLowerCase())) storeList.push(name);
+  if (sb && authUser) { try { await sb.from('stores').insert({ name }); } catch (e) {} }   // dup / table-missing / RLS errors ignored
+}
 const ONB_THEME_SW = { grimoire: '#c9a227', arcane: '#8a6fa3', tome: '#4a8fd6', verdant: '#3fa86a', ember: '#d4452f' };
 const ONB_EXP = [
   { v: 'new', label: 'New to Magic', sub: 'Just getting into it' },
@@ -4304,7 +4320,7 @@ function onbStepHtml(key) {
       <div class="pf-row2"><label class="ve-field"><span>Country</span><input type="text" id="onbCountry" class="text-input" value="${esc(d.country)}" maxlength="40" /></label>
       <label class="ve-field"><span>City</span><input type="text" id="onbCity" class="text-input" value="${esc(d.city)}" maxlength="40" /></label></div>
       <p class="onb-sub">Your favorite local stores</p>
-      <div class="onb-chips">${[...LIMA_STORES, ...d.stores.filter(s => !LIMA_STORES.includes(s))].map(s => onbChip(s, d.stores.includes(s), `data-onb-store="${esc(s)}"`)).join('')}</div>
+      <div class="onb-chips">${[...storeList, ...d.stores.filter(s => !storeList.some(x => x.toLowerCase() === s.toLowerCase()))].map(s => onbChip(s, d.stores.some(x => x.toLowerCase() === s.toLowerCase()), `data-onb-store="${esc(s)}"`)).join('')}</div>
       <div class="onb-addrow"><input type="text" id="onbStoreAdd" class="text-input" placeholder="Add another store…" maxlength="40" /><button class="btn ghost" id="onbStoreAddBtn">Add</button></div>`;
     case 'formats': return `<h2 class="onb-q">What do you play?</h2>
       <div class="onb-chips">${ONB_FORMATS.map(f => onbChip(f, d.formats.includes(f), `data-onb-fmt="${esc(f)}"`)).join('')}</div>`;
@@ -4428,7 +4444,7 @@ if (onbBodyEl) onbBodyEl.addEventListener('click', e => {
   if ((m = t.closest('[data-onb-store]'))) { const s = m.dataset.onbStore; onboardData.stores = onboardData.stores.includes(s) ? onboardData.stores.filter(x => x !== s) : [...onboardData.stores, s]; m.classList.toggle('on'); return; }
   if ((m = t.closest('[data-onb-fmt]'))) { const f = m.dataset.onbFmt; onboardData.formats = onboardData.formats.includes(f) ? onboardData.formats.filter(x => x !== f) : [...onboardData.formats, f]; m.classList.toggle('on'); return; }
   if ((m = t.closest('[data-onb-goal]'))) { const g = m.dataset.onbGoal; onboardData.goals = onboardData.goals.includes(g) ? onboardData.goals.filter(x => x !== g) : [...onboardData.goals, g]; m.classList.toggle('on'); return; }
-  if (t.closest('#onbStoreAddBtn')) { syncOnboardInputs(); const inp = $('#onbStoreAdd'); const v = (inp && inp.value.trim()) || ''; if (v && !onboardData.stores.includes(v)) onboardData.stores.push(v); renderOnboard(); return; }
+  if (t.closest('#onbStoreAddBtn')) { syncOnboardInputs(); const inp = $('#onbStoreAdd'); const v = (inp && inp.value.trim()) || ''; if (v) { addStoreGlobal(v); if (!onboardData.stores.some(s => s.toLowerCase() === v.toLowerCase())) onboardData.stores.push(v); } renderOnboard(); return; }
   if ((m = t.closest('[data-onb-import]'))) { onboardImport(m.dataset.onbImport); return; }
   if (t.closest('#onbCsvBtn')) { $('#onbCsvInput') && $('#onbCsvInput').click(); return; }
   if (t.closest('#onbPasteBtn')) { onbImportPaste(); return; }
