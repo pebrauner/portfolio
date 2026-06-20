@@ -3962,7 +3962,13 @@ async function afterSignIn() {
       setSyncMeta({ remoteUpdatedAt: remote.updated_at, dirty: false });
     }
   } catch (e) { toast('Signed in, but sync failed.'); }
-  finally { syncResolving = false; renderAccount(); }
+  finally {
+    syncResolving = false; renderAccount();
+    if (justSignedUp) {   // first run after creating an account → onboarding
+      justSignedUp = false;
+      if ($('#syncModal').hidden) startOnboarding(); else pendingOnboardAfterSync = true;
+    }
+  }
 }
 function adoptRemote(remoteData, updatedAt) {
   syncSuppress = true;
@@ -4105,7 +4111,8 @@ function renderProfile() {
         <button class="btn ghost" id="pfPull"><i class="ms ms-loyalty-down" aria-hidden="true"></i> Load account → this device</button>
       </div>
       <div class="modal-status" id="pfSyncStatus"></div>
-    </div>`;
+    </div>
+    <button class="onb-rerun" id="pfRerun">↻ Re-run the welcome setup</button>`;
 }
 function openProfile() { renderProfile(); $('#profileModal').hidden = false; }
 function closeProfile() { $('#profileModal').hidden = true; }
@@ -4147,7 +4154,7 @@ function finishSyncOverlay(ok, message) {
   $('#syncStatus').textContent = message;
   $('#syncDone').hidden = false;
 }
-function closeSyncOverlay() { const m = $('#syncModal'); if (m) m.hidden = true; }
+function closeSyncOverlay() { const m = $('#syncModal'); if (m) m.hidden = true; if (pendingOnboardAfterSync) { pendingOnboardAfterSync = false; startOnboarding(); } }
 const minDelay = ms => new Promise(res => setTimeout(res, ms));   // keeps the bar visible long enough to read
 async function uploadWithOverlay() {
   showSyncOverlay('Uploading your collection…');
@@ -4187,6 +4194,144 @@ async function forceSyncPull() {
   } catch (e) { if (st) st.textContent = 'Failed — check your connection and retry.'; }
 }
 
+/* ---------- onboarding wizard (full-page, after signup) ---------- */
+const LIMA_STORES = ['Wonderland', 'Control Wavi', 'Carloncho Store', 'La Mazmorra', 'Perú Collectors', '5to Turno'];
+const ONB_THEME_SW = { grimoire: '#c9a227', arcane: '#8a6fa3', tome: '#4a8fd6', verdant: '#3fa86a', ember: '#d4452f' };
+const ONB_EXP = [
+  { v: 'new', label: 'New to Magic', sub: 'Just getting into it' },
+  { v: 'intermediate', label: 'Intermediate', sub: 'A few years in' },
+  { v: 'veteran', label: 'Veteran', sub: 'Seen every set' },
+];
+const ONB_FORMATS = ['Commander / EDH', 'Standard', 'Pioneer', 'Modern', 'Legacy', 'Vintage', 'Pauper', 'Draft / Limited', 'Cube'];
+const ONB_BUCKETS = [
+  { v: 'starter', label: 'Just starting', sub: 'under 100 cards' },
+  { v: 'shoebox', label: 'A shoebox', sub: '100 – 1,000' },
+  { v: 'collection', label: 'A real collection', sub: '1,000 – 10,000' },
+  { v: 'hoard', label: 'A hoard', sub: '10,000+' },
+];
+const ONB_GOALS = [
+  { v: 'value', label: 'Track my collection’s value' },
+  { v: 'decks', label: 'Build & manage decks' },
+  { v: 'trade', label: 'Buy & sell cards' },
+  { v: 'missing', label: 'See what I’m missing' },
+];
+const ONB_STEPS = ['welcome', 'experience', 'location', 'formats', 'size', 'goals', 'price', 'theme', 'import', 'done'];
+let onboardStep = 0;
+let onboardData = {};
+let pendingOnboardAfterSync = false;
+
+function startOnboarding() {
+  const p = (authProfile && authProfile.prefs) || {};
+  onboardData = {
+    experience: p.experience || '',
+    country: p.country || 'Peru',
+    city: p.city || 'Lima',
+    stores: Array.isArray(p.favorite_stores) ? [...p.favorite_stores] : [],
+    formats: Array.isArray(p.formats) ? [...p.formats] : [],
+    collection: p.collection_estimate || '',
+    goals: Array.isArray(p.goals) ? [...p.goals] : [],
+    priceSource: state.prefs.priceSource || 'ck',
+    theme: state.prefs.theme || 'grimoire',
+  };
+  onboardStep = 0;
+  $('#onboardModal').hidden = false;
+  renderOnboard();
+}
+function onboardName() { return (authProfile && (authProfile.username || authProfile.display_name)) || 'planeswalker'; }
+function onbCard(label, sub, on, attr) { return `<button class="onb-card ${on ? 'on' : ''}" ${attr}><span class="onb-card-l">${esc(label)}</span>${sub ? `<span class="onb-card-s">${esc(sub)}</span>` : ''}</button>`; }
+function onbChip(label, on, attr) { return `<button class="onb-chip ${on ? 'on' : ''}" ${attr}>${esc(label)}</button>`; }
+function onbStepHtml(key) {
+  const d = onboardData;
+  switch (key) {
+    case 'welcome': return `<div class="onb-hero"><div class="onb-mark"><i class="ms ms-counter-lore" aria-hidden="true"></i></div>
+      <h2>Welcome, ${esc(onboardName())} 👋</h2><p>A few quick questions to set up The Vault for you. Skip anything you like.</p></div>`;
+    case 'experience': return `<h2 class="onb-q">How long have you played Magic?</h2>
+      <div class="onb-grid">${ONB_EXP.map(e => onbCard(e.label, e.sub, d.experience === e.v, `data-onb-exp="${e.v}"`)).join('')}</div>`;
+    case 'location': return `<h2 class="onb-q">Where do you play?</h2>
+      <div class="pf-row2"><label class="ve-field"><span>Country</span><input type="text" id="onbCountry" class="text-input" value="${esc(d.country)}" maxlength="40" /></label>
+      <label class="ve-field"><span>City</span><input type="text" id="onbCity" class="text-input" value="${esc(d.city)}" maxlength="40" /></label></div>
+      <p class="onb-sub">Your favorite local stores</p>
+      <div class="onb-chips">${[...LIMA_STORES, ...d.stores.filter(s => !LIMA_STORES.includes(s))].map(s => onbChip(s, d.stores.includes(s), `data-onb-store="${esc(s)}"`)).join('')}</div>
+      <div class="onb-addrow"><input type="text" id="onbStoreAdd" class="text-input" placeholder="Add another store…" maxlength="40" /><button class="btn ghost" id="onbStoreAddBtn">Add</button></div>`;
+    case 'formats': return `<h2 class="onb-q">What do you play?</h2>
+      <div class="onb-chips">${ONB_FORMATS.map(f => onbChip(f, d.formats.includes(f), `data-onb-fmt="${esc(f)}"`)).join('')}</div>`;
+    case 'size': return `<h2 class="onb-q">Roughly how big is your collection?</h2>
+      <div class="onb-grid">${ONB_BUCKETS.map(b => onbCard(b.label, b.sub, d.collection === b.v, `data-onb-size="${b.v}"`)).join('')}</div>`;
+    case 'goals': return `<h2 class="onb-q">What do you want to use The Vault for?</h2><p class="onb-sub">Pick any.</p>
+      <div class="onb-grid">${ONB_GOALS.map(g => onbCard(g.label, '', d.goals.includes(g.v), `data-onb-goal="${g.v}"`)).join('')}</div>`;
+    case 'price': return `<h2 class="onb-q">Which prices should we show?</h2>
+      <div class="onb-grid">${onbCard('Card Kingdom', 'What Lima uses', d.priceSource === 'ck', `data-onb-price="ck"`)}${onbCard('TCGplayer', 'US market price', d.priceSource === 'tcg', `data-onb-price="tcg"`)}</div>`;
+    case 'theme': return `<h2 class="onb-q">Pick your look</h2>
+      <div class="onb-themes">${THEMES.map(t => `<button class="onb-theme ${d.theme === t ? 'on' : ''}" data-onb-theme="${t}"><span class="onb-theme-sw" style="background:${ONB_THEME_SW[t]}"></span>${esc(t[0].toUpperCase() + t.slice(1))}</button>`).join('')}</div>`;
+    case 'import': return `<h2 class="onb-q">Get your collection in</h2><p class="onb-sub">Import now, or add cards anytime later.</p>
+      <div class="onb-grid">${onbCard('Scan with ManaBox', 'Import a ManaBox CSV export', false, `data-onb-import="csv"`)}${onbCard('Paste a decklist', 'From Moxfield, Archidekt, etc.', false, `data-onb-import="deck"`)}${onbCard('I’ll add cards later', 'Jump straight into the app', false, `data-onb-import="later"`)}</div>`;
+    case 'done': return `<div class="onb-hero"><div class="onb-mark done"><i class="ms ms-counter-shield" aria-hidden="true"></i></div>
+      <h2>You’re all set! 🎉</h2><p>Your collection syncs to your account automatically. Welcome to The Vault.</p></div>`;
+  }
+  return '';
+}
+function onbNavHtml(key) {
+  const last = onboardStep === ONB_STEPS.length - 1;
+  const back = (onboardStep > 0 && !last) ? `<button class="btn ghost" id="onbBack">Back</button>` : `<span></span>`;
+  if (key === 'welcome') return `<div class="onb-nav"><span></span><button class="btn gold" id="onbNext">Get started</button></div>`;
+  if (key === 'import') return `<div class="onb-nav">${back}<span></span></div>`;   // choosing a card advances/finishes
+  if (last) return `<div class="onb-nav"><span></span><button class="btn gold" id="onbNext">Enter the Vault</button></div>`;
+  return `<div class="onb-nav">${back}<div class="onb-nav-r"><button class="btn ghost" id="onbSkip">Skip</button><button class="btn gold" id="onbNext">Next</button></div></div>`;
+}
+function renderOnboard() {
+  const body = $('#onboardBody'); if (!body) return;
+  const key = ONB_STEPS[onboardStep];
+  const pf = $('#onbProgress'); if (pf) pf.style.width = Math.round((onboardStep / (ONB_STEPS.length - 1)) * 100) + '%';
+  body.innerHTML = `<div class="onb-step">${onbStepHtml(key)}</div>${onbNavHtml(key)}`;
+}
+function syncOnboardInputs() {
+  const c = $('#onbCountry'); if (c) onboardData.country = c.value.trim();
+  const ci = $('#onbCity'); if (ci) onboardData.city = ci.value.trim();
+}
+function onboardNext() { syncOnboardInputs(); if (onboardStep >= ONB_STEPS.length - 1) { finishOnboarding(); return; } onboardStep++; renderOnboard(); }
+function onboardBack() { syncOnboardInputs(); if (onboardStep > 0) { onboardStep--; renderOnboard(); } }
+function onboardSkip() { syncOnboardInputs(); if (onboardStep < ONB_STEPS.length - 1) { onboardStep++; renderOnboard(); } }
+function onboardImport(kind) {
+  if (kind === 'later') { onboardStep = ONB_STEPS.length - 1; renderOnboard(); return; }
+  finishOnboarding(kind);   // csv/deck → complete setup and open the importer
+}
+async function finishOnboarding(route) {
+  syncOnboardInputs();
+  $('#onboardModal').hidden = true;
+  if (onboardData.theme) setTheme(onboardData.theme);
+  state.prefs.priceSource = onboardData.priceSource === 'ck' ? 'ck' : 'tcg'; save(); renderPriceSrc();
+  if (onboardData.priceSource === 'ck' && !ckById && !(state.ckPrices && Object.keys(state.ckPrices).length) && typeof refreshCKPrices === 'function') refreshCKPrices();
+  if (sb && authUser) {
+    const prefs = { ...((authProfile && authProfile.prefs) || {}),
+      experience: onboardData.experience, country: onboardData.country, city: onboardData.city,
+      favorite_stores: onboardData.stores, formats: onboardData.formats,
+      collection_estimate: onboardData.collection, goals: onboardData.goals, onboarded: true };
+    authProfile = { ...(authProfile || {}), prefs };
+    try { await sb.from('profiles').update({ prefs, updated_at: new Date().toISOString() }).eq('id', authUser.id); } catch (e) {}
+  }
+  if (route === 'csv') { openAdd(); setTimeout(() => { const b = $('#csvBtn'); if (b) b.click(); }, 50); }
+  else if (route === 'deck') openImport();
+  else toast('Welcome to The Vault! 🎉');
+}
+const onbBodyEl = $('#onboardBody');
+if (onbBodyEl) onbBodyEl.addEventListener('click', e => {
+  const t = e.target;
+  let m;
+  if ((m = t.closest('[data-onb-exp]'))) { onboardData.experience = m.dataset.onbExp; renderOnboard(); return; }
+  if ((m = t.closest('[data-onb-size]'))) { onboardData.collection = m.dataset.onbSize; renderOnboard(); return; }
+  if ((m = t.closest('[data-onb-price]'))) { onboardData.priceSource = m.dataset.onbPrice; renderOnboard(); return; }
+  if ((m = t.closest('[data-onb-theme]'))) { onboardData.theme = m.dataset.onbTheme; setTheme(onboardData.theme); renderOnboard(); return; }
+  if ((m = t.closest('[data-onb-store]'))) { const s = m.dataset.onbStore; onboardData.stores = onboardData.stores.includes(s) ? onboardData.stores.filter(x => x !== s) : [...onboardData.stores, s]; m.classList.toggle('on'); return; }
+  if ((m = t.closest('[data-onb-fmt]'))) { const f = m.dataset.onbFmt; onboardData.formats = onboardData.formats.includes(f) ? onboardData.formats.filter(x => x !== f) : [...onboardData.formats, f]; m.classList.toggle('on'); return; }
+  if ((m = t.closest('[data-onb-goal]'))) { const g = m.dataset.onbGoal; onboardData.goals = onboardData.goals.includes(g) ? onboardData.goals.filter(x => x !== g) : [...onboardData.goals, g]; m.classList.toggle('on'); return; }
+  if (t.closest('#onbStoreAddBtn')) { syncOnboardInputs(); const inp = $('#onbStoreAdd'); const v = (inp && inp.value.trim()) || ''; if (v && !onboardData.stores.includes(v)) onboardData.stores.push(v); renderOnboard(); return; }
+  if ((m = t.closest('[data-onb-import]'))) { onboardImport(m.dataset.onbImport); return; }
+  if (t.closest('#onbNext')) { onboardNext(); return; }
+  if (t.closest('#onbBack')) { onboardBack(); return; }
+  if (t.closest('#onbSkip')) { onboardSkip(); return; }
+});
+const onbSkipAllEl = $('#onbSkipAll'); if (onbSkipAllEl) onbSkipAllEl.addEventListener('click', () => finishOnboarding());
+
 // account / auth / profile listeners
 const accountBtnEl = $('#accountBtn'); if (accountBtnEl) accountBtnEl.addEventListener('click', () => { if (authUser) openProfile(); else openAuth('signin'); });
 const closeAuthEl = $('#closeAuth'); if (closeAuthEl) closeAuthEl.addEventListener('click', closeAuth);
@@ -4201,6 +4346,7 @@ const profileBodyEl = $('#profileBody'); if (profileBodyEl) profileBodyEl.addEve
   else if (e.target.closest('#pfSignOut')) signOut();
   else if (e.target.closest('#pfPush')) forceSyncPush();
   else if (e.target.closest('#pfPull')) forceSyncPull();
+  else if (e.target.closest('#pfRerun')) { closeProfile(); startOnboarding(); }
 });
 const syncDoneEl = $('#syncDone'); if (syncDoneEl) syncDoneEl.addEventListener('click', closeSyncOverlay);
 const syncCloseEl = $('#syncClose'); if (syncCloseEl) syncCloseEl.addEventListener('click', closeSyncOverlay);
