@@ -4297,9 +4297,9 @@ function onbStepHtml(key) {
     case 'import':
       if (onboardImportView === 'csv') return `<h2 class="onb-q">Import from ManaBox</h2>
         <ol class="onb-steps">
-          <li>In the <b>ManaBox</b> app, scan your cards into a collection.</li>
-          <li>Open that collection → <b>⋯ menu → Export</b> → choose <b>CSV</b>.</li>
-          <li>Save it to this device (or AirDrop / email it over).</li>
+          <li>In <b>ManaBox</b>, go to your <b>Collection</b>.</li>
+          <li>Tap the <b>⋯ (three dots)</b> at the top right.</li>
+          <li>Tap <b>Export</b> — the CSV downloads to your device.</li>
           <li>Tap <b>Choose CSV file</b> below and pick it — it goes into your <b>inventory</b>.</li>
         </ol>
         <div class="onb-importrow"><button class="btn gold" id="onbCsvBtn"><i class="ms ms-loyalty-up btn-ico" aria-hidden="true"></i> Choose CSV file…</button><input type="file" id="onbCsvInput" accept=".csv,text/csv" hidden /></div>
