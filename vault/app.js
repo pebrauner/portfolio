@@ -4006,8 +4006,10 @@ async function afterSignIn() {
     // seeding an EMPTY account, or by pushing edits made on top of the version we last synced.
     if (inSync) {
       if (meta.dirty && localHas) await pushNow();          // unsynced edits on the synced version → push up
+    } else if (remoteHas && !localHas) {
+      await downloadWithOverlay(remote);                    // fresh device → big "loading your collection" overlay
     } else if (remoteHas) {
-      await downloadWithOverlay(remote);                    // account has a (different/newer) collection → adopt it
+      adoptRemote(remote.data, remote.updated_at); toast('Loaded the latest from your account.');   // routine re-sync → quiet toast
     } else if (localHas) {
       await uploadWithOverlay();                            // account is empty → seed it from this device
     } else {
@@ -4441,7 +4443,9 @@ async function saveProfileEdits() {
   } catch (e) { st.textContent = 'Could not save — try again.'; }
 }
 // Sync progress overlay — shown on the first upload / first download at sign-in.
+let syncOverlayTimer = null;
 function showSyncOverlay(title) {
+  clearTimeout(syncOverlayTimer);
   const m = $('#syncModal'); if (!m) return false;
   $('#syncTitle').textContent = title;
   const fill = $('#syncFill');
@@ -4461,8 +4465,10 @@ function finishSyncOverlay(ok, message) {
   $('#syncTitle').textContent = ok ? 'All synced ✓' : 'Sync failed';
   $('#syncStatus').textContent = message;
   $('#syncDone').hidden = false;
+  clearTimeout(syncOverlayTimer);
+  if (ok) syncOverlayTimer = setTimeout(closeSyncOverlay, 2800);   // auto-dismiss on success; errors stay so they can be read
 }
-function closeSyncOverlay() { const m = $('#syncModal'); if (m) m.hidden = true; if (pendingOnboardAfterSync) { pendingOnboardAfterSync = false; startOnboarding(); } }
+function closeSyncOverlay() { clearTimeout(syncOverlayTimer); const m = $('#syncModal'); if (m) m.hidden = true; if (pendingOnboardAfterSync) { pendingOnboardAfterSync = false; startOnboarding(); } }
 const minDelay = ms => new Promise(res => setTimeout(res, ms));   // keeps the bar visible long enough to read
 async function uploadWithOverlay() {
   showSyncOverlay('Uploading your collection…');
