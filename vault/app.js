@@ -3909,6 +3909,10 @@ if (storeDash) {
   storeDash.addEventListener('click', e => {
     if (e.target.closest('#storeCopyLink')) { copyText(storePublicUrl(myStore.slug)).then(ok => toast(ok ? 'Store link copied ✓' : 'Copy failed')); return; }
     if (e.target.closest('#storeAddEvent')) { openStoreEvent(null); return; }
+    if (e.target.closest('#storeGenStaff')) { generateStoreStaffInvite(); return; }
+    if (e.target.closest('#staffInviteCopy')) { const i = $('#staffInviteLink'); if (i) copyText(i.value).then(ok => toast(ok ? 'Staff link copied ✓' : 'Copy failed')); return; }
+    if (e.target.closest('#staffInviteQr')) { const i = $('#staffInviteLink'); if (i) downloadQrPng(i.value, 'staff-invite'); return; }
+    let sm; if ((sm = e.target.closest('[data-staffrm]'))) { removeStoreMember(sm.dataset.staffrm); return; }
     if (e.target.closest('#invAddCards')) { openAdd('store'); return; }
     if (e.target.closest('#invRefreshPrices')) { refreshStorePrices(); return; }
     if (e.target.closest('#invBulkMove')) { const s2 = $('#invBulkBinder'); bulkMoveToBinder(s2 ? s2.value : ''); return; }
@@ -4578,7 +4582,7 @@ async function signOut() {
   clearTimeout(publicProfileTimer); publicProfileTimer = null;
   try { await sb.auth.signOut(); } catch (e) {}
   authUser = null; authProfile = null; setSyncMeta({});
-  myStore = null; myStores = []; storeEvents = []; storeTx = []; pendingStoreInvite = null; refreshStoreMenu();
+  myStore = null; myStores = []; storeEvents = []; storeTx = []; storeMembers = []; pendingStoreInvite = null; pendingStaffInvite = null; refreshStoreMenu();
   closeProfile(); renderAccount();
   if (['view-profile', 'view-store'].some(v => $('#' + v) && $('#' + v).classList.contains('is-active'))) setView('decks');
   toast('Signed out — this device is now local-only.');
@@ -4599,7 +4603,7 @@ async function afterSignIn() {
     await loadProfile();
     loadStores(); loadStoreCounts();   // shared store list + popularity
     loadMyShares().then(() => { if (publicProfileOn()) publishPublicProfile(true); });   // my shares; refresh public profile if on
-    loadMyStore().then(() => { refreshStoreMenu(); maybePromptStoreCreate(); });   // store ownership + admin menu + any pending invite
+    loadMyStore().then(() => { refreshStoreMenu(); if (pendingStaffInvite) redeemStaffInvite(); else maybePromptStoreCreate(); });   // store ownership + admin menu + any pending store/staff invite
     const uid = authUser && authUser.id;
     if (!uid) return;
     const { data, error } = await sb.from('collections').select('data, updated_at').eq('user_id', uid).maybeSingle();
@@ -5133,6 +5137,7 @@ let myStore = null;             // the active store I manage | null
 let myStores = [];              // all stores I manage (owner or staff)
 let storeEvents = [];           // myStore's events (owner editing)
 let storeTx = [];               // myStore's recent transactions (sales / stock-ins ledger)
+let storeMembers = [];          // myStore's members (owner + managers)
 let pendingStoreInvite = null;  // ?store-invite=CODE captured at boot until sign-in
 let pendingStaffInvite = null;  // ?store-staff=CODE captured at boot until sign-in
 let storeInviteResult = '';     // last-minted invite link (admin modal)
@@ -5156,8 +5161,74 @@ async function loadMyStore() {
     const { data: stores } = await sb.from('store_profiles').select('*').in('slug', slugs);
     myStores = stores || [];
     myStore = myStores.find(s => s.owner === authUser.id) || myStores[0] || null;   // a store I own takes precedence as the active one
-    if (myStore) { await loadStoreEvents(); loadStoreTransactions(); }
+    if (myStore) { await loadStoreEvents(); loadStoreTransactions(); loadStoreMembers(); }
   } catch (e) {}
+}
+function isStoreOwner() { return !!(myStore && authUser && myStore.owner === authUser.id); }
+function storeStaffInviteUrl(code) { return vaultPageUrl('') + '?store-staff=' + code; }
+async function loadStoreMembers() {
+  storeMembers = [];
+  if (!sb || !myStore) return;
+  try { const { data } = await sb.rpc('get_store_members', { p_slug: myStore.slug }); storeMembers = Array.isArray(data) ? data : []; renderStoreStaff(); } catch (e) {}
+}
+async function generateStoreStaffInvite() {
+  if (!sb || !myStore || !isStoreOwner()) { toast('Only the store owner can invite staff.'); return; }
+  const code = shareCode();
+  try {
+    const { error } = await sb.rpc('create_store_staff_invite', { p_slug: myStore.slug, p_code: code });
+    if (error) { toast('Could not create staff invite: ' + error.message); return; }
+    const url = storeStaffInviteUrl(code), box = $('#storeStaffInvite');
+    if (box) {
+      const qr = qrSvg(url, { margin: 4 });
+      box.innerHTML = `<div class="share-result"><div class="share-result-h"><i class="ms ms-counter-lore" aria-hidden="true"></i> Staff invite link</div>
+        <div class="share-link-row"><input type="text" id="staffInviteLink" readonly value="${esc(url)}" /><button class="btn gold" id="staffInviteCopy">Copy</button></div>
+        <p class="share-note">Send this to a co-manager. When they open it while signed in, they join as a <b>manager</b>. Works once.</p>
+        ${qr ? `<div class="share-qr"><div class="share-qr-code">${qr}</div><div class="share-qr-side"><div class="share-qr-cap">Or have them scan this.</div><button class="btn gold sm" id="staffInviteQr">Download QR</button></div></div>` : ''}</div>`;
+    }
+    copyText(url);
+    toast('Staff invite created & copied ✓');
+  } catch (e) { toast('Could not create staff invite.'); }
+}
+async function removeStoreMember(uid) {
+  if (!sb || !myStore || !isStoreOwner()) return;
+  const m = storeMembers.find(x => x.user_id === uid);
+  if (!confirm(`Remove ${m && m.username ? '@' + m.username : 'this manager'} from the store?`)) return;
+  try {
+    const { error } = await sb.rpc('remove_store_member', { p_slug: myStore.slug, p_user: uid });
+    if (error) { toast('Could not remove: ' + error.message); return; }
+    await loadStoreMembers(); toast('Manager removed.');
+  } catch (e) { toast('Could not remove the manager.'); }
+}
+function renderStoreStaff() {
+  const list = $('#storeStaffList'); if (!list) return;
+  if (!storeMembers.length) { list.innerHTML = `<p class="bd-note">Loading…</p>`; return; }
+  list.innerHTML = storeMembers.map(m => {
+    const owner = m.role === 'owner';
+    const who = m.username ? '@' + esc(m.username) : (m.display_name ? esc(m.display_name) : 'Member');
+    return `<div class="store-staff-row"><span class="ss-role${owner ? ' owner' : ''}">${owner ? 'Owner' : 'Manager'}</span><span class="ss-who">${who}</span>${(isStoreOwner() && !owner) ? `<button class="link-btn danger" data-staffrm="${esc(m.user_id)}">Remove</button>` : ''}</div>`;
+  }).join('');
+}
+
+/* ---- redeem a staff invite (?store-staff=) → join the store as a manager ---- */
+function consumeStaffInvite() {
+  let code = null;
+  try { code = new URLSearchParams(location.search).get('store-staff'); } catch (e) {}
+  if (!code) return;
+  try { const url = new URL(location.href); url.searchParams.delete('store-staff'); history.replaceState(null, '', url.toString()); } catch (e) {}
+  pendingStaffInvite = code;
+  if (authUser) redeemStaffInvite();
+  else setTimeout(() => { if (pendingStaffInvite && !authUser) { toast('Sign in to join this store as staff.'); openAuth('signup'); } }, 1800);
+}
+async function redeemStaffInvite() {
+  if (!sb || !authUser || !pendingStaffInvite) return;
+  const code = pendingStaffInvite; pendingStaffInvite = null;
+  try {
+    const { error } = await sb.rpc('redeem_store_staff_invite', { p_code: code });
+    if (error) { toast('Staff invite: ' + error.message); return; }
+    await loadMyStore(); refreshStoreMenu();
+    setView('store'); render();
+    toast('You’re now a manager of this store.');
+  } catch (e) { toast('Could not join the store.'); }
 }
 async function loadStoreEvents() {
   if (!sb || !myStore) { storeEvents = []; return; }
@@ -5310,11 +5381,16 @@ function renderStoreDashboard() {
     <section class="store-card"><div class="store-card-h"><h3>Events</h3><button class="btn gold sm" id="storeAddEvent">+ Add event</button></div>
       <div id="storeEventList"></div></section>
     <section class="store-card"><div class="store-card-h"><h3>Sales &amp; history</h3><span class="store-savestate" id="storeHistSummary"></span></div>
-      <div id="storeHistList"></div></section>`;
+      <div id="storeHistList"></div></section>
+    <section class="store-card"><div class="store-card-h"><h3>Staff</h3>${isStoreOwner() ? '<button class="btn gold sm" id="storeGenStaff"><i class="ms ms-counter-lore btn-ico" aria-hidden="true"></i> Invite staff</button>' : ''}</div>
+      <p class="bd-note" style="margin:0 0 12px">${isStoreOwner() ? 'Invite other Vault accounts to co-manage this store. They get their own login — no shared password.' : 'You manage this store as staff.'}</p>
+      <div id="storeStaffInvite"></div>
+      <div id="storeStaffList"></div></section>`;
   renderStoreEventList();
   renderStoreInvBinders();
   renderStoreInventory();
   renderStoreHistory();
+  renderStoreStaff();
 }
 function renderStoreHistory() {
   const el = $('#storeHistList'); if (!el) return;
@@ -6334,3 +6410,4 @@ initSync();
 consumeIncomingMatch();   // a shared list opened via "Match with my lists" lands here
 consumeIncomingDeck();    // a shared deck opened via "Import this deck" lands here
 consumeStoreInvite();     // a store invite link (?store-invite=) lands here
+consumeStaffInvite();     // a staff invite link (?store-staff=) lands here

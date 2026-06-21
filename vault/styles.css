@@ -669,6 +669,12 @@ html[data-theme="ember"] .topbar { background: linear-gradient(180deg, rgba(31,1
 .tx-val { font-family: var(--mono); font-size: 13px; color: var(--parch-dim); white-space: nowrap; }
 .tx-val.sold { color: #7cb877; }
 .tx-when { font-family: var(--label); font-size: 11px; color: var(--faint); white-space: nowrap; }
+/* store staff */
+.store-staff-row { display: flex; align-items: center; gap: 11px; padding: 8px 4px; border-bottom: 1px solid var(--edge-soft); }
+.store-staff-row:last-child { border-bottom: none; }
+.ss-role { font-family: var(--label); font-size: 9.5px; letter-spacing: .05em; text-transform: uppercase; padding: 2px 8px; border-radius: 5px; white-space: nowrap; color: var(--parch-dim); border: 1px solid var(--edge); }
+.ss-role.owner { color: var(--ink); background: linear-gradient(180deg, var(--gold-soft), var(--gold)); border-color: var(--gold-soft); }
+.ss-who { flex: 1; min-width: 0; color: var(--parch); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* ============ card tables ============ */
 .card-table { display: flex; flex-direction: column; gap: 7px; }
