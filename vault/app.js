@@ -1045,6 +1045,7 @@ function render() {
   renderBrowse();
   renderHistory();
   renderProfileView();
+  if ($('#view-store') && $('#view-store').classList.contains('is-active')) renderStoreDashboard();
   renderUndo();
   renderPriceSrc();
 }
@@ -3867,6 +3868,49 @@ $('#exportBtn').addEventListener('click', exportBackup);
 $('#importFileBtn').addEventListener('click', () => $('#restoreInput').click());
 $('#restoreInput').addEventListener('change', e => { if (e.target.files[0]) restoreBackup(e.target.files[0]); e.target.value = ''; });
 
+/* ---------- store profiles ---------- */
+const genInviteBtn = $('#genStoreInvite'); if (genInviteBtn) genInviteBtn.addEventListener('click', () => { const g = $('#settingsGroup'); if (g) g.classList.remove('open'); generateStoreInvite(); });
+const myStoreNavBtn = $('#myStoreBtn'); if (myStoreNavBtn) myStoreNavBtn.addEventListener('click', () => { const g = $('#settingsGroup'); if (g) g.classList.remove('open'); setView('store'); render(); });
+const storeDash = $('#storeDashboard');
+if (storeDash) {
+  storeDash.addEventListener('input', e => {
+    if (!myStore) return;
+    const f = e.target.closest('[data-storefield]');
+    if (f) { myStore[f.dataset.storefield] = f.value; scheduleStoreSave(); return; }
+    const s = e.target.closest('[data-social]');
+    if (s) { myStore.socials = myStore.socials || {}; myStore.socials[s.dataset.social] = s.value.trim(); scheduleStoreSave(); return; }
+    const h = e.target.closest('[data-hours]');
+    if (h) { myStore.hours = myStore.hours || {}; const d = h.dataset.hours; myStore.hours[d] = myStore.hours[d] || {}; myStore.hours[d][h.dataset.bound] = h.value; scheduleStoreSave(); return; }
+  });
+  storeDash.addEventListener('click', e => {
+    if (e.target.closest('#storePublish')) { publishStoreLibrary(); return; }
+    if (e.target.closest('#storeCopyLink')) { copyText(storePublicUrl(myStore.slug)).then(ok => toast(ok ? 'Store link copied ✓' : 'Copy failed')); return; }
+    if (e.target.closest('#storeAddEvent')) { openStoreEvent(null); return; }
+    let m;
+    if ((m = e.target.closest('[data-evedit]'))) { openStoreEvent(m.dataset.evedit); return; }
+    if ((m = e.target.closest('[data-evdel]'))) { deleteStoreEvent(m.dataset.evdel); return; }
+  });
+}
+const closeStoreInviteEl = $('#closeStoreInvite'); if (closeStoreInviteEl) closeStoreInviteEl.addEventListener('click', closeStoreInvite);
+const storeInviteModalEl = $('#storeInviteModal');
+if (storeInviteModalEl) storeInviteModalEl.addEventListener('click', e => {
+  if (e.target.id === 'storeInviteModal') { closeStoreInvite(); return; }
+  if (e.target.closest('#storeInviteCopy')) { const i = $('#storeInviteLink'); if (i) copyText(i.value).then(ok => toast(ok ? 'Invite link copied ✓' : 'Copy failed')); return; }
+  if (e.target.closest('#storeInviteQr')) { downloadQrPng(storeInviteResult, 'store-invite'); return; }
+});
+const closeStoreCreateEl = $('#closeStoreCreate'); if (closeStoreCreateEl) closeStoreCreateEl.addEventListener('click', closeStoreCreate);
+const storeCreateModalEl = $('#storeCreateModal');
+if (storeCreateModalEl) storeCreateModalEl.addEventListener('click', e => {
+  if (e.target.id === 'storeCreateModal') { closeStoreCreate(); return; }
+  if (e.target.closest('#scCreate')) { doRedeemStore(); return; }
+});
+const closeStoreEventEl = $('#closeStoreEvent'); if (closeStoreEventEl) closeStoreEventEl.addEventListener('click', closeStoreEvent);
+const storeEventModalEl = $('#storeEventModal');
+if (storeEventModalEl) storeEventModalEl.addEventListener('click', e => {
+  if (e.target.id === 'storeEventModal') { closeStoreEvent(); return; }
+  if (e.target.closest('#evSave')) { saveStoreEventFromModal(); return; }
+});
+
 $('#deckGrid').addEventListener('click', e => {
   const c = e.target.closest('.deck-card');
   if (c) openDeck(c.dataset.deck);
@@ -4350,6 +4394,9 @@ document.addEventListener('keydown', e => {
   if (!$('#addModal').hidden) closeAdd();
   const sm = $('#shareModal'); if (sm && !sm.hidden) closeShare();
   const dsm = $('#deckShareModal'); if (dsm && !dsm.hidden) closeDeckShare();
+  const sev = $('#storeEventModal'); if (sev && !sev.hidden) { closeStoreEvent(); return; }
+  const sim = $('#storeInviteModal'); if (sim && !sim.hidden) closeStoreInvite();
+  const scm = $('#storeCreateModal'); if (scm && !scm.hidden) closeStoreCreate();
 });
 
 /* ---------- theme ---------- */
@@ -4491,8 +4538,9 @@ async function signOut() {
   clearTimeout(publicProfileTimer); publicProfileTimer = null;
   try { await sb.auth.signOut(); } catch (e) {}
   authUser = null; authProfile = null; setSyncMeta({});
+  myStore = null; storeEvents = []; pendingStoreInvite = null; refreshStoreMenu();
   closeProfile(); renderAccount();
-  if ($('#view-profile') && $('#view-profile').classList.contains('is-active')) setView('decks');
+  if (['view-profile', 'view-store'].some(v => $('#' + v) && $('#' + v).classList.contains('is-active'))) setView('decks');
   toast('Signed out — this device is now local-only.');
 }
 async function loadProfile() {
@@ -4511,6 +4559,7 @@ async function afterSignIn() {
     await loadProfile();
     loadStores(); loadStoreCounts();   // shared store list + popularity
     loadMyShares().then(() => { if (publicProfileOn()) publishPublicProfile(true); });   // my shares; refresh public profile if on
+    loadMyStore().then(() => { refreshStoreMenu(); maybePromptStoreCreate(); });   // store ownership + admin menu + any pending invite
     const uid = authUser && authUser.id;
     if (!uid) return;
     const { data, error } = await sb.from('collections').select('data, updated_at').eq('user_id', uid).maybeSingle();
@@ -4542,7 +4591,9 @@ async function afterSignIn() {
     syncResolving = false; renderAccount();
     if (justSignedUp) {   // first run after creating an account → onboarding
       justSignedUp = false;
-      if ($('#syncModal').hidden) startOnboarding(); else pendingOnboardAfterSync = true;
+      // a store-invite signup goes through the store-create flow instead — don't stack the player onboarding on top
+      if (pendingStoreInvite) { /* store-create modal is their onboarding */ }
+      else if ($('#syncModal').hidden) startOnboarding(); else pendingOnboardAfterSync = true;
     }
   }
 }
@@ -5033,6 +5084,264 @@ async function consumeIncomingDeck() {
     save(); render(); openDeck(deck.id);
     toast(`Imported “${name}”${missing ? ` · ${missing} card${missing > 1 ? 's' : ''} not found` : ''}.`);
   } catch (e) { toast('Scryfall lookup failed — try again.'); }
+}
+
+/* =====================================================================
+   STORE PROFILES (admin-gated) — create via your invite, manage info/hours/events, publish library
+   ===================================================================== */
+let myStore = null;             // the store_profiles row this account owns | null
+let storeEvents = [];           // myStore's events (owner editing)
+let pendingStoreInvite = null;  // ?store-invite=CODE captured at boot until sign-in
+let storeInviteResult = '';     // last-minted invite link (admin modal)
+let storeSaveTimer = null;
+let editingEventId = null;      // event being edited in the modal, or null = new
+function isStoreAdmin() { return !!(authProfile && authProfile.is_admin); }
+function hasStore() { return !!myStore; }
+function storePublicUrl(slug) { return vaultPageUrl('s.html') + '?s=' + encodeURIComponent(slug); }
+function storeInviteUrl(code) { return vaultPageUrl('') + '?store-invite=' + code; }
+
+async function loadMyStore() {
+  myStore = null; storeEvents = [];
+  if (!sb || !authUser) return;
+  try {
+    const { data } = await sb.from('store_profiles').select('*').eq('owner', authUser.id).maybeSingle();
+    myStore = data || null;
+    if (myStore) await loadStoreEvents();
+  } catch (e) {}
+}
+async function loadStoreEvents() {
+  if (!sb || !myStore) { storeEvents = []; return; }
+  try { const { data } = await sb.from('store_events').select('*').eq('store_slug', myStore.slug).order('starts_at'); storeEvents = Array.isArray(data) ? data : []; } catch (e) { storeEvents = []; }
+}
+function refreshStoreMenu() {
+  const inv = $('#genStoreInvite'); if (inv) inv.hidden = !isStoreAdmin();
+  const my = $('#myStoreBtn'); if (my) my.hidden = !hasStore();
+}
+
+/* ---- admin: mint a one-time store invite ---- */
+async function generateStoreInvite() {
+  if (!sb || !authUser || !isStoreAdmin()) { toast('Admins only.'); return; }
+  const note = prompt('Store invite — a note for you (e.g. the store this is for):', '');
+  if (note === null) return;
+  const code = shareCode();
+  try {
+    const { error } = await sb.rpc('create_store_invite', { p_code: code, p_note: note || null });
+    if (error) { toast('Could not create invite: ' + error.message); return; }
+    storeInviteResult = storeInviteUrl(code);
+    const m = $('#storeInviteModal'); if (m) m.hidden = false;
+    renderStoreInviteModal();
+    copyText(storeInviteResult);
+  } catch (e) { toast('Could not create invite.'); }
+}
+function closeStoreInvite() { const m = $('#storeInviteModal'); if (m) m.hidden = true; }
+function renderStoreInviteModal() {
+  const body = $('#storeInviteBody'); if (!body) return;
+  const url = storeInviteResult, qr = qrSvg(url, { margin: 4 });
+  body.innerHTML = `<p class="share-note">Send this one-time link to a store owner. When they open it while signed in, they can create their store. It works once.</p>
+    <div class="share-link-row"><input type="text" id="storeInviteLink" readonly value="${esc(url)}" /><button class="btn gold" id="storeInviteCopy">Copy</button></div>
+    ${qr ? `<div class="share-qr"><div class="share-qr-code">${qr}</div><div class="share-qr-side"><div class="share-qr-cap">Or have them scan this.</div><button class="btn gold sm" id="storeInviteQr">Download QR</button></div></div>` : ''}`;
+}
+
+/* ---- redeem an invite + create the store ---- */
+function consumeStoreInvite() {
+  let code = null;
+  try { code = new URLSearchParams(location.search).get('store-invite'); } catch (e) {}
+  if (!code) return;
+  try { const url = new URL(location.href); url.searchParams.delete('store-invite'); history.replaceState(null, '', url.toString()); } catch (e) {}
+  pendingStoreInvite = code;
+  // the auth session restores async after boot — if already signed in, prompt now; otherwise afterSignIn() will,
+  // and if no session restores at all, fall back to asking them to sign in.
+  if (authUser) maybePromptStoreCreate();
+  else setTimeout(() => { if (pendingStoreInvite && !authUser) { toast('Sign in or create an account to set up your store.'); openAuth('signup'); } }, 1800);
+}
+function maybePromptStoreCreate() {
+  if (!pendingStoreInvite) return;
+  if (!authUser) { toast('Sign in (or make an account) to set up your store.'); openAuth('signup'); return; }
+  if (myStore) { toast('This account already runs a store.'); pendingStoreInvite = null; setView('store'); render(); return; }
+  closeAuth();   // dismiss any auth modal a slow session-restore may have popped, so it can't stack behind the create modal
+  const m = $('#storeCreateModal'); if (m) m.hidden = false; renderStoreCreate();
+}
+function closeStoreCreate() { const m = $('#storeCreateModal'); if (m) m.hidden = true; pendingStoreInvite = null; }
+function renderStoreCreate() {
+  const body = $('#storeCreateBody'); if (!body) return;
+  body.innerHTML = `<p class="share-note">You've been invited to open a store on The Vault. Pick a name and a web address.</p>
+    <label class="ve-field"><span>Store name</span><input type="text" id="scName" class="text-input" maxlength="60" placeholder="Wonderland TCG" /></label>
+    <label class="ve-field"><span>Store address <em>(letters, numbers, dashes)</em></span><div class="slug-row"><span class="slug-pre">…/s.html?s=</span><input type="text" id="scSlug" class="text-input" maxlength="40" placeholder="wonderland" /></div></label>
+    <div class="modal-status" id="scStatus"></div>
+    <button class="btn gold" id="scCreate">Create my store</button>`;
+}
+async function doRedeemStore() {
+  const name = ($('#scName') ? $('#scName').value : '').trim();
+  const slug = ($('#scSlug') ? $('#scSlug').value : '').trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '');
+  const st = $('#scStatus');
+  if (!name) { if (st) st.textContent = 'Enter a store name.'; return; }
+  if (slug.length < 3) { if (st) st.textContent = 'The address needs at least 3 letters or numbers.'; return; }
+  if (!pendingStoreInvite) { if (st) st.textContent = 'Your invite link is missing — reopen it.'; return; }
+  const btn = $('#scCreate'); if (btn) { btn.disabled = true; btn.textContent = 'Creating…'; }
+  try {
+    const { error } = await sb.rpc('redeem_store_invite', { p_code: pendingStoreInvite, p_slug: slug, p_name: name });
+    if (error) { if (st) st.textContent = error.message; if (btn) { btn.disabled = false; btn.textContent = 'Create my store'; } return; }
+    pendingStoreInvite = null;
+    await loadMyStore(); refreshStoreMenu();
+    closeStoreCreate(); setView('store'); render();
+    toast('Your store is live! Add your hours, events and library.');
+  } catch (e) { if (st) st.textContent = 'Something went wrong.'; if (btn) { btn.disabled = false; btn.textContent = 'Create my store'; } }
+}
+
+/* ---- store dashboard (owner editor) ---- */
+const STORE_DAYS = [['mon', 'Mon'], ['tue', 'Tue'], ['wed', 'Wed'], ['thu', 'Thu'], ['fri', 'Fri'], ['sat', 'Sat'], ['sun', 'Sun']];
+function renderStoreDashboard() {
+  const el = $('#storeDashboard'); if (!el) return;
+  if (!authUser) { el.innerHTML = `<div class="empty-state" style="padding:60px 20px"><span class="empty-mark"><i class="ms ms-counter-lore"></i></span><h2>Sign in</h2><p>Store management needs your account.</p></div>`; return; }
+  if (!myStore) { el.innerHTML = `<div class="empty-state" style="padding:60px 20px"><span class="empty-mark"><i class="ms ms-counter-lore"></i></span><h2>No store on this account</h2><p>Store profiles are invite-only. If you run a game store and want one, ask for an invite link.</p></div>`; return; }
+  const s = myStore, soc = s.socials || {}, hours = s.hours || {};
+  const fld = (key, label, ph, val, type) => `<label class="ve-field"><span>${label}</span><input type="${type || 'text'}" class="text-input" data-storefield="${key}" value="${esc(val || '')}" placeholder="${esc(ph || '')}" /></label>`;
+  const socFld = (key, label, ph) => `<label class="ve-field"><span>${label}</span><input type="text" class="text-input" data-social="${key}" value="${esc(soc[key] || '')}" placeholder="${esc(ph)}" /></label>`;
+  const dayRow = (k, lbl) => { const h = hours[k] || {}; return `<div class="hr-row"><span class="hr-day">${lbl}</span><input type="time" class="hr-time" data-hours="${k}" data-bound="open" value="${esc(h.open || '')}" /><span class="hr-dash">–</span><input type="time" class="hr-time" data-hours="${k}" data-bound="close" value="${esc(h.close || '')}" /></div>`; };
+  el.innerHTML = `
+    <div class="store-head">
+      <div><h2 class="view-title">${esc(s.name)} <span class="verified-chip"><i class="ms ms-counter-shield"></i> Verified</span></h2>
+      <p class="view-sub"><a href="${esc(storePublicUrl(s.slug))}" target="_blank" rel="noopener">View public page ↗</a> · <span id="storeSaveState" class="store-savestate"></span></p></div>
+      <div class="store-head-actions">
+        <button class="btn" id="storeCopyLink"><i class="ms ms-counter-lore btn-ico"></i> Copy link</button>
+        <button class="btn gold" id="storePublish"><i class="ms ms-loyalty-up btn-ico"></i> Publish library</button>
+      </div>
+    </div>
+    <div class="store-grid">
+      <section class="store-card"><h3>Details</h3>
+        ${fld('name', 'Store name', '', s.name)}
+        <label class="ve-field"><span>Bio</span><textarea class="text-input store-bio" data-storefield="bio" maxlength="400" placeholder="What's your store about?">${esc(s.bio || '')}</textarea></label>
+        <div class="store-2col">${fld('city', 'City', 'Lima', s.city)}${fld('country', 'Country', 'Peru', s.country)}</div>
+        ${fld('address', 'Address', 'Av. Larco 345, Miraflores', s.address)}
+        <div class="store-2col">${fld('phone', 'Phone', '', s.phone)}${fld('whatsapp', 'WhatsApp', '+51…', s.whatsapp)}</div>
+        ${fld('website', 'Website', 'https://…', s.website)}
+        ${fld('logo', 'Logo image URL', 'https://…', s.logo)}
+      </section>
+      <section class="store-card">
+        <h3>Socials</h3>
+        ${socFld('instagram', 'Instagram', 'https://instagram.com/…')}
+        ${socFld('facebook', 'Facebook', 'https://facebook.com/…')}
+        ${socFld('x', 'X / Twitter', 'https://x.com/…')}
+        ${socFld('discord', 'Discord', 'https://discord.gg/…')}
+        <h3 style="margin-top:20px">Open hours</h3>
+        <div class="hours-editor">${STORE_DAYS.map(([k, l]) => dayRow(k, l)).join('')}</div>
+      </section>
+    </div>
+    <section class="store-card"><div class="store-card-h"><h3>Events</h3><button class="btn gold sm" id="storeAddEvent">+ Add event</button></div>
+      <div id="storeEventList"></div></section>`;
+  renderStoreEventList();
+}
+function renderStoreEventList() {
+  const el = $('#storeEventList'); if (!el) return;
+  if (!storeEvents.length) { el.innerHTML = `<p class="bd-note">No events yet. Add your first — a Commander night, FNM, a tournament…</p>`; return; }
+  el.innerHTML = storeEvents.map(ev => {
+    const when = ev.starts_at ? new Date(ev.starts_at).toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'No date set';
+    const bits = [ev.format, ev.recurring ? '↻ ' + ev.recurring : '', ev.prize_pool ? 'Prize ' + ev.prize_pool : ''].filter(Boolean).join(' · ');
+    return `<div class="store-ev-row"><div class="sev-main"><div class="sev-title">${esc(ev.title)}</div><div class="sev-when">${esc(when)}${bits ? ' · ' + esc(bits) : ''}</div></div>
+      <button class="link-btn" data-evedit="${esc(ev.id)}">Edit</button><button class="link-btn danger" data-evdel="${esc(ev.id)}">Delete</button></div>`;
+  }).join('');
+}
+// debounced field save
+function scheduleStoreSave() {
+  const ss = $('#storeSaveState'); if (ss) ss.textContent = 'Saving…';
+  clearTimeout(storeSaveTimer); storeSaveTimer = setTimeout(saveStoreNow, 800);
+}
+async function saveStoreNow() {
+  if (!sb || !myStore) return;
+  if (!myStore.name || !myStore.name.trim()) myStore.name = 'Store';   // keep in-memory == the NOT NULL fallback we persist
+  const row = {
+    name: myStore.name, bio: myStore.bio || null, city: myStore.city || null, country: myStore.country || null,
+    address: myStore.address || null, phone: myStore.phone || null, whatsapp: myStore.whatsapp || null,
+    website: myStore.website || null, logo: myStore.logo || null, socials: myStore.socials || {}, hours: myStore.hours || {},
+    updated_at: new Date().toISOString()
+  };
+  try {
+    const { error } = await sb.from('store_profiles').update(row).eq('slug', myStore.slug);
+    const ss = $('#storeSaveState'); if (ss) ss.textContent = error ? 'Save failed' : 'Saved ✓';
+  } catch (e) { const ss = $('#storeSaveState'); if (ss) ss.textContent = 'Save failed'; }
+}
+async function publishStoreLibrary() {
+  if (!sb || !myStore) return;
+  toast('Publishing your library…');
+  const cards = allCardNames().filter(n => ownedOf(n) > 0).sort((a, b) => a.localeCompare(b))
+    .map(n => ({ name: n, qty: ownedOf(n), price: +(priceOf(n) || 0).toFixed(2), type: category(n) }));
+  const collection = { count: cards.reduce((a, c) => a + c.qty, 0), cards };
+  const idx = variantIndex(), seen = new Set(), fs = [];
+  state.sellLists.forEach(l => Object.keys(l.items).forEach(vid => {
+    if (seen.has(vid)) return; seen.add(vid);
+    const hit = idx.get(vid); if (!hit) return;
+    const qty = Math.min(l.items[vid], hit.v.qty); if (qty <= 0) return;
+    fs.push({ name: hit.name, qty, price: +(variantPrice(hit.name, hit.v) || 0).toFixed(2), set: hit.v.set || '', foil: !!hit.v.foil, img: displayImage(hit.name) || '', uri: (card(hit.name).uri) || '' });
+  }));
+  const forsale = { cards: fs.sort((a, b) => b.price - a.price) };
+  try {
+    const { error } = await sb.from('store_profiles').update({ collection, forsale, updated_at: new Date().toISOString() }).eq('slug', myStore.slug);
+    if (error) { toast('Publish failed: ' + error.message); return; }
+    myStore.collection = collection; myStore.forsale = forsale;
+    toast(`Published ${collection.count} cards${fs.length ? ` · ${fs.length} for sale` : ''}.`);
+  } catch (e) { toast('Publish failed.'); }
+}
+
+/* ---- store event editor (modal) ---- */
+function openStoreEvent(id) {
+  editingEventId = id || null;
+  const m = $('#storeEventModal'); if (m) m.hidden = false;
+  renderStoreEventModal();
+}
+function closeStoreEvent() { const m = $('#storeEventModal'); if (m) m.hidden = true; editingEventId = null; }
+function renderStoreEventModal() {
+  const body = $('#storeEventBody'); if (!body) return;
+  const ev = editingEventId ? (storeEvents.find(e => e.id === editingEventId) || {}) : {};
+  const localDT = (iso) => { if (!iso) return ''; const d = new Date(iso); const p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; };
+  body.innerHTML = `
+    <label class="ve-field"><span>Title</span><input type="text" id="evTitle" class="text-input" maxlength="80" value="${esc(ev.title || '')}" placeholder="Commander Bracket Night" /></label>
+    <div class="store-2col">
+      <label class="ve-field"><span>Format</span><input type="text" id="evFormat" class="text-input" maxlength="40" value="${esc(ev.format || '')}" placeholder="Commander" /></label>
+      <label class="ve-field"><span>Repeats</span><select id="evRecurring" class="text-input"><option value="">One-off</option><option value="weekly"${ev.recurring === 'weekly' ? ' selected' : ''}>Weekly</option><option value="biweekly"${ev.recurring === 'biweekly' ? ' selected' : ''}>Every 2 weeks</option><option value="monthly"${ev.recurring === 'monthly' ? ' selected' : ''}>Monthly</option></select></label>
+    </div>
+    <div class="store-2col">
+      <label class="ve-field"><span>Starts</span><input type="datetime-local" id="evStart" class="text-input" value="${esc(localDT(ev.starts_at))}" /></label>
+      <label class="ve-field"><span>Ends <em>(optional)</em></span><input type="datetime-local" id="evEnd" class="text-input" value="${esc(localDT(ev.ends_at))}" /></label>
+    </div>
+    <div class="store-2col">
+      <label class="ve-field"><span>Prize pool</span><input type="text" id="evPrize" class="text-input" maxlength="60" value="${esc(ev.prize_pool || '')}" placeholder="S/300 store credit" /></label>
+      <label class="ve-field"><span>Entry fee</span><input type="text" id="evEntry" class="text-input" maxlength="40" value="${esc(ev.entry_fee || '')}" placeholder="S/20" /></label>
+    </div>
+    <label class="ve-field"><span>Capacity <em>(optional)</em></span><input type="number" id="evCap" class="text-input" min="0" value="${ev.capacity != null ? Number(ev.capacity) : ''}" placeholder="32" /></label>
+    <label class="ve-field"><span>Description</span><textarea id="evDesc" class="text-input store-bio" maxlength="400" placeholder="Details, structure, what to bring…">${esc(ev.description || '')}</textarea></label>
+    <div class="modal-status" id="evStatus"></div>
+    <button class="btn gold" id="evSave">${editingEventId ? 'Save event' : 'Add event'}</button>`;
+}
+async function saveStoreEventFromModal() {
+  if (!sb || !myStore) return;
+  const title = ($('#evTitle') ? $('#evTitle').value : '').trim();
+  const st = $('#evStatus');
+  if (!title) { if (st) st.textContent = 'Give the event a title.'; return; }
+  const toISO = (v) => { v = (v || '').trim(); if (!v) return null; const d = new Date(v); return isNaN(d) ? null : d.toISOString(); };
+  const capRaw = ($('#evCap') ? $('#evCap').value : '').trim();
+  const row = {
+    store_slug: myStore.slug, title, format: ($('#evFormat').value || '').trim() || null,
+    recurring: $('#evRecurring').value || null, starts_at: toISO($('#evStart').value), ends_at: toISO($('#evEnd').value),
+    prize_pool: ($('#evPrize').value || '').trim() || null, entry_fee: ($('#evEntry').value || '').trim() || null,
+    capacity: capRaw ? parseInt(capRaw, 10) : null, description: ($('#evDesc').value || '').trim() || null
+  };
+  const btn = $('#evSave'); if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+  try {
+    let error;
+    if (editingEventId) ({ error } = await sb.from('store_events').update(row).eq('id', editingEventId).eq('store_slug', myStore.slug));
+    else ({ error } = await sb.from('store_events').insert(row));
+    if (error) { if (st) st.textContent = error.message; if (btn) { btn.disabled = false; btn.textContent = editingEventId ? 'Save event' : 'Add event'; } return; }
+    await loadStoreEvents(); closeStoreEvent(); renderStoreDashboard();
+    toast(editingEventId ? 'Event updated.' : 'Event added.');
+  } catch (e) { if (st) st.textContent = 'Something went wrong.'; if (btn) { btn.disabled = false; btn.textContent = editingEventId ? 'Save event' : 'Add event'; } }
+}
+async function deleteStoreEvent(id) {
+  if (!sb || !myStore) return;
+  const ev = storeEvents.find(e => e.id === id);
+  if (!confirm(`Delete “${ev ? ev.title : 'this event'}”?`)) return;
+  try { await sb.from('store_events').delete().eq('id', id).eq('store_slug', myStore.slug); } catch (e) {}
+  await loadStoreEvents(); renderStoreDashboard();
+  toast('Event deleted.');
 }
 
 /* ============ public profile link (a curated, anonymous-readable snapshot) ============ */
@@ -5746,3 +6055,4 @@ render();
 initSync();
 consumeIncomingMatch();   // a shared list opened via "Match with my lists" lands here
 consumeIncomingDeck();    // a shared deck opened via "Import this deck" lands here
+consumeStoreInvite();     // a store invite link (?store-invite=) lands here

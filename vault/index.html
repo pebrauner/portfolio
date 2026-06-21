@@ -62,6 +62,8 @@
             </div>
           </div>
           <div class="set-actions">
+            <button class="btn ghost" id="myStoreBtn" hidden><i class="ms ms-counter-lore btn-ico" aria-hidden="true"></i>My Store</button>
+            <button class="btn ghost" id="genStoreInvite" hidden><i class="ms ms-counter-shield btn-ico" aria-hidden="true"></i>Generate store invite</button>
             <button class="btn ghost" id="exportBtn"><i class="ms ms-loyalty-down btn-ico" aria-hidden="true"></i>Export backup</button>
             <button class="btn ghost" id="importFileBtn"><i class="ms ms-loyalty-up btn-ico" aria-hidden="true"></i>Restore backup</button>
           </div>
@@ -354,6 +356,10 @@
       <div id="profileView"></div>
     </section>
 
+    <section class="view" id="view-store">
+      <div id="storeDashboard"></div>
+    </section>
+
     <footer class="site-footer" id="siteFooter">
       <div class="foot-grid">
         <div class="foot-brand">
@@ -485,6 +491,33 @@
       <button class="modal-close" id="closeDeckShare" aria-label="Close">✕</button>
       <h2 class="modal-title"><i class="ms ms-commander" aria-hidden="true"></i> Share this deck</h2>
       <div id="deckShareBody"></div>
+    </div>
+  </div>
+
+  <!-- Store: admin invite result -->
+  <div class="modal-scrim" id="storeInviteModal" hidden>
+    <div class="modal modal-sm">
+      <button class="modal-close" id="closeStoreInvite" aria-label="Close">✕</button>
+      <h2 class="modal-title"><i class="ms ms-counter-shield" aria-hidden="true"></i> Store invite</h2>
+      <div id="storeInviteBody"></div>
+    </div>
+  </div>
+
+  <!-- Store: redeem an invite + create the store -->
+  <div class="modal-scrim" id="storeCreateModal" hidden>
+    <div class="modal modal-sm">
+      <button class="modal-close" id="closeStoreCreate" aria-label="Close">✕</button>
+      <h2 class="modal-title"><i class="ms ms-counter-lore" aria-hidden="true"></i> Create your store</h2>
+      <div id="storeCreateBody"></div>
+    </div>
+  </div>
+
+  <!-- Store: add / edit an event -->
+  <div class="modal-scrim" id="storeEventModal" hidden>
+    <div class="modal modal-sm">
+      <button class="modal-close" id="closeStoreEvent" aria-label="Close">✕</button>
+      <h2 class="modal-title"><i class="ms ms-counter-lore" aria-hidden="true"></i> Event</h2>
+      <div id="storeEventBody"></div>
     </div>
   </div>
 
