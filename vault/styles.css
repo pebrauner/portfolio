@@ -584,6 +584,17 @@ html[data-theme="ember"] .topbar { background: linear-gradient(180deg, rgba(31,1
 .card-table { display: flex; flex-direction: column; gap: 7px; }
 .group-head { font-family: var(--label); font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--brass); margin: 18px 2px 4px; display: flex; align-items: center; gap: 9px; }
 .group-head::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--edge), transparent); }
+.gh-val { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0; text-transform: none; color: var(--gold-soft); }
+
+/* deck grid view — full card tiles grouped by type (reuses the collection gallery tiles) */
+.deck-typeview { margin-top: 2px; }
+.deck-typeview .group-head { margin-top: 24px; }
+.deck-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--tile, 168px), 1fr)); gap: 20px 18px; margin-top: 8px; }
+.art-tile.deckcard .art-open { display: block; width: 100%; background: none; border: none; padding: 0; margin: 0; text-align: left; font: inherit; color: inherit; cursor: pointer; }
+.art-tile.deckcard.not-owned .art-img { filter: grayscale(.85) brightness(.55); transition: filter .18s ease; }
+.art-tile.deckcard.not-owned:hover .art-img { filter: none; }
+.art-tile.deckcard.not-owned .art-name { color: var(--parch-dim); }
+.art-tile.deckcard.not-owned .art-qty { opacity: .72; }
 
 .card-row {
   display: grid; grid-template-columns: 30px 1fr auto auto auto; align-items: center; gap: 14px;

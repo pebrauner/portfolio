@@ -110,7 +110,7 @@ function migrate(s) {
   s.prefs.invTile = clampTile(s.prefs.invTile);
   s.prefs.buyTile = clampTile(s.prefs.buyTile);
   s.prefs.sellTile = clampTile(s.prefs.sellTile);
-  s.prefs.deckView = (s.prefs.deckView === 'stacks') ? 'stacks' : 'list';
+  s.prefs.deckView = ['stacks', 'grid', 'list'].includes(s.prefs.deckView) ? s.prefs.deckView : 'list';
   s.prefs.deckTile = clampTile(s.prefs.deckTile != null ? s.prefs.deckTile : 200);
   s.prefs.browseTile = clampTile(s.prefs.browseTile);
   s.prefs.showLegality = !!s.prefs.showLegality;
@@ -1167,8 +1167,9 @@ function renderDeckDetail() {
       <div class="pips">${pips(deckColors(deck))}</div>
     </div>
     <div class="spacer"></div>
-    <div class="seg" id="deckViewMode" title="Switch between a text list and stacked card art">
+    <div class="seg" id="deckViewMode" title="Switch between stacked art, a full card grid, or a text list">
       <button class="seg-btn ${deckView === 'stacks' ? 'is-active' : ''}" data-mode="stacks"><i class="ms ms-token" aria-hidden="true"></i> Stacks</button>
+      <button class="seg-btn ${deckView === 'grid' ? 'is-active' : ''}" data-mode="grid"><i class="ms ms-library" aria-hidden="true"></i> Grid</button>
       <button class="seg-btn ${deckView === 'list' ? 'is-active' : ''}" data-mode="list"><i class="ms ms-multiple" aria-hidden="true"></i> List</button>
     </div>
     <div class="seg" id="deckCardFilter" title="Show all cards, only the ones you own, or only the ones you're still missing">
@@ -1176,7 +1177,7 @@ function renderDeckDetail() {
       <button class="seg-btn ${deckCardFilter === 'owned' ? 'is-active' : ''}" data-cardfilter="owned">Owned ${ownedCount}</button>
       <button class="seg-btn ${deckCardFilter === 'missing' ? 'is-active' : ''}" data-cardfilter="missing">Missing ${missingCount}</button>
     </div>
-    ${deckView === 'stacks' ? `<label class="size-ctl" id="deckSizeWrap" title="Card size">
+    ${(deckView === 'stacks' || deckView === 'grid') ? `<label class="size-ctl" id="deckSizeWrap" title="Card size">
       <i class="ms ms-token size-ic size-ic--sm" aria-hidden="true"></i>
       <input type="range" id="deckSizeRange" class="size-range" min="110" max="280" step="2" value="${deckTile}" aria-label="Card size" />
       <i class="ms ms-token size-ic size-ic--lg" aria-hidden="true"></i>
@@ -1201,6 +1202,8 @@ function renderDeckDetail() {
     body += `<div class="empty-state" style="padding:64px 20px"><span class="empty-mark"><i class="ms ms-counter-shield" aria-hidden="true"></i></span><h2>${deckCardFilter === 'missing' ? 'Deck complete' : 'Nothing owned yet'}</h2><p>${deckCardFilter === 'missing' ? 'You own every card in this deck.' : 'You don’t own any of this deck’s cards yet.'}</p></div>`;
   } else if (deckView === 'stacks') {
     body += renderDeckCards(groups, showCmd ? cmd : null);
+  } else if (deckView === 'grid') {
+    body += renderDeckGrid(groups, showCmd ? cmd : null);
   } else {
     if (showCmd) {
       const cq = (deck.cards.find(c => key(c.name) === key(cmd)) || {}).qty || 1;
@@ -1218,7 +1221,7 @@ function renderDeckDetail() {
 
   if (deckPendingDelete === deck.id) body = deckDeleteBar(deck) + body;
 
-  $('#app').classList.toggle('wide', deckView === 'stacks');
+  $('#app').classList.toggle('wide', deckView === 'stacks' || deckView === 'grid');
   $('#deckDetail').innerHTML = body;
 }
 
@@ -1290,6 +1293,34 @@ function deckCardColumn(cat, rows) {
     </div>`;
   });
   return html + `</div></section>`;
+}
+
+/* ---------- deck grid view (full card tiles grouped by type, like the collection gallery) ---------- */
+function renderDeckGrid(groups, cmd) {
+  let html = `<div class="deck-typeview" style="--tile:${deckTile}px">`;
+  const section = (cat, rows, isCmd) => {
+    const sorted = rows.slice().sort((a, b) => a.name.localeCompare(b.name));
+    const qty = sorted.reduce((a, c) => a + c.qty, 0);
+    const val = sorted.reduce((a, c) => a + c.qty * priceOf(c.name), 0);
+    const icon = isCmd ? '<i class="ms ms-commander gh-ico" aria-hidden="true"></i>' : catIcon(cat);
+    return `<div class="group-head${isCmd ? ' cmd-head' : ''}">${icon}${esc(cat)} · ${qty}<span class="gh-val">${money(val)}</span></div>`
+      + `<div class="deck-gallery">${sorted.map(c => deckGridTile(c.name, c.qty)).join('')}</div>`;
+  };
+  if (cmd) {
+    const deck = state.decks.find(d => d.id === currentDeckId);
+    const cq = ((deck && deck.cards.find(c => key(c.name) === key(cmd))) || {}).qty || 1;
+    html += section('Commander', [{ name: cmd, qty: cq }], true);
+  }
+  CAT_ORDER.forEach(cat => { const rows = groups[cat]; if (rows && rows.length) html += section(cat, rows, false); });
+  return html + '</div>';
+}
+function deckGridTile(name, qty) {
+  const owned = ownedOf(name) > 0;   // not-owned cards grey out (restore on hover), mirroring the stacks view
+  return `<div class="art-tile deckcard${owned ? '' : ' not-owned'}" title="${esc(name)}${owned ? '' : ' — not owned'}">
+    <button class="art-open" data-name="${esc(name)}">
+      ${artTile(name, qty + '×', `<span class="art-val">${money(priceOf(name))}</span>`)}
+    </button>
+  </div>`;
 }
 
 /* ---------- deck format legality ---------- */
@@ -3619,6 +3650,7 @@ $('#deckDetail').addEventListener('input', e => {
   if (r) {
     deckTile = clampTile(r.value);
     const stacks = $('.deck-stacks'); if (stacks) stacks.style.setProperty('--stack-w', deckTile + 'px');
+    const grid = $('.deck-typeview'); if (grid) grid.style.setProperty('--tile', deckTile + 'px');
     state.prefs.deckTile = deckTile; save();
     return;
   }
