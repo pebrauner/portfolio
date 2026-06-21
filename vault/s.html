@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="grimoire">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>A store · The Vault</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@500;700&family=Spline+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/mana-font@1.15.7/css/mana.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --ink: #0b0a07; --ink-2: #120e08; --panel: #181107; --panel-2: #1f1709;
+      --edge: #342a17; --edge-soft: #28200f; --parch: #ece0c4; --parch-dim: #b0a384;
+      --muted: #8a8070; --faint: #5f5648; --gold: #c9a227; --gold-soft: #e3c869; --brass: #9a7b3f;
+      --ok: #6fae6f; --display: 'Grenze Gotisch', serif; --body: 'Spline Sans', system-ui, sans-serif;
+      --mono: 'Spline Sans', system-ui, sans-serif; --label: 'Spline Sans', system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body { color: var(--parch); font-family: var(--body); background: var(--ink); -webkit-font-smoothing: antialiased; }
+    .bg { position: fixed; inset: 0; z-index: -2; background-size: cover; background-position: center; filter: blur(3px) brightness(.6) saturate(.95); transform: scale(1.06); }
+    .bg-veil { position: fixed; inset: 0; z-index: -1; background:
+      radial-gradient(1100px 760px at 50% 6%, rgba(18,14,7,.10), rgba(8,7,4,.64) 78%),
+      linear-gradient(180deg, rgba(8,7,4,.36), rgba(8,7,4,.74)); }
+    .wrap { max-width: 880px; margin: 0 auto; padding: 30px 20px 70px; }
+    .brand { display: flex; align-items: center; gap: 9px; justify-content: center; margin-bottom: 22px; }
+    .brand .seal { font-size: 22px; color: var(--gold); }
+    .brand .word { font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: .5px;
+      background: linear-gradient(100deg, var(--gold), var(--gold-soft) 40%, #f6e6a8 50%, var(--gold-soft) 60%, var(--gold));
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .card { background: linear-gradient(180deg, rgba(31,23,9,.92), rgba(24,17,7,.94)); border: 1px solid var(--edge);
+      border-radius: 16px; padding: 24px 26px 30px; box-shadow: 0 30px 70px -30px #000; backdrop-filter: blur(3px); }
+    .state { text-align: center; color: var(--muted); padding: 40px 10px; font-size: 15px; }
+    .state .big { font-size: 40px; color: var(--brass); display: block; margin-bottom: 12px; }
+    /* header */
+    .s-head { display: flex; gap: 16px; align-items: flex-start; }
+    .s-logo { flex: 0 0 auto; width: 66px; height: 66px; border-radius: 14px; display: grid; place-items: center; overflow: hidden;
+      background: linear-gradient(160deg, var(--panel-2), var(--panel)); border: 1px solid var(--brass); font-family: var(--display); font-size: 30px; color: var(--gold); }
+    .s-logo img { width: 100%; height: 100%; object-fit: cover; }
+    .s-h-main { flex: 1; min-width: 0; }
+    .s-title { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+    h1 { font-family: var(--display); font-weight: 700; font-size: 30px; margin: 0; color: var(--parch); line-height: 1.05; }
+    .verified { display: inline-flex; align-items: center; gap: 4px; font-family: var(--label); font-size: 10.5px; letter-spacing: .04em;
+      color: var(--ink); background: linear-gradient(180deg, var(--gold-soft), var(--gold)); padding: 3px 9px; border-radius: 999px; }
+    .s-where { font-size: 13.5px; color: var(--brass); margin-top: 4px; }
+    .s-bio { font-size: 14px; color: var(--parch-dim); line-height: 1.5; margin-top: 9px; }
+    .openbadge { display: inline-flex; align-items: center; gap: 6px; font-family: var(--label); font-size: 12px; margin-top: 10px;
+      padding: 5px 12px; border-radius: 999px; border: 1px solid var(--edge); background: var(--ink-2); color: var(--muted); }
+    .openbadge.open { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 45%, var(--edge)); }
+    .openbadge .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+    .openbadge .todays { color: var(--parch-dim); }
+    /* action buttons (on top) */
+    .actions { display: flex; gap: 9px; flex-wrap: wrap; margin: 18px 0 4px; }
+    .btn { font-family: var(--label); font-size: 12px; letter-spacing: .03em; cursor: pointer; border: 1px solid var(--edge);
+      background: var(--panel-2); color: var(--parch-dim); border-radius: 9px; padding: 9px 14px; transition: .15s;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+    .btn:hover { border-color: var(--gold); color: var(--gold-soft); }
+    .btn.gold { color: var(--ink); background: linear-gradient(180deg, var(--gold-soft), var(--gold)); border-color: var(--gold-soft); }
+    .btn.gold:hover { color: var(--ink); filter: brightness(1.05); }
+    .btn .ms { font-size: 13px; }
+    /* sections */
+    .sec { margin-top: 26px; }
+    .sec-h { font-family: var(--display); font-size: 20px; font-weight: 600; color: var(--parch); margin: 0 0 13px; display: flex; align-items: center; gap: 9px; }
+    .sec-h .ms { color: var(--gold-soft); font-size: 17px; }
+    .sec-h .n { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+    /* hours */
+    .hours { display: grid; grid-template-columns: auto 1fr; gap: 3px 16px; font-size: 13.5px; max-width: 320px; }
+    .hours .d { color: var(--muted); }
+    .hours .h { color: var(--parch-dim); font-family: var(--mono); }
+    .hours .today { color: var(--gold-soft); }
+    /* events */
+    .events { display: flex; flex-direction: column; gap: 10px; }
+    .ev { border: 1px solid var(--edge-soft); border-radius: 12px; padding: 13px 15px; background: linear-gradient(160deg, var(--panel-2), var(--panel)); }
+    .ev-top { display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; }
+    .ev-title { font-family: var(--display); font-size: 18px; color: var(--parch); }
+    .ev-fmt { font-family: var(--label); font-size: 10px; letter-spacing: .05em; text-transform: uppercase; color: var(--gold-soft);
+      border: 1px solid var(--edge); border-radius: 6px; padding: 2px 7px; }
+    .ev-rec { font-family: var(--label); font-size: 10px; color: var(--brass); }
+    .ev-when { font-size: 13px; color: var(--parch-dim); margin-top: 6px; font-family: var(--mono); }
+    .ev-meta { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 7px; font-size: 12.5px; }
+    .ev-meta b { color: var(--gold-soft); font-family: var(--mono); }
+    .ev-desc { font-size: 13px; color: var(--muted); margin-top: 7px; line-height: 1.45; }
+    /* for-sale gallery */
+    .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 13px; }
+    .tile { cursor: pointer; border: none; background: none; padding: 0; text-align: left; }
+    .tile-art { position: relative; aspect-ratio: 488/680; border-radius: 9px; overflow: hidden; border: 1px solid var(--edge);
+      background: #0c0a07 center/cover no-repeat; box-shadow: 0 10px 24px -14px #000; transition: transform .15s; }
+    .tile:hover .tile-art { transform: translateY(-3px); }
+    .tile-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .tile-fallback { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--faint); font-size: 20px; padding: 8px; text-align: center; font-family: var(--display); }
+    .tile-qty { position: absolute; top: 7px; left: 7px; font-family: var(--mono); font-size: 12px; color: var(--ink);
+      background: linear-gradient(180deg, var(--gold-soft), var(--gold)); border-radius: 6px; padding: 2px 7px; }
+    .tile-foil { position: absolute; top: 7px; right: 7px; color: var(--gold-soft); font-size: 13px; text-shadow: 0 1px 3px #000; }
+    .tile-cap { display: flex; justify-content: space-between; gap: 6px; margin-top: 6px; font-size: 12px; }
+    .tile-cap .tn { color: var(--parch-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tile-cap .tp { font-family: var(--mono); color: var(--gold-soft); white-space: nowrap; }
+    /* library (searchable list) */
+    .lib-search { width: 100%; background: var(--ink); border: 1px solid var(--edge); border-radius: 9px; color: var(--parch);
+      padding: 10px 13px; font-family: var(--body); font-size: 14px; margin-bottom: 12px; }
+    .lib-search:focus { outline: none; border-color: var(--brass); }
+    table { width: 100%; border-collapse: collapse; }
+    th { font-family: var(--label); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+      text-align: left; padding: 0 8px 8px; border-bottom: 1px solid var(--edge); }
+    th.r, td.r { text-align: right; }
+    td { padding: 8px; border-bottom: 1px solid var(--edge-soft); font-size: 14.5px; }
+    .qty { font-family: var(--mono); color: var(--gold-soft); white-space: nowrap; }
+    .price { font-family: var(--mono); color: var(--parch-dim); white-space: nowrap; }
+    .more { display: block; width: 100%; margin-top: 12px; text-align: center; background: var(--panel-2); border: 1px solid var(--edge);
+      color: var(--gold-soft); border-radius: 9px; padding: 10px; cursor: pointer; font-family: var(--label); font-size: 12px; }
+    .more:hover { border-color: var(--gold); }
+    .empty { color: var(--muted); font-size: 13px; padding: 8px 2px; }
+    .foot { text-align: center; margin-top: 26px; font-size: 12px; color: var(--faint); }
+    .foot a { color: var(--brass); text-decoration: none; }
+    .foot a:hover { color: var(--gold-soft); }
+    /* lightbox */
+    .lb { position: fixed; inset: 0; z-index: 50; display: none; align-items: center; justify-content: center; padding: 24px;
+      background: rgba(6,5,3,.82); backdrop-filter: blur(4px); }
+    .lb.on { display: flex; }
+    .lb-card { display: flex; flex-direction: column; align-items: center; gap: 14px; max-width: 92vw; }
+    .lb-img { width: 340px; max-width: 78vw; border-radius: 16px; box-shadow: 0 30px 70px -20px #000; }
+    .lb-name { font-family: var(--display); font-size: 22px; color: var(--parch); text-align: center; }
+    .lb-info { font-family: var(--label); font-size: 12px; color: var(--muted); margin-top: 5px; text-align: center; }
+    .lb-link { display: inline-block; margin-top: 12px; font-family: var(--label); font-size: 12px; color: var(--ink);
+      background: linear-gradient(180deg, var(--gold-soft), var(--gold)); border-radius: 8px; padding: 9px 16px; text-decoration: none; }
+    .lb-close { position: fixed; top: 18px; right: 22px; font-size: 26px; color: var(--parch-dim); background: none; border: none; cursor: pointer; }
+    .lb-close:hover { color: var(--gold-soft); }
+    @media (max-width: 480px) { .gallery { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); } h1 { font-size: 24px; } }
+  </style>
+</head>
+<body>
+  <div class="bg" id="bg" aria-hidden="true"></div>
+  <div class="bg-veil" aria-hidden="true"></div>
+  <div class="wrap">
+    <div class="brand"><span class="seal"><i class="ms ms-counter-lore" aria-hidden="true"></i></span><span class="word">The Vault</span></div>
+    <div class="card" id="card">
+      <div class="state"><span class="big"><i class="ms ms-ability-investigate"></i></span>Loading store…</div>
+    </div>
+    <div class="foot">A store on <a href="./" target="_blank" rel="noopener">The Vault</a> — a Magic: The Gathering collection &amp; deck tracker.</div>
+  </div>
+
+  <div class="lb" id="lb" aria-hidden="true">
+    <button class="lb-close" id="lbClose" aria-label="Close">✕</button>
+    <div class="lb-card" id="lbCard"></div>
+  </div>
+
+  <script>
+    const SUPA_URL = 'https://yaxczuttvpvqfomhyfbg.supabase.co';
+    const SUPA_KEY = 'sb_publishable_le56dg5VAp5Bmfg3BZ4XCQ_c2sSPuOu';
+    const card = document.getElementById('card');
+    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const money = (n) => '$' + (Number(n) || 0).toFixed(2);
+    const safeUrl = (u) => { u = String(u || ''); return /^https?:\/\//i.test(u) ? u : ''; };
+    const artUrl = (name) => 'https://api.scryfall.com/cards/named?exact=' + encodeURIComponent(name) + '&format=image&version=small';
+
+    const BG = ['grimoire','abstract','arcane','tome','tome2','ember','space1','space2','space3','space4','space5',
+      'manamist1','manamist2','manamist3','manamist4','manamist5','mountain1','mountain2','mountain3','mountain4','archway1','archway2','archway3'];
+    document.getElementById('bg').style.backgroundImage = `url("bg/${BG[Math.floor(Math.random() * BG.length)]}.jpg")`;
+
+    const DAYS = [['sun','Sun'],['mon','Mon'],['tue','Tue'],['wed','Wed'],['thu','Thu'],['fri','Fri'],['sat','Sat']];
+    const SOCIALS = { instagram: ['Instagram','ms-counter-lore'], facebook: ['Facebook','ms-counter-lore'], x: ['X','ms-counter-lore'], twitter: ['X','ms-counter-lore'], discord: ['Discord','ms-counter-lore'], tiktok: ['TikTok','ms-counter-lore'], youtube: ['YouTube','ms-counter-lore'] };
+
+    let STORE = null, lbItems = [];
+    const initials = (s) => String(s || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || '?';
+
+    function showState(icon, msg) { card.innerHTML = `<div class="state"><span class="big"><i class="ms ${icon}"></i></span>${esc(msg)}</div>`; }
+
+    // hours: { mon:{open:'10:00',close:'20:00'}, ... } in store-local clock; we just show + a naive open-now from the viewer's clock
+    function todayKey() { return DAYS[new Date().getDay()][0]; }
+    function fmtTime(t) { return String(t || '').trim(); }
+    function openState(hours) {
+      if (!hours || typeof hours !== 'object') return null;
+      const k = todayKey(), h = hours[k];
+      if (!h || !h.open || !h.close) return { open: false, label: 'Closed today' };
+      const now = new Date(), cur = now.getHours() * 60 + now.getMinutes();
+      const toMin = (s) => { const m = /^(\d{1,2}):(\d{2})/.exec(String(s)); return m ? (+m[1]) * 60 + (+m[2]) : null; };
+      const o = toMin(h.open), c = toMin(h.close);
+      if (o == null || c == null) return { open: false, label: `${fmtTime(h.open)}–${fmtTime(h.close)}` };
+      const isOpen = c > o ? (cur >= o && cur < c) : (cur >= o || cur < c);   // handle past-midnight close
+      return { open: isOpen, label: `${fmtTime(h.open)}–${fmtTime(h.close)}` };
+    }
+    function hoursHtml(hours) {
+      if (!hours || typeof hours !== 'object' || !DAYS.some(([k]) => hours[k])) return '';
+      const tk = todayKey();
+      const rows = DAYS.map(([k, lbl]) => {
+        const h = hours[k];
+        const val = (h && h.open && h.close) ? `${esc(fmtTime(h.open))} – ${esc(fmtTime(h.close))}` : 'Closed';
+        return `<div class="d${k === tk ? ' today' : ''}">${lbl}</div><div class="h${k === tk ? ' today' : ''}">${val}</div>`;
+      }).join('');
+      return `<div class="sec"><div class="sec-h"><i class="ms ms-counter-lore"></i> Hours</div><div class="hours">${rows}</div></div>`;
+    }
+
+    function mapHref() {
+      if (STORE.lat != null && STORE.lng != null) return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(STORE.lat + ',' + STORE.lng);
+      const q = [STORE.address, STORE.city, STORE.country].filter(Boolean).join(', ');
+      return q ? 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q) : '';
+    }
+    function actionsHtml() {
+      const out = [];
+      const map = mapHref(); if (map) out.push(`<a class="btn gold" href="${esc(map)}" target="_blank" rel="noopener"><i class="ms ms-counter-lore"></i> Directions</a>`);
+      const site = safeUrl(STORE.website); if (site) out.push(`<a class="btn" href="${esc(site)}" target="_blank" rel="noopener"><i class="ms ms-counter-lore"></i> Website</a>`);
+      if (STORE.whatsapp) out.push(`<a class="btn" href="https://wa.me/${encodeURIComponent(String(STORE.whatsapp).replace(/[^\d]/g, ''))}" target="_blank" rel="noopener"><i class="ms ms-counter-lore"></i> WhatsApp</a>`);
+      else if (STORE.phone) out.push(`<a class="btn" href="tel:${encodeURIComponent(STORE.phone)}"><i class="ms ms-counter-lore"></i> ${esc(STORE.phone)}</a>`);
+      const soc = STORE.socials || {};
+      Object.keys(soc).forEach(k => { const u = safeUrl(soc[k]); const meta = SOCIALS[k.toLowerCase()]; if (u && meta) out.push(`<a class="btn" href="${esc(u)}" target="_blank" rel="noopener"><i class="ms ${meta[1]}"></i> ${esc(meta[0])}</a>`); });
+      return out.length ? `<div class="actions">${out.join('')}</div>` : '';
+    }
+
+    function whenStr(ev) {
+      if (!ev.starts_at) return '';
+      const d = new Date(ev.starts_at);
+      const date = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+      const t = d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+      let s = `${date} · ${t}`;
+      if (ev.ends_at) { const e = new Date(ev.ends_at); s += `–${e.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`; }
+      return s;
+    }
+    function eventsHtml(events) {
+      if (!Array.isArray(events) || !events.length) return '';
+      const now = Date.now();
+      const up = events.filter(e => !e.starts_at || new Date(e.starts_at).getTime() > now - 6 * 3600e3);   // upcoming (+ in-progress)
+      if (!up.length) return '';
+      const cards = up.map(ev => {
+        const meta = [];
+        if (ev.prize_pool) meta.push(`<span>Prize <b>${esc(ev.prize_pool)}</b></span>`);
+        if (ev.entry_fee) meta.push(`<span>Entry <b>${esc(ev.entry_fee)}</b></span>`);
+        if (ev.capacity) meta.push(`<span>Seats <b>${Number(ev.capacity)}</b></span>`);
+        return `<div class="ev">
+          <div class="ev-top"><span class="ev-title">${esc(ev.title)}</span>${ev.format ? `<span class="ev-fmt">${esc(ev.format)}</span>` : ''}${ev.recurring ? `<span class="ev-rec">↻ ${esc(ev.recurring)}</span>` : ''}</div>
+          ${ev.starts_at ? `<div class="ev-when">${esc(whenStr(ev))}</div>` : ''}
+          ${meta.length ? `<div class="ev-meta">${meta.join('')}</div>` : ''}
+          ${ev.description ? `<div class="ev-desc">${esc(ev.description)}</div>` : ''}
+        </div>`;
+      }).join('');
+      return `<div class="sec"><div class="sec-h"><i class="ms ms-counter-lore"></i> Upcoming events <span class="n">${up.length}</span></div><div class="events">${cards}</div></div>`;
+    }
+
+    function forsaleHtml(forsale) {
+      const items = (forsale && Array.isArray(forsale.cards)) ? forsale.cards : [];
+      if (!items.length) return '';
+      lbItems = items;
+      const tiles = items.slice(0, 60).map((it, i) => {
+        const img = safeUrl(it.img) || artUrl(it.name);
+        const foil = it.foil ? `<span class="tile-foil" title="Foil">✦</span>` : '';
+        return `<button class="tile" data-i="${i}">
+          <div class="tile-art"><span class="tile-qty">${Number(it.qty) || 1}×</span>${foil}<img src="${esc(img)}" alt="${esc(it.name)}" loading="lazy" onerror="this.style.display='none'" /></div>
+          <div class="tile-cap"><span class="tn">${esc(it.name)}</span>${it.price ? `<span class="tp">${money(it.price)}</span>` : ''}</div></button>`;
+      }).join('');
+      return `<div class="sec"><div class="sec-h"><i class="ms ms-counter-gold"></i> For sale <span class="n">${items.length} singles</span></div><div class="gallery" id="forsaleGrid">${tiles}</div></div>`;
+    }
+
+    // searchable, paginated library list (text — performant for big collections)
+    let libShown = 60, libQuery = '';
+    function libFiltered() {
+      const all = (STORE.collection && Array.isArray(STORE.collection.cards)) ? STORE.collection.cards : [];
+      const q = libQuery.trim().toLowerCase();
+      return q ? all.filter(c => String(c.name).toLowerCase().includes(q)) : all;
+    }
+    function renderLibrary() {
+      const wrap = document.getElementById('libBody'); if (!wrap) return;
+      const rows = libFiltered();
+      const shown = rows.slice(0, libShown);
+      wrap.innerHTML = shown.length
+        ? `<table><thead><tr><th>Qty</th><th>Card</th><th class="r">Price</th></tr></thead><tbody>${shown.map(c =>
+            `<tr><td class="qty">${Number(c.qty) || 1}×</td><td>${esc(c.name)}</td><td class="r price">${c.price ? money(c.price) : ''}</td></tr>`).join('')}</tbody></table>`
+            + (rows.length > libShown ? `<button class="more" id="libMore">Show more (${rows.length - libShown} more)</button>` : '')
+        : `<div class="empty">No cards match “${esc(libQuery)}”.</div>`;
+      const more = document.getElementById('libMore'); if (more) more.addEventListener('click', () => { libShown += 100; renderLibrary(); });
+    }
+    function libraryHtml(collection) {
+      const all = (collection && Array.isArray(collection.cards)) ? collection.cards : [];
+      if (!all.length) return '';
+      const count = collection.count || all.reduce((a, c) => a + (Number(c.qty) || 0), 0);
+      return `<div class="sec"><div class="sec-h"><i class="ms ms-multiple"></i> Library <span class="n">${count} cards</span></div>
+        <input type="search" class="lib-search" id="libSearch" placeholder="Search this store's library…" autocomplete="off" />
+        <div id="libBody"></div></div>`;
+    }
+
+    function openLightbox(i) {
+      const it = lbItems[i]; if (!it) return;
+      const img = safeUrl(it.img) || artUrl(it.name), uri = safeUrl(it.uri);
+      const bits = [it.set ? esc(it.set) : '', it.foil ? 'Foil' : '', it.price ? money(it.price) : ''].filter(Boolean).join(' · ');
+      document.getElementById('lbCard').innerHTML =
+        `<img class="lb-img" src="${esc(img)}" alt="${esc(it.name)}" onerror="this.style.display='none'" />` +
+        `<div><div class="lb-name">${esc(it.name)}</div><div class="lb-info">${Number(it.qty) || 1}× · ${bits}</div></div>` +
+        (uri ? `<a class="lb-link" href="${esc(uri)}" target="_blank" rel="noopener">View on Scryfall ↗</a>` : '');
+      const lb = document.getElementById('lb'); lb.classList.add('on'); lb.setAttribute('aria-hidden', 'false');
+    }
+    function closeLightbox() { const lb = document.getElementById('lb'); lb.classList.remove('on'); lb.setAttribute('aria-hidden', 'true'); }
+
+    function render() {
+      const s = STORE;
+      const where = [s.city, s.country].filter(Boolean).join(', ');
+      const os = openState(s.hours);
+      const logo = safeUrl(s.logo) ? `<img src="${esc(s.logo)}" alt="" />` : esc(initials(s.name));
+      card.innerHTML = `
+        <div class="s-head">
+          <div class="s-logo">${logo}</div>
+          <div class="s-h-main">
+            <div class="s-title"><h1>${esc(s.name || 'Store')}</h1>${s.verified ? '<span class="verified"><i class="ms ms-counter-shield"></i> Verified</span>' : ''}</div>
+            <div class="s-where"><i class="ms ms-counter-lore" aria-hidden="true"></i> Local game store${where ? ' · ' + esc(where) : ''}${s.address ? ' · ' + esc(s.address) : ''}</div>
+            ${s.bio ? `<div class="s-bio">${esc(s.bio)}</div>` : ''}
+            ${os ? `<div class="openbadge ${os.open ? 'open' : ''}"><span class="dot"></span>${os.open ? 'Open now' : 'Closed'}${os.label ? ` <span class="todays">· today ${esc(os.label)}</span>` : ''}</div>` : ''}
+          </div>
+        </div>
+        ${actionsHtml()}
+        ${eventsHtml(s.events)}
+        ${forsaleHtml(s.forsale)}
+        ${libraryHtml(s.collection)}
+        ${hoursHtml(s.hours)}
+        <div class="actions" style="margin-top:24px"><a class="btn" href="./" target="_blank" rel="noopener"><i class="ms ms-token"></i> Track your own collection</a></div>`;
+      wire();
+      renderLibrary();
+    }
+    function wire() {
+      const fg = document.getElementById('forsaleGrid');
+      if (fg) fg.addEventListener('click', e => { const t = e.target.closest('[data-i]'); if (t) openLightbox(+t.dataset.i); });
+      const ls = document.getElementById('libSearch');
+      if (ls) ls.addEventListener('input', e => { libQuery = e.target.value; libShown = 60; renderLibrary(); });
+    }
+    document.getElementById('lbClose').addEventListener('click', closeLightbox);
+    document.getElementById('lb').addEventListener('click', e => { if (e.target.id === 'lb') closeLightbox(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+    (async () => {
+      const slug = new URLSearchParams(location.search).get('s');
+      if (!slug) { showState('ms-counter-shield', 'No store in this link.'); return; }
+      if (!window.supabase) { showState('ms-counter-shield', 'Could not load — please check your connection.'); return; }
+      const sb = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+      try {
+        const { data, error } = await sb.rpc('get_store_profile', { p_slug: slug });
+        if (error) { showState('ms-counter-shield', 'Could not load this store. It may have been removed.'); return; }
+        if (!data) { showState('ms-graveyard', 'This store page no longer exists or was made private.'); return; }
+        STORE = data;
+        document.title = (STORE.name || 'A store') + ' · The Vault';
+        render();
+      } catch (e) { showState('ms-counter-shield', 'Something went wrong loading this store.'); }
+    })();
+  </script>
+</body>
+</html>
