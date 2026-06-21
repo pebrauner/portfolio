@@ -72,7 +72,7 @@
       background: linear-gradient(180deg, var(--gold-soft), var(--gold)); border-radius: 6px; padding: 2px 7px; }
     .tile-cap { display: flex; justify-content: space-between; gap: 6px; margin-top: 6px; font-size: 12px; }
     .tile-cap .tn { color: var(--parch-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 26px; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 2px 0 22px; }
     .btn { font-family: var(--label); font-size: 12px; letter-spacing: .04em; cursor: pointer; border: 1px solid var(--edge);
       background: var(--panel-2); color: var(--parch-dim); border-radius: 9px; padding: 10px 15px; transition: .15s;
       text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
@@ -191,12 +191,12 @@
           <span class="sub">${count} card${count === 1 ? '' : 's'}${total ? ` · ~${money(total)}` : ''}${dateStr ? ` · ${esc(dateStr)}` : ''}</span>
           ${likeBtnHtml()}
         </div>
-        <div id="body">${deckBody()}</div>
         <div class="actions">
           <button class="btn gold" id="importDeckBtn"><i class="ms ms-saga"></i> Import this deck</button>
           ${uname ? `<a class="btn" href="u.html?u=${encodeURIComponent(uname)}"><i class="ms ms-counter-lore"></i> @${esc(uname)}'s profile</a>` : ''}
           <a class="btn" href="./" target="_blank" rel="noopener"><i class="ms ms-token"></i> Track your own collection</a>
-        </div>`;
+        </div>
+        <div id="body">${deckBody()}</div>`;
       wire();
     }
     function headHtml(d, by) {

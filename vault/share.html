@@ -88,7 +88,7 @@
     .tile-cap .tn { color: var(--parch-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .tile-cap .tp { font-family: var(--mono); color: var(--gold-soft); white-space: nowrap; }
     /* actions */
-    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 24px; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 2px 0 22px; }
     .btn { font-family: var(--label); font-size: 12px; letter-spacing: .04em; cursor: pointer; border: 1px solid var(--edge);
       background: var(--panel-2); color: var(--parch-dim); border-radius: 9px; padding: 10px 15px; transition: .15s;
       text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
@@ -216,12 +216,12 @@
           <span class="sub">${copies} card${copies === 1 ? '' : 's'} · ${money(total)} at ${esc(src)} price${ROW.live ? ' · <span class="live-dot">● live</span>' : ''}${dateStr ? ` · ${esc(dateStr)}` : ''}</span>
           <span class="seg"><button data-view="art" class="${view === 'art' ? 'on' : ''}"><i class="ms ms-token"></i> Art</button><button data-view="list" class="${view === 'list' ? 'on' : ''}"><i class="ms ms-multiple"></i> List</button></span>
         </div>
-        <div id="body">${view === 'art' ? artView() : listView()}</div>
         <div class="actions">
           <button class="btn gold" id="matchBtn"><i class="ms ms-ability-investigate"></i> ${matchLabel}</button>
           <button class="btn" id="copyText"><i class="ms ms-multiple"></i> Copy as text</button>
           <a class="btn" href="./" target="_blank" rel="noopener"><i class="ms ms-counter-lore"></i> Track your own collection</a>
-        </div>`;
+        </div>
+        <div id="body">${view === 'art' ? artView() : listView()}</div>`;
       wire();
     }
     function headHtml(verb, kind, d) {
