@@ -5067,6 +5067,8 @@ if (homeSearchEl) {
   homeSearchEl.addEventListener('input', e => { homeQuery = e.target.value; renderHomeResults(); });
   homeSearchEl.addEventListener('keydown', e => { if (e.key === 'Enter') { homeQuery = e.target.value; homeGoBrowse(); } });
 }
+const siteFooterEl = $('#siteFooter');
+if (siteFooterEl) siteFooterEl.addEventListener('click', e => { const b = e.target.closest('[data-foot-view]'); if (b) { setView(b.dataset.footView); window.scrollTo(0, 0); } });
 const homeViewEl = $('#view-home');
 if (homeViewEl) homeViewEl.addEventListener('click', e => {
   let m;
