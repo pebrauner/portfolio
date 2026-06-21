@@ -69,6 +69,12 @@
     tfoot .total { color: var(--gold-soft); font-size: 16px; }
     /* art view */
     .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 14px; }
+    .gallery + .cat-head { margin-top: 26px; }
+    .cat-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 8px 2px 12px; padding-bottom: 7px; border-bottom: 1px solid var(--edge); }
+    .cat-head:not(:first-child) { margin-top: 26px; }
+    .cat-name { font-family: var(--display); font-size: 18px; color: var(--gold-soft); letter-spacing: .01em; }
+    .cat-meta { font-family: var(--mono); font-size: 11px; color: var(--muted); white-space: nowrap; }
+    table + .cat-head { margin-top: 26px; }
     .tile { cursor: pointer; border: none; background: none; padding: 0; text-align: left; }
     .tile-art { position: relative; aspect-ratio: 488/680; border-radius: 9px; overflow: hidden; border: 1px solid var(--edge);
       background: #0c0a07 center/cover no-repeat; box-shadow: 0 10px 24px -14px #000; transition: transform .15s, box-shadow .15s; }
@@ -145,32 +151,49 @@
     function showState(icon, msg) { card.innerHTML = `<div class="state"><span class="big"><i class="ms ${icon}"></i></span>${esc(msg)}</div>`; }
     const items = () => (ROW && ROW.data && Array.isArray(ROW.data.items)) ? ROW.data.items : [];
 
-    function listView() {
-      const rows = items().map((it, i) => {
-        const q = Number(it.qty) || 0, p = Number(it.price) || 0;
+    // buy shares may carry CATEGORIES (binders): data.sections = [{label, items}], with data.items the flat union.
+    const sections = () => (ROW && ROW.data && Array.isArray(ROW.data.sections) && ROW.data.sections.length) ? ROW.data.sections : null;
+    function catHead(s) {
+      const c = s.items.reduce((a, it) => a + (Number(it.qty) || 0), 0);
+      const t = s.items.reduce((a, it) => a + (Number(it.qty) || 0) * (Number(it.price) || 0), 0);
+      return `<div class="cat-head"><span class="cat-name">${esc(s.label)}</span><span class="cat-meta">${c} card${c === 1 ? '' : 's'} · ${money(t)}</span></div>`;
+    }
+    function listRowsHtml(arr, base) {
+      return arr.map((it, j) => {
+        const i = base + j, q = Number(it.qty) || 0, p = Number(it.price) || 0;
         const setBadge = it.set ? `<span class="setbadge">${esc(it.set)}</span>` : '';
         const foil = it.foil ? `<span class="foil" title="Foil">✦ foil</span>` : '';
-        return `<tr data-i="${i}">
-          <td class="qty">${q}×</td>
-          <td><span class="nm">${esc(it.name)}</span>${setBadge}${foil}</td>
-          <td class="r price">${money(p)}</td>
-          <td class="r line">${money(q * p)}</td></tr>`;
+        return `<tr data-i="${i}"><td class="qty">${q}×</td><td><span class="nm">${esc(it.name)}</span>${setBadge}${foil}</td><td class="r price">${money(p)}</td><td class="r line">${money(q * p)}</td></tr>`;
       }).join('');
-      const total = items().reduce((a, it) => a + (Number(it.qty) || 0) * (Number(it.price) || 0), 0);
-      const verb = ROW.kind === 'sell' ? 'Asking total' : 'Estimated total';
-      return `<table><thead><tr><th>Qty</th><th>Card</th><th class="r">Each</th><th class="r">Total</th></tr></thead>
-        <tbody>${rows}</tbody>
-        <tfoot><tr><td></td><td>${verb}</td><td></td><td class="r total">${money(total)}</td></tr></tfoot></table>`;
     }
-    function artView() {
-      return `<div class="gallery">${items().map((it, i) => {
-        const q = Number(it.qty) || 0, p = Number(it.price) || 0, img = safeUrl(it.img);
+    function listTable(arr, base) {
+      return `<table><thead><tr><th>Qty</th><th>Card</th><th class="r">Each</th><th class="r">Total</th></tr></thead><tbody>${listRowsHtml(arr, base)}</tbody></table>`;
+    }
+    function artTiles(arr, base) {
+      return arr.map((it, j) => {
+        const i = base + j, q = Number(it.qty) || 0, p = Number(it.price) || 0, img = safeUrl(it.img);
         const art = img ? `<img src="${esc(img)}" alt="${esc(it.name)}" loading="lazy" />` : `<div class="tile-fallback">${esc(it.name)}</div>`;
         const foil = it.foil ? `<span class="tile-foil" title="Foil">✦</span>` : '';
-        return `<button class="tile" data-i="${i}">
-          <div class="tile-art"><span class="tile-qty">${q}×</span>${foil}${art}</div>
-          <div class="tile-cap"><span class="tn">${esc(it.name)}</span><span class="tp">${money(p)}</span></div></button>`;
-      }).join('')}</div>`;
+        return `<button class="tile" data-i="${i}"><div class="tile-art"><span class="tile-qty">${q}×</span>${foil}${art}</div><div class="tile-cap"><span class="tn">${esc(it.name)}</span><span class="tp">${money(p)}</span></div></button>`;
+      }).join('');
+    }
+    function listView() {
+      const secs = sections();
+      if (!secs) {
+        const total = items().reduce((a, it) => a + (Number(it.qty) || 0) * (Number(it.price) || 0), 0);
+        const verb = ROW.kind === 'sell' ? 'Asking total' : 'Estimated total';
+        return `<table><thead><tr><th>Qty</th><th>Card</th><th class="r">Each</th><th class="r">Total</th></tr></thead><tbody>${listRowsHtml(items(), 0)}</tbody><tfoot><tr><td></td><td>${verb}</td><td></td><td class="r total">${money(total)}</td></tr></tfoot></table>`;
+      }
+      let gi = 0, html = '';
+      for (const s of secs) { html += catHead(s) + listTable(s.items, gi); gi += s.items.length; }
+      return html;
+    }
+    function artView() {
+      const secs = sections();
+      if (!secs) return `<div class="gallery">${artTiles(items(), 0)}</div>`;
+      let gi = 0, html = '';
+      for (const s of secs) { html += catHead(s) + `<div class="gallery">${artTiles(s.items, gi)}</div>`; gi += s.items.length; }
+      return html;
     }
 
     function render() {

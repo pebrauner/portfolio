@@ -4675,7 +4675,30 @@ function shareTitleFor(kind, folderId) {
   return (l && l.name) || 'Sell List';
 }
 function shareItemsFor(kind, folderId) { return kind === 'buy' ? shareItemsBuy() : shareItemsSell(folderId); }
-function shareDataFor(kind, folderId) { return { owner: ownerDisplayName(), priceSrc: state.prefs.priceSource || 'tcg', items: shareItemsFor(kind, folderId) }; }
+// a binder's cards in the shareable item shape
+function binderShareItems(b) {
+  return Object.keys(b.items).map(k => {
+    const n = b.items[k].n, q = b.items[k].q;
+    return { name: n, qty: q, price: +(priceOf(n) || 0).toFixed(2), img: displayImage(n) || '', uri: (card(n).uri) || '' };
+  }).sort((a, c) => a.name.localeCompare(c.name));
+}
+function shareDataFor(kind, folderId) {
+  const base = { owner: ownerDisplayName(), priceSrc: state.prefs.priceSource || 'tcg' };
+  if (kind === 'buy') {
+    // A buy share now includes your binders as CATEGORIES (one single link, sections on top).
+    // `sections` only appears when at least one binder has cards — otherwise it's the flat auto list (backward compatible).
+    const binderSecs = state.buyBinders.map(b => ({ label: b.name, items: binderShareItems(b) })).filter(s => s.items.length);
+    const needs = shareItemsBuy();
+    if (binderSecs.length) {
+      const sections = [];
+      if (needs.length) sections.push({ label: 'Deck needs', items: needs });
+      sections.push(...binderSecs);
+      return { ...base, items: sections.flatMap(s => s.items), sections };
+    }
+    return { ...base, items: needs };
+  }
+  return { ...base, items: shareItemsFor(kind, folderId) };
+}
 
 async function loadMyShares() {
   if (!sb || !authUser) { myShares = []; return; }
@@ -4750,8 +4773,10 @@ function renderShareModal() {
   }
   const { kind, folderId, live } = shareCtx;
   const title = shareTitleFor(kind, folderId);
-  const items = shareItemsFor(kind, folderId);
+  const shareData = shareDataFor(kind, folderId);   // buy share now folds in your binders as categories
+  const items = shareData.items;
   const count = items.reduce((a, i) => a + i.qty, 0);
+  const secNote = (shareData.sections && shareData.sections.length > 1) ? ` · <b>${shareData.sections.length} categories</b>` : '';
   const existing = myShares.filter(s => s.kind === kind && (kind === 'buy' || s.source === folderId));
   const qrMarkup = shareLastResult ? qrSvg(shareLastResult.url, { margin: 4 }) : '';   // '' if the QR lib didn't load — then we omit the whole block (no dead button)
   const result = shareLastResult ? `
@@ -4768,13 +4793,13 @@ function renderShareModal() {
       </div>` : ''}
     </div>` : '';
   body.innerHTML = `
-    <p class="share-lead">Sharing <b>${esc(title)}</b> — ${count} card${count === 1 ? '' : 's'}${items.length ? '' : ' · <span class="share-empty">this list is empty</span>'}.</p>
+    ${result}
+    <p class="share-lead">Sharing <b>${esc(title)}</b> — ${count} card${count === 1 ? '' : 's'}${secNote}${items.length ? '' : ' · <span class="share-empty">this list is empty</span>'}.</p>
     <div class="share-kindwrap">
       <button class="share-opt ${!live ? 'on' : ''}" data-sharelive="0"><div class="share-opt-t">Snapshot</div><div class="share-opt-d">Freezes the list as it is now. Best for a single trade.</div></button>
       <button class="share-opt ${live ? 'on' : ''}" data-sharelive="1"><div class="share-opt-t">Live link</div><div class="share-opt-d">Always shows your current list — updates when you change it.</div></button>
     </div>
     <button class="btn gold share-create" id="shareCreateBtn" ${items.length ? '' : 'disabled'}>Create ${live ? 'live ' : ''}link</button>
-    ${result}
     ${existing.length ? `<div class="share-existing"><div class="share-existing-h">Existing links for this list</div>${existing.map(shareRowHtml).join('')}</div>` : ''}`;
 }
 function shareRowHtml(s) {
