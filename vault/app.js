@@ -2218,7 +2218,6 @@ function openCardView(name) {
       <button class="cvq ${wishOf(name) ? 'on' : ''}" data-cvwish title="Add to / remove from your buy list">${wishOf(name) ? '✓ Buy list' : '＋ Buy list'}</button>
       <button class="cvq ${variantsOf(name).some(v => variantListedAnywhere(v.id)) ? 'on' : ''}" data-cvsell ${ownedOf(name) ? '' : 'disabled'} title="List your copies for sale">${variantsOf(name).some(v => variantListedAnywhere(v.id)) ? '✓ Sell list' : '＋ Sell list'}</button>
     </div>
-    <div class="cv-deckassign" id="cvDeckAssign">${deckAssignHtml(name)}</div>
     <div class="cv-prices" id="cvPrices">${pricesHtml(name)}</div>
     <div class="cv-arts" id="cvArts">
       <button class="cv-art-btn" id="cvArtBtn"><i class="ms ms-artist-brush" aria-hidden="true"></i> Choose art / printing</button>
@@ -2232,6 +2231,7 @@ function openCardView(name) {
       <button class="cv-edit-btn" id="cvEditBtn"><i class="ms ms-token" aria-hidden="true"></i> Edit copies${ownedOf(name) ? ` <span class="cv-edit-n">${ownedOf(name)}</span>` : ''}</button>
       <div class="cv-variants" id="cvVariants" hidden></div>
     </div>
+    <div class="cv-deckassign" id="cvDeckAssign">${deckAssignHtml(name)}</div>
     <div class="cv-swaps" id="cvSwaps"></div>`;
   $('#cardModal').hidden = false;
   if (!meta.notFound) loadCheapest(name, meta);
@@ -2680,7 +2680,7 @@ function showACMenu(names) {
   acItems = names.filter(n => !have.has(key(n))).slice(0, 10);
   acActive = -1;
   if (!acItems.length) { hideACMenu(); return; }
-  menu.innerHTML = acItems.map((n, i) => `<button type="button" class="ac-item" role="option" data-acidx="${i}">${esc(n)}</button>`).join('');
+  menu.innerHTML = acItems.map((n, i) => `<button type="button" class="ac-item" role="option" data-acidx="${i}"><span class="ac-art" style="background-image:url('${addArtUrl(n)}')" aria-hidden="true"></span><span class="ac-name">${esc(n)}</span></button>`).join('');
   menu.hidden = false;
   input.setAttribute('aria-expanded', 'true');
 }
@@ -2704,11 +2704,14 @@ function addTagByName(name) {
   const inp = $('#addAutocomplete');
   inp.value = ''; hideACMenu(); inp.focus();
 }
+// card-art url: prefer a printing we already know, else Scryfall's named-image endpoint (no JSON fetch)
+const addArtUrl = (name) => displayArt(name) || ('https://api.scryfall.com/cards/named?exact=' + encodeURIComponent(name) + '&format=image&version=art_crop');
 function renderAddTags() {
   const wrap = $('#addTagList');
   if (!wrap) return;
   wrap.innerHTML = addTags.map((t, i) => `
     <span class="add-tag" data-tagidx="${i}">
+      <span class="at-art" style="background-image:url('${addArtUrl(t.name)}')" aria-hidden="true"></span>
       <span class="at-name" title="${esc(t.name)}">${esc(t.name)}</span>
       <span class="at-step">
         <button type="button" data-tagstep="-1" aria-label="One fewer">−</button>
@@ -4461,7 +4464,7 @@ function buildPublicProfileSnapshot() {
   const un = (authProfile && authProfile.username) || '';
   const dn = (authProfile && authProfile.display_name) || un;
   const snap = {
-    username: un, display_name: dn,
+    username: un, display_name: dn, bio: (p.bio || '').slice(0, 280),
     experience: p.experience || '', formats: Array.isArray(p.formats) ? p.formats : [],
     since: (authUser && authUser.created_at) || '', avatarHue: avatarHue(un || dn)
   };
@@ -4508,6 +4511,27 @@ async function togglePublicProfile(on) {
   if (r.error) toast('Could not update public profile: ' + r.error);
   else { toast(on ? 'Your profile is public ✓' : 'Your profile is now private.'); if (on) copyText(r.url); }
   renderProfileView();
+}
+
+/* ---------- find other players' public profiles ---------- */
+let profileSearchQuery = '';
+let profileSearchTimer = null;
+function openPublicProfile(username) {
+  const u = String(username || '').trim().replace(/^@/, '');
+  if (u) window.open(vaultPageUrl('u.html') + '?u=' + encodeURIComponent(u), '_blank', 'noopener');
+}
+async function runProfileSearch() {
+  const box = $('#pvSearchResults'); if (!box) return;
+  const q = profileSearchQuery.trim();
+  if (q.length < 2) { box.hidden = true; box.innerHTML = ''; return; }
+  let rows = [];
+  if (sb) { try { const { data, error } = await sb.rpc('search_public_profiles', { q }); if (!error && Array.isArray(data)) rows = data; } catch (e) {} }
+  const items = rows.map(r => `<button class="pvs-item" data-pvprofile="${esc(r.username)}">
+    <span class="pf-avatar pvs-av" style="--ah:${Number(r.avatar_hue) || 40}">${esc(profileInitials(r.display_name || r.username))}</span>
+    <span class="pvs-id"><span class="pvs-name">${esc(r.display_name || r.username)}</span><span class="pvs-handle">@${esc(r.username)}</span></span>
+    <span class="pvs-go">↗</span></button>`).join('');
+  box.innerHTML = items + `<button class="pvs-item pvs-direct" data-pvprofile="${esc(q)}"><i class="ms ms-ability-investigate" aria-hidden="true"></i> Open @${esc(q.replace(/^@/, ''))} directly →</button>`;
+  box.hidden = false;
 }
 
 // ---------- account / profile UI ----------
@@ -4572,6 +4596,7 @@ function renderProfile() {
         <label class="ve-field"><span>Country</span><input type="text" id="pfCountry" class="text-input" value="${esc(p.country || 'Peru')}" maxlength="40" /></label>
         <label class="ve-field"><span>City</span><input type="text" id="pfCity" class="text-input" value="${esc(p.city || 'Lima')}" maxlength="40" /></label>
       </div>
+      <label class="ve-field"><span>Bio <em>(optional)</em></span><textarea id="pfBio" class="text-input pf-bio" maxlength="280" placeholder="A short bio for your profile…">${esc(p.bio || '')}</textarea></label>
       <label class="ve-field"><span>Email</span><div class="pf-static">${esc(authUser.email || '')}</div></label>
     </div>
     <div class="profile-stats">
@@ -4603,6 +4628,7 @@ async function saveProfileEdits() {
   const username = $('#pfUsername').value.trim() || null;
   const prefs = { ...((authProfile && authProfile.prefs) || {}),
     full_name: $('#pfFullName').value.trim(),
+    bio: $('#pfBio') ? $('#pfBio').value.trim() : ((authProfile && authProfile.prefs && authProfile.prefs.bio) || ''),
     country: $('#pfCountry').value.trim(),
     city: $('#pfCity').value.trim() };
   const st = $('#pfStatus'); st.innerHTML = '<span class="spin"></span>Saving…';
@@ -4937,6 +4963,7 @@ function renderProfileView() {
   const top = topOwnedCards(5);
   const recent = (state.history || []).slice(-6).reverse();
   const loc = [p.city, p.country].filter(Boolean).join(', ');
+  const bio = (p.bio || '').trim();
   el.innerHTML = `
     <div class="pv-hero">
       <div class="pf-avatar pv-av" style="--ah:${avatarHue(un || dn || authUser.email)}">${esc(profileInitials(dn || p.full_name || un))}</div>
@@ -4947,6 +4974,7 @@ function renderProfileView() {
       </div>
       <button class="btn ghost" id="pvEdit"><i class="ms ms-artist-nib btn-ico" aria-hidden="true"></i> Edit profile</button>
     </div>
+    ${bio ? `<p class="pv-bio">${esc(bio)}</p>` : ''}
     <div class="pv-stats">
       <div><b>${g.ownedCount}</b><span>cards</span></div>
       <div><b>${money(g.ownedValue)}</b><span>value</span></div>
@@ -4968,6 +4996,14 @@ function renderProfileView() {
         </div>
       </div>
       <div class="pv-col">
+        <div class="pv-card">
+          <div class="pv-card-h"><h3>Find players</h3></div>
+          <div class="pv-search">
+            <i class="ms ms-ability-investigate pv-search-ic" aria-hidden="true"></i>
+            <input type="search" id="pvSearchInput" class="pv-search-input" placeholder="Search players by name or @username…" autocomplete="off" value="${esc(profileSearchQuery)}" />
+            <div class="pv-search-results" id="pvSearchResults" hidden></div>
+          </div>
+        </div>
         <div class="pv-card">
           <div class="pv-card-h"><h3>My lists</h3></div>
           <div class="pv-links"><button class="btn ghost" data-pvgo="buylist"><i class="ms ms-counter-gold btn-ico" aria-hidden="true"></i> Buy List</button><button class="btn ghost" data-pvgo="selllist"><i class="ms ms-loyalty-up btn-ico" aria-hidden="true"></i> Sell List</button></div>
@@ -5016,6 +5052,10 @@ if (profileViewEl) {
     if (e.target.closest('#pvImportDeck')) { openImport(); return; }
     if (e.target.closest('#pvSetStores')) { startOnboarding(); return; }
     if (e.target.closest('[data-pvcopyprofile]')) { copyText(profilePublicUrl()).then(ok => toast(ok ? 'Profile link copied ✓' : 'Copy failed')); return; }
+    if ((m = e.target.closest('[data-pvprofile]'))) { openPublicProfile(m.dataset.pvprofile); return; }
+  });
+  profileViewEl.addEventListener('input', e => {
+    if (e.target.id === 'pvSearchInput') { profileSearchQuery = e.target.value; clearTimeout(profileSearchTimer); profileSearchTimer = setTimeout(runProfileSearch, 280); }
   });
   profileViewEl.addEventListener('change', e => {
     if (e.target.id === 'pvPublic') { togglePublicProfile(e.target.checked); }

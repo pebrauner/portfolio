@@ -800,13 +800,16 @@ html[data-theme="ember"] .topbar { background: linear-gradient(180deg, rgba(31,1
 .ac-menu { position: absolute; z-index: 30; top: calc(100% + 6px); left: 0; right: 0; max-height: 280px; overflow-y: auto;
   background: linear-gradient(180deg, var(--panel-2), var(--panel)); border: 1px solid var(--edge); border-radius: 11px; padding: 5px;
   box-shadow: 0 18px 40px rgba(0,0,0,.55); }
-.ac-item { display: block; width: 100%; text-align: left; font-family: var(--body); font-size: 13.5px; color: var(--parch-dim);
-  background: none; border: none; border-radius: 7px; padding: 9px 11px; cursor: pointer; transition: .12s; }
+.ac-item { display: flex; align-items: center; gap: 9px; width: 100%; text-align: left; font-family: var(--body); font-size: 13.5px; color: var(--parch-dim);
+  background: none; border: none; border-radius: 7px; padding: 6px 9px; cursor: pointer; transition: .12s; }
 .ac-item:hover, .ac-item.active { background: rgba(201,162,39,.12); color: var(--parch); }
+.ac-art { width: 40px; height: 29px; border-radius: 4px; background: var(--ink) center/cover no-repeat; flex-shrink: 0; border: 1px solid var(--edge-soft); }
+.ac-name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tag-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .tag-list:empty { margin-top: 0; }
-.add-tag { display: inline-flex; align-items: center; gap: 8px; padding: 5px 7px 5px 12px;
-  background: linear-gradient(150deg, var(--panel-2), var(--panel)); border: 1px solid var(--edge); border-radius: 99px; font-size: 13px; }
+.add-tag { display: inline-flex; align-items: center; gap: 8px; padding: 5px 9px 5px 5px;
+  background: linear-gradient(150deg, var(--panel-2), var(--panel)); border: 1px solid var(--edge); border-radius: 10px; font-size: 13px; }
+.add-tag .at-art { width: 36px; height: 26px; border-radius: 5px; background: var(--ink) center/cover no-repeat; flex-shrink: 0; }
 .add-tag .at-name { color: var(--parch); max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .add-tag .at-step { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); }
 .add-tag .at-step button { width: 19px; height: 19px; line-height: 1; display: grid; place-items: center; border-radius: 50%;
@@ -1191,6 +1194,7 @@ html[data-theme="ember"] .topbar { background: linear-gradient(180deg, rgba(31,1
 .profile-fields .ve-field > span { font-family: var(--label); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 .profile-fields .text-input { width: 100%; }
 .pf-static { font-size: 14px; color: var(--parch-dim); padding: 10px 14px; background: var(--ink-2); border: 1px solid var(--edge-soft); border-radius: 9px; }
+.pf-bio { min-height: 64px; resize: vertical; line-height: 1.45; font-family: var(--body); }
 .profile-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
 .profile-stats > div { text-align: center; background: var(--panel); border: 1px solid var(--edge-soft); border-radius: 10px; padding: 12px 6px; }
 .profile-stats b { display: block; font-family: var(--display); font-size: 20px; color: var(--gold-soft); }
@@ -1202,7 +1206,24 @@ html[data-theme="ember"] .topbar { background: linear-gradient(180deg, rgba(31,1
 .profile-sync .btn { flex: 1; justify-content: center; min-width: 150px; }
 
 /* ============ profile page ============ */
-.pv-hero { display: flex; align-items: center; gap: 18px; margin-bottom: 22px; }
+.pv-hero { display: flex; align-items: center; gap: 18px; margin-bottom: 16px; }
+.pv-bio { color: var(--parch-dim); font-size: 14.5px; line-height: 1.6; max-width: 640px; margin: 0 0 22px; white-space: pre-wrap; }
+/* find players (profile search) */
+.pv-search { position: relative; }
+.pv-search-ic { position: absolute; left: 12px; top: 12px; color: var(--brass); font-size: 14px; pointer-events: none; }
+.pv-search-input { width: 100%; font-family: var(--body); font-size: 14px; color: var(--parch); background: var(--ink); border: 1px solid var(--edge); border-radius: 9px; padding: 10px 12px 10px 34px; }
+.pv-search-input:focus { outline: none; border-color: var(--gold); }
+.pv-search-input::placeholder { color: var(--muted); }
+.pv-search-results { position: absolute; z-index: 20; top: calc(100% + 6px); left: 0; right: 0; background: var(--panel-2); border: 1px solid var(--edge); border-radius: 11px; padding: 6px; box-shadow: var(--shadow); max-height: 320px; overflow-y: auto; }
+.pvs-item { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; background: none; border: none; cursor: pointer; padding: 7px 8px; border-radius: 8px; color: var(--parch); font-size: 14px; }
+.pvs-item:hover { background: rgba(201,162,39,.1); }
+.pvs-av { width: 34px; height: 34px; font-size: 13px; border-radius: 9px; flex-shrink: 0; }
+.pvs-id { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.pvs-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pvs-handle { font-size: 12px; color: var(--muted); }
+.pvs-go { color: var(--brass); font-size: 13px; }
+.pvs-direct { border-top: 1px solid var(--edge-soft); margin-top: 4px; color: var(--gold-soft); gap: 8px; font-size: 13px; }
+.pvs-direct .ms { color: var(--gold-soft); }
 .pv-av { width: 72px; height: 72px; font-size: 26px; }
 .pv-id { flex: 1; min-width: 0; }
 .pv-name { font-family: var(--display); font-size: 26px; color: var(--parch); margin: 0; }
