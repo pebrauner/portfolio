@@ -5013,6 +5013,27 @@ function consumeIncomingMatch() {
     toast(`Matched ${who} list against your Buy List.`);
   }
 }
+// d.html "Import this deck" hands the deck off via localStorage; import it into the user's decks on boot.
+const INCOMING_DECK_KEY = 'vault:incomingDeck';
+async function consumeIncomingDeck() {
+  let raw; try { raw = localStorage.getItem(INCOMING_DECK_KEY); } catch (e) {}
+  if (!raw) return;
+  try { localStorage.removeItem(INCOMING_DECK_KEY); } catch (e) {}
+  let inc; try { inc = JSON.parse(raw); } catch (e) { return; }
+  if (!inc || !Array.isArray(inc.cards) || !inc.cards.length) return;
+  const name = (typeof inc.name === 'string' && inc.name.trim()) ? inc.name.trim().slice(0, 80) : 'Imported Deck';
+  toast(`Importing “${name}”…`);
+  try {
+    const want = inc.cards.map(c => ({ name: String(c.name || ''), qty: Math.max(1, parseInt(c.qty, 10) || 1) })).filter(c => c.name);
+    const { resolved, missing } = await resolveCards(want);
+    if (!resolved.length) { toast('Could not import that deck — no cards resolved.'); return; }
+    const cards = resolved.map(c => ({ name: c.name, qty: c.qty }));
+    const deck = { id: uid(), name, cards, original: cards.map(c => ({ ...c })), commander: (typeof inc.commander === 'string' ? inc.commander : '') };
+    state.decks.push(deck);
+    save(); render(); openDeck(deck.id);
+    toast(`Imported “${name}”${missing ? ` · ${missing} card${missing > 1 ? 's' : ''} not found` : ''}.`);
+  } catch (e) { toast('Scryfall lookup failed — try again.'); }
+}
 
 /* ============ public profile link (a curated, anonymous-readable snapshot) ============ */
 let publicProfileTimer = null;
@@ -5724,3 +5745,4 @@ if ($('#view-home') && $('#view-home').classList.contains('is-active')) document
 render();
 initSync();
 consumeIncomingMatch();   // a shared list opened via "Match with my lists" lands here
+consumeIncomingDeck();    // a shared deck opened via "Import this deck" lands here

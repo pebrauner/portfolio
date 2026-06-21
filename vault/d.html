@@ -193,8 +193,9 @@
         </div>
         <div id="body">${deckBody()}</div>
         <div class="actions">
+          <button class="btn gold" id="importDeckBtn"><i class="ms ms-saga"></i> Import this deck</button>
           ${uname ? `<a class="btn" href="u.html?u=${encodeURIComponent(uname)}"><i class="ms ms-counter-lore"></i> @${esc(uname)}'s profile</a>` : ''}
-          <a class="btn gold" href="./" target="_blank" rel="noopener"><i class="ms ms-token"></i> Track your own collection</a>
+          <a class="btn" href="./" target="_blank" rel="noopener"><i class="ms ms-token"></i> Track your own collection</a>
         </div>`;
       wire();
     }
@@ -232,10 +233,23 @@
       delete btn.dataset.busy;
     }
 
+    // hand the deck off to the app (same-origin localStorage) → it imports on boot
+    function importThisDeck() {
+      if (!DECK || !DECK.data || !Array.isArray(DECK.data.cards)) return;
+      const payload = {
+        name: DECK.name || 'Imported Deck',
+        commander: DECK.commander || (DECK.data && DECK.data.commander) || '',
+        cards: DECK.data.cards.map(c => ({ name: c.name, qty: Number(c.qty) || 1 })),
+        from: (DECK.data && DECK.data.owner) || ''
+      };
+      try { localStorage.setItem('vault:incomingDeck', JSON.stringify(payload)); } catch (e) {}
+      location.href = './';
+    }
     function wire() {
       const body = document.getElementById('body');
       if (body) body.addEventListener('click', e => { const t = e.target.closest('[data-i]'); if (t) openLightbox(+t.dataset.i); });
       const lk = document.getElementById('likeBtn'); if (lk) lk.addEventListener('click', toggleLike);
+      const ib = document.getElementById('importDeckBtn'); if (ib) ib.addEventListener('click', importThisDeck);
     }
 
     document.getElementById('lbClose').addEventListener('click', closeLightbox);
