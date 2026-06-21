@@ -29,8 +29,9 @@
 
   --shadow: 0 24px 60px -28px rgba(0,0,0,.85);
   --radius: 14px;
-  --display: 'Grenze Gotisch', 'Cinzel', serif;          /* blackletter — titles only */
-  --body: 'Spline Sans', system-ui, sans-serif;          /* clean body + UI text */
+  /* TWO fonts only across the whole project: Grenze Gotisch (blackletter display) + Spline Sans Mono (everything else) */
+  --display: 'Grenze Gotisch', serif;                    /* blackletter — titles & brand */
+  --body: 'Spline Sans Mono', ui-monospace, monospace;   /* all body / UI / prose */
   --label: 'Spline Sans Mono', ui-monospace, monospace;  /* small uppercase labels */
   --mono: 'Spline Sans Mono', ui-monospace, monospace;
 }
@@ -1353,8 +1354,9 @@ html[data-theme="ember"] .topbar { background: linear-gradient(180deg, rgba(31,1
 #view-home.is-active { display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 96px); }
 html.home-active, html.home-active body { overflow: hidden; height: 100%; }   /* the home landing doesn't scroll */
 html.home-active #app { padding-bottom: 0; }
-/* full-screen tilted wall of cards (fixed → fills the viewport, behind the z-20 topbar; scaled+rotated for the tilt, enough columns to fill the width) */
-.home-bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; transform: rotate(-9deg) scale(1.22); opacity: .62; }
+/* full-screen tilted wall of cards. The layer overscans the viewport (inset -20% → 140%) so the -9° tilt + scale never leaves bare corners on wide 16:9 / ultrawide screens. */
+.home-bg { position: fixed; inset: -20%; z-index: 0; pointer-events: none; overflow: hidden; transform: rotate(-9deg) scale(1.22); opacity: .62; }
+html.home-active .app-bg { display: none; }   /* the card wall replaces the themed backdrop on home, so any gap shows plain ink, not the ember texture */
 .home-cols { display: flex; gap: 16px; justify-content: center; height: 100%; }
 .home-col { width: 152px; flex-shrink: 0; height: 100%; overflow: hidden; }
 .home-col-track { display: flex; flex-direction: column; gap: 16px; animation-name: home-roll-up; animation-timing-function: linear; animation-iteration-count: infinite; will-change: transform; }

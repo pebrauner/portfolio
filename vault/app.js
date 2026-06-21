@@ -984,11 +984,14 @@ function renderHomeBg() {
   const bg = $('#homeBg'); if (!bg) return;
   loadHomeArtPool();   // top up / refresh the pool in the background (no-op if fresh or already fetching)
   const imgs = homeArtPool.length >= 40 ? homeArtPool : HOME_SHOWCASE;
-  const COLS = Math.min(24, Math.max(8, Math.ceil(((window.innerWidth || 1200) * 1.25) / 166)));   // enough columns to fill the width at this zoom
-  const sig = imgs.length + '·' + COLS + '·' + imgs[0];
+  const vw = window.innerWidth || 1280, vh = window.innerHeight || 800;
+  // the .home-bg layer overscans to ~140% of the viewport (CSS inset:-20%), so fill that area + a margin
+  const COLS = Math.min(30, Math.max(10, Math.ceil((vw * 1.5) / 168)));
+  const PER = Math.min(20, Math.max(8, Math.ceil((vh * 1.5) / 228) + 1));
+  const sig = imgs.length + '·' + COLS + '·' + PER + '·' + imgs[0];
   if (bg.dataset.sig === sig) return;   // don't rebuild (and restart the roll) every render
   bg.dataset.sig = sig;
-  const PER = 7, DUR = [24, 18, 30, 21, 27, 19, 26, 22, 29, 17, 25, 20];   // each column its own (clearly visible) velocity
+  const DUR = [24, 18, 30, 21, 27, 19, 26, 22, 29, 17, 25, 20];   // each column its own (clearly visible) velocity
   let html = '';
   for (let c = 0; c < COLS; c++) {
     let set = '';
@@ -5069,6 +5072,8 @@ if (homeSearchEl) {
 }
 const siteFooterEl = $('#siteFooter');
 if (siteFooterEl) siteFooterEl.addEventListener('click', e => { const b = e.target.closest('[data-foot-view]'); if (b) { setView(b.dataset.footView); window.scrollTo(0, 0); } });
+let homeResizeTimer;
+window.addEventListener('resize', () => { clearTimeout(homeResizeTimer); homeResizeTimer = setTimeout(() => { const v = $('#view-home'); if (v && v.classList.contains('is-active')) renderHomeBg(); }, 250); });
 const homeViewEl = $('#view-home');
 if (homeViewEl) homeViewEl.addEventListener('click', e => {
   let m;
