@@ -25,7 +25,7 @@
     </div>
     <nav class="tabs" id="tabs">
       <button class="tab is-active" data-view="decks"><i class="ms ms-saga tab-ico" aria-hidden="true"></i>Decks</button>
-      <button class="tab" data-view="inventory"><i class="ms ms-library tab-ico" aria-hidden="true"></i>Inventory</button>
+      <button class="tab" data-view="inventory"><i class="ms ms-library tab-ico" aria-hidden="true"></i>Collection</button>
       <div class="nav-group" id="buysellGroup">
         <button class="tab" id="buysellTab" data-navgroup aria-haspopup="true" aria-expanded="false"><i class="ms ms-counter-gold tab-ico" aria-hidden="true"></i>Buy / Sell<span class="tab-caret">▾</span></button>
         <div class="nav-menu" id="buysellMenu" role="menu">
@@ -79,7 +79,7 @@
       <div class="deck-grid" id="deckGrid"></div>
       <div class="empty-state" id="decksEmpty" hidden>
         <span class="empty-mark"><i class="ms ms-saga" aria-hidden="true"></i></span>
-        <h2>Your vault is empty</h2>
+        <h2>Your collection is empty</h2>
         <p>Import a deck list to begin cataloguing your collection.</p>
         <button class="btn gold" id="emptyImportBtn"><i class="ms ms-saga btn-ico" aria-hidden="true"></i>Import your first deck</button>
       </div>
@@ -94,7 +94,7 @@
     <!-- Inventory -->
     <section class="view" id="view-inventory">
       <div class="view-head">
-        <h2 class="view-title">Inventory</h2>
+        <h2 class="view-title">Collection</h2>
         <div class="inv-controls">
           <input type="search" id="invSearch" class="search" placeholder="Search cards…" />
           <div class="seg" id="invFilter">
@@ -132,6 +132,8 @@
           <option value="price-asc">Sort: Price ↑</option>
           <option value="rarity-desc">Sort: Rarity ↓</option>
           <option value="rarity-asc">Sort: Rarity ↑</option>
+          <option value="new">Sort: Newest added</option>
+          <option value="old">Sort: Oldest added</option>
         </select>
         <div class="filt-types" id="invTypeFilter" title="Filter by card type" role="group" aria-label="Filter by card type">
           <button class="tpip" data-type="Creatures" aria-label="Creatures" title="Creatures"><i class="ms ms-creature"></i></button>
@@ -233,7 +235,7 @@
             <i class="ms ms-token size-ic size-ic--lg" aria-hidden="true"></i>
           </label>
           <button class="btn ghost" id="sellAddUnlinkedBtn" title="List every owned card that isn't in a deck"><i class="ms ms-land" aria-hidden="true"></i> Add unlinked</button>
-          <button class="btn ghost" id="sellMarkAllBtn" title="Mark everything listed as sold and remove from inventory">✓ Sold all</button>
+          <button class="btn ghost" id="sellMarkAllBtn" title="Mark everything listed as sold and remove from collection">✓ Sold all</button>
           <button class="btn ghost" id="exportSellPdfBtn" title="Export a printable PDF — 8 cards per page">⎙ PDF</button>
           <button class="btn ghost" id="copySellBtn" title="Copy as text for a buyer">⧉ Copy list</button>
           <button class="btn ghost" id="sellShareBtn" title="Create a shareable link to this list"><i class="ms ms-counter-lore" aria-hidden="true"></i> Share</button>
@@ -301,7 +303,7 @@
       <div class="view-head">
         <div>
           <h2 class="view-title">History</h2>
-          <p class="view-sub">A day-by-day ledger of everything you buy, sell, and add to the vault.</p>
+          <p class="view-sub">A day-by-day ledger of everything you buy, sell, and add to your collection.</p>
         </div>
         <div class="buy-head-actions">
           <div class="seg" id="histFilter" title="Filter activity">
@@ -310,7 +312,7 @@
             <button class="seg-btn" data-hfilter="sold"><i class="ms ms-counter-gold" aria-hidden="true"></i> Sold</button>
             <button class="seg-btn" data-hfilter="adjust"><i class="ms ms-token" aria-hidden="true"></i> Adjustments</button>
           </div>
-          <button class="btn ghost" id="histClearBtn" title="Erase the activity history (your inventory is not affected)">✕ Clear history</button>
+          <button class="btn ghost" id="histClearBtn" title="Erase the activity history (your collection is not affected)">✕ Clear history</button>
         </div>
       </div>
       <div class="ledger-summary" id="histSummary"></div>
@@ -343,7 +345,7 @@
   <div class="modal-scrim" id="addModal" hidden>
     <div class="modal">
       <button class="modal-close" id="closeAdd" aria-label="Close">✕</button>
-      <h2 class="modal-title"><i class="ms ms-multiple" aria-hidden="true"></i> Add Cards to Inventory</h2>
+      <h2 class="modal-title"><i class="ms ms-multiple" aria-hidden="true"></i> Add Cards to Collection</h2>
       <p class="modal-hint">Loose cards you own that aren't in a deck. Search to add them one by one, paste a list, or import a ManaBox CSV scan.</p>
       <div class="tag-compose">
         <div class="tag-field" id="addTagField">
@@ -363,7 +365,7 @@
       </details>
       <div class="modal-foot">
         <span class="modal-note">These are catalogued as unlinked until a deck uses them.</span>
-        <button class="btn gold" id="confirmAdd"><i class="ms ms-multiple btn-ico" aria-hidden="true"></i>Add to Vault</button>
+        <button class="btn gold" id="confirmAdd"><i class="ms ms-multiple btn-ico" aria-hidden="true"></i>Add to Collection</button>
       </div>
       <div class="modal-status" id="addStatus"></div>
     </div>

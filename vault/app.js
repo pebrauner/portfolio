@@ -26,7 +26,8 @@ let invType = 'all';   // category filter (matches category())
 let invRarity = 'all'; // rarity filter
 let invSort = 'name';  // 'name' | 'price-desc' | 'price-asc'
 let buyDeckSel = [];          // deck ids to include in the buy list; [] = every deck
-let buyExclude = new Set();   // name-keys the user unchecked from the export
+let buyExclude = new Set(state.buyExclude);   // name-keys kept off the buy list (persisted in state.buyExclude)
+function setBuyExclude(k, excluded) { if (excluded) buyExclude.add(k); else buyExclude.delete(k); state.buyExclude = [...buyExclude]; save(); }
 let invMode = 'art';          // inventory display: 'art' gallery | 'text' list
 let buyMode = 'art';          // buy list display: 'art' gallery | 'text' list
 let buySort = 'price-desc';   // buy list sort: 'name' | 'price-desc' | 'price-asc' | 'rarity-desc' | 'rarity-asc' | 'color' | 'type' | 'set'
@@ -84,6 +85,7 @@ function migrate(s) {
   s.art ||= {};   // name-key -> chosen display printing { image, art, set, set_name, collector, scryfallId }
   s.wishlist ||= {};   // name-key -> desired qty (manual buy list, fed from Browse)
   s.history ||= [];    // activity ledger: [{ t, type:'bought'|'sold'|'added'|'removed', name, qty, unit, value?, foil?, note? }]
+  s.buyExclude = Array.isArray(s.buyExclude) ? s.buyExclude : [];   // name-keys the user permanently keeps OFF the buy list
   // Sell lists: multiple named "folders", each variant-id -> copies listed.
   // Migrate the old single `s.sellList` into the first folder.
   if (!Array.isArray(s.sellLists)) {
@@ -149,9 +151,12 @@ function newVariant(o = {}) {
     set: (o.set || '').toUpperCase(),
     collector: o.collector || '',
     scryfallId: o.scryfallId || '',
-    notes: o.notes || ''
+    notes: o.notes || '',
+    addedAt: o.addedAt ?? Date.now()   // when this copy entered the collection (for newest/oldest sort)
   };
 }
+// Newest acquisition time across a card's variants (0 for legacy copies with no timestamp).
+const addedOf = (name) => variantsOf(name).reduce((a, v) => Math.max(a, v.addedAt || 0), 0);
 const variantsOf = (name) => state.variants[key(name)] || [];
 const ownedOf = (name) => variantsOf(name).reduce((a, v) => a + (v.qty || 0), 0);
 const wishOf = (name) => state.wishlist[key(name)] || 0;
@@ -318,7 +323,7 @@ function addVariant(name, a = {}) {
   const list = (state.variants[k] ||= []);
   const foil = !!a.foil, condition = a.condition || 'NM', set = (a.set || '').toUpperCase();
   const m = list.find(v => v.foil === foil && (v.condition || 'NM') === condition && (v.set || '') === set);
-  if (m) m.qty += (a.qty || 1);
+  if (m) { m.qty += (a.qty || 1); m.addedAt = Date.now(); }   // a fresh acquisition floats this card to "newest"
   else list.push(newVariant(a));
 }
 
@@ -334,7 +339,7 @@ function setOwned(name, n) {
   if (!list.length) { state.variants[k] = [newVariant({ qty: n })]; save(); return; }
   const base = list.find(v => !v.foil && (v.condition || 'NM') === 'NM' && !v.set);
   if (delta > 0) {
-    if (base) base.qty += delta; else list.push(newVariant({ qty: delta }));
+    if (base) { base.qty += delta; base.addedAt = Date.now(); } else list.push(newVariant({ qty: delta }));
   } else {
     let rem = -delta;
     const order = base ? [base, ...list.filter(v => v !== base)] : [...list];
@@ -938,7 +943,7 @@ const HIST_META = {
 };
 function clearHistory() {
   if (!(state.history || []).length) { toast('History is already empty.'); return; }
-  if (!confirm('Clear the entire activity history? This can’t be undone. (Your inventory and prices are not affected.)')) return;
+  if (!confirm('Clear the entire activity history? This can’t be undone. (Your collection and prices are not affected.)')) return;
   state.history = []; save(); render();
   toast('Activity history cleared.');
 }
@@ -1318,8 +1323,8 @@ function deckDeleteBar(deck) {
   return `<div class="deck-delete-confirm">
     <div class="ddc-head"><i class="ms ms-counter-skull" aria-hidden="true"></i> Delete “${esc(deck.name)}”?</div>
     <div class="ddc-actions">
-      <button class="ddc-btn" data-confirm-del-only="${deck.id}">Delete deck only<span class="ddc-sub">keep my cards in inventory</span></button>
-      <button class="ddc-btn danger" data-confirm-del-cards="${deck.id}"${copies ? '' : ' disabled'}>Delete &amp; remove ${copies} cop${copies === 1 ? 'y' : 'ies'} from inventory<span class="ddc-sub">I sold this deck</span></button>
+      <button class="ddc-btn" data-confirm-del-only="${deck.id}">Delete deck only<span class="ddc-sub">keep my cards in my collection</span></button>
+      <button class="ddc-btn danger" data-confirm-del-cards="${deck.id}"${copies ? '' : ' disabled'}>Delete &amp; remove ${copies} cop${copies === 1 ? 'y' : 'ies'} from collection<span class="ddc-sub">I sold this deck</span></button>
       <button class="ddc-btn ghost" data-confirm-del-cancel>Cancel</button>
     </div>
     ${sharedNote}
@@ -1331,7 +1336,7 @@ function deleteDeck(id) {
   state.decks = state.decks.filter(d => d.id !== id);
   deckPendingDelete = null; currentDeckId = null;
   save(); render(); setView('decks');
-  toast(`Deleted “${deck.name}”. Your cards stay in your inventory.`);
+  toast(`Deleted “${deck.name}”. Your cards stay in your collection.`);
 }
 function deleteDeckAndCards(id) {
   const deck = state.decks.find(d => d.id === id);
@@ -1346,7 +1351,7 @@ function deleteDeckAndCards(id) {
   state.decks = state.decks.filter(d => d.id !== id);
   deckPendingDelete = null; currentDeckId = null;
   save(); render(); setView('decks');
-  toast(`Deleted “${deck.name}” and removed ${removed} cop${removed === 1 ? 'y' : 'ies'} from your inventory.`, { undo: true });
+  toast(`Deleted “${deck.name}” and removed ${removed} cop${removed === 1 ? 'y' : 'ies'} from your collection.`, { undo: true });
 }
 
 /* ---------- deck editing (add / remove / qty) ---------- */
@@ -1538,6 +1543,8 @@ function renderInventory() {
   else if (invSort === 'price-asc') names.sort((a, b) => unitPrice(a) - unitPrice(b) || a.localeCompare(b));
   else if (invSort === 'rarity-desc') names.sort((a, b) => rarityRank(b) - rarityRank(a) || a.localeCompare(b));
   else if (invSort === 'rarity-asc') names.sort((a, b) => rarityRank(a) - rarityRank(b) || a.localeCompare(b));
+  else if (invSort === 'new') names.sort((a, b) => addedOf(b) - addedOf(a) || a.localeCompare(b));   // newest acquisitions first
+  else if (invSort === 'old') names.sort((a, b) => (addedOf(a) || Infinity) - (addedOf(b) || Infinity) || a.localeCompare(b));
   else names.sort((a, b) => a.localeCompare(b));
 
   renderFacetBar();
@@ -1792,24 +1799,24 @@ function buyRow({ n, need, sub, included, used, wished }) {
     ? `<i class="ms ms-saga where-ic" aria-hidden="true"></i>for <b>${used.map(d => esc(d.name)).join('</b>, <b>')}</b>${wished ? ' <b class="wish-tag">＋ wishlist</b>' : ''}`
     : `<i class="ms ms-counter-gold where-ic" aria-hidden="true"></i><b class="wish-tag">Wishlist</b>`;
   return `<div class="card-row missing ${included ? '' : 'excluded'}">
-    <input type="checkbox" class="buy-pick" data-pick="${esc(n)}" ${included ? 'checked' : ''} title="Include in the exported list" />
+    <input type="checkbox" class="buy-pick" data-pick="${esc(n)}" ${included ? 'checked' : ''} title="On your buy list — uncheck to permanently skip buying this card" />
     <div class="cname"><span class="row-marks">${typeIcon(n)}${rarityIcon(meta.rarity)}</span><span class="qty">${need}×</span><span class="nm" data-name="${esc(n)}" data-uri="${esc(meta.uri || '')}">${esc(n)}</span>${manaSymbols(meta.mana_cost)}</div>
     <span class="where">${where}</span>
     <div class="price"><span class="need">${money(sub)}</span></div>
-    <button class="buy-got" data-bought="${esc(n)}" title="I bought ${need} — add to my inventory"><i class="ms ms-counter-shield" aria-hidden="true"></i> Bought</button>
+    <button class="buy-got" data-bought="${esc(n)}" title="I bought ${need} — add to my collection"><i class="ms ms-counter-shield" aria-hidden="true"></i> Bought</button>
   </div>`;
 }
 function buyArtTile({ n, need, sub, included }) {
   const pick = `<input type="checkbox" class="buy-pick art-pick" data-pick="${esc(n)}" ${included ? 'checked' : ''} title="Include in the exported list" />`;
   return `<div class="art-tile buy ${included ? '' : 'excluded'}">
     ${pick}
-    <button class="buy-got-tile" data-bought="${esc(n)}" title="I bought ${need} — add to my inventory"><i class="ms ms-counter-shield" aria-hidden="true"></i></button>
+    <button class="buy-got-tile" data-bought="${esc(n)}" title="I bought ${need} — add to my collection"><i class="ms ms-counter-shield" aria-hidden="true"></i></button>
     <button class="art-open" data-name="${esc(n)}">
       ${artTile(n, need + '×', `<span class="art-val need">${money(sub)}</span>`)}
     </button>
   </div>`;
 }
-// "Bought" — acquire the still-needed copies into inventory; the card then drops off the buy list.
+// "Bought" — acquire the still-needed copies into collection; the card then drops off the buy list.
 function markBought(name) {
   const need = requiredFor(name, buyDecksActive()) - ownedOf(name);
   if (need <= 0) return;
@@ -1817,7 +1824,7 @@ function markBought(name) {
   addVariant(name, { qty: need });
   logEvent('bought', name, need, priceOf(name));
   save(); render();
-  toast(`Bought ${need}× ${name} — added to your inventory.`, { undo: true });
+  toast(`Bought ${need}× ${name} — added to your collection.`, { undo: true });
 }
 
 /* =====================================================================
@@ -1933,7 +1940,7 @@ async function addLooseCards() {
     render();
     setView('inventory');
     const n = resolved.length;
-    toast(`Added ${n} card${n > 1 ? 's' : ''} to your vault${missing ? ` · ${missing} not found` : ''}.`);
+    toast(`Added ${n} card${n > 1 ? 's' : ''} to your collection${missing ? ` · ${missing} not found` : ''}.`);
   } catch (e) {
     status.textContent = 'Scryfall lookup failed — check your connection and retry.';
   } finally {
@@ -2081,6 +2088,12 @@ function openCardView(name) {
       <span class="cv-set" id="cvSet">${setTagHtml(name)}</span>
       ${meta.rarity ? `<span class="cv-rarity ${esc(meta.rarity)}"><i class="ms ms-rarity" aria-hidden="true"></i> ${esc(RARITY_LABEL[meta.rarity] || meta.rarity)}</span>` : ''}
     </div>
+    <div class="cv-quick">
+      <button class="cvq pos" data-cvbought title="I bought one — add a copy to your collection"><i class="ms ms-counter-shield" aria-hidden="true"></i> Bought</button>
+      <button class="cvq neg" data-cvsold ${ownedOf(name) ? '' : 'disabled'} title="I sold one — remove a copy from your collection"><i class="ms ms-counter-gold" aria-hidden="true"></i> Sold</button>
+      <button class="cvq ${wishOf(name) ? 'on' : ''}" data-cvwish title="Add to / remove from your buy list">${wishOf(name) ? '✓ Buy list' : '＋ Buy list'}</button>
+      <button class="cvq ${variantsOf(name).some(v => variantListedAnywhere(v.id)) ? 'on' : ''}" data-cvsell ${ownedOf(name) ? '' : 'disabled'} title="List your copies for sale">${variantsOf(name).some(v => variantListedAnywhere(v.id)) ? '✓ Sell list' : '＋ Sell list'}</button>
+    </div>
     <div class="cv-deckassign" id="cvDeckAssign">${deckAssignHtml(name)}</div>
     <div class="cv-prices" id="cvPrices">${pricesHtml(name)}</div>
     <div class="cv-arts" id="cvArts">
@@ -2099,6 +2112,29 @@ function openCardView(name) {
   $('#cardModal').hidden = false;
   if (!meta.notFound) loadCheapest(name, meta);
   renderSwaps(name);
+}
+// quick transaction + list actions from the card view
+function cvBought(name) {
+  pushUndo(`buy of 1× ${name}`);
+  addVariant(name, { qty: 1 });
+  logEvent('bought', name, 1, priceOf(name));
+  save(); render(); openCardView(name);
+  toast(`Bought 1× ${name} — added to your collection.`, { undo: true });
+}
+function cvSold(name) {
+  if (ownedOf(name) <= 0) return;
+  pushUndo(`sale of 1× ${name}`);
+  const unit = priceOf(name);
+  setOwned(name, ownedOf(name) - 1);
+  logEvent('sold', name, 1, unit);
+  save(); render(); openCardView(name);
+  toast(`Sold 1× ${name} — removed from your collection.`, { undo: true });
+}
+function cvWishToggle(name) {
+  const on = wishOf(name) > 0;
+  addToWishlist(name, on ? -wishOf(name) : 1);
+  render(); openCardView(name);
+  toast(on ? `Removed ${name} from your buy list.` : `Added ${name} to your buy list.`);
 }
 function closeCardView() { $('#cardModal').hidden = true; cardViewName = null; $('#cardViewImg').removeAttribute('src'); }
 
@@ -2506,7 +2542,7 @@ function addBrowsedToOwned(cardObj) {
   addVariant(n, { qty: 1 });
   logEvent('added', n, 1, priceOf(n));
   save(); render();
-  toast(`Added a copy of ${n} to your vault.`);
+  toast(`Added a copy of ${n} to your collection.`);
 }
 function addBrowsedToWishlist(cardObj) {
   const n = commitBrowsed(cardObj);
@@ -2799,7 +2835,7 @@ function renameSellList(id, name) {
 function deleteSellList(id) {
   const l = state.sellLists.find(x => x.id === id); if (!l) return;
   const n = Object.keys(l.items).length;
-  if (n && !confirm(`Delete the sell list “${l.name}” and unlist its ${n} card${n === 1 ? '' : 's'}? (Your inventory is untouched.)`)) return;
+  if (n && !confirm(`Delete the sell list “${l.name}” and unlist its ${n} card${n === 1 ? '' : 's'}? (Your collection is untouched.)`)) return;
   state.sellLists = state.sellLists.filter(x => x.id !== id);
   if (!state.sellLists.length) state.sellLists.push({ id: uid(), name: 'Sell List', items: {} });
   state.activeSellList = state.sellLists[0].id;
@@ -2915,7 +2951,7 @@ function addMatchesToSell() {
   save(); render();
   toast(n ? `Added ${n} matched cop${n === 1 ? 'y' : 'ies'} to “${sellListName()}”.` : 'Those matches are already in this list.');
 }
-// Quick-sell: I sold the matched copies — remove them from inventory (plain
+// Quick-sell: I sold the matched copies — remove them from collection (plain
 // copies first via setOwned, keeping special printings/foils), then re-match.
 function quickSellMatches() {
   const r = sellMatchResult;
@@ -2923,8 +2959,8 @@ function quickSellMatches() {
   const ta = $('#sellMatchInput');
   if (ta && ta.value.trim() !== (sellMatchOf || '').trim()) { toast('The list changed — click “Match against my collection” again first.'); return; }
   const copies = r.matches.reduce((a, m) => a + Math.min(m.want, ownedOf(m.name)), 0);   // LIVE owned, not the stale match value
-  if (!copies) { toast('Those copies are no longer in your inventory.'); return; }
-  if (!confirm(`Sell ${copies} matched cop${copies === 1 ? 'y' : 'ies'}? They’ll be removed from your inventory.`)) return;
+  if (!copies) { toast('Those copies are no longer in your collection.'); return; }
+  if (!confirm(`Sell ${copies} matched cop${copies === 1 ? 'y' : 'ies'}? They’ll be removed from your collection.`)) return;
   pushUndo('quick-sell');
   let cards = 0, sold = 0;
   const remWant = r.matches.map(m => {
@@ -2938,7 +2974,7 @@ function quickSellMatches() {
   const wanted = [...remWant, ...r.misses.map(x => ({ name: x.name, qty: x.want }))].filter(w => w.qty > 0);
   sellMatchResult = buildMatchResult(wanted);
   save(); render();
-  toast(sold ? `Sold ${sold} cop${sold === 1 ? 'y' : 'ies'} (${cards} card${cards === 1 ? '' : 's'}) — removed from inventory.` : 'Nothing to sell.', { undo: !!sold });
+  toast(sold ? `Sold ${sold} cop${sold === 1 ? 'y' : 'ies'} (${cards} card${cards === 1 ? '' : 's'}) — removed from collection.` : 'Nothing to sell.', { undo: !!sold });
 }
 function renderMatchResults() {
   const r = sellMatchResult; if (!r) return '';
@@ -2950,7 +2986,7 @@ function renderMatchResults() {
   const missRow = m => `<div class="sm-row miss"><span class="sm-name nm" data-name="${esc(m.name)}" title="${esc(m.name)}">${esc(m.name)}</span><span class="sm-qty">want ${m.want}</span><span class="sm-x">not owned</span></div>`;
   return `<div class="sm-summary">You have <b>${r.matches.length}</b> of the <b>${total}</b> requested · ${haveCopies} cop${haveCopies === 1 ? 'y' : 'ies'} · <b>${money(fulfill)}</b> at market</div>
     ${r.matches.length ? `<div class="sm-act">
-      <button class="btn" id="sellMatchSell"><i class="ms ms-counter-gold" aria-hidden="true"></i> Quick-sell · −${haveCopies} from inventory</button>
+      <button class="btn" id="sellMatchSell"><i class="ms ms-counter-gold" aria-hidden="true"></i> Quick-sell · −${haveCopies} from collection</button>
       <button class="btn ghost" id="sellMatchAdd">＋ Add to “${esc(sellListName())}”</button>
       <button class="btn ghost" id="sellMatchCopy">⧉ Copy what you have</button>
     </div>` : ''}
@@ -3011,7 +3047,7 @@ function copyBuyMatchWants() {
   copyText(text).then(ok => toast(ok ? `Copied ${buyMatchResult.wants.length} card${buyMatchResult.wants.length === 1 ? '' : 's'} you want.` : 'Could not access the clipboard.'));
 }
 // Quick-buy: I bought everything I wanted off the seller's list — add those
-// copies straight to inventory, then re-match so the bought cards drop off.
+// copies straight to collection, then re-match so the bought cards drop off.
 function quickBuyMatches() {
   const r = buyMatchResult;
   if (!r || !r.wants.length) { toast('No matched cards to buy.'); return; }
@@ -3031,7 +3067,7 @@ function quickBuyMatches() {
   const offered = [...remOffer, ...r.skip.map(s => ({ name: s.name, qty: s.have }))].filter(o => o.qty > 0);
   buyMatchResult = buildBuyMatchResult(offered);
   save(); render();
-  toast(copies ? `Bought ${copies} cop${copies === 1 ? 'y' : 'ies'} (${cards} card${cards === 1 ? '' : 's'}) — added to inventory.` : 'Nothing to buy.', { undo: !!copies });
+  toast(copies ? `Bought ${copies} cop${copies === 1 ? 'y' : 'ies'} (${cards} card${cards === 1 ? '' : 's'}) — added to collection.` : 'Nothing to buy.', { undo: !!copies });
 }
 function renderBuyMatchResults() {
   const r = buyMatchResult; if (!r) return '';
@@ -3043,7 +3079,7 @@ function renderBuyMatchResults() {
   const skipRow = s => `<div class="sm-row miss"><span class="sm-name nm" data-name="${esc(s.name)}" title="${esc(s.name)}">${esc(s.name)}</span><span class="sm-qty">they have ${s.have}</span><span class="sm-x">don’t need</span></div>`;
   return `<div class="sm-summary">You’d buy <b>${r.wants.length}</b> of the <b>${total}</b> offered · ${buyCopies} cop${buyCopies === 1 ? 'y' : 'ies'} · <b>${money(cost)}</b></div>
     ${r.wants.length ? `<div class="sm-act">
-      <button class="btn" id="buyMatchBuy"><i class="ms ms-counter-shield" aria-hidden="true"></i> Quick-buy · +${buyCopies} to inventory</button>
+      <button class="btn" id="buyMatchBuy"><i class="ms ms-counter-shield" aria-hidden="true"></i> Quick-buy · +${buyCopies} to collection</button>
       <button class="btn ghost" id="buyMatchCopy">⧉ Copy what you want</button>
     </div>` : ''}
     ${r.wants.length ? `<div class="sm-sec">You want · ${r.wants.length}</div><div class="sm-list">${r.wants.map(wantRow).join('')}</div>` : `<div class="sm-empty">Nothing on that list is on your buy list.</div>`}
@@ -3077,7 +3113,7 @@ function sellCompare(sort) {
     default:            return (a, b) => b.sub - a.sub || byName(a, b);   // price-desc
   }
 }
-// "Mark sold" — remove the listed copies from inventory and clear the entry.
+// "Mark sold" — remove the listed copies from collection and clear the entry.
 function markSold(vid) {
   const hit = variantIndex().get(vid);
   if (!hit) { removeVariantFromAllSellLists(vid); save(); render(); return; }
@@ -3088,13 +3124,13 @@ function markSold(vid) {
   removeVariantFromAllSellLists(vid);
   if (hit.v.qty <= 0) removeVariant(hit.name, vid); else save();
   render();
-  toast(`Sold ${qty}× ${hit.name}${hit.v.foil ? ' (foil)' : ''} — removed from inventory.`, { undo: true });
+  toast(`Sold ${qty}× ${hit.name}${hit.v.foil ? ' (foil)' : ''} — removed from collection.`, { undo: true });
 }
 function markAllSold() {
   const rows = sellRows();
   if (!rows.length) return;
   const copies = rows.reduce((a, r) => a + r.qty, 0);
-  if (!confirm(`Mark all ${copies} listed cop${copies === 1 ? 'y' : 'ies'} in “${sellListName()}” as sold? They will be removed from your inventory.`)) return;
+  if (!confirm(`Mark all ${copies} listed cop${copies === 1 ? 'y' : 'ies'} in “${sellListName()}” as sold? They will be removed from your collection.`)) return;
   pushUndo(`“Sold all” of ${copies} cop${copies === 1 ? 'y' : 'ies'}`);
   rows.forEach(r => {
     const v = variantById(r.name, r.vid);
@@ -3142,7 +3178,7 @@ function renderSellList() {
   if (!rows.length) {
     table.innerHTML = q
       ? `<div class="empty-state"><span class="empty-mark"><i class="ms ms-ability-investigate" aria-hidden="true"></i></span><h2>No matches</h2><p>No cards in “${esc(sellListName())}” match “${esc(sellSearch.trim())}”.</p></div>`
-      : `<div class="empty-state"><span class="empty-mark"><i class="ms ms-counter-gold" aria-hidden="true"></i></span><h2>Nothing listed for sale</h2><p>List cards from your Inventory (each card has a “Sell” button), or add everything you’re not using in a deck.</p><button class="btn" data-selladd><i class="ms ms-land btn-ico" aria-hidden="true"></i> Add all unlinked cards</button></div>`;
+      : `<div class="empty-state"><span class="empty-mark"><i class="ms ms-counter-gold" aria-hidden="true"></i></span><h2>Nothing listed for sale</h2><p>List cards from your Collection (each card has a “Sell” button), or add everything you’re not using in a deck.</p><button class="btn" data-selladd><i class="ms ms-land btn-ico" aria-hidden="true"></i> Add all unlinked cards</button></div>`;
     return;
   }
   if (sellMode === 'art') {
@@ -3169,7 +3205,7 @@ function sellRow(r) {
       <button data-sellqty="1" data-vid="${esc(vid)}" ${qty >= v.qty ? 'disabled' : ''} aria-label="List one more">+</button>
     </div>
     <div class="price"><span class="sell-each">${money(unit)} ea</span><br><span class="sell-sub">${money(sub)}</span></div>
-    <button class="sell-sold" data-sold="${esc(vid)}" title="Mark sold &amp; remove from inventory"><i class="ms ms-counter-gold" aria-hidden="true"></i> Sold</button>
+    <button class="sell-sold" data-sold="${esc(vid)}" title="Mark sold &amp; remove from collection"><i class="ms ms-counter-gold" aria-hidden="true"></i> Sold</button>
     <button class="sell-rm" data-sellrm="${esc(vid)}" title="Remove from sell list" aria-label="Remove from sell list">✕</button>
   </div>`;
 }
@@ -3186,7 +3222,7 @@ function sellArtTile(r) {
         <span class="n">${qty}<span class="req">/${v.qty}</span></span>
         <button data-sellqty="1" data-vid="${esc(vid)}" ${qty >= v.qty ? 'disabled' : ''} aria-label="List one more">+</button>
       </div>
-      <button class="sell-sold" data-sold="${esc(vid)}" title="Mark sold &amp; remove from inventory"><i class="ms ms-counter-gold" aria-hidden="true"></i></button>
+      <button class="sell-sold" data-sold="${esc(vid)}" title="Mark sold &amp; remove from collection"><i class="ms ms-counter-gold" aria-hidden="true"></i></button>
       <button class="sell-rm" data-sellrm="${esc(vid)}" title="Remove from sell list" aria-label="Remove">✕</button>
     </div>
   </div>`;
@@ -3359,6 +3395,11 @@ $('#cardViewMeta').addEventListener('input', e => {
   if (e.target.id === 'cvArtSearch') renderPrintings(cardViewName, e.target.value.trim());
 });
 $('#cardViewMeta').addEventListener('click', e => {
+  if (e.target.closest('[data-cvbought]')) { cvBought(cardViewName); return; }
+  if (e.target.closest('[data-cvsold]')) { cvSold(cardViewName); return; }
+  if (e.target.closest('[data-cvwish]')) { cvWishToggle(cardViewName); return; }
+  const cvSellBtn = e.target.closest('[data-cvsell]');
+  if (cvSellBtn) { openSellPicker({ name: cardViewName, vid: null }, cvSellBtn); return; }
   const editBtn = e.target.closest('#cvEditBtn');
   if (editBtn) {
     const box = $('#cvVariants');
@@ -3687,14 +3728,12 @@ $('#buyDeckFilter').addEventListener('click', e => {
   if (!chip) return;
   if (chip.dataset.deck === 'all') buyDeckSel = [];
   else toggleBuyDeck(chip.dataset.deck);
-  buyExclude = new Set();   // card selection resets when the deck filter changes
   renderBuyList();
 });
 $('#buyTable').addEventListener('change', e => {
   const pick = e.target.closest('.buy-pick');
   if (!pick) return;
-  const k = key(pick.dataset.pick);
-  if (pick.checked) buyExclude.delete(k); else buyExclude.add(k);
+  setBuyExclude(key(pick.dataset.pick), !pick.checked);   // persists across reloads, filters & devices
   renderBuyList();
 });
 const buySearchEl = $('#buySearch'); if (buySearchEl) buySearchEl.addEventListener('input', e => { buySearch = e.target.value; renderBuyList(); });
@@ -4619,7 +4658,7 @@ function onbStepHtml(key) {
           <li>In <b>ManaBox</b>, go to your <b>Collection</b>.</li>
           <li>Tap the <b>⋯ (three dots)</b> at the top right.</li>
           <li>Tap <b>Export</b> — the CSV downloads to your device.</li>
-          <li>Tap <b>Choose CSV file</b> below and pick it — it goes into your <b>inventory</b>.</li>
+          <li>Tap <b>Choose CSV file</b> below and pick it — it goes into your <b>collection</b>.</li>
         </ol>
         <div class="onb-importrow"><button class="btn gold" id="onbCsvBtn"><i class="ms ms-loyalty-up btn-ico" aria-hidden="true"></i> Choose CSV file…</button><input type="file" id="onbCsvInput" accept=".csv,text/csv" hidden /></div>
         <div class="modal-status" id="onbImportStatus"></div>
@@ -4628,13 +4667,13 @@ function onbStepHtml(key) {
         <ol class="onb-steps">
           <li>In <b>Moxfield</b> (or Archidekt), open your deck or collection.</li>
           <li>Click <b>More → Export</b>, then <b>Copy</b> the list.</li>
-          <li>Paste it below and import — every card is added to your <b>inventory</b> as owned.</li>
+          <li>Paste it below and import — every card is added to your <b>collection</b> as owned.</li>
         </ol>
         <textarea id="onbPasteInput" class="sm-input" placeholder="1 Sol Ring&#10;1 Lightning Bolt&#10;1 Counterspell&#10;…" spellcheck="false"></textarea>
-        <div class="onb-importrow"><button class="btn gold" id="onbPasteBtn"><i class="ms ms-multiple btn-ico" aria-hidden="true"></i> Add to my inventory</button></div>
+        <div class="onb-importrow"><button class="btn gold" id="onbPasteBtn"><i class="ms ms-multiple btn-ico" aria-hidden="true"></i> Add to my collection</button></div>
         <div class="modal-status" id="onbImportStatus"></div>
         <button class="onb-rerun" id="onbImportBack">← back to import options</button>`;
-      return `<h2 class="onb-q">Get your collection in</h2><p class="onb-sub">Add it now, or skip and add cards anytime later. Imports go straight into your <b>inventory</b> — decks come later.</p>
+      return `<h2 class="onb-q">Get your collection in</h2><p class="onb-sub">Add it now, or skip and add cards anytime later. Imports go straight into your <b>collection</b> — decks come later.</p>
         <div class="onb-grid">${onbCard('Scan with ManaBox', 'Import a ManaBox CSV export', false, `data-onb-import="csv"`)}${onbCard('Paste a list', 'From Moxfield, Archidekt, etc.', false, `data-onb-import="paste"`)}${onbCard('I’ll add cards later', 'Jump straight into the app', false, `data-onb-import="later"`)}</div>`;
     case 'done': return `<div class="onb-hero"><div class="onb-mark done"><i class="ms ms-counter-shield" aria-hidden="true"></i></div>
       <h2>You’re all set! 🎉</h2><p>Your collection syncs to your account automatically. Welcome to The Vault.</p></div>`;
@@ -4695,7 +4734,7 @@ async function onbImportPaste() {
 }
 function onbImportDone(copies, missing) {
   const st = $('#onbImportStatus');
-  if (st) st.textContent = `Added ${copies} card${copies === 1 ? '' : 's'} to your inventory${missing ? ` · ${missing} not found` : ''} ✓`;
+  if (st) st.textContent = `Added ${copies} card${copies === 1 ? '' : 's'} to your collection${missing ? ` · ${missing} not found` : ''} ✓`;
   setTimeout(() => { onboardImportView = 'choose'; onboardStep = ONB_STEPS.length - 1; renderOnboard(); }, 1100);
 }
 async function finishOnboarding() {
