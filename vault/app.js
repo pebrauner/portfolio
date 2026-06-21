@@ -935,21 +935,27 @@ function renderHome() {
   renderHomeBg();
   renderHomeResults();
 }
-const HOME_SHOWCASE = ['Sol Ring', 'Lightning Bolt', 'Counterspell', 'Llanowar Elves', 'Cyclonic Rift', 'Smothering Tithe', 'Rhystic Study', 'Birds of Paradise', 'Brainstorm', 'Cultivate', 'Sword of Fire and Ice', 'Wrath of God'];
-const showcaseArt = (name) => `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(name)}&format=image&version=art_crop`;
+const HOME_SHOWCASE = ['Sol Ring', 'Lightning Bolt', 'Counterspell', 'Llanowar Elves', 'Cyclonic Rift', 'Smothering Tithe', 'Rhystic Study', 'Birds of Paradise', 'Brainstorm', 'Cultivate', 'Sword of Fire and Ice', 'Wrath of God', 'Swords to Plowshares', 'Demonic Tutor', 'Solemn Simulacrum', 'Eternal Witness', 'Aura Shards', 'Mana Crypt'];
+const showcaseImg = (name) => `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(name)}&format=image&version=normal`;   // full card
 // only accept a clean https url with no chars that could break out of the CSS url('...') string
 const safeArt = (u) => /^https:\/\/[^'"()\s]+$/.test(String(u || '')) ? String(u) : '';
 function renderHomeBg() {
   const bg = $('#homeBg'); if (!bg) return;
-  // your richest cards once you own a few; otherwise a curated showcase so the landing always looks alive
-  let arts = allCardNames().filter(n => ownedOf(n) > 0).map(n => ({ art: safeArt(displayArt(n)), v: unitPrice(n) }))
-    .filter(c => c.art).sort((a, b) => b.v - a.v).slice(0, 12).map(c => c.art);
-  if (arts.length < 6) arts = HOME_SHOWCASE.map(showcaseArt);
-  const sig = arts.join('|');
-  if (bg.dataset.sig === sig) return;   // don't rebuild (and restart the drift) every render
+  // your richest cards (full image) once you own a few; otherwise a curated showcase so the landing always looks alive
+  let imgs = allCardNames().filter(n => ownedOf(n) > 0).map(n => ({ img: safeArt(displayImage(n)), v: unitPrice(n) }))
+    .filter(c => c.img).sort((a, b) => b.v - a.v).slice(0, 24).map(c => c.img);
+  if (imgs.length < 8) imgs = HOME_SHOWCASE.map(showcaseImg);
+  const sig = imgs.join('|');
+  if (bg.dataset.sig === sig) return;   // don't rebuild (and restart the roll) every render
   bg.dataset.sig = sig;
-  const tiles = arts.concat(arts).map(a => `<div class="home-card" style="background-image:url('${a}')"></div>`).join('');
-  bg.innerHTML = `<div class="home-drift">${tiles}</div>`;
+  const COLS = 6, PER = 6;
+  let html = '';
+  for (let c = 0; c < COLS; c++) {
+    let set = '';
+    for (let i = 0; i < PER; i++) set += `<div class="home-card" style="background-image:url('${imgs[(c * 2 + i) % imgs.length]}')"></div>`;
+    html += `<div class="home-col"><div class="home-col-track" style="animation-duration:${34 + (c % 3) * 9}s">${set}${set}</div></div>`;   // doubled set = seamless loop
+  }
+  bg.innerHTML = `<div class="home-cols">${html}</div>`;
 }
 function homeResults(q) {
   q = q.trim().toLowerCase();
