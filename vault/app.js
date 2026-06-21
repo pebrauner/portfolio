@@ -97,6 +97,12 @@ function migrate(s) {
   s.sellLists.forEach(l => { l.items ||= {}; if (!l.name) l.name = 'Sell List'; });
   if (!s.activeSellList || !s.sellLists.some(l => l.id === s.activeSellList)) s.activeSellList = s.sellLists[0].id;
   delete s.sellList;
+  // Buy binders: optional MANUAL "buy folders" the user fills by hand (urgency / need-now / future),
+  // shown alongside the auto "Deck needs" list. items: { [nameKey]: { n: displayName, q: qty } }.
+  s.buyBinders = Array.isArray(s.buyBinders) ? s.buyBinders : [];
+  s.buyBinders.forEach(b => { b.items ||= {}; if (!b.id) b.id = uid(); if (!b.name) b.name = 'Binder'; });
+  if (s.activeBuyBinder && !s.buyBinders.some(b => b.id === s.activeBuyBinder)) s.activeBuyBinder = null;
+  if (!s.activeBuyBinder) s.activeBuyBinder = null;   // null = the auto "Deck needs" list
   if (!s.variants) {
     s.variants = {};
     if (s.owned) for (const [k, n] of Object.entries(s.owned)) {
@@ -405,6 +411,7 @@ function snapshotState() {
   return JSON.stringify({
     variants: state.variants, sellLists: state.sellLists, activeSellList: state.activeSellList,
     wishlist: state.wishlist, decks: state.decks, history: state.history,
+    buyBinders: state.buyBinders, activeBuyBinder: state.activeBuyBinder,
   });
 }
 function pushUndo(label) {
@@ -419,6 +426,8 @@ function undo() {
   const s = JSON.parse(u.snap);
   state.variants = s.variants; state.sellLists = s.sellLists; state.activeSellList = s.activeSellList;
   state.wishlist = s.wishlist; state.decks = s.decks; state.history = s.history;
+  if (s.buyBinders) state.buyBinders = s.buyBinders;   // older snapshots predate binders → leave current
+  if ('activeBuyBinder' in s) state.activeBuyBinder = s.activeBuyBinder;
   currentDeckId = null;   // a restored/removed deck may no longer match the open detail view
   save(); render();
   toast(`Undone — ${u.label}.`);
@@ -1875,6 +1884,10 @@ function colorGroupLabel(n) {
 }
 
 function renderBuyList() {
+  renderBuyFolders();
+  const binder = activeBinder();
+  toggleBuyHeaderForMode(!!binder);
+  if (binder) { renderBinder(binder); return; }   // a manual binder is open — skip the auto deck-needs list
   renderBuyDeckFilter();
   const matchBtn = $('#buyMatchBtn'); if (matchBtn) matchBtn.classList.toggle('on', buyMatchOpen);
   if (buyMatchOpen) {
@@ -1943,6 +1956,7 @@ function buyRow({ n, need, sub, included, used, wished }) {
     <div class="cname"><span class="row-marks">${typeIcon(n)}${rarityIcon(meta.rarity)}</span><span class="qty">${need}×</span><span class="nm" data-name="${esc(n)}" data-uri="${esc(meta.uri || '')}">${esc(n)}</span>${manaSymbols(meta.mana_cost)}</div>
     <span class="where">${where}</span>
     <div class="price"><span class="need">${money(sub)}</span></div>
+    ${state.buyBinders.length ? `<button class="to-binder" data-tobinder="${esc(n)}" title="File into a buy binder" aria-label="Add to a buy binder"><i class="ms ms-counter-lore" aria-hidden="true"></i></button>` : ''}
     <button class="buy-got" data-bought="${esc(n)}" title="I bought ${need} — add to my collection"><i class="ms ms-counter-shield" aria-hidden="true"></i> Bought</button>
   </div>`;
 }
@@ -1950,6 +1964,7 @@ function buyArtTile({ n, need, sub, included }) {
   const pick = `<input type="checkbox" class="buy-pick art-pick" data-pick="${esc(n)}" ${included ? 'checked' : ''} title="Include in the exported list" />`;
   return `<div class="art-tile buy ${included ? '' : 'excluded'}">
     ${pick}
+    ${state.buyBinders.length ? `<button class="to-binder tile" data-tobinder="${esc(n)}" title="File into a buy binder" aria-label="Add to a buy binder"><i class="ms ms-counter-lore" aria-hidden="true"></i></button>` : ''}
     <button class="buy-got-tile" data-bought="${esc(n)}" title="I bought ${need} — add to my collection"><i class="ms ms-counter-shield" aria-hidden="true"></i></button>
     <button class="art-open" data-name="${esc(n)}">
       ${artTile(n, need + '×', `<span class="art-val need">${money(sub)}</span>`)}
@@ -2882,11 +2897,12 @@ async function copyText(text) {
 }
 
 async function copyBuyList() {
-  const text = buyListText();
-  if (!text) { toast('Nothing to buy — every deck is complete.'); return; }
+  const binder = activeBinder();
+  const text = binder ? binderRows(binder).map(r => `${r.q} ${r.n}`).join('\n') : buyListText();
+  if (!text) { toast(binder ? `“${binder.name}” is empty.` : 'Nothing to buy — every deck is complete.'); return; }
   const lines = text.split('\n').length;
   toast(await copyText(text)
-    ? `Buy list copied — ${lines} card${lines === 1 ? '' : 's'} ready to send.`
+    ? `${binder ? `“${binder.name}”` : 'Buy list'} copied — ${lines} card${lines === 1 ? '' : 's'} ready to send.`
     : 'Could not access the clipboard.');
 }
 
@@ -3061,6 +3077,202 @@ function renderSellPicker() {
     + `<button class="sp-item sp-new" data-sp-new><span class="sp-check">+</span><span class="sp-name">New list…</span></button>`;
 }
 function closeSellPicker() { const m = $('#sellPickMenu'); if (m) m.hidden = true; sellPickTarget = null; }
+
+/* =====================================================================
+   BUY BINDERS — optional MANUAL buy folders alongside the auto "Deck needs" list
+   state.buyBinders = [{ id, name, items: { [nameKey]: { n: displayName, q: qty } } }]
+   state.activeBuyBinder = id of the binder being viewed | null = the auto deck-needs list
+   ===================================================================== */
+function activeBinder() { return state.activeBuyBinder ? (state.buyBinders.find(b => b.id === state.activeBuyBinder) || null) : null; }
+function binderById(id) { return state.buyBinders.find(b => b.id === id) || null; }
+function binderCount(b) { return b ? Object.keys(b.items).length : 0; }
+function cardInBinder(name, binderId) { const b = binderById(binderId); return !!(b && b.items[key(name)]); }
+function binderItemQty(name, binderId) { const b = binderById(binderId); const it = b && b.items[key(name)]; return it ? it.q : 0; }
+
+function setActiveBuyBinder(id) { if (id) buyMatchOpen = false; state.activeBuyBinder = id || null; save(); render(); }
+function createBuyBinder(name) {
+  const b = { id: uid(), name: (name || '').trim() || `Binder ${state.buyBinders.length + 1}`, items: {} };
+  state.buyBinders.push(b); state.activeBuyBinder = b.id; save(); render();
+  toast(`Created buy binder “${b.name}”.`);
+  return b;
+}
+function renameBuyBinder(id, name) {
+  const b = binderById(id); if (!b) return;
+  const nm = (name || '').trim(); if (!nm) return;
+  b.name = nm; save(); render();
+}
+function deleteBuyBinder(id) {
+  const b = binderById(id); if (!b) return;
+  const n = binderCount(b);
+  if (n && !confirm(`Delete the buy binder “${b.name}” and its ${n} card${n === 1 ? '' : 's'}? (Your collection and the auto buy list are untouched.)`)) return;
+  state.buyBinders = state.buyBinders.filter(x => x.id !== id);
+  if (state.activeBuyBinder === id) state.activeBuyBinder = null;
+  save(); render();
+  toast(`Deleted buy binder “${b.name}”.`);
+}
+// add / set / remove a card in a specific binder
+function addCardToBinder(name, binderId, qty) {
+  const b = binderById(binderId); if (!b) return false;
+  const k = key(name), meta = card(name);
+  const nm = (meta && !meta.notFound && meta.name) || name;
+  const cur = b.items[k];
+  b.items[k] = { n: nm, q: Math.max(1, (cur ? cur.q : 0) + (qty || 1)) };
+  save(); return true;
+}
+function setBinderQty(name, binderId, q) {
+  const b = binderById(binderId); if (!b) return;
+  const k = key(name);
+  if (q <= 0) delete b.items[k];
+  else if (b.items[k]) b.items[k].q = q;
+  save(); render();
+}
+function removeCardFromBinder(name, binderId) { const b = binderById(binderId); if (!b) return; delete b.items[key(name)]; save(); render(); }
+function toggleCardInBinder(name, binderId) {
+  const b = binderById(binderId); if (!b) return;
+  if (b.items[key(name)]) { delete b.items[key(name)]; save(); render(); toast(`Removed ${name} from “${b.name}”.`); }
+  else { addCardToBinder(name, binderId, 1); render(); toast(`Added ${name} to “${b.name}”.`); }
+}
+// resolve a typed name (fetching card data if we've never seen it) and add it to a binder
+async function addNameToBinder(name, binderId) {
+  name = (name || '').trim(); if (!name) return;
+  const b = binderById(binderId); if (!b) { toast('Open a binder first.'); return; }
+  let meta = card(name);
+  if (!meta || meta.notFound) {
+    const status = $('#binderAddStatus'); if (status) status.textContent = 'Looking up…';
+    try {
+      const idx = await fetchCardData([{ name }]);
+      const c = idx[key(name)] || idx[key(frontFace(name))];
+      if (c) { state.cards[key(c.name)] = distill(c); name = c.name; }
+      else { if (status) status.textContent = `Couldn’t find “${name}”.`; return; }
+    } catch (e) { if (status) status.textContent = 'Lookup failed — check your connection.'; return; }
+  }
+  addCardToBinder(name, binderId, 1);
+  render();
+  const inp = $('#binderAddInput'); if (inp) { inp.value = ''; inp.focus(); }
+  const status = $('#binderAddStatus'); if (status) status.textContent = '';
+  toast(`Added ${name} to “${b.name}”.`);
+}
+// "Bought" from a binder — acquire the wanted copies into the collection, then drop them from the binder.
+function boughtFromBinder(name, binderId) {
+  const b = binderById(binderId); if (!b) return;
+  const it = b.items[key(name)]; if (!it) return;
+  const q = it.q || 1;
+  pushUndo(`buy of ${q}× ${name}`);
+  addVariant(name, { qty: q });
+  logEvent('bought', name, q, priceOf(name));
+  delete b.items[key(name)];
+  save(); render();
+  toast(`Bought ${q}× ${name} — added to your collection.`, { undo: true });
+}
+// sorted rows for the active binder (reuses buyCompare's name comparator vocabulary)
+function binderRows(b) {
+  const names = Object.keys(b.items).map(k => b.items[k].n);
+  const query = buySearch.trim().toLowerCase();
+  let list = query ? names.filter(n => n.toLowerCase().includes(query)) : names;
+  const qtyOf = (n) => (b.items[key(n)] ? b.items[key(n)].q : 1);
+  const byName = (a, c) => a.localeCompare(c);
+  // price sorts must use the binder's own line cost (qty × unit), not the deck-needs comparator (which is 0 here)
+  if (buySort === 'price-desc') list.sort((a, c) => qtyOf(c) * priceOf(c) - qtyOf(a) * priceOf(a) || byName(a, c));
+  else if (buySort === 'price-asc') list.sort((a, c) => qtyOf(a) * priceOf(a) - qtyOf(c) * priceOf(c) || byName(a, c));
+  else list.sort(buyCompare(buySort, []));   // name/rarity/colour/type/set read card() metadata directly — fine
+  return list.map(n => ({ n, q: qtyOf(n) }));
+}
+
+function renderBuyFolders() {
+  const wrap = $('#buyFolders'); if (!wrap) return;
+  const activeId = state.activeBuyBinder;
+  const needsCount = (() => { try { return allCardNames().filter(n => requiredFor(n, state.decks) > ownedOf(n)).length; } catch (e) { return 0; } })();
+  let html = `<button class="sell-folder${!activeId ? ' on' : ''}" data-buyfolder="auto"><i class="ms ms-counter-lore" aria-hidden="true"></i> Deck needs${needsCount ? ` <span class="sf-count">${needsCount}</span>` : ''}</button>`;
+  html += state.buyBinders.map(b => {
+    const on = b.id === activeId, n = binderCount(b);
+    return `<span class="sell-folder-wrap${on ? ' on' : ''}">
+      <button class="sell-folder${on ? ' on' : ''}" data-buyfolder="${b.id}"><i class="ms ms-token" aria-hidden="true"></i> ${esc(b.name)}${n ? ` <span class="sf-count">${n}</span>` : ''}</button>
+      ${on ? `<button class="sf-icon" data-buyfolder-rename="${b.id}" title="Rename this binder" aria-label="Rename"><i class="ms ms-artist-nib" aria-hidden="true"></i></button><button class="sf-icon" data-buyfolder-del="${b.id}" title="Delete this binder" aria-label="Delete">✕</button>` : ''}
+    </span>`;
+  }).join('');
+  html += `<button class="sell-folder add" data-buyfolder-new title="Create a buy binder (e.g. Need now / Soon / Someday)">+ New binder</button>`;
+  wrap.innerHTML = html;
+}
+
+// hide the auto-list-only header controls + deck filter when viewing a manual binder
+function toggleBuyHeaderForMode(isBinder) {
+  [['#buyDeckFilter', isBinder], ['#buyMatchBtn', isBinder], ['#exportPdfBtn', isBinder], ['#buyShareBtn', isBinder]]
+    .forEach(([sel, hide]) => { const el = $(sel); if (el) el.hidden = hide; });
+}
+
+function renderBinder(b) {
+  $('#buyDeckFilter').hidden = true;
+  const rows = binderRows(b);
+  const total = rows.reduce((a, r) => a + r.q * priceOf(r.n), 0);
+  const copies = rows.reduce((a, r) => a + r.q, 0);
+  const se = $('#buySearch'); if (se && se.value !== buySearch) se.value = buySearch;
+  $('#buyListSub').textContent = rows.length
+    ? `${copies} card${copies === 1 ? '' : 's'} in “${b.name}” · ${money(total)}${buySearch.trim() ? ` · matching “${buySearch.trim()}”` : ''}`
+    : (buySearch.trim() ? `No cards in “${b.name}” match “${buySearch.trim()}”.` : `“${b.name}” is empty — add cards below.`);
+
+  const table = $('#buyTable');
+  table.classList.remove('gallery');   // binder lays out its own add-bar + grid wrapper, so the table stays a plain block
+  table.style.setProperty('--tile', buyTile + 'px');
+  const buySizeWrap = $('#buySizeWrap');
+  if (buySizeWrap) { buySizeWrap.hidden = buyMode !== 'art'; const r = $('#buySizeRange'); if (r) r.value = buyTile; }
+
+  const addBar = `<div class="binder-add">
+    <i class="ms ms-counter-lore binder-add-ic" aria-hidden="true"></i>
+    <input type="text" id="binderAddInput" class="binder-add-input" placeholder="Add a card by name — type it and press Enter…" autocomplete="off" />
+    <button class="btn gold sm" id="binderAddBtn">Add</button>
+    <span class="binder-add-status" id="binderAddStatus"></span>
+  </div>`;
+
+  if (!rows.length) {
+    table.innerHTML = addBar + `<div class="empty-state" style="padding:40px 20px"><span class="empty-mark"><i class="ms ms-token" aria-hidden="true"></i></span><h2>${esc(b.name)} is empty</h2><p>Add cards you plan to buy — by name above, or with the <i class="ms ms-counter-lore" aria-hidden="true"></i> button on any card in <b>Deck needs</b>.</p></div>`;
+    return;
+  }
+  table.innerHTML = addBar + (buyMode === 'art'
+    ? `<div class="binder-gallery">${rows.map(r => binderArtTile(r, b.id)).join('')}</div>`
+    : rows.map(r => binderRow(r, b.id)).join(''));
+}
+function binderRow({ n, q }, binderId) {
+  const meta = card(n);
+  return `<div class="card-row missing binder-row">
+    <div class="cname"><span class="row-marks">${typeIcon(n)}${rarityIcon(meta.rarity)}</span>
+      <span class="bd-step"><button data-binderstep="-1" data-bname="${esc(n)}" aria-label="One fewer">−</button><b>${q}×</b><button data-binderstep="1" data-bname="${esc(n)}" aria-label="One more">+</button></span>
+      <span class="nm" data-name="${esc(n)}" data-uri="${esc(meta.uri || '')}">${esc(n)}</span>${manaSymbols(meta.mana_cost)}</div>
+    <div class="price"><span class="need">${money(q * priceOf(n))}</span></div>
+    <button class="buy-got" data-binderbought="${esc(n)}" title="I bought ${q} — add to my collection"><i class="ms ms-counter-shield" aria-hidden="true"></i> Bought</button>
+    <button class="bd-x" data-binderremove="${esc(n)}" title="Remove from this binder" aria-label="Remove">✕</button>
+  </div>`;
+}
+function binderArtTile({ n, q }, binderId) {
+  return `<div class="art-tile buy binder-tile">
+    <button class="bd-x tile" data-binderremove="${esc(n)}" title="Remove from this binder" aria-label="Remove">✕</button>
+    <button class="buy-got-tile" data-binderbought="${esc(n)}" title="I bought ${q} — add to my collection"><i class="ms ms-counter-shield" aria-hidden="true"></i></button>
+    <button class="art-open" data-name="${esc(n)}">
+      ${artTile(n, q + '×', `<span class="art-val need">${money(q * priceOf(n))}</span>`)}
+    </button>
+  </div>`;
+}
+
+/* buy-binder picker — choose which binder(s) a card goes in (from the auto buy list / card view) */
+let buyPickName = null;
+function openBuyPicker(name, anchorEl) {
+  if (!state.buyBinders.length) { const b = createBuyBinder('Need now'); addCardToBinder(name, b.id, 1); render(); toast(`Added ${name} to “${b.name}”.`); return; }
+  buyPickName = name;
+  const menu = $('#buyPickMenu'); if (!menu) return;
+  renderBuyPicker();
+  menu.hidden = false;
+  const r = anchorEl.getBoundingClientRect();
+  const left = Math.max(8, Math.min(r.left, window.innerWidth - menu.offsetWidth - 8));
+  let top = r.bottom + 6;
+  if (top + menu.offsetHeight > window.innerHeight - 8) top = Math.max(8, r.top - menu.offsetHeight - 6);
+  menu.style.left = left + 'px'; menu.style.top = top + 'px';
+}
+function renderBuyPicker() {
+  const menu = $('#buyPickMenu'); if (!menu || !buyPickName) return;
+  menu.innerHTML = `<div class="sp-head">Add “${esc(buyPickName)}” to…</div>`
+    + state.buyBinders.map(b => `<button class="sp-item${cardInBinder(buyPickName, b.id) ? ' on' : ''}" data-bp-binder="${b.id}"><span class="sp-check">${cardInBinder(buyPickName, b.id) ? '✓' : ''}</span><span class="sp-name">${esc(b.name)}</span></button>`).join('')
+    + `<button class="sp-item sp-new" data-bp-new><span class="sp-check">+</span><span class="sp-name">New binder…</span></button>`;
+}
+function closeBuyPicker() { const m = $('#buyPickMenu'); if (m) m.hidden = true; buyPickName = null; }
 
 /* ---------- match a pasted wants-list against your collection ---------- */
 // Build the {matches, misses} report from a list of {name, qty} (names already canonical).
@@ -3807,6 +4019,40 @@ document.addEventListener('pointerdown', e => {
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSellPicker(); });
 
+/* ---------- Buy binder events ---------- */
+const buyFolders = $('#buyFolders');
+if (buyFolders) buyFolders.addEventListener('click', e => {
+  const ren = e.target.closest('[data-buyfolder-rename]');
+  if (ren) { const b = binderById(ren.dataset.buyfolderRename); const nm = prompt('Rename buy binder:', b ? b.name : ''); if (nm != null) renameBuyBinder(ren.dataset.buyfolderRename, nm); return; }
+  const del = e.target.closest('[data-buyfolder-del]');
+  if (del) { deleteBuyBinder(del.dataset.buyfolderDel); return; }
+  if (e.target.closest('[data-buyfolder-new]')) { const nm = prompt('Name this buy binder (e.g. Need now, Soon, Someday):', `Binder ${state.buyBinders.length + 1}`); if (nm != null) createBuyBinder(nm); return; }
+  const f = e.target.closest('[data-buyfolder]');
+  if (f) { setActiveBuyBinder(f.dataset.buyfolder === 'auto' ? null : f.dataset.buyfolder); return; }
+});
+const buyPickMenu = $('#buyPickMenu');
+if (buyPickMenu) buyPickMenu.addEventListener('click', e => {
+  if (!buyPickName) return;
+  const item = e.target.closest('[data-bp-binder]');
+  if (item) { toggleCardInBinder(buyPickName, item.dataset.bpBinder); renderBuyPicker(); return; }
+  if (e.target.closest('[data-bp-new]')) {
+    const nm = prompt('Name this buy binder (e.g. Need now, Soon, Someday):', `Binder ${state.buyBinders.length + 1}`);
+    if (nm == null) return;
+    const b = createBuyBinder(nm);
+    addCardToBinder(buyPickName, b.id, 1); render();
+    renderBuyPicker();
+  }
+});
+document.addEventListener('pointerdown', e => {
+  const m = $('#buyPickMenu');
+  if (m && !m.hidden && !e.target.closest('#buyPickMenu, [data-tobinder]')) closeBuyPicker();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeBuyPicker(); });
+const buyTableEl = $('#buyTable');
+if (buyTableEl) buyTableEl.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.id === 'binderAddInput') { e.preventDefault(); addNameToBinder(e.target.value, state.activeBuyBinder); }
+});
+
 /* ---------- Browse events ---------- */
 const browseDebounced = (() => { let t; return q => { clearTimeout(t); t = setTimeout(() => browseSearch(q, { fresh: true }), 350); }; })();
 $('#browseSearch').addEventListener('input', e => {
@@ -3974,6 +4220,16 @@ document.addEventListener('click', e => {
   const sellRmBtn = e.target.closest('[data-sellrm]');
   if (sellRmBtn) { removeFromSell(sellRmBtn.dataset.sellrm); return; }
   if (e.target.closest('[data-selladd]')) { addUnlinkedToSell(); return; }
+  // ----- buy binders (file a card into a binder; act on a card inside a binder) -----
+  const toBinder = e.target.closest('[data-tobinder]');
+  if (toBinder) { openBuyPicker(toBinder.dataset.tobinder, toBinder); return; }
+  const binderBought = e.target.closest('[data-binderbought]');
+  if (binderBought) { boughtFromBinder(binderBought.dataset.binderbought, state.activeBuyBinder); return; }
+  const binderRm = e.target.closest('[data-binderremove]');
+  if (binderRm) { removeCardFromBinder(binderRm.dataset.binderremove, state.activeBuyBinder); return; }
+  const binderStep = e.target.closest('[data-binderstep]');
+  if (binderStep) { const nm = binderStep.dataset.bname; setBinderQty(nm, state.activeBuyBinder, Math.max(1, binderItemQty(nm, state.activeBuyBinder) + parseInt(binderStep.dataset.binderstep, 10))); return; }   // floor at 1 — only the ✕ removes
+  if (e.target.closest('#binderAddBtn')) { const inp = $('#binderAddInput'); if (inp) addNameToBinder(inp.value, state.activeBuyBinder); return; }
   const toggle = e.target.closest('[data-toggle]');
   if (toggle) {
     const name = toggle.dataset.toggle;
@@ -4257,6 +4513,7 @@ function pruneForSync() {
   const refs = new Set(Object.keys(state.variants || {}));
   (state.decks || []).forEach(d => (d.cards || []).forEach(c => refs.add(key(c.name))));
   Object.keys(state.wishlist || {}).forEach(k => refs.add(k));
+  (state.buyBinders || []).forEach(b => Object.keys(b.items || {}).forEach(k => refs.add(k)));   // keep metadata for binder-only "want to buy" cards across devices
   const cards = {};
   for (const k of Object.keys(state.cards || {})) if (refs.has(k)) cards[k] = state.cards[k];
   return { ...state, cards };
