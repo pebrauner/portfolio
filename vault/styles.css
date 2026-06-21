@@ -1308,6 +1308,25 @@ html[data-theme="ember"] .topbar { background: linear-gradient(180deg, rgba(31,1
 .share-signin p { color: var(--muted); font-size: 13px; margin-bottom: 16px; }
 .pv-shares { display: flex; flex-direction: column; }
 
+/* ============ QR codes for share links ============ */
+.btn.sm { padding: 7px 12px; font-size: 12px; }
+/* inline QR inside the "Link ready" result block */
+.share-qr { display: flex; gap: 14px; align-items: center; margin-top: 14px; padding-top: 13px; border-top: 1px solid var(--edge-soft); }
+.share-qr-code { flex: 0 0 auto; width: 104px; height: 104px; padding: 7px; border-radius: 12px; background: var(--qr-light, #f7f1e3); border: 1px solid var(--brass); box-shadow: 0 4px 14px rgba(0,0,0,.4); }
+.share-qr-side { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.share-qr-cap { font-size: 12px; color: var(--muted); line-height: 1.4; }
+.qr-svg { display: block; width: 100%; height: 100%; }
+.qr-fail { font-size: 11px; color: var(--muted); display: grid; place-items: center; width: 100%; height: 100%; text-align: center; }
+/* dedicated QR modal (opens above the share modal / over the profile view) */
+.qr-scrim { z-index: 60; }
+.qr-lead { font-size: 13px; color: var(--muted); line-height: 1.45; margin-bottom: 14px; }
+.qr-lead b { color: var(--parch); }
+.qr-frame { width: 232px; max-width: 78%; aspect-ratio: 1 / 1; margin: 0 auto 16px; padding: 14px; border-radius: 16px; background: var(--qr-light, #f7f1e3); border: 1px solid var(--brass); box-shadow: 0 10px 30px -8px rgba(0,0,0,.6); }
+.qr-url { margin-bottom: 13px; }
+.qr-url input { width: 100%; font-family: var(--mono); font-size: 12px; background: var(--ink); border: 1px solid var(--edge); border-radius: 8px; color: var(--parch); padding: 9px 10px; }
+.qr-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.qr-actions .btn { text-decoration: none; }
+
 /* ============ onboarding wizard ============ */
 .onboard-scrim { position: fixed; inset: 0; z-index: 80; background: var(--ink); background: radial-gradient(120% 90% at 50% 0%, var(--panel-2), var(--ink)); display: flex; align-items: center; justify-content: center; padding: 24px; }
 .onboard-scrim[hidden] { display: none; }

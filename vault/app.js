@@ -3997,6 +3997,7 @@ document.addEventListener('change', e => {
 
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
+  const qm = $('#qrModal'); if (qm && !qm.hidden) { closeQr(); return; }   // QR sits on top of the share modal — close it first
   if (!$('#cardModal').hidden) closeCardView();
   if (!$('#importModal').hidden) closeImport();
   if (!$('#addModal').hidden) closeAdd();
@@ -4285,6 +4286,79 @@ function shareBaseUrl() { return vaultPageUrl('share.html'); }
 function shareUrl(code) { return shareBaseUrl() + '?id=' + code; }
 function ownerDisplayName() { return (authProfile && (authProfile.display_name || authProfile.username)) || (authUser && (authUser.email || '').split('@')[0]) || 'A player'; }
 
+/* ============ QR codes for share links (qrcode-generator from CDN; degrades to nothing if absent) ============ */
+const QR_DARK = '#17120a';   // near-black module — high contrast on the light tile so phones scan it reliably
+const QR_LIGHT = '#f7f1e3';  // parchment background (the 4-module quiet zone is part of this rect)
+// Build the smallest QR model that fits `text`; error-correction 'M' (15%). Returns null if the lib didn't load.
+function makeQr(text, ec) {
+  if (typeof qrcode !== 'function' || !text) return null;
+  text = String(text);
+  for (let t = 1; t <= 40; t++) {
+    try { const q = qrcode(t, ec || 'M'); q.addData(text); q.make(); return q; }
+    catch (e) { /* code length overflow at this version — try a larger one */ }
+  }
+  return null;
+}
+// Crisp, scalable SVG (dark modules on a light tile, 4-module quiet zone). '' if the lib is missing.
+function qrSvg(text, opts) {
+  opts = opts || {};
+  const qr = makeQr(text, opts.ec);
+  if (!qr) return '';
+  const margin = opts.margin == null ? 4 : opts.margin;
+  const n = qr.getModuleCount(), total = n + margin * 2;
+  let d = '';
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
+    if (qr.isDark(r, c)) d += 'M' + (c + margin) + ' ' + (r + margin) + 'h1v1h-1z';
+  }
+  const sz = opts.size ? ' width="' + opts.size + '" height="' + opts.size + '"' : '';
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + total + ' ' + total + '"' + sz +
+    ' shape-rendering="crispEdges" class="qr-svg" role="img" aria-label="QR code linking to this list">' +
+    '<rect width="' + total + '" height="' + total + '" fill="' + (opts.light || QR_LIGHT) + '"/>' +
+    '<path d="' + d + '" fill="' + (opts.dark || QR_DARK) + '"/></svg>';
+}
+function qrSlug(s) { return (String(s || 'list').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40)) || 'list'; }
+// Rasterise straight to a canvas (no async SVG decode) and save a high-res PNG.
+function downloadQrPng(text, filename) {
+  const qr = makeQr(text, 'M');
+  if (!qr) { toast('Couldn’t generate the QR code — reload the page and try again.'); return; }
+  const n = qr.getModuleCount(), margin = 4, total = n + margin * 2;
+  const scale = Math.max(6, Math.ceil(960 / total));   // ~960px+ square, integer scale → no seams
+  const dim = total * scale;
+  const cv = document.createElement('canvas'); cv.width = dim; cv.height = dim;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = QR_LIGHT; ctx.fillRect(0, 0, dim, dim);
+  ctx.fillStyle = QR_DARK;
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
+    if (qr.isDark(r, c)) ctx.fillRect((c + margin) * scale, (r + margin) * scale, scale, scale);
+  }
+  const name = (filename || 'vault-list') + '-qr.png';
+  const fire = (href, revoke) => { const a = document.createElement('a'); a.href = href; a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { a.remove(); if (revoke) URL.revokeObjectURL(href); }, 1500); };
+  if (cv.toBlob) cv.toBlob(b => { if (!b) { toast('Could not save the QR code.'); return; } fire(URL.createObjectURL(b), true); }, 'image/png');
+  else { try { fire(cv.toDataURL('image/png'), false); } catch (e) { toast('Could not save the QR code.'); } }
+}
+
+let qrModalCode = null;
+function openQrModal(code) { qrModalCode = code; const m = $('#qrModal'); if (m) m.hidden = false; renderQrModal(); }
+function closeQr() { const m = $('#qrModal'); if (m) m.hidden = true; qrModalCode = null; }
+function renderQrModal() {
+  const body = $('#qrBody'); if (!body) return;
+  const code = qrModalCode;
+  const s = myShares.find(x => x.code === code);
+  const url = shareUrl(code);
+  const kindLabel = s ? (s.kind === 'sell' ? 'Sell list' : 'Buy list') : '';
+  const title = (s && s.title) || kindLabel || 'List';
+  const svg = qrSvg(url, { margin: 4 });
+  body.innerHTML =
+    '<p class="qr-lead">Point a phone camera at this code to open <b>' + esc(title) + '</b>' + (kindLabel ? ' · ' + esc(kindLabel) : '') + '.</p>' +
+    '<div class="qr-frame">' + (svg || '<div class="qr-fail">Couldn’t render the code — check your connection and reopen.</div>') + '</div>' +
+    '<div class="qr-url"><input type="text" readonly id="qrUrlInput" value="' + esc(url) + '" /></div>' +
+    '<div class="qr-actions">' +
+      '<button class="btn gold" data-qrdownload="' + esc(code) + '">Download PNG</button>' +
+      '<button class="btn" data-qrcopy="' + esc(code) + '">Copy link</button>' +
+      '<a class="btn" href="' + esc(url) + '" target="_blank" rel="noopener">Open ↗</a>' +
+    '</div>';
+}
+
 // The shared buy list is your FULL buy list across every deck — a pure function of saved state,
 // deliberately independent of the current deck-filter / exclude view (so a "live" link can't silently
 // re-scope itself to whatever filter happens to be active when a background refresh fires).
@@ -4390,11 +4464,19 @@ function renderShareModal() {
   const items = shareItemsFor(kind, folderId);
   const count = items.reduce((a, i) => a + i.qty, 0);
   const existing = myShares.filter(s => s.kind === kind && (kind === 'buy' || s.source === folderId));
+  const qrMarkup = shareLastResult ? qrSvg(shareLastResult.url, { margin: 4 }) : '';   // '' if the QR lib didn't load — then we omit the whole block (no dead button)
   const result = shareLastResult ? `
     <div class="share-result">
       <div class="share-result-h"><i class="ms ms-counter-gold" aria-hidden="true"></i> Link ready${shareLastResult.live ? ' · <b>live</b>' : ''}</div>
       <div class="share-link-row"><input type="text" id="shareLinkInput" readonly value="${esc(shareLastResult.url)}" /><button class="btn gold" id="shareCopyBtn">Copy</button></div>
       <p class="share-note">${shareLastResult.live ? 'This link always shows your current list.' : `A snapshot of your list right now — it won’t change. Expires in ${SHARE_TTL_DAYS} days.`} <a href="${esc(shareLastResult.url)}" target="_blank" rel="noopener">Open preview ↗</a></p>
+      ${qrMarkup ? `<div class="share-qr">
+        <div class="share-qr-code">${qrMarkup}</div>
+        <div class="share-qr-side">
+          <div class="share-qr-cap">Scan to open on a phone — great for trade posts &amp; in person.</div>
+          <button class="btn gold sm" id="shareQrDownload">Download QR</button>
+        </div>
+      </div>` : ''}
     </div>` : '';
   body.innerHTML = `
     <p class="share-lead">Sharing <b>${esc(title)}</b> — ${count} card${count === 1 ? '' : 's'}${items.length ? '' : ' · <span class="share-empty">this list is empty</span>'}.</p>
@@ -4412,6 +4494,7 @@ function shareRowHtml(s) {
     <span class="share-ex-tag ${s.live ? 'live' : ''}">${s.live ? 'LIVE' : 'SNAP'}</span>
     <code class="share-ex-code">${esc(s.code)}</code>
     <span class="share-ex-meta">${esc(s.title || '')} · ${exp}</span>
+    <button class="link-btn" data-shareqr="${esc(s.code)}">QR</button>
     <button class="link-btn" data-sharecopy="${esc(s.code)}">Copy</button>
     <button class="link-btn danger" data-sharerevoke="${esc(s.code)}">Revoke</button>
   </div>`;
@@ -5047,6 +5130,7 @@ if (profileViewEl) {
     if ((m = e.target.closest('[data-pvdeck]'))) { openDeck(m.dataset.pvdeck); return; }
     if ((m = e.target.closest('[data-pvgo]'))) { setView(m.dataset.pvgo); return; }
     if ((m = e.target.closest('[data-pvshare]'))) { openShare(m.dataset.pvshare); return; }
+    if ((m = e.target.closest('[data-shareqr]'))) { openQrModal(m.dataset.shareqr); return; }
     if ((m = e.target.closest('[data-sharecopy]'))) { copyText(shareUrl(m.dataset.sharecopy)).then(ok => toast(ok ? 'Link copied ✓' : 'Copy failed')); return; }
     if ((m = e.target.closest('[data-sharerevoke]'))) { const code = m.dataset.sharerevoke; if (confirm('Revoke this link? Anyone holding it will no longer be able to open the list.')) revokeShare(code).then(() => renderProfileView()); return; }
     if (e.target.closest('#pvImportDeck')) { openImport(); return; }
@@ -5099,8 +5183,20 @@ if (shareModalEl) shareModalEl.addEventListener('click', e => {
   if ((m = e.target.closest('[data-sharelive]'))) { shareCtx.live = m.dataset.sharelive === '1'; shareLastResult = null; renderShareModal(); return; }
   if (e.target.closest('#shareCreateBtn')) { doCreateShare(); return; }
   if (e.target.closest('#shareCopyBtn')) { const inp = $('#shareLinkInput'); if (inp) copyText(inp.value).then(ok => toast(ok ? 'Link copied ✓' : 'Copy failed')); return; }
+  if (e.target.closest('#shareQrDownload')) { if (shareLastResult) downloadQrPng(shareLastResult.url, qrSlug(shareTitleFor(shareCtx.kind, shareCtx.folderId))); return; }
+  if ((m = e.target.closest('[data-shareqr]'))) { openQrModal(m.dataset.shareqr); return; }
   if ((m = e.target.closest('[data-sharecopy]'))) { copyText(shareUrl(m.dataset.sharecopy)).then(ok => toast(ok ? 'Link copied ✓' : 'Copy failed')); return; }
   if ((m = e.target.closest('[data-sharerevoke]'))) { const code = m.dataset.sharerevoke; if (confirm('Revoke this link? Anyone holding it will no longer be able to open the list.')) revokeShare(code).then(() => { renderShareModal(); renderProfileView(); }); return; }
+});
+
+// QR modal (opens over the share modal or the profile view)
+const closeQrEl = $('#closeQr'); if (closeQrEl) closeQrEl.addEventListener('click', closeQr);
+const qrModalEl = $('#qrModal');
+if (qrModalEl) qrModalEl.addEventListener('click', e => {
+  if (e.target.id === 'qrModal') { closeQr(); return; }
+  let m;
+  if ((m = e.target.closest('[data-qrdownload]'))) { const s = myShares.find(x => x.code === m.dataset.qrdownload); downloadQrPng(shareUrl(m.dataset.qrdownload), qrSlug(s && s.title ? s.title : (s && s.kind === 'sell' ? 'sell-list' : 'buy-list'))); return; }
+  if ((m = e.target.closest('[data-qrcopy]'))) { copyText(shareUrl(m.dataset.qrcopy)).then(ok => toast(ok ? 'Link copied ✓' : 'Copy failed')); return; }
 });
 
 // home (landing) listeners

@@ -478,6 +478,15 @@
     </div>
   </div>
 
+  <!-- QR code for a share link (opens over the share modal or the profile view) -->
+  <div class="modal-scrim qr-scrim" id="qrModal" hidden>
+    <div class="modal modal-sm">
+      <button class="modal-close" id="closeQr" aria-label="Close">✕</button>
+      <h2 class="modal-title"><i class="ms ms-counter-gold" aria-hidden="true"></i> List QR code</h2>
+      <div id="qrBody"></div>
+    </div>
+  </div>
+
   <!-- Onboarding wizard (after signup) -->
   <div class="onboard-scrim" id="onboardModal" hidden>
     <div class="onboard">
@@ -507,6 +516,7 @@
   <div id="printRoot" aria-hidden="true"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
   <script src="decks.js?v=11"></script>
   <script src="app.js?v=11"></script>
 </body>
