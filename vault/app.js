@@ -3248,8 +3248,12 @@ async function copyCollection() {
 }
 
 /* ---------- toast ---------- */
-let toastTimer;
+let toastTimer, lastToastMsg = null, lastToastAt = 0;
 function toast(msg, opts = {}) {
+  if (msg == null || msg === '') return;                                                    // never show a blank notification
+  const now = Date.now();
+  if (!opts.undo && msg === lastToastMsg && now - lastToastAt < 4000) { lastToastAt = now; return; }   // suppress a repeating identical toast so a stray loop can't keep one pinned on screen
+  lastToastMsg = msg; lastToastAt = now;
   const t = $('#toast');
   if (opts.undo && undoStack.length) {
     t.innerHTML = `<span class="toast-msg"></span><button class="toast-undo" id="toastUndo">↶ Undo</button>`;
