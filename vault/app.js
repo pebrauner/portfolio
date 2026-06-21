@@ -3909,6 +3909,7 @@ if (storeDash) {
     if (e.target.closest('#storeAddEvent')) { openStoreEvent(null); return; }
     if (e.target.closest('#invAddCards')) { openAdd('store'); return; }
     if (e.target.closest('#invRefreshPrices')) { refreshStorePrices(); return; }
+    if (e.target.closest('#invBulkMove')) { const sel = $('#invBulkBinder'); moveAllToBinder(sel ? sel.value : ''); return; }
     let m;
     if ((m = e.target.closest('[data-imode]'))) { storeInvMode = m.dataset.imode; $$('#storeInvMode .seg-btn').forEach(b => b.classList.toggle('is-active', b === m)); renderStoreInventory(); return; }
     if ((m = e.target.closest('[data-invbinder]'))) { storeInvBinder = m.dataset.invbinder; storeInvShown = 80; renderStoreInvBinders(); renderStoreInventory(); return; }
@@ -5295,6 +5296,7 @@ function renderStoreDashboard() {
       </div>
       <div class="inv-binders" id="storeInvBinders"></div>
       <input type="search" id="invSearchInput" class="lib-search" placeholder="Search your inventory…" value="${esc(storeInvQuery)}" autocomplete="off" />
+      <div class="inv-bulk" id="invBulk" hidden></div>
       <div id="storeInvBody"></div>
     </section>
     <section class="store-card"><div class="store-card-h"><h3>Events</h3><button class="btn gold sm" id="storeAddEvent">+ Add event</button></div>
@@ -5421,6 +5423,27 @@ function setInvPrice(name, binder, p) { const c = invCardAt(name, binder); if (!
 function toggleInvReserved(name, binder) { const c = invCardAt(name, binder); if (!c) return; c.reserved = !c.reserved; scheduleStoreSave(); renderStoreInventory(); }
 function removeInvCard(name, binder) { storeInv().cards = storeInv().cards.filter(c => !(key(c.name) === key(name) && (c.binder || '') === (binder || ''))); scheduleStoreSave(); renderStoreInvBinders(); renderStoreInventory(); }
 function moveInvCard(name, binder, toBinder) { const c = invCardAt(name, binder); if (!c) return; c.binder = toBinder || ''; scheduleStoreSave(); renderStoreInvBinders(); renderStoreInventory(); }
+// merge inventory entries that share name + binder + foil (sum their qty) — keeps the list tidy after bulk moves
+function mergeInventoryDupes() {
+  const inv = storeInv(), map = new Map();
+  inv.cards.forEach(c => {
+    const k = key(c.name) + '|' + (c.binder || '') + '|' + (c.foil ? 'F' : '');
+    const hit = map.get(k);
+    if (hit) hit.qty += (Number(c.qty) || 0); else map.set(k, c);
+  });
+  inv.cards = [...map.values()];
+}
+// move ALL currently-shown cards (the active binder filter + search) into one binder — "put every card in a binder"
+function moveAllToBinder(toBinder) {
+  const rows = invFiltered(); if (!rows.length) return;
+  const label = toBinder ? ((storeInv().binders.find(b => b.id === toBinder) || {}).name || 'a binder') : 'Unfiled';
+  if (!confirm(`Move all ${rows.length} shown card${rows.length === 1 ? '' : 's'} into “${label}”?`)) return;
+  rows.forEach(c => { c.binder = toBinder || ''; });   // invFiltered returns the live card objects
+  mergeInventoryDupes();
+  storeInvBinder = toBinder || '';   // jump to the target binder so the result is visible
+  scheduleStoreSave(); renderStoreInvBinders(); renderStoreInventory();
+  toast(`Moved ${rows.length} card${rows.length === 1 ? '' : 's'} into “${label}”.`);
+}
 function addInvBinder(nm) { nm = (nm || '').trim(); if (!nm || !myStore) return; storeInv().binders.push({ id: uid(), name: nm.slice(0, 40) }); scheduleStoreSave(); renderStoreInvBinders(); renderStoreInventory(); }
 function renameInvBinder(id, nm) { const b = storeInv().binders.find(x => x.id === id); if (b && (nm || '').trim()) { b.name = nm.trim().slice(0, 40); scheduleStoreSave(); renderStoreInvBinders(); } }
 function deleteInvBinder(id) { const inv = storeInv(); inv.binders = inv.binders.filter(b => b.id !== id); inv.cards.forEach(c => { if (c.binder === id) c.binder = ''; }); if (storeInvBinder === id) storeInvBinder = ''; scheduleStoreSave(); renderStoreInvBinders(); renderStoreInventory(); }
@@ -5440,6 +5463,14 @@ function renderStoreInvBinders() {
   }).join('');
   html += `<button class="sell-folder add" data-invbindernew>+ New binder</button>`;
   el.innerHTML = html;
+  const bulk = $('#invBulk');
+  if (bulk) {
+    if (inv.binders.length && inv.cards.length) {
+      const opts = `<option value="">Unfiled</option>` + inv.binders.map(b => `<option value="${b.id}">${esc(b.name)}</option>`).join('');
+      bulk.hidden = false;
+      bulk.innerHTML = `<span class="inv-bulk-label">Move all shown into</span><select id="invBulkBinder" class="siv-binder">${opts}</select><button class="btn sm" id="invBulkMove">Move all</button>`;
+    } else { bulk.hidden = true; bulk.innerHTML = ''; }
+  }
 }
 function renderStoreInventory() {
   const wrap = $('#storeInvBody'); if (!wrap || !myStore) return;
