@@ -4001,24 +4001,15 @@ async function afterSignIn() {
     // has THIS device synced with THIS account before (and to which remote version)?
     const knownRemote = meta.remoteUpdatedAt;
     const inSync = remote.updated_at && remote.updated_at === knownRemote;   // we already hold the account's latest
+    // Online-first: the account is the source of truth. Whenever it holds a collection this
+    // device isn't already in sync with, the account wins — no prompt. Local only "wins" by
+    // seeding an EMPTY account, or by pushing edits made on top of the version we last synced.
     if (inSync) {
-      if (meta.dirty && localHas) await pushNow();          // we have unsynced local edits → push them up
-    } else if (!remoteHas && localHas) {
-      await uploadWithOverlay();                                            // account empty → upload this device's
-    } else if (remoteHas && !localHas) {
-      await downloadWithOverlay(remote);                                    // account has it, this device fresh → pull
-    } else if (remoteHas && localHas && (!knownRemote || meta.dirty)) {
-      // first meeting of this device + account with data on both sides, OR we have
-      // unsynced local edits while the account also changed elsewhere → ask which wins
-      const useRemote = confirm(
-        'Your account has a saved collection and this device has its own (not-yet-synced) one.\n\n' +
-        'OK  →  use your ACCOUNT’s collection (replaces what’s on this device)\n' +
-        'Cancel  →  keep THIS DEVICE’s collection (replaces the account’s)'
-      );
-      if (useRemote) await downloadWithOverlay(remote);
-      else await uploadWithOverlay();
+      if (meta.dirty && localHas) await pushNow();          // unsynced edits on the synced version → push up
     } else if (remoteHas) {
-      adoptRemote(remote.data, remote.updated_at); toast('Synced the latest from your account.');   // account changed elsewhere
+      await downloadWithOverlay(remote);                    // account has a (different/newer) collection → adopt it
+    } else if (localHas) {
+      await uploadWithOverlay();                            // account is empty → seed it from this device
     } else {
       setSyncMeta({ remoteUpdatedAt: remote.updated_at, dirty: false });
     }
