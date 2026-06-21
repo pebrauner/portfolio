@@ -48,6 +48,9 @@
       color: var(--ink); background: linear-gradient(180deg, var(--gold-soft), var(--gold)); }
     .badge.soft { color: var(--parch-dim); background: rgba(255,255,255,.03); border: 1px solid var(--edge); }
     .bio { color: var(--parch-dim); font-size: 15px; line-height: 1.6; max-width: 640px; margin: 16px 0 0; white-space: pre-wrap; }
+    .runs-store { margin: 12px 0 0; font-size: 14px; color: var(--brass); display: inline-flex; align-items: center; gap: 6px; }
+    .runs-store a { color: var(--gold-soft); text-decoration: none; font-weight: 600; }
+    .runs-store a:hover { text-decoration: underline; }
     /* sections */
     .sec { margin-top: 22px; }
     .sec-h { font-family: var(--label); font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--brass); margin-bottom: 11px; }
@@ -136,6 +139,7 @@
           <div class="handle">@${esc(d.username || '')}${loc ? ` · <i class="ms ms-land"></i> ${esc(loc)}` : ''}</div>
           <div class="badges">${badges}</div></div></div>`;
       if (d.bio) html += `<p class="bio">${esc(d.bio)}</p>`;
+      if (d.store && /^[a-z0-9-]{3,40}$/.test(String(d.store.slug || ''))) html += `<p class="runs-store"><i class="ms ms-counter-lore"></i> Runs <a href="s.html?s=${encodeURIComponent(d.store.slug)}">${esc(d.store.name || 'a store')}</a></p>`;
 
       if (Array.isArray(d.lists) && d.lists.length) {
         html += `<div class="sec"><div class="sec-h">Trade lists</div><div class="listlinks">${d.lists.map(l => {

@@ -3904,7 +3904,7 @@ if (storeDash) {
     const selBox = e.target.closest('[data-invselect]'); if (selBox) { toggleInvSel(selBox.dataset.invselect, selBox); return; }
     if (e.target.id === 'invSelAll') { selectAllShown(e.target.checked); return; }
     const mv = e.target.closest('[data-invmove]'); if (mv) { moveInvCard(mv.dataset.invmove, mv.dataset.invb, e.target.value); return; }
-    if (e.target.id === 'storeShowOwner') { myStore.show_owner = e.target.checked; scheduleStoreSave(); return; }
+    if (e.target.id === 'storeShowOwner') { myStore.show_owner = e.target.checked; scheduleStoreSave(); schedulePublicProfileRefresh(); return; }
   });
   storeDash.addEventListener('click', e => {
     if (e.target.closest('#storeCopyLink')) { copyText(storePublicUrl(myStore.slug)).then(ok => toast(ok ? 'Store link copied ✓' : 'Copy failed')); return; }
@@ -5352,7 +5352,7 @@ function renderStoreDashboard() {
         <div class="store-2col">${fld('phone', 'Phone', '', s.phone)}${fld('whatsapp', 'WhatsApp', '+51…', s.whatsapp)}</div>
         ${fld('website', 'Website', 'https://…', s.website)}
         ${fld('logo', 'Logo image URL', 'https://…', s.logo)}
-        <label class="pv-toggle" style="margin-top:8px"><input type="checkbox" id="storeShowOwner" ${s.show_owner ? 'checked' : ''}/> Show a “Run by @${esc((authProfile && authProfile.username) || 'me')}” link to my player profile</label>
+        <label class="pv-toggle" style="margin-top:8px"><input type="checkbox" id="storeShowOwner" ${s.show_owner ? 'checked' : ''}/> Link my store &amp; player profile to each other (shows “Run by @${esc((authProfile && authProfile.username) || 'me')}” here and “Runs ${esc(s.name)}” on my profile)</label>
       </section>
       <section class="store-card">
         <h3>Socials</h3>
@@ -5736,6 +5736,8 @@ function buildPublicProfileSnapshot() {
   }
   // list-link hub (user opted in): at most one Buy + one Sell link
   snap.lists = [pickProfileShare('buy'), pickProfileShare('sell')].filter(Boolean).map(s => ({ kind: s.kind, code: s.code, title: s.title || '', url: shareUrl(s.code) }));
+  // owner's-choice cross-link: if I run a store and opted in (show_owner), link to it from my player profile
+  if (myStore && myStore.owner === (authUser && authUser.id) && myStore.show_owner) snap.store = { slug: myStore.slug, name: myStore.name };
   return snap;
 }
 async function publishPublicProfile(makePublic) {
