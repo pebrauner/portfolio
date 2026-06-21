@@ -1334,6 +1334,7 @@ html[data-theme="ember"] .topbar { background: linear-gradient(180deg, rgba(31,1
 
 /* ============ toast ============ */
 .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); z-index: 60; display: inline-flex; align-items: center; gap: 14px; background: var(--panel-2); border: 1px solid var(--brass); color: var(--parch); padding: 13px 22px; border-radius: 11px; font-size: 14px; box-shadow: var(--shadow); animation: rise .3s ease; }
+.toast[hidden] { display: none; }   /* the class sets display:inline-flex, which would otherwise override the [hidden] attribute and pin the toast on screen forever */
 .toast-undo { font-family: var(--label); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink); background: linear-gradient(180deg, var(--gold-soft), var(--gold)); border: none; border-radius: 7px; padding: 6px 12px; cursor: pointer; white-space: nowrap; transition: .15s; }
 .toast-undo:hover { filter: brightness(1.08); }
 
