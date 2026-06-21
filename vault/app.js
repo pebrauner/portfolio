@@ -26,7 +26,9 @@ let invType = 'all';   // category filter (matches category())
 let invRarity = 'all'; // rarity filter
 let invSort = 'name';  // 'name' | 'price-desc' | 'price-asc'
 let buyDeckSel = [];          // deck ids to include in the buy list; [] = every deck
-let buyExclude = new Set(state.buyExclude);   // name-keys kept off the buy list (persisted in state.buyExclude)
+let buyExclude = new Set();   // name-keys kept off the buy list — derived from state.buyExclude
+function rebuildBuyExclude() { buyExclude = new Set(state.buyExclude); }   // MUST run whenever `state` is reassigned (sync pull / restore)
+rebuildBuyExclude();
 function setBuyExclude(k, excluded) { if (excluded) buyExclude.add(k); else buyExclude.delete(k); state.buyExclude = [...buyExclude]; save(); }
 let invMode = 'art';          // inventory display: 'art' gallery | 'text' list
 let buyMode = 'art';          // buy list display: 'art' gallery | 'text' list
@@ -709,12 +711,12 @@ function animateStat(el) {
 function allCardNames() {
   const set = new Set();
   state.decks.forEach(d => d.cards.forEach(c => set.add(c.name)));
-  Object.keys(state.variants).forEach(k => {
-    const real = Object.values(state.cards).find(c => key(c.name) === k);
-    if (real) set.add(real.name); else set.add(k);
+  Object.keys(state.variants).forEach(k => {   // state.cards is keyed by key(name) → direct O(1) lookup
+    const real = state.cards[k];
+    set.add(real ? real.name : k);
   });
   Object.keys(state.wishlist).forEach(k => {
-    const real = Object.values(state.cards).find(c => key(c.name) === k);
+    const real = state.cards[k];
     set.add(real ? real.name : k);
   });
   return [...set];
@@ -933,13 +935,20 @@ function renderHome() {
   renderHomeBg();
   renderHomeResults();
 }
+const HOME_SHOWCASE = ['Sol Ring', 'Lightning Bolt', 'Counterspell', 'Llanowar Elves', 'Cyclonic Rift', 'Smothering Tithe', 'Rhystic Study', 'Birds of Paradise', 'Brainstorm', 'Cultivate', 'Sword of Fire and Ice', 'Wrath of God'];
+const showcaseArt = (name) => `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(name)}&format=image&version=art_crop`;
+// only accept a clean https url with no chars that could break out of the CSS url('...') string
+const safeArt = (u) => /^https:\/\/[^'"()\s]+$/.test(String(u || '')) ? String(u) : '';
 function renderHomeBg() {
   const bg = $('#homeBg'); if (!bg) return;
-  // your richest cards' art, slowly drifting behind the hero
-  const arts = allCardNames().filter(n => ownedOf(n) > 0).map(n => ({ art: displayArt(n), v: unitPrice(n) }))
-    .filter(c => c.art).sort((a, b) => b.v - a.v).slice(0, 12);
-  if (!arts.length) { bg.innerHTML = ''; return; }
-  const tiles = arts.concat(arts).map(c => `<div class="home-card" style="background-image:url('${esc(c.art)}')"></div>`).join('');
+  // your richest cards once you own a few; otherwise a curated showcase so the landing always looks alive
+  let arts = allCardNames().filter(n => ownedOf(n) > 0).map(n => ({ art: safeArt(displayArt(n)), v: unitPrice(n) }))
+    .filter(c => c.art).sort((a, b) => b.v - a.v).slice(0, 12).map(c => c.art);
+  if (arts.length < 6) arts = HOME_SHOWCASE.map(showcaseArt);
+  const sig = arts.join('|');
+  if (bg.dataset.sig === sig) return;   // don't rebuild (and restart the drift) every render
+  bg.dataset.sig = sig;
+  const tiles = arts.concat(arts).map(a => `<div class="home-card" style="background-image:url('${a}')"></div>`).join('');
   bg.innerHTML = `<div class="home-drift">${tiles}</div>`;
 }
 function homeResults(q) {
@@ -1136,7 +1145,9 @@ function renderDeckDetail() {
   if (deckEdit) body += deckAddBar();
 
   const shownTotal = deckCardFilter === 'owned' ? ownedCount : deckCardFilter === 'missing' ? missingCount : deck.cards.length;
-  if (shownTotal === 0) {
+  if (deck.cards.length === 0) {
+    body += `<div class="empty-state" style="padding:64px 20px"><span class="empty-mark"><i class="ms ms-ability-craft" aria-hidden="true"></i></span><h2>No cards yet</h2><p>Add cards above${deckEdit ? '' : ' (tap <b>Edit</b>)'}, or from the <b>Browse</b> tab.</p></div>`;
+  } else if (shownTotal === 0) {
     body += `<div class="empty-state" style="padding:64px 20px"><span class="empty-mark"><i class="ms ms-counter-shield" aria-hidden="true"></i></span><h2>${deckCardFilter === 'missing' ? 'Deck complete' : 'Nothing owned yet'}</h2><p>${deckCardFilter === 'missing' ? 'You own every card in this deck.' : 'You don’t own any of this deck’s cards yet.'}</p></div>`;
   } else if (deckView === 'stacks') {
     body += renderDeckCards(groups, showCmd ? cmd : null);
@@ -1592,7 +1603,7 @@ function renderInventory() {
   else if (invSort === 'rarity-desc') names.sort((a, b) => rarityRank(b) - rarityRank(a) || a.localeCompare(b));
   else if (invSort === 'rarity-asc') names.sort((a, b) => rarityRank(a) - rarityRank(b) || a.localeCompare(b));
   else if (invSort === 'new') names.sort((a, b) => addedOf(b) - addedOf(a) || a.localeCompare(b));   // newest acquisitions first
-  else if (invSort === 'old') names.sort((a, b) => (addedOf(a) || Infinity) - (addedOf(b) || Infinity) || a.localeCompare(b));
+  else if (invSort === 'old') names.sort((a, b) => addedOf(a) - addedOf(b) || a.localeCompare(b));   // legacy (no timestamp) = oldest → first
   else names.sort((a, b) => a.localeCompare(b));
 
   renderFacetBar();
@@ -1879,6 +1890,7 @@ function markBought(name) {
    VIEW ROUTING
    ===================================================================== */
 function setView(v) {
+  if (v !== 'deck') currentDeckId = null;   // leaving the deck view drops deck context (so card-view commander control etc. don't leak)
   $$('.view').forEach(s => s.classList.remove('is-active'));
   $('#view-' + v).classList.add('is-active');
   $$('.tab').forEach(t => t.classList.toggle('is-active', t.dataset.view === v));
@@ -2693,6 +2705,7 @@ function restoreBackup(file) {
       const data = JSON.parse(reader.result);
       if (!data.decks || !data.cards || (!data.variants && !data.owned)) throw new Error('bad shape');
       state = migrate(data);
+      rebuildBuyExclude();
       undoStack = [];   // the restored state is a fresh baseline — pre-restore undo points no longer apply
       save();
       currentDeckId = null;
@@ -4133,6 +4146,7 @@ async function afterSignIn() {
 function adoptRemote(remoteData, updatedAt) {
   syncSuppress = true;
   state = migrate(remoteData);
+  rebuildBuyExclude();   // the derived Set must follow the adopted state, not the previous device's
   save();
   syncSuppress = false;
   setSyncMeta({ remoteUpdatedAt: updatedAt, dirty: false });
