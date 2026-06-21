@@ -973,10 +973,11 @@ function renderHomeBg() {
   const bg = $('#homeBg'); if (!bg) return;
   loadHomeArtPool();   // top up / refresh the pool in the background (no-op if fresh or already fetching)
   const imgs = homeArtPool.length >= 40 ? homeArtPool : HOME_SHOWCASE;
-  const sig = imgs.length + '·' + imgs[0];
+  const COLS = Math.min(24, Math.max(8, Math.ceil(((window.innerWidth || 1200) * 1.25) / 166)));   // enough columns to fill the width at this zoom
+  const sig = imgs.length + '·' + COLS + '·' + imgs[0];
   if (bg.dataset.sig === sig) return;   // don't rebuild (and restart the roll) every render
   bg.dataset.sig = sig;
-  const COLS = 8, PER = 7, DUR = [40, 30, 52, 36, 47, 33, 44, 38];   // each column its own velocity
+  const PER = 7, DUR = [40, 30, 52, 36, 47, 33, 44, 38, 50, 31, 45, 37];   // each column its own velocity
   let html = '';
   for (let c = 0; c < COLS; c++) {
     let set = '';

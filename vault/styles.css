@@ -1353,8 +1353,8 @@ html[data-theme="ember"] .topbar { background: linear-gradient(180deg, rgba(31,1
 #view-home.is-active { display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 96px); }
 html.home-active, html.home-active body { overflow: hidden; height: 100%; }   /* the home landing doesn't scroll */
 html.home-active #app { padding-bottom: 0; }
-/* full-screen tilted wall of cards, each column rolling like tape (fixed → fills the whole viewport, behind the z-20 topbar) */
-.home-bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; transform: rotate(-9deg) scale(1.22); opacity: .58; }
+/* full-screen tilted wall of cards (fixed → fills the viewport, behind the z-20 topbar; scaled+rotated for the tilt, enough columns to fill the width) */
+.home-bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; transform: rotate(-9deg) scale(1.22); opacity: .62; }
 .home-cols { display: flex; gap: 16px; justify-content: center; height: 100%; }
 .home-col { width: 152px; flex-shrink: 0; height: 100%; overflow: hidden; }
 .home-col-track { display: flex; flex-direction: column; gap: 16px; animation-name: home-roll-up; animation-timing-function: linear; animation-iteration-count: infinite; will-change: transform; }
@@ -1363,10 +1363,10 @@ html.home-active #app { padding-bottom: 0; }
 @keyframes home-roll-up { from { transform: translateY(0); } to { transform: translateY(-50%); } }
 @keyframes home-roll-down { from { transform: translateY(-50%); } to { transform: translateY(0); } }
 @media (prefers-reduced-motion: reduce) { .home-col-track, .home-col:nth-child(even) .home-col-track { animation: none; } }
-/* darken the centre so the hero stays readable, let the cards show toward the edges */
-/* full-screen scrim — darker behind the hero, but still covers the whole screen at the edges (no light corners / visible box) */
-#view-home::after { content: ''; position: fixed; inset: 0; z-index: 1; pointer-events: none; background: radial-gradient(100% 88% at 50% 44%, rgba(8,7,4,.9) 0%, rgba(8,7,4,.66) 100%); }
+/* radial dim — darker behind the hero, fading toward the edges, but sized large so it still covers the whole screen (no bare corners) */
+#view-home::after { content: ''; position: fixed; inset: 0; z-index: 1; pointer-events: none; background: radial-gradient(135% 115% at 50% 44%, rgba(8,7,4,.72) 0%, rgba(8,7,4,.4) 100%); }
 .home-hero { position: relative; z-index: 2; text-align: center; max-width: 620px; width: 100%; padding: 40px 20px; }
+.home-hero > * { text-shadow: 0 2px 16px rgba(8,7,4,.9); }
 .home-sigil { font-size: 30px; color: var(--gold); margin-bottom: 6px; }
 .home-title { font-family: var(--display); font-weight: 700; font-size: clamp(42px, 8vw, 68px); line-height: .95; margin: 0;
   background: linear-gradient(100deg, var(--gold), var(--gold-soft) 35%, #f6e6a8 50%, var(--gold-soft) 65%, var(--gold)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
