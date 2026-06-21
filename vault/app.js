@@ -935,25 +935,54 @@ function renderHome() {
   renderHomeBg();
   renderHomeResults();
 }
-const HOME_SHOWCASE = ['Sol Ring', 'Lightning Bolt', 'Counterspell', 'Llanowar Elves', 'Cyclonic Rift', 'Smothering Tithe', 'Rhystic Study', 'Birds of Paradise', 'Brainstorm', 'Cultivate', 'Sword of Fire and Ice', 'Wrath of God', 'Swords to Plowshares', 'Demonic Tutor', 'Solemn Simulacrum', 'Eternal Witness', 'Aura Shards', 'Mana Crypt'];
-const showcaseImg = (name) => `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(name)}&format=image&version=normal`;   // full card
-// only accept a clean https url with no chars that could break out of the CSS url('...') string
-const safeArt = (u) => /^https:\/\/[^'"()\s]+$/.test(String(u || '')) ? String(u) : '';
+// a small built-in fallback so the wall is never empty before the big Scryfall pool loads
+const HOME_SHOWCASE = ['Sol Ring', 'Lightning Bolt', 'Counterspell', 'Llanowar Elves', 'Cyclonic Rift', 'Smothering Tithe', 'Rhystic Study', 'Birds of Paradise', 'Brainstorm', 'Cultivate', 'Sword of Fire and Ice', 'Wrath of God', 'Swords to Plowshares', 'Demonic Tutor', 'Solemn Simulacrum', 'Eternal Witness', 'Aura Shards', 'Mana Crypt'].map(n => `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(n)}&format=image&version=small`);
+const safeArt = (u) => /^https:\/\/[^'"()\s]+$/.test(String(u || '')) ? String(u) : '';   // safe in a CSS url('…')
+// A big, varied pool of striking alternate-art / showcase / borderless / full-art cards, fetched from Scryfall
+// and cached in localStorage (NOT in the synced state blob). Refreshed weekly.
+const HOME_ART_KEY = STORE_KEY + ':homeart';
+let homeArtPool = [];
+let homeArtFetching = false;
+try { const j = JSON.parse(localStorage.getItem(HOME_ART_KEY)); if (j && Array.isArray(j.pool)) homeArtPool = j.pool.filter(safeArt); } catch (e) {}
+function homeArtFresh() { try { const j = JSON.parse(localStorage.getItem(HOME_ART_KEY)); return j && Array.isArray(j.pool) && j.pool.length >= 120 && (Date.now() - (j.at || 0)) < 7 * 864e5; } catch (e) { return false; } }
+async function loadHomeArtPool() {
+  if (homeArtFetching || homeArtFresh()) return;
+  homeArtFetching = true;
+  try {
+    let url = 'https://api.scryfall.com/cards/search?q=' + encodeURIComponent('(is:showcase or is:borderless or is:extendedart or is:fullart) -is:digital game:paper') + '&unique=art&order=edhrec';
+    const pool = [];
+    for (let p = 0; p < 2 && url && pool.length < 340; p++) {
+      const r = await fetch(url); if (!r.ok) break;
+      const j = await r.json();
+      (j.data || []).forEach(c => {
+        const u = (c.image_uris && c.image_uris.small) || (c.card_faces && c.card_faces[0] && c.card_faces[0].image_uris && c.card_faces[0].image_uris.small);
+        if (safeArt(u)) pool.push(u);
+      });
+      url = j.has_more ? j.next_page : null;
+      if (url) await new Promise(res => setTimeout(res, 120));   // be gentle to Scryfall
+    }
+    if (pool.length >= 40) {
+      homeArtPool = pool;
+      try { localStorage.setItem(HOME_ART_KEY, JSON.stringify({ pool, at: Date.now() })); } catch (e) {}
+      const bg = $('#homeBg'); if (bg) { bg.dataset.sig = ''; renderHomeBg(); }   // rebuild with the full pool now that it's loaded
+    }
+  } catch (e) {}
+  homeArtFetching = false;
+}
 function renderHomeBg() {
   const bg = $('#homeBg'); if (!bg) return;
-  // your richest cards (full image) once you own a few; otherwise a curated showcase so the landing always looks alive
-  let imgs = allCardNames().filter(n => ownedOf(n) > 0).map(n => ({ img: safeArt(displayImage(n)), v: unitPrice(n) }))
-    .filter(c => c.img).sort((a, b) => b.v - a.v).slice(0, 24).map(c => c.img);
-  if (imgs.length < 8) imgs = HOME_SHOWCASE.map(showcaseImg);
-  const sig = imgs.join('|');
+  loadHomeArtPool();   // top up / refresh the pool in the background (no-op if fresh or already fetching)
+  const imgs = homeArtPool.length >= 40 ? homeArtPool : HOME_SHOWCASE;
+  const sig = imgs.length + '·' + imgs[0];
   if (bg.dataset.sig === sig) return;   // don't rebuild (and restart the roll) every render
   bg.dataset.sig = sig;
-  const COLS = 6, PER = 6;
+  const COLS = 8, PER = 7, DUR = [40, 30, 52, 36, 47, 33, 44, 38];   // each column its own velocity
   let html = '';
   for (let c = 0; c < COLS; c++) {
     let set = '';
-    for (let i = 0; i < PER; i++) set += `<div class="home-card" style="background-image:url('${imgs[(c * 2 + i) % imgs.length]}')"></div>`;
-    html += `<div class="home-col"><div class="home-col-track" style="animation-duration:${34 + (c % 3) * 9}s">${set}${set}</div></div>`;   // doubled set = seamless loop
+    for (let i = 0; i < PER; i++) set += `<div class="home-card" style="background-image:url('${imgs[(c * PER + i) % imgs.length]}')"></div>`;
+    // doubled set = seamless loop; inline duration + negative delay so columns intercalate at different speeds/offsets (direction alternates via CSS)
+    html += `<div class="home-col"><div class="home-col-track" style="animation-duration:${DUR[c % DUR.length]}s;animation-delay:-${c * 5}s">${set}${set}</div></div>`;
   }
   bg.innerHTML = `<div class="home-cols">${html}</div>`;
 }
