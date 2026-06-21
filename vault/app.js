@@ -3954,6 +3954,9 @@ if (storeEventModalEl) storeEventModalEl.addEventListener('click', e => {
   if (e.target.id === 'storeEventModal') { closeStoreEvent(); return; }
   if (e.target.closest('#evSave')) { saveStoreEventFromModal(); return; }
 });
+const closeFriendMatchEl = $('#closeFriendMatch'); if (closeFriendMatchEl) closeFriendMatchEl.addEventListener('click', closeFriendMatch);
+const friendMatchModalEl = $('#friendMatchModal');
+if (friendMatchModalEl) friendMatchModalEl.addEventListener('click', e => { if (e.target.id === 'friendMatchModal') closeFriendMatch(); });
 
 $('#deckGrid').addEventListener('click', e => {
   const c = e.target.closest('.deck-card');
@@ -4438,6 +4441,7 @@ document.addEventListener('keydown', e => {
   if (!$('#addModal').hidden) closeAdd();
   const sm = $('#shareModal'); if (sm && !sm.hidden) closeShare();
   const dsm = $('#deckShareModal'); if (dsm && !dsm.hidden) closeDeckShare();
+  const fmm = $('#friendMatchModal'); if (fmm && !fmm.hidden) { closeFriendMatch(); return; }
   const sev = $('#storeEventModal'); if (sev && !sev.hidden) { closeStoreEvent(); return; }
   const sim = $('#storeInviteModal'); if (sim && !sim.hidden) closeStoreInvite();
   const scm = $('#storeCreateModal'); if (scm && !scm.hidden) closeStoreCreate();
@@ -4582,7 +4586,7 @@ async function signOut() {
   clearTimeout(publicProfileTimer); publicProfileTimer = null;
   try { await sb.auth.signOut(); } catch (e) {}
   authUser = null; authProfile = null; setSyncMeta({});
-  myStore = null; myStores = []; storeEvents = []; storeTx = []; storeMembers = []; pendingStoreInvite = null; pendingStaffInvite = null; refreshStoreMenu();
+  myStore = null; myStores = []; storeEvents = []; storeTx = []; storeMembers = []; friends = []; pendingStoreInvite = null; pendingStaffInvite = null; refreshStoreMenu();
   closeProfile(); renderAccount();
   if (['view-profile', 'view-store'].some(v => $('#' + v) && $('#' + v).classList.contains('is-active'))) setView('decks');
   toast('Signed out — this device is now local-only.');
@@ -4604,6 +4608,7 @@ async function afterSignIn() {
     loadStores(); loadStoreCounts();   // shared store list + popularity
     loadMyShares().then(() => { if (publicProfileOn()) publishPublicProfile(true); });   // my shares; refresh public profile if on
     loadMyStore().then(() => { refreshStoreMenu(); if (pendingStaffInvite) redeemStaffInvite(); else maybePromptStoreCreate(); });   // store ownership + admin menu + any pending store/staff invite
+    loadFriends();   // friends list + publish my trade lists
     const uid = authUser && authUser.id;
     if (!uid) return;
     const { data, error } = await sb.from('collections').select('data, updated_at').eq('user_id', uid).maybeSingle();
@@ -5789,6 +5794,97 @@ async function runProfileSearch() {
   box.hidden = false;
 }
 
+/* =====================================================================
+   FRIENDS — add by @username, then match your buy/sell lists against a friend's
+   ===================================================================== */
+let friends = [];   // get_friends() rows: {req_id, friend_id, username, display_name, status, direction}
+async function loadFriends() {
+  friends = [];
+  if (!sb || !authUser) { renderFriends(); return; }
+  try { const { data } = await sb.rpc('get_friends'); friends = Array.isArray(data) ? data : []; } catch (e) {}
+  publishMyTrades();   // keep my wants/haves current so friends can match against me
+  renderFriends();
+}
+// my wants = buy list (deck needs + wishlist − owned); my haves = everything across my sell folders
+function myWants() {
+  const decks = state.decks;
+  return allCardNames().filter(n => requiredFor(n, decks) > ownedOf(n)).map(n => ({ name: n, qty: requiredFor(n, decks) - ownedOf(n) }));
+}
+function myHaves() {
+  const idx = variantIndex(), seen = new Set(), out = [];
+  state.sellLists.forEach(l => Object.keys(l.items).forEach(vid => {
+    if (seen.has(vid)) return; seen.add(vid);
+    const hit = idx.get(vid); if (!hit) return;
+    const qty = Math.min(l.items[vid], hit.v.qty); if (qty <= 0) return;
+    out.push({ name: hit.name, qty, price: +(variantPrice(hit.name, hit.v) || 0).toFixed(2) });
+  }));
+  return out;
+}
+async function publishMyTrades() {
+  if (!sb || !authUser) return;
+  try { await sb.from('trade_lists').upsert({ user_id: authUser.id, wants: myWants(), haves: myHaves(), updated_at: new Date().toISOString() }); } catch (e) {}
+}
+async function sendFriendRequest(username) {
+  username = (username || '').trim().replace(/^@/, '');
+  if (!username || !sb || !authUser) return;
+  try {
+    const { data, error } = await sb.rpc('send_friend_request', { p_username: username });
+    if (error) { toast(error.message); return; }
+    toast(data && data.status === 'accepted' ? `You and @${username} are now friends.` : `Friend request sent to @${username}.`);
+    const inp = $('#friendAddInput'); if (inp) inp.value = '';
+    await loadFriends();
+  } catch (e) { toast('Could not send the request.'); }
+}
+async function respondFriend(id, accept) {
+  if (!sb) return;
+  try { await sb.rpc('respond_friend_request', { p_id: id, p_accept: accept }); await loadFriends(); toast(accept ? 'Friend added.' : 'Request declined.'); } catch (e) {}
+}
+async function removeFriend(otherId) {
+  if (!sb) return;
+  if (!confirm('Remove this friend?')) return;
+  try { await sb.rpc('remove_friend', { p_other: otherId }); await loadFriends(); toast('Friend removed.'); } catch (e) {}
+}
+async function matchWithFriend(friendId, friendName) {
+  if (!sb) return;
+  toast(`Matching with @${friendName}…`);
+  await publishMyTrades();   // ensure my side is fresh too
+  try {
+    const { data, error } = await sb.rpc('get_friend_trades', { p_friend: friendId });
+    if (error || !data) { toast('Could not load their lists — are you still friends?'); return; }
+    const theirWantSet = new Set((data.wants || []).map(c => key(c.name)));
+    const theirHaveMap = new Map((data.haves || []).map(c => [key(c.name), c]));
+    const canSell = myHaves().filter(c => theirWantSet.has(key(c.name)));                                  // my haves they want
+    const canBuy = myWants().filter(c => theirHaveMap.has(key(c.name))).map(c => ({ ...c, price: theirHaveMap.get(key(c.name)).price || 0 }));   // my wants they have
+    showFriendMatch(friendName, canSell, canBuy);
+  } catch (e) { toast('Match failed.'); }
+}
+function showFriendMatch(name, canSell, canBuy) {
+  const m = $('#friendMatchModal'); if (!m) return;
+  m.hidden = false;
+  const body = $('#friendMatchBody'); if (!body) return;
+  const total = (arr) => arr.reduce((a, c) => a + (Number(c.qty) || 1) * (Number(c.price) || 0), 0);
+  const list = (arr, empty) => arr.length
+    ? `<div class="fm-list">${arr.map(c => `<div class="fm-row"><span class="fm-qty">${Number(c.qty) || 1}×</span><span class="nm fm-name" data-name="${esc(c.name)}">${esc(c.name)}</span><span class="fm-price">${c.price ? money(c.price) : ''}</span></div>`).join('')}</div>`
+    : `<p class="fm-empty">${empty}</p>`;
+  body.innerHTML = `
+    <p class="share-note">What you and <b>@${esc(name)}</b> can trade right now, based on your buy &amp; sell lists.</p>
+    <div class="fm-sec sell"><div class="fm-h"><span><i class="ms ms-loyalty-up" aria-hidden="true"></i> You can sell to them</span><span class="fm-tot">${canSell.length} · ${money(total(canSell))}</span></div>${list(canSell, 'Nothing of yours is on their buy list.')}</div>
+    <div class="fm-sec buy"><div class="fm-h"><span><i class="ms ms-counter-gold" aria-hidden="true"></i> You can buy from them</span><span class="fm-tot">${canBuy.length} · ${money(total(canBuy))}</span></div>${list(canBuy, 'They have nothing on your buy list.')}</div>`;
+}
+function closeFriendMatch() { const m = $('#friendMatchModal'); if (m) m.hidden = true; }
+function renderFriends() {
+  const el = $('#pvFriendsList'); if (!el) return;
+  const incoming = friends.filter(f => f.direction === 'incoming');
+  const accepted = friends.filter(f => f.direction === 'friend');
+  const outgoing = friends.filter(f => f.direction === 'outgoing');
+  const cnt = $('#pvFriendCount'); if (cnt) cnt.textContent = accepted.length || '';
+  let html = '';
+  if (incoming.length) html += `<div class="pv-fr-sub">Requests</div>` + incoming.map(f => `<div class="pv-friend-row"><span class="pv-fr-who">@${esc(f.username || '')}</span><span class="pv-fr-act"><button class="btn gold sm" data-fraccept="${esc(f.req_id)}">Accept</button><button class="link-btn" data-frdecline="${esc(f.req_id)}">Decline</button></span></div>`).join('');
+  if (accepted.length) html += (incoming.length ? `<div class="pv-fr-sub">Friends</div>` : '') + accepted.map(f => `<div class="pv-friend-row"><span class="pv-fr-who" data-frprofile="${esc(f.username || '')}">@${esc(f.username || '')}</span><span class="pv-fr-act"><button class="btn sm" data-frmatch="${esc(f.friend_id)}" data-frname="${esc(f.username || '')}"><i class="ms ms-ability-investigate" aria-hidden="true"></i> Match</button><button class="link-btn danger" data-frremove="${esc(f.friend_id)}">Remove</button></span></div>`).join('');
+  if (outgoing.length) html += `<div class="pv-fr-sub">Pending</div>` + outgoing.map(f => `<div class="pv-friend-row"><span class="pv-fr-who">@${esc(f.username || '')}</span><span class="pv-fr-pending">requested</span></div>`).join('');
+  el.innerHTML = html || `<p class="pv-empty">No friends yet. Add one by @username to match trade lists.</p>`;
+}
+
 // ---------- account / profile UI ----------
 function renderAccount() {
   const b = $('#accountBtn'); if (!b) return;
@@ -6260,6 +6356,12 @@ function renderProfileView() {
           </div>
         </div>
         <div class="pv-card">
+          <div class="pv-card-h"><h3>Friends</h3><span class="pv-count" id="pvFriendCount"></span></div>
+          <div class="pv-friend-add"><input type="text" id="friendAddInput" class="pv-search-input" placeholder="Add a friend by @username…" autocomplete="off" /><button class="btn gold sm" id="friendAddBtn">Add</button></div>
+          <p class="pv-hint">Add friends, then <b>Match</b> to see what you can buy from or sell to each other.</p>
+          <div id="pvFriendsList"></div>
+        </div>
+        <div class="pv-card">
           <div class="pv-card-h"><h3>My lists</h3></div>
           <div class="pv-links"><button class="btn ghost" data-pvgo="buylist"><i class="ms ms-counter-gold btn-ico" aria-hidden="true"></i> Buy List</button><button class="btn ghost" data-pvgo="selllist"><i class="ms ms-loyalty-up btn-ico" aria-hidden="true"></i> Sell List</button></div>
           <div class="pv-links" style="margin-top:8px"><button class="btn" data-pvshare="buy"><i class="ms ms-counter-lore btn-ico" aria-hidden="true"></i> Share Buy List</button><button class="btn" data-pvshare="sell"><i class="ms ms-counter-lore btn-ico" aria-hidden="true"></i> Share Sell List</button></div>
@@ -6291,6 +6393,7 @@ function renderProfileView() {
         </div>
       </div>
     </div>`;
+  renderFriends();
 }
 const profileViewEl = $('#profileView');
 if (profileViewEl) {
@@ -6309,9 +6412,18 @@ if (profileViewEl) {
     if (e.target.closest('#pvSetStores')) { startOnboarding(); return; }
     if (e.target.closest('[data-pvcopyprofile]')) { copyText(profilePublicUrl()).then(ok => toast(ok ? 'Profile link copied ✓' : 'Copy failed')); return; }
     if ((m = e.target.closest('[data-pvprofile]'))) { openPublicProfile(m.dataset.pvprofile); return; }
+    if (e.target.closest('#friendAddBtn')) { const i = $('#friendAddInput'); if (i) sendFriendRequest(i.value); return; }
+    if ((m = e.target.closest('[data-fraccept]'))) { respondFriend(m.dataset.fraccept, true); return; }
+    if ((m = e.target.closest('[data-frdecline]'))) { respondFriend(m.dataset.frdecline, false); return; }
+    if ((m = e.target.closest('[data-frmatch]'))) { matchWithFriend(m.dataset.frmatch, m.dataset.frname); return; }
+    if ((m = e.target.closest('[data-frremove]'))) { removeFriend(m.dataset.frremove); return; }
+    if ((m = e.target.closest('[data-frprofile]'))) { openPublicProfile(m.dataset.frprofile); return; }
   });
   profileViewEl.addEventListener('input', e => {
     if (e.target.id === 'pvSearchInput') { profileSearchQuery = e.target.value; clearTimeout(profileSearchTimer); profileSearchTimer = setTimeout(runProfileSearch, 280); }
+  });
+  profileViewEl.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && e.target.id === 'friendAddInput') { e.preventDefault(); sendFriendRequest(e.target.value); }
   });
   profileViewEl.addEventListener('change', e => {
     if (e.target.id === 'pvPublic') { togglePublicProfile(e.target.checked); }
@@ -6323,7 +6435,7 @@ if (profileViewEl) {
 }
 
 // account / auth / profile listeners
-const accountBtnEl = $('#accountBtn'); if (accountBtnEl) accountBtnEl.addEventListener('click', () => { if (authUser) { setView('profile'); renderProfileView(); } else openAuth('signin'); });
+const accountBtnEl = $('#accountBtn'); if (accountBtnEl) accountBtnEl.addEventListener('click', () => { if (authUser) { setView('profile'); renderProfileView(); loadFriends(); } else openAuth('signin'); });
 const closeAuthEl = $('#closeAuth'); if (closeAuthEl) closeAuthEl.addEventListener('click', closeAuth);
 const authModalEl = $('#authModal'); if (authModalEl) authModalEl.addEventListener('click', e => { if (e.target.id === 'authModal') closeAuth(); });
 const authSubmitEl = $('#authSubmit'); if (authSubmitEl) authSubmitEl.addEventListener('click', doAuth);

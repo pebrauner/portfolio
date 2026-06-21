@@ -1355,6 +1355,31 @@ html[data-theme="ember"] .topbar { background: linear-gradient(180deg, rgba(31,1
 .pvs-go { color: var(--brass); font-size: 13px; }
 .pvs-direct { border-top: 1px solid var(--edge-soft); margin-top: 4px; color: var(--gold-soft); gap: 8px; font-size: 13px; }
 .pvs-direct .ms { color: var(--gold-soft); }
+/* friends */
+.pv-friend-add { display: flex; gap: 8px; margin-bottom: 8px; }
+.pv-friend-add .pv-search-input { flex: 1; }
+.pv-fr-sub { font-family: var(--label); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--brass); margin: 12px 0 6px; }
+.pv-friend-row { display: flex; align-items: center; gap: 9px; padding: 7px 2px; border-bottom: 1px solid var(--edge-soft); }
+.pv-friend-row:last-child { border-bottom: none; }
+.pv-fr-who { flex: 1; min-width: 0; color: var(--parch); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pv-friend-row [data-frprofile] { cursor: pointer; }
+.pv-friend-row [data-frprofile]:hover { color: var(--gold-soft); }
+.pv-fr-act { display: inline-flex; align-items: center; gap: 8px; }
+.pv-fr-pending { font-size: 11px; color: var(--muted); font-family: var(--label); }
+/* friend trade-match modal */
+.fm-sec { margin-top: 16px; }
+.fm-h { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-family: var(--label); font-size: 13px; padding-bottom: 7px; border-bottom: 1px solid var(--edge); margin-bottom: 8px; }
+.fm-sec.sell .fm-h { color: #7cb877; }
+.fm-sec.buy .fm-h { color: var(--gold-soft); }
+.fm-h .ms { margin-right: 5px; }
+.fm-tot { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.fm-list { display: flex; flex-direction: column; }
+.fm-row { display: flex; align-items: center; gap: 10px; padding: 5px 2px; font-size: 14px; }
+.fm-qty { font-family: var(--mono); font-size: 12px; color: var(--gold-soft); }
+.fm-name { flex: 1; min-width: 0; color: var(--parch); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+.fm-name:hover { color: var(--gold-soft); }
+.fm-price { font-family: var(--mono); font-size: 13px; color: var(--parch-dim); }
+.fm-empty { font-size: 13px; color: var(--muted); padding: 4px 2px; }
 .pv-av { width: 72px; height: 72px; font-size: 26px; }
 .pv-id { flex: 1; min-width: 0; }
 .pv-name { font-family: var(--display); font-size: 26px; color: var(--parch); margin: 0; }
