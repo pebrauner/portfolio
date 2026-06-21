@@ -101,6 +101,11 @@
     .lib-search { width: 100%; background: var(--ink); border: 1px solid var(--edge); border-radius: 9px; color: var(--parch);
       padding: 10px 13px; font-family: var(--body); font-size: 14px; margin-bottom: 12px; }
     .lib-search:focus { outline: none; border-color: var(--brass); }
+    .inv-seg { margin-left: auto; }
+    .inv-binder-filter { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 12px; }
+    .ibf { font-family: var(--label); font-size: 12px; color: var(--parch-dim); background: var(--ink-2); border: 1px solid var(--edge); border-radius: 8px; padding: 6px 11px; cursor: pointer; }
+    .ibf:hover { border-color: var(--gold-soft); color: var(--parch); }
+    .ibf.on { color: var(--ink); background: linear-gradient(180deg, var(--gold-soft), var(--gold)); border-color: var(--gold-soft); }
     table { width: 100%; border-collapse: collapse; }
     th { font-family: var(--label); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
       text-align: left; padding: 0 8px 8px; border-bottom: 1px solid var(--edge); }
@@ -237,45 +242,46 @@
       return `<div class="sec"><div class="sec-h"><i class="ms ms-counter-lore"></i> Upcoming events <span class="n">${up.length}</span></div><div class="events">${cards}</div></div>`;
     }
 
-    function forsaleHtml(forsale) {
-      const items = (forsale && Array.isArray(forsale.cards)) ? forsale.cards : [];
-      if (!items.length) return '';
-      lbItems = items;
-      const tiles = items.slice(0, 60).map((it, i) => {
-        const img = safeUrl(it.img) || artUrl(it.name);
-        const foil = it.foil ? `<span class="tile-foil" title="Foil">✦</span>` : '';
-        return `<button class="tile" data-i="${i}">
-          <div class="tile-art"><span class="tile-qty">${Number(it.qty) || 1}×</span>${foil}<img src="${esc(img)}" alt="${esc(it.name)}" loading="lazy" onerror="this.style.display='none'" /></div>
-          <div class="tile-cap"><span class="tn">${esc(it.name)}</span>${it.price ? `<span class="tp">${money(it.price)}</span>` : ''}</div></button>`;
-      }).join('');
-      return `<div class="sec"><div class="sec-h"><i class="ms ms-counter-gold"></i> For sale <span class="n">${items.length} singles</span></div><div class="gallery" id="forsaleGrid">${tiles}</div></div>`;
+    // store inventory — every non-reserved card is for sale; art/list + search + binder filter
+    let invMode = 'art', invQuery = '', invBinder = '', invShown = 60, forSale = [], invBinders = [];
+    function setupInventory() {
+      const inv = (STORE.inventory && typeof STORE.inventory === 'object') ? STORE.inventory : {};
+      invBinders = Array.isArray(inv.binders) ? inv.binders : [];
+      forSale = (Array.isArray(inv.cards) ? inv.cards : []).filter(c => !c.reserved && (Number(c.qty) || 0) > 0);
     }
-
-    // searchable, paginated library list (text — performant for big collections)
-    let libShown = 60, libQuery = '';
-    function libFiltered() {
-      const all = (STORE.collection && Array.isArray(STORE.collection.cards)) ? STORE.collection.cards : [];
-      const q = libQuery.trim().toLowerCase();
-      return q ? all.filter(c => String(c.name).toLowerCase().includes(q)) : all;
+    function invFiltered() {
+      const q = invQuery.trim().toLowerCase();
+      return forSale.filter(c => (invBinder === '' || (c.binder || '') === invBinder) && (!q || String(c.name).toLowerCase().includes(q)));
     }
-    function renderLibrary() {
-      const wrap = document.getElementById('libBody'); if (!wrap) return;
-      const rows = libFiltered();
-      const shown = rows.slice(0, libShown);
-      wrap.innerHTML = shown.length
-        ? `<table><thead><tr><th>Qty</th><th>Card</th><th class="r">Price</th></tr></thead><tbody>${shown.map(c =>
-            `<tr><td class="qty">${Number(c.qty) || 1}×</td><td>${esc(c.name)}</td><td class="r price">${c.price ? money(c.price) : ''}</td></tr>`).join('')}</tbody></table>`
-            + (rows.length > libShown ? `<button class="more" id="libMore">Show more (${rows.length - libShown} more)</button>` : '')
-        : `<div class="empty">No cards match “${esc(libQuery)}”.</div>`;
-      const more = document.getElementById('libMore'); if (more) more.addEventListener('click', () => { libShown += 100; renderLibrary(); });
+    function renderInv() {
+      const wrap = document.getElementById('invBody'); if (!wrap) return;
+      const rows = invFiltered();
+      lbItems = rows;   // lightbox indexes into the filtered list
+      const shown = rows.slice(0, invShown);
+      const more = rows.length > invShown ? `<button class="more" id="invMore">Show ${rows.length - invShown} more</button>` : '';
+      if (!shown.length) { wrap.innerHTML = `<div class="empty">No cards match “${esc(invQuery)}”.</div>`; return; }
+      if (invMode === 'list') {
+        wrap.innerHTML = `<table><thead><tr><th>Qty</th><th>Card</th><th class="r">Price</th></tr></thead><tbody>${shown.map((c, i) =>
+          `<tr data-i="${i}"><td class="qty">${Number(c.qty) || 1}×</td><td><span class="nm">${esc(c.name)}</span>${c.foil ? '<span class="foil">✦ foil</span>' : ''}</td><td class="r price">${c.price ? money(c.price) : ''}</td></tr>`).join('')}</tbody></table>${more}`;
+      } else {
+        wrap.innerHTML = `<div class="gallery">${shown.map((c, i) => {
+          const foil = c.foil ? `<span class="tile-foil" title="Foil">✦</span>` : '';
+          return `<button class="tile" data-i="${i}"><div class="tile-art"><span class="tile-qty">${Number(c.qty) || 1}×</span>${foil}<img src="${esc(artUrl(c.name))}" alt="${esc(c.name)}" loading="lazy" onerror="this.style.display='none'" /></div><div class="tile-cap"><span class="tn">${esc(c.name)}</span>${c.price ? `<span class="tp">${money(c.price)}</span>` : ''}</div></button>`;
+        }).join('')}</div>${more}`;
+      }
+      const mb = document.getElementById('invMore'); if (mb) mb.addEventListener('click', () => { invShown += 100; renderInv(); });
     }
-    function libraryHtml(collection) {
-      const all = (collection && Array.isArray(collection.cards)) ? collection.cards : [];
-      if (!all.length) return '';
-      const count = collection.count || all.reduce((a, c) => a + (Number(c.qty) || 0), 0);
-      return `<div class="sec"><div class="sec-h"><i class="ms ms-multiple"></i> Library <span class="n">${count} cards</span></div>
-        <input type="search" class="lib-search" id="libSearch" placeholder="Search this store's library…" autocomplete="off" />
-        <div id="libBody"></div></div>`;
+    function inventoryHtml() {
+      if (!forSale.length) return '';
+      const total = forSale.reduce((a, c) => a + (Number(c.qty) || 0), 0);
+      const binderFilter = invBinders.length
+        ? `<div class="inv-binder-filter" id="invBinderFilter"><button class="ibf${invBinder === '' ? ' on' : ''}" data-binder="">All</button>${invBinders.map(b => `<button class="ibf${invBinder === b.id ? ' on' : ''}" data-binder="${esc(b.id)}">${esc(b.name)}</button>`).join('')}</div>`
+        : '';
+      return `<div class="sec"><div class="sec-h"><i class="ms ms-counter-gold"></i> For sale <span class="n">${total} cards</span>
+          <span class="seg inv-seg"><button data-imode="art" class="${invMode === 'art' ? 'on' : ''}"><i class="ms ms-token"></i> Art</button><button data-imode="list" class="${invMode === 'list' ? 'on' : ''}"><i class="ms ms-multiple"></i> List</button></span></div>
+        ${binderFilter}
+        <input type="search" class="lib-search" id="invSearch" placeholder="Search the store's cards…" autocomplete="off" value="${esc(invQuery)}" />
+        <div id="invBody"></div></div>`;
     }
 
     function openLightbox(i) {
@@ -292,33 +298,42 @@
 
     function render() {
       const s = STORE;
+      setupInventory();
       const where = [s.city, s.country].filter(Boolean).join(', ');
       const os = openState(s.hours);
       const logo = safeUrl(s.logo) ? `<img src="${esc(s.logo)}" alt="" />` : esc(initials(s.name));
+      const owner = (s.show_owner && /^[a-zA-Z0-9_.]{1,32}$/.test(String(s.owner_username || ''))) ? s.owner_username : '';
       card.innerHTML = `
         <div class="s-head">
           <div class="s-logo">${logo}</div>
           <div class="s-h-main">
             <div class="s-title"><h1>${esc(s.name || 'Store')}</h1>${s.verified ? '<span class="verified"><i class="ms ms-counter-shield"></i> Verified</span>' : ''}</div>
             <div class="s-where"><i class="ms ms-counter-lore" aria-hidden="true"></i> Local game store${where ? ' · ' + esc(where) : ''}${s.address ? ' · ' + esc(s.address) : ''}</div>
+            ${owner ? `<div class="s-where">Run by <a href="u.html?u=${encodeURIComponent(owner)}">@${esc(owner)}</a></div>` : ''}
             ${s.bio ? `<div class="s-bio">${esc(s.bio)}</div>` : ''}
             ${os ? `<div class="openbadge ${os.open ? 'open' : ''}"><span class="dot"></span>${os.open ? 'Open now' : 'Closed'}${os.label ? ` <span class="todays">· today ${esc(os.label)}</span>` : ''}</div>` : ''}
           </div>
         </div>
         ${actionsHtml()}
         ${eventsHtml(s.events)}
-        ${forsaleHtml(s.forsale)}
-        ${libraryHtml(s.collection)}
+        ${inventoryHtml()}
         ${hoursHtml(s.hours)}
         <div class="actions" style="margin-top:24px"><a class="btn" href="./" target="_blank" rel="noopener"><i class="ms ms-token"></i> Track your own collection</a></div>`;
       wire();
-      renderLibrary();
+      renderInv();
     }
+    let invWired = false;
     function wire() {
-      const fg = document.getElementById('forsaleGrid');
-      if (fg) fg.addEventListener('click', e => { const t = e.target.closest('[data-i]'); if (t) openLightbox(+t.dataset.i); });
-      const ls = document.getElementById('libSearch');
-      if (ls) ls.addEventListener('input', e => { libQuery = e.target.value; libShown = 60; renderLibrary(); });
+      if (!invWired) {   // delegate inventory clicks on the persistent card element ONCE (survives re-renders)
+        invWired = true;
+        card.addEventListener('click', e => {
+          const t = e.target.closest('#invBody [data-i]'); if (t) { openLightbox(+t.dataset.i); return; }
+          const md = e.target.closest('.inv-seg [data-imode]'); if (md) { invMode = md.dataset.imode; render(); return; }
+          const bf = e.target.closest('#invBinderFilter [data-binder]'); if (bf) { invBinder = bf.dataset.binder; invShown = 60; render(); return; }
+        });
+      }
+      const is = document.getElementById('invSearch');
+      if (is) is.addEventListener('input', e => { invQuery = e.target.value; invShown = 60; renderInv(); });
     }
     document.getElementById('lbClose').addEventListener('click', closeLightbox);
     document.getElementById('lb').addEventListener('click', e => { if (e.target.id === 'lb') closeLightbox(); });

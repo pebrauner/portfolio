@@ -3881,12 +3881,30 @@ if (storeDash) {
     if (s) { myStore.socials = myStore.socials || {}; myStore.socials[s.dataset.social] = s.value.trim(); scheduleStoreSave(); return; }
     const h = e.target.closest('[data-hours]');
     if (h) { myStore.hours = myStore.hours || {}; const d = h.dataset.hours; myStore.hours[d] = myStore.hours[d] || {}; myStore.hours[d][h.dataset.bound] = h.value; scheduleStoreSave(); return; }
+    if (e.target.id === 'invSearchInput') { storeInvQuery = e.target.value; storeInvShown = 80; renderStoreInventory(); return; }
+  });
+  storeDash.addEventListener('change', e => {
+    if (!myStore) return;
+    const p = e.target.closest('[data-invprice]'); if (p) { setInvPrice(p.dataset.invprice, p.dataset.invb, p.value); return; }
+    const mv = e.target.closest('[data-invmove]'); if (mv) { moveInvCard(mv.dataset.invmove, mv.dataset.invb, e.target.value); return; }
+    if (e.target.id === 'storeShowOwner') { myStore.show_owner = e.target.checked; scheduleStoreSave(); return; }
+  });
+  storeDash.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && e.target.id === 'invAddInput') { e.preventDefault(); addInventoryCard(e.target.value); }
   });
   storeDash.addEventListener('click', e => {
-    if (e.target.closest('#storePublish')) { publishStoreLibrary(); return; }
     if (e.target.closest('#storeCopyLink')) { copyText(storePublicUrl(myStore.slug)).then(ok => toast(ok ? 'Store link copied ✓' : 'Copy failed')); return; }
     if (e.target.closest('#storeAddEvent')) { openStoreEvent(null); return; }
+    if (e.target.closest('#invAddBtn')) { const i = $('#invAddInput'); if (i) addInventoryCard(i.value); return; }
     let m;
+    if ((m = e.target.closest('[data-imode]'))) { storeInvMode = m.dataset.imode; $$('#storeInvMode .seg-btn').forEach(b => b.classList.toggle('is-active', b === m)); renderStoreInventory(); return; }
+    if ((m = e.target.closest('[data-invbinder]'))) { storeInvBinder = m.dataset.invbinder; storeInvShown = 80; renderStoreInvBinders(); renderStoreInventory(); return; }
+    if (e.target.closest('[data-invbindernew]')) { const nm = prompt('Name this binder (e.g. Commander singles, Sealed, New arrivals):', ''); if (nm) addInvBinder(nm); return; }
+    if ((m = e.target.closest('[data-invbinderrename]'))) { const b = storeInv().binders.find(x => x.id === m.dataset.invbinderrename); const nm = prompt('Rename binder:', b ? b.name : ''); if (nm != null) renameInvBinder(m.dataset.invbinderrename, nm); return; }
+    if ((m = e.target.closest('[data-invbinderdel]'))) { if (confirm('Delete this binder? Its cards move to Unfiled (they stay in your inventory).')) deleteInvBinder(m.dataset.invbinderdel); return; }
+    if ((m = e.target.closest('[data-invqty]'))) { const nm = m.dataset.name, b = m.dataset.invb, c = invCardAt(nm, b); if (c) setInvQty(nm, b, c.qty + parseInt(m.dataset.invqty, 10)); return; }
+    if ((m = e.target.closest('[data-invres]'))) { toggleInvReserved(m.dataset.invres, m.dataset.invb); return; }
+    if ((m = e.target.closest('[data-invrm]'))) { removeInvCard(m.dataset.invrm, m.dataset.invb); return; }
     if ((m = e.target.closest('[data-evedit]'))) { openStoreEvent(m.dataset.evedit); return; }
     if ((m = e.target.closest('[data-evdel]'))) { deleteStoreEvent(m.dataset.evdel); return; }
   });
@@ -5089,23 +5107,31 @@ async function consumeIncomingDeck() {
 /* =====================================================================
    STORE PROFILES (admin-gated) — create via your invite, manage info/hours/events, publish library
    ===================================================================== */
-let myStore = null;             // the store_profiles row this account owns | null
+let myStore = null;             // the active store I manage | null
+let myStores = [];              // all stores I manage (owner or staff)
 let storeEvents = [];           // myStore's events (owner editing)
 let pendingStoreInvite = null;  // ?store-invite=CODE captured at boot until sign-in
+let pendingStaffInvite = null;  // ?store-staff=CODE captured at boot until sign-in
 let storeInviteResult = '';     // last-minted invite link (admin modal)
 let storeSaveTimer = null;
 let editingEventId = null;      // event being edited in the modal, or null = new
+// store inventory UI state (the store's OWN inventory — every card is for sale unless reserved)
+let storeInvMode = 'list', storeInvQuery = '', storeInvBinder = '', storeInvShown = 80;
 function isStoreAdmin() { return !!(authProfile && authProfile.is_admin); }
 function hasStore() { return !!myStore; }
 function storePublicUrl(slug) { return vaultPageUrl('s.html') + '?s=' + encodeURIComponent(slug); }
 function storeInviteUrl(code) { return vaultPageUrl('') + '?store-invite=' + code; }
 
 async function loadMyStore() {
-  myStore = null; storeEvents = [];
+  myStore = null; myStores = []; storeEvents = [];
   if (!sb || !authUser) return;
   try {
-    const { data } = await sb.from('store_profiles').select('*').eq('owner', authUser.id).maybeSingle();
-    myStore = data || null;
+    const { data: mem } = await sb.from('store_members').select('store_slug, role');
+    const slugs = (mem || []).map(m => m.store_slug);
+    if (!slugs.length) return;
+    const { data: stores } = await sb.from('store_profiles').select('*').in('slug', slugs);
+    myStores = stores || [];
+    myStore = myStores.find(s => s.owner === authUser.id) || myStores[0] || null;   // a store I own takes precedence as the active one
     if (myStore) await loadStoreEvents();
   } catch (e) {}
 }
@@ -5204,7 +5230,6 @@ function renderStoreDashboard() {
       <p class="view-sub"><a href="${esc(storePublicUrl(s.slug))}" target="_blank" rel="noopener">View public page ↗</a> · <span id="storeSaveState" class="store-savestate"></span></p></div>
       <div class="store-head-actions">
         <button class="btn" id="storeCopyLink"><i class="ms ms-counter-lore btn-ico"></i> Copy link</button>
-        <button class="btn gold" id="storePublish"><i class="ms ms-loyalty-up btn-ico"></i> Publish library</button>
       </div>
     </div>
     <div class="store-grid">
@@ -5216,6 +5241,7 @@ function renderStoreDashboard() {
         <div class="store-2col">${fld('phone', 'Phone', '', s.phone)}${fld('whatsapp', 'WhatsApp', '+51…', s.whatsapp)}</div>
         ${fld('website', 'Website', 'https://…', s.website)}
         ${fld('logo', 'Logo image URL', 'https://…', s.logo)}
+        <label class="pv-toggle" style="margin-top:8px"><input type="checkbox" id="storeShowOwner" ${s.show_owner ? 'checked' : ''}/> Show a “Run by @${esc((authProfile && authProfile.username) || 'me')}” link to my player profile</label>
       </section>
       <section class="store-card">
         <h3>Socials</h3>
@@ -5227,9 +5253,21 @@ function renderStoreDashboard() {
         <div class="hours-editor">${STORE_DAYS.map(([k, l]) => dayRow(k, l)).join('')}</div>
       </section>
     </div>
+    <section class="store-card store-inv">
+      <div class="store-card-h"><h3>Inventory <span class="store-savestate" id="invCount"></span></h3>
+        <div class="seg" id="storeInvMode"><button class="seg-btn ${storeInvMode === 'art' ? 'is-active' : ''}" data-imode="art"><i class="ms ms-token"></i> Art</button><button class="seg-btn ${storeInvMode === 'list' ? 'is-active' : ''}" data-imode="list"><i class="ms ms-multiple"></i> List</button></div>
+      </div>
+      <p class="bd-note" style="margin:0 0 12px">Every card here is automatically listed for sale — unless you mark it <b>Reserved</b>.</p>
+      <div class="inv-binders" id="storeInvBinders"></div>
+      <div class="binder-add"><i class="ms ms-counter-lore binder-add-ic"></i><input type="text" id="invAddInput" class="binder-add-input" placeholder="Add a card by name — type it and press Enter…" autocomplete="off" /><button class="btn gold sm" id="invAddBtn">Add</button><span class="binder-add-status" id="invAddStatus"></span></div>
+      <input type="search" id="invSearchInput" class="lib-search" placeholder="Search your inventory…" value="${esc(storeInvQuery)}" autocomplete="off" />
+      <div id="storeInvBody"></div>
+    </section>
     <section class="store-card"><div class="store-card-h"><h3>Events</h3><button class="btn gold sm" id="storeAddEvent">+ Add event</button></div>
       <div id="storeEventList"></div></section>`;
   renderStoreEventList();
+  renderStoreInvBinders();
+  renderStoreInventory();
 }
 function renderStoreEventList() {
   const el = $('#storeEventList'); if (!el) return;
@@ -5253,6 +5291,7 @@ async function saveStoreNow() {
     name: myStore.name, bio: myStore.bio || null, city: myStore.city || null, country: myStore.country || null,
     address: myStore.address || null, phone: myStore.phone || null, whatsapp: myStore.whatsapp || null,
     website: myStore.website || null, logo: myStore.logo || null, socials: myStore.socials || {}, hours: myStore.hours || {},
+    inventory: myStore.inventory || {}, show_owner: !!myStore.show_owner,
     updated_at: new Date().toISOString()
   };
   try {
@@ -5260,26 +5299,82 @@ async function saveStoreNow() {
     const ss = $('#storeSaveState'); if (ss) ss.textContent = error ? 'Save failed' : 'Saved ✓';
   } catch (e) { const ss = $('#storeSaveState'); if (ss) ss.textContent = 'Save failed'; }
 }
-async function publishStoreLibrary() {
-  if (!sb || !myStore) return;
-  toast('Publishing your library…');
-  const cards = allCardNames().filter(n => ownedOf(n) > 0).sort((a, b) => a.localeCompare(b))
-    .map(n => ({ name: n, qty: ownedOf(n), price: +(priceOf(n) || 0).toFixed(2), type: category(n) }));
-  const collection = { count: cards.reduce((a, c) => a + c.qty, 0), cards };
-  const idx = variantIndex(), seen = new Set(), fs = [];
-  state.sellLists.forEach(l => Object.keys(l.items).forEach(vid => {
-    if (seen.has(vid)) return; seen.add(vid);
-    const hit = idx.get(vid); if (!hit) return;
-    const qty = Math.min(l.items[vid], hit.v.qty); if (qty <= 0) return;
-    fs.push({ name: hit.name, qty, price: +(variantPrice(hit.name, hit.v) || 0).toFixed(2), set: hit.v.set || '', foil: !!hit.v.foil, img: displayImage(hit.name) || '', uri: (card(hit.name).uri) || '' });
-  }));
-  const forsale = { cards: fs.sort((a, b) => b.price - a.price) };
-  try {
-    const { error } = await sb.from('store_profiles').update({ collection, forsale, updated_at: new Date().toISOString() }).eq('slug', myStore.slug);
-    if (error) { toast('Publish failed: ' + error.message); return; }
-    myStore.collection = collection; myStore.forsale = forsale;
-    toast(`Published ${collection.count} cards${fs.length ? ` · ${fs.length} for sale` : ''}.`);
-  } catch (e) { toast('Publish failed.'); }
+/* ---- store inventory (the store's OWN cards; every one is for sale unless reserved) ---- */
+function storeInv() {
+  if (!myStore) return { binders: [], cards: [] };
+  myStore.inventory = myStore.inventory || {};
+  if (!Array.isArray(myStore.inventory.binders)) myStore.inventory.binders = [];
+  if (!Array.isArray(myStore.inventory.cards)) myStore.inventory.cards = [];
+  return myStore.inventory;
+}
+function invCardAt(name, binder) { return storeInv().cards.find(c => key(c.name) === key(name) && (c.binder || '') === (binder || '')); }
+async function addInventoryCard(name) {
+  name = (name || '').trim(); if (!name || !myStore) return;
+  let meta = card(name);
+  if (!meta || meta.notFound) {
+    const st = $('#invAddStatus'); if (st) st.textContent = 'Looking up…';
+    try { const idx = await fetchCardData([{ name }]); const c = idx[key(name)] || idx[key(frontFace(name))]; if (c) { state.cards[key(c.name)] = distill(c); name = c.name; } else { if (st) st.textContent = `Couldn’t find “${name}”.`; return; } }
+    catch (e) { const st2 = $('#invAddStatus'); if (st2) st2.textContent = 'Lookup failed — check your connection.'; return; }
+  }
+  const inv = storeInv();
+  const ex = inv.cards.find(c => key(c.name) === key(name) && (c.binder || '') === (storeInvBinder || ''));
+  if (ex) ex.qty += 1;
+  else inv.cards.push({ name, qty: 1, price: +(priceOf(name) || 0).toFixed(2), set: (card(name).set || ''), foil: false, binder: storeInvBinder || '', reserved: false });
+  scheduleStoreSave();
+  const inp = $('#invAddInput'); if (inp) { inp.value = ''; inp.focus(); }
+  renderStoreInvBinders(); renderStoreInventory();
+  toast(`Added ${name} to your inventory.`);
+}
+function setInvQty(name, binder, q) { const c = invCardAt(name, binder); if (!c) return; if (q <= 0) storeInv().cards = storeInv().cards.filter(x => x !== c); else c.qty = q; scheduleStoreSave(); renderStoreInvBinders(); renderStoreInventory(); }
+function setInvPrice(name, binder, p) { const c = invCardAt(name, binder); if (!c) return; c.price = Math.max(0, +(parseFloat(p) || 0).toFixed(2)); scheduleStoreSave(); }
+function toggleInvReserved(name, binder) { const c = invCardAt(name, binder); if (!c) return; c.reserved = !c.reserved; scheduleStoreSave(); renderStoreInventory(); }
+function removeInvCard(name, binder) { storeInv().cards = storeInv().cards.filter(c => !(key(c.name) === key(name) && (c.binder || '') === (binder || ''))); scheduleStoreSave(); renderStoreInvBinders(); renderStoreInventory(); }
+function moveInvCard(name, binder, toBinder) { const c = invCardAt(name, binder); if (!c) return; c.binder = toBinder || ''; scheduleStoreSave(); renderStoreInvBinders(); renderStoreInventory(); }
+function addInvBinder(nm) { nm = (nm || '').trim(); if (!nm || !myStore) return; storeInv().binders.push({ id: uid(), name: nm.slice(0, 40) }); scheduleStoreSave(); renderStoreInvBinders(); renderStoreInventory(); }
+function renameInvBinder(id, nm) { const b = storeInv().binders.find(x => x.id === id); if (b && (nm || '').trim()) { b.name = nm.trim().slice(0, 40); scheduleStoreSave(); renderStoreInvBinders(); } }
+function deleteInvBinder(id) { const inv = storeInv(); inv.binders = inv.binders.filter(b => b.id !== id); inv.cards.forEach(c => { if (c.binder === id) c.binder = ''; }); if (storeInvBinder === id) storeInvBinder = ''; scheduleStoreSave(); renderStoreInvBinders(); renderStoreInventory(); }
+function invFiltered() {
+  const q = storeInvQuery.trim().toLowerCase();
+  return storeInv().cards.filter(c => (storeInvBinder === '' || (c.binder || '') === storeInvBinder) && (!q || c.name.toLowerCase().includes(q)));
+}
+function renderStoreInvBinders() {
+  const el = $('#storeInvBinders'); if (!el || !myStore) return;
+  const inv = storeInv();
+  const total = inv.cards.reduce((a, c) => a + c.qty, 0), forsale = inv.cards.filter(c => !c.reserved).reduce((a, c) => a + c.qty, 0);
+  const cnt = $('#invCount'); if (cnt) cnt.textContent = total ? `${total} cards · ${forsale} for sale` : '';
+  let html = `<button class="sell-folder${storeInvBinder === '' ? ' on' : ''}" data-invbinder="">All</button>`;
+  html += inv.binders.map(b => {
+    const on = storeInvBinder === b.id, n = inv.cards.filter(c => (c.binder || '') === b.id).length;
+    return `<span class="sell-folder-wrap${on ? ' on' : ''}"><button class="sell-folder${on ? ' on' : ''}" data-invbinder="${b.id}"><i class="ms ms-token"></i> ${esc(b.name)}${n ? ` <span class="sf-count">${n}</span>` : ''}</button>${on ? `<button class="sf-icon" data-invbinderrename="${b.id}" title="Rename"><i class="ms ms-artist-nib"></i></button><button class="sf-icon" data-invbinderdel="${b.id}" title="Delete">✕</button>` : ''}</span>`;
+  }).join('');
+  html += `<button class="sell-folder add" data-invbindernew>+ New binder</button>`;
+  el.innerHTML = html;
+}
+function renderStoreInventory() {
+  const wrap = $('#storeInvBody'); if (!wrap || !myStore) return;
+  const rows = invFiltered(), shown = rows.slice(0, storeInvShown);
+  if (!rows.length) { wrap.innerHTML = `<p class="bd-note">${storeInvQuery ? 'No cards match your search.' : 'No cards here yet — add some above.'}</p>`; return; }
+  const binderOpts = (cur) => `<option value=""${!cur ? ' selected' : ''}>Unfiled</option>` + storeInv().binders.map(b => `<option value="${b.id}"${cur === b.id ? ' selected' : ''}>${esc(b.name)}</option>`).join('');
+  const more = rows.length > storeInvShown ? `<button class="more-btn" id="invMore">Show ${rows.length - storeInvShown} more</button>` : '';
+  if (storeInvMode === 'art') {
+    wrap.innerHTML = `<div class="binder-gallery">${shown.map(c => `
+      <div class="art-tile buy store-inv-tile${c.reserved ? ' reserved' : ''}">
+        <button class="bd-x tile" data-invrm="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="Remove">✕</button>
+        <button class="siv-res-tile" data-invres="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="${c.reserved ? 'Reserved (not for sale)' : 'For sale — click to reserve'}"><i class="ms ms-counter-${c.reserved ? 'skull' : 'gold'}"></i></button>
+        <button class="art-open" data-name="${esc(c.name)}">${artTile(c.name, c.qty + '×', `<span class="art-val">${money(c.price)}</span>`)}</button>
+      </div>`).join('')}</div>${more}`;
+  } else {
+    wrap.innerHTML = `<div class="inv-rows">${shown.map(c => `
+      <div class="store-inv-row${c.reserved ? ' reserved' : ''}">
+        <span class="siv-name nm" data-name="${esc(c.name)}">${esc(c.name)}</span>
+        <span class="siv-step"><button data-invqty="-1" data-name="${esc(c.name)}" data-invb="${esc(c.binder || '')}" aria-label="One fewer">−</button><b>${c.qty}</b><button data-invqty="1" data-name="${esc(c.name)}" data-invb="${esc(c.binder || '')}" aria-label="One more">+</button></span>
+        <span class="siv-price">$<input type="number" min="0" step="0.01" class="siv-price-in" value="${c.price}" data-invprice="${esc(c.name)}" data-invb="${esc(c.binder || '')}" aria-label="Price" /></span>
+        ${storeInv().binders.length ? `<select class="siv-binder" data-invmove="${esc(c.name)}" data-invb="${esc(c.binder || '')}">${binderOpts(c.binder || '')}</select>` : ''}
+        <button class="siv-res link-btn${c.reserved ? ' danger' : ''}" data-invres="${esc(c.name)}" data-invb="${esc(c.binder || '')}">${c.reserved ? 'Reserved' : 'For sale'}</button>
+        <button class="bd-x" data-invrm="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="Remove">✕</button>
+      </div>`).join('')}</div>${more}`;
+  }
+  const moreBtn = $('#invMore'); if (moreBtn) moreBtn.addEventListener('click', () => { storeInvShown += 120; renderStoreInventory(); });
 }
 
 /* ---- store event editor (modal) ---- */
