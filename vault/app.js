@@ -3901,6 +3901,8 @@ if (storeDash) {
   });
   storeDash.addEventListener('change', e => {
     if (!myStore) return;
+    const selBox = e.target.closest('[data-invselect]'); if (selBox) { toggleInvSel(selBox.dataset.invselect, selBox); return; }
+    if (e.target.id === 'invSelAll') { selectAllShown(e.target.checked); return; }
     const mv = e.target.closest('[data-invmove]'); if (mv) { moveInvCard(mv.dataset.invmove, mv.dataset.invb, e.target.value); return; }
     if (e.target.id === 'storeShowOwner') { myStore.show_owner = e.target.checked; scheduleStoreSave(); return; }
   });
@@ -3909,7 +3911,12 @@ if (storeDash) {
     if (e.target.closest('#storeAddEvent')) { openStoreEvent(null); return; }
     if (e.target.closest('#invAddCards')) { openAdd('store'); return; }
     if (e.target.closest('#invRefreshPrices')) { refreshStorePrices(); return; }
-    if (e.target.closest('#invBulkMove')) { const sel = $('#invBulkBinder'); moveAllToBinder(sel ? sel.value : ''); return; }
+    if (e.target.closest('#invBulkMove')) { const s2 = $('#invBulkBinder'); bulkMoveToBinder(s2 ? s2.value : ''); return; }
+    if (e.target.closest('#invBulkReserve')) { bulkSetReserved(true); return; }
+    if (e.target.closest('#invBulkForsale')) { bulkSetReserved(false); return; }
+    if (e.target.closest('#invBulkSell')) { bulkSell(); return; }
+    if (e.target.closest('#invBulkRemove')) { bulkRemoveInv(); return; }
+    if (e.target.closest('#invBulkClear')) { clearInvSelection(); return; }
     let m;
     if ((m = e.target.closest('[data-imode]'))) { storeInvMode = m.dataset.imode; $$('#storeInvMode .seg-btn').forEach(b => b.classList.toggle('is-active', b === m)); renderStoreInventory(); return; }
     if ((m = e.target.closest('[data-invbinder]'))) { storeInvBinder = m.dataset.invbinder; storeInvShown = 80; renderStoreInvBinders(); renderStoreInventory(); return; }
@@ -5133,6 +5140,7 @@ let storeSaveTimer = null;
 let editingEventId = null;      // event being edited in the modal, or null = new
 // store inventory UI state (the store's OWN inventory — every card is for sale unless reserved)
 let storeInvMode = 'list', storeInvQuery = '', storeInvBinder = '', storeInvShown = 80;
+let selectedInv = new Set();    // inventory cards selected for bulk actions (keys = name|binder|foil)
 function isStoreAdmin() { return !!(authProfile && authProfile.is_admin); }
 function hasStore() { return !!myStore; }
 function storePublicUrl(slug) { return vaultPageUrl('s.html') + '?s=' + encodeURIComponent(slug); }
@@ -5433,16 +5441,68 @@ function mergeInventoryDupes() {
   });
   inv.cards = [...map.values()];
 }
-// move ALL currently-shown cards (the active binder filter + search) into one binder — "put every card in a binder"
-function moveAllToBinder(toBinder) {
-  const rows = invFiltered(); if (!rows.length) return;
-  const label = toBinder ? ((storeInv().binders.find(b => b.id === toBinder) || {}).name || 'a binder') : 'Unfiled';
-  if (!confirm(`Move all ${rows.length} shown card${rows.length === 1 ? '' : 's'} into “${label}”?`)) return;
-  rows.forEach(c => { c.binder = toBinder || ''; });   // invFiltered returns the live card objects
-  mergeInventoryDupes();
-  storeInvBinder = toBinder || '';   // jump to the target binder so the result is visible
+/* ---- inventory selection + bulk actions (select cards, then move / reserve / sell / remove) ---- */
+function invSelKey(c) { return key(c.name) + '|' + (c.binder || '') + '|' + (c.foil ? 'F' : ''); }
+function selectedInvCards() { return storeInv().cards.filter(c => selectedInv.has(invSelKey(c))); }
+function toggleInvSel(selKey, el) {
+  if (selectedInv.has(selKey)) selectedInv.delete(selKey); else selectedInv.add(selKey);
+  const row = el && el.closest('.store-inv-row, .store-inv-tile'); if (row) row.classList.toggle('selected', selectedInv.has(selKey));
+  renderInvBulkBar(); refreshInvSelAll();
+}
+function clearInvSelection() { selectedInv.clear(); renderStoreInventory(); }
+function selectAllShown(on) {
+  invFiltered().forEach(c => { const k = invSelKey(c); if (on) selectedInv.add(k); else selectedInv.delete(k); });
+  renderStoreInventory();
+}
+function bulkMoveToBinder(toBinder) {
+  const cards = selectedInvCards(); if (!cards.length) return;
+  cards.forEach(c => { c.binder = toBinder || ''; });
+  mergeInventoryDupes(); selectedInv.clear();
   scheduleStoreSave(); renderStoreInvBinders(); renderStoreInventory();
-  toast(`Moved ${rows.length} card${rows.length === 1 ? '' : 's'} into “${label}”.`);
+  const label = toBinder ? ((storeInv().binders.find(b => b.id === toBinder) || {}).name || 'a binder') : 'Unfiled';
+  toast(`Moved ${cards.length} card${cards.length === 1 ? '' : 's'} into “${label}”.`);
+}
+function bulkSetReserved(val) {
+  const cards = selectedInvCards(); if (!cards.length) return;
+  cards.forEach(c => { c.reserved = val; });
+  scheduleStoreSave(); renderStoreInventory();
+  toast(`${cards.length} card${cards.length === 1 ? '' : 's'} marked ${val ? 'reserved' : 'for sale'}.`);
+}
+function bulkSell() {
+  const cards = selectedInvCards(); if (!cards.length) return;
+  if (!confirm(`Sell one copy of each of the ${cards.length} selected card${cards.length === 1 ? '' : 's'}?`)) return;
+  cards.forEach(c => { recordStoreTx('sold', c.name, 1, c.price); c.qty -= 1; });
+  storeInv().cards = storeInv().cards.filter(c => c.qty > 0);   // drop sold-out
+  selectedInv.clear();
+  scheduleStoreSave(); renderStoreInvBinders(); renderStoreInventory();
+  toast(`Sold 1 each — ${cards.length} card${cards.length === 1 ? '' : 's'}.`);
+}
+function bulkRemoveInv() {
+  const cards = selectedInvCards(); if (!cards.length) return;
+  if (!confirm(`Remove ${cards.length} selected card${cards.length === 1 ? '' : 's'} from inventory entirely?`)) return;
+  storeInv().cards = storeInv().cards.filter(c => !selectedInv.has(invSelKey(c)));
+  selectedInv.clear();
+  scheduleStoreSave(); renderStoreInvBinders(); renderStoreInventory();
+  toast(`Removed ${cards.length} card${cards.length === 1 ? '' : 's'}.`);
+}
+function refreshInvSelAll() {
+  const cb = $('#invSelAll'); if (!cb) return;
+  const rows = invFiltered();
+  cb.checked = rows.length > 0 && rows.every(c => selectedInv.has(invSelKey(c)));
+}
+function renderInvBulkBar() {
+  const bar = $('#invBulk'); if (!bar) return;
+  const n = selectedInv.size;
+  if (!n) { bar.hidden = true; bar.innerHTML = ''; return; }
+  const opts = `<option value="">Unfiled</option>` + storeInv().binders.map(b => `<option value="${b.id}">${esc(b.name)}</option>`).join('');
+  bar.hidden = false;
+  bar.innerHTML = `<span class="inv-bulk-label">${n} selected</span>
+    <span class="inv-bulk-move"><select id="invBulkBinder" class="siv-binder">${opts}</select><button class="btn sm" id="invBulkMove">Move here</button></span>
+    <button class="btn sm" id="invBulkReserve">Reserve</button>
+    <button class="btn sm" id="invBulkForsale">For sale</button>
+    <button class="btn sm" id="invBulkSell"><i class="ms ms-counter-gold" aria-hidden="true"></i> Sell 1 each</button>
+    <button class="btn sm danger" id="invBulkRemove">Remove</button>
+    <button class="link-btn" id="invBulkClear">Clear</button>`;
 }
 function addInvBinder(nm) { nm = (nm || '').trim(); if (!nm || !myStore) return; storeInv().binders.push({ id: uid(), name: nm.slice(0, 40) }); scheduleStoreSave(); renderStoreInvBinders(); renderStoreInventory(); }
 function renameInvBinder(id, nm) { const b = storeInv().binders.find(x => x.id === id); if (b && (nm || '').trim()) { b.name = nm.trim().slice(0, 40); scheduleStoreSave(); renderStoreInvBinders(); } }
@@ -5463,32 +5523,29 @@ function renderStoreInvBinders() {
   }).join('');
   html += `<button class="sell-folder add" data-invbindernew>+ New binder</button>`;
   el.innerHTML = html;
-  const bulk = $('#invBulk');
-  if (bulk) {
-    if (inv.binders.length && inv.cards.length) {
-      const opts = `<option value="">Unfiled</option>` + inv.binders.map(b => `<option value="${b.id}">${esc(b.name)}</option>`).join('');
-      bulk.hidden = false;
-      bulk.innerHTML = `<span class="inv-bulk-label">Move all shown into</span><select id="invBulkBinder" class="siv-binder">${opts}</select><button class="btn sm" id="invBulkMove">Move all</button>`;
-    } else { bulk.hidden = true; bulk.innerHTML = ''; }
-  }
 }
 function renderStoreInventory() {
   const wrap = $('#storeInvBody'); if (!wrap || !myStore) return;
   const rows = invFiltered(), shown = rows.slice(0, storeInvShown);
-  if (!rows.length) { wrap.innerHTML = `<p class="bd-note">${storeInvQuery ? 'No cards match your search.' : 'No cards here yet — add some above.'}</p>`; return; }
+  if (!rows.length) { wrap.innerHTML = `<p class="bd-note">${storeInvQuery ? 'No cards match your search.' : 'No cards here yet — add some above.'}</p>`; renderInvBulkBar(); return; }
   const binderOpts = (cur) => `<option value=""${!cur ? ' selected' : ''}>Unfiled</option>` + storeInv().binders.map(b => `<option value="${b.id}"${cur === b.id ? ' selected' : ''}>${esc(b.name)}</option>`).join('');
   const more = rows.length > storeInvShown ? `<button class="more-btn" id="invMore">Show ${rows.length - storeInvShown} more</button>` : '';
+  const sel = (c) => selectedInv.has(invSelKey(c));
+  const allSel = shown.length > 0 && shown.every(sel);
+  const selAll = `<label class="inv-selall"><input type="checkbox" id="invSelAll" ${allSel ? 'checked' : ''}/> Select all shown</label>`;
   if (storeInvMode === 'art') {
-    wrap.innerHTML = `<div class="binder-gallery">${shown.map(c => `
-      <div class="art-tile buy store-inv-tile${c.reserved ? ' reserved' : ''}">
+    wrap.innerHTML = selAll + `<div class="binder-gallery">${shown.map(c => `
+      <div class="art-tile buy store-inv-tile${c.reserved ? ' reserved' : ''}${sel(c) ? ' selected' : ''}">
+        <input type="checkbox" class="inv-sel art-pick" data-invselect="${esc(invSelKey(c))}" ${sel(c) ? 'checked' : ''} title="Select" />
         <button class="bd-x tile" data-invrm="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="Remove entirely">✕</button>
         <button class="siv-res-tile" data-invres="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="${c.reserved ? 'Reserved (not for sale)' : 'For sale — click to reserve'}"><i class="ms ms-counter-${c.reserved ? 'skull' : 'gold'}"></i></button>
         <button class="art-open" data-name="${esc(c.name)}">${artTile(c.name, c.qty + ' in stock', `<span class="art-val">${money(c.price)}</span>`)}</button>
         <div class="siv-tile-sell"><button data-invsell="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="Sell one">Sell</button><button class="siv-tile-buy" data-invbuy="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="Restock one">+1</button></div>
       </div>`).join('')}</div>${more}`;
   } else {
-    wrap.innerHTML = `<div class="inv-rows">${shown.map(c => `
-      <div class="store-inv-row${c.reserved ? ' reserved' : ''}">
+    wrap.innerHTML = selAll + `<div class="inv-rows">${shown.map(c => `
+      <div class="store-inv-row${c.reserved ? ' reserved' : ''}${sel(c) ? ' selected' : ''}">
+        <input type="checkbox" class="inv-sel" data-invselect="${esc(invSelKey(c))}" ${sel(c) ? 'checked' : ''} title="Select" />
         <span class="siv-name nm" data-name="${esc(c.name)}">${esc(c.name)}</span>
         <span class="siv-stock">${c.qty} in stock</span>
         <span class="siv-price">${money(c.price)}</span>
@@ -5500,6 +5557,7 @@ function renderStoreInventory() {
       </div>`).join('')}</div>${more}`;
   }
   const moreBtn = $('#invMore'); if (moreBtn) moreBtn.addEventListener('click', () => { storeInvShown += 120; renderStoreInventory(); });
+  renderInvBulkBar();
 }
 
 /* ---- store event editor (modal) ---- */
