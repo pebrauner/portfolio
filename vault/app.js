@@ -1926,6 +1926,7 @@ function markBought(name) {
    ===================================================================== */
 function setView(v) {
   if (v !== 'deck') currentDeckId = null;   // leaving the deck view drops deck context (so card-view commander control etc. don't leak)
+  document.documentElement.classList.toggle('home-active', v === 'home');   // home is a fixed, non-scrolling full-screen landing
   $$('.view').forEach(s => s.classList.remove('is-active'));
   $('#view-' + v).classList.add('is-active');
   $$('.tab').forEach(t => t.classList.toggle('is-active', t.dataset.view === v));
@@ -5066,6 +5067,7 @@ if (homeViewEl) homeViewEl.addEventListener('click', e => {
 /* ---------- boot ---------- */
 applyTheme(state.prefs.theme);
 pickAppBg();
+if ($('#view-home') && $('#view-home').classList.contains('is-active')) document.documentElement.classList.add('home-active');   // home is the default landing
 render();
 initSync();
 consumeIncomingMatch();   // a shared list opened via "Match with my lists" lands here
