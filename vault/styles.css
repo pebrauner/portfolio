@@ -621,19 +621,25 @@ html[data-theme="ember"] .topbar { background: linear-gradient(180deg, rgba(31,1
 .inv-binders { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
 .store-inv .lib-search, .lib-search { width: 100%; background: var(--ink); border: 1px solid var(--edge); border-radius: 9px; color: var(--parch); padding: 9px 12px; font-family: var(--body); font-size: 13.5px; margin-bottom: 12px; }
 .store-inv .lib-search:focus { outline: none; border-color: var(--brass); }
+.inv-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.btn.sm { padding: 7px 12px; font-size: 12px; }
 .inv-rows { display: flex; flex-direction: column; }
-.store-inv-row { display: grid; grid-template-columns: 1fr auto auto auto auto auto; align-items: center; gap: 10px; padding: 8px 4px; border-bottom: 1px solid var(--edge-soft); }
-.store-inv-row.reserved { opacity: .6; }
-.siv-name { font-size: 14px; color: var(--parch); cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.store-inv-row { display: flex; align-items: center; gap: 11px; padding: 8px 4px; border-bottom: 1px solid var(--edge-soft); }
+.store-inv-row.reserved { opacity: .58; }
+.siv-name { flex: 1; min-width: 0; font-size: 14px; color: var(--parch); cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .siv-name:hover { color: var(--gold-soft); }
-.siv-step { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); }
-.siv-step button { width: 22px; height: 22px; border-radius: 6px; border: 1px solid var(--edge); background: var(--ink-2); color: var(--gold-soft); cursor: pointer; font-size: 14px; line-height: 1; }
-.siv-step button:hover { border-color: var(--brass); }
-.siv-price { font-family: var(--mono); color: var(--gold-soft); display: inline-flex; align-items: center; gap: 2px; }
-.siv-price-in { width: 64px; background: var(--ink); border: 1px solid var(--edge); border-radius: 7px; color: var(--parch); padding: 5px 7px; font-family: var(--mono); font-size: 13px; }
-.siv-price-in:focus { outline: none; border-color: var(--brass); }
+.siv-stock { font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
+.siv-price { font-family: var(--mono); font-size: 13px; color: var(--gold-soft); white-space: nowrap; min-width: 52px; text-align: right; }
+.siv-sell { display: inline-flex; align-items: center; gap: 5px; font-family: var(--label); font-size: 11px; letter-spacing: .03em; text-transform: uppercase; color: #0f1a0f; background: linear-gradient(180deg, #7cb877, #549058); border: 1px solid #5e9a5e; border-radius: 7px; padding: 6px 12px; cursor: pointer; white-space: nowrap; transition: .14s; }
+.siv-sell:hover { filter: brightness(1.08); }
+.siv-buy { width: 30px; height: 28px; border-radius: 7px; border: 1px solid var(--edge); background: var(--ink-2); color: var(--gold-soft); cursor: pointer; font-family: var(--mono); font-size: 12px; }
+.siv-buy:hover { border-color: var(--brass); }
 .siv-binder { background: var(--ink); border: 1px solid var(--edge); border-radius: 7px; color: var(--parch-dim); padding: 5px 7px; font-size: 12px; max-width: 120px; }
 .siv-res { white-space: nowrap; }
+.siv-tile-sell { display: flex; gap: 5px; margin-top: 6px; }
+.siv-tile-sell button { flex: 1; font-family: var(--label); font-size: 11px; padding: 6px; border-radius: 7px; cursor: pointer; border: 1px solid #5e9a5e; background: linear-gradient(180deg, #7cb877, #549058); color: #0f1a0f; }
+.siv-tile-sell .siv-tile-buy { flex: 0 0 38px; border: 1px solid var(--edge); background: var(--ink-2); color: var(--gold-soft); }
+.siv-tile-sell button:hover { filter: brightness(1.08); }
 .store-inv-tile.reserved .art-img { opacity: .45; }
 .siv-res-tile { position: absolute; top: 8px; left: 8px; z-index: 4; width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; border: 1px solid var(--edge-soft); background: rgba(18,14,10,.86); color: var(--gold-soft); cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.42); }
 .store-inv-tile .bd-x.tile { right: 8px; left: auto; }

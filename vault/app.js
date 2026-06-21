@@ -2107,6 +2107,12 @@ async function addLooseCards() {
   $('#confirmAdd').disabled = true;
   try {
     const { resolved, missing } = await resolveCards(combined);
+    if (addTarget === 'store' && myStore) {
+      const added = addResolvedToStore(resolved);
+      scheduleStoreSave(); closeAdd(); setView('store'); renderStoreDashboard();
+      toast(`Added ${added} card${added > 1 ? 's' : ''} to your inventory${missing ? ` · ${missing} not found` : ''}.`);
+      return;
+    }
     resolved.forEach(c => addVariant(c.name, { qty: c.qty, foil: !!c.foil }));
     logAcquired(resolved, `Added ${resolved.length} cards`);
     save();
@@ -2135,6 +2141,12 @@ async function importCSV(file) {
   $('#csvBtn').disabled = true;
   try {
     const { resolved, missing } = await resolveCards(parsed);
+    if (addTarget === 'store' && myStore) {
+      const added = addResolvedToStore(resolved);
+      scheduleStoreSave(); closeAdd(); setView('store'); renderStoreDashboard();
+      toast(`Imported ${added} cards into your inventory${missing ? ` · ${missing} not found` : ''}.`);
+      return;
+    }
     resolved.forEach(c => addVariant(c.name, { qty: c.qty, foil: c.foil, condition: c.condition, set: c.set, collector: c.collector, scryfallId: c.scryfallId }));
     logAcquired(resolved, `CSV import (${file.name})`);
     save();
@@ -2826,8 +2838,11 @@ function renderAddTags() {
     </span>`).join('');
 }
 
-function openAdd() {
+let addTarget = 'collection';   // 'collection' (personal) | 'store' (active store inventory)
+function openAdd(target) {
+  addTarget = (target === 'store' && myStore) ? 'store' : 'collection';
   $('#addModal').hidden = false;
+  const t = $('#addModalTitle'); if (t) t.textContent = addTarget === 'store' ? 'Add Cards to Inventory' : 'Add Cards to Collection';
   addTags = []; renderAddTags(); hideACMenu();
   $('#addAutocomplete').value = '';
   if ($('#addInput')) $('#addInput').value = '';
@@ -2840,6 +2855,7 @@ function closeAdd() {
   $('#addAutocomplete').value = '';
   addTags = []; renderAddTags(); hideACMenu();
   $('#addStatus').textContent = '';
+  addTarget = 'collection';
 }
 
 /* =====================================================================
@@ -3885,24 +3901,22 @@ if (storeDash) {
   });
   storeDash.addEventListener('change', e => {
     if (!myStore) return;
-    const p = e.target.closest('[data-invprice]'); if (p) { setInvPrice(p.dataset.invprice, p.dataset.invb, p.value); return; }
     const mv = e.target.closest('[data-invmove]'); if (mv) { moveInvCard(mv.dataset.invmove, mv.dataset.invb, e.target.value); return; }
     if (e.target.id === 'storeShowOwner') { myStore.show_owner = e.target.checked; scheduleStoreSave(); return; }
-  });
-  storeDash.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && e.target.id === 'invAddInput') { e.preventDefault(); addInventoryCard(e.target.value); }
   });
   storeDash.addEventListener('click', e => {
     if (e.target.closest('#storeCopyLink')) { copyText(storePublicUrl(myStore.slug)).then(ok => toast(ok ? 'Store link copied ✓' : 'Copy failed')); return; }
     if (e.target.closest('#storeAddEvent')) { openStoreEvent(null); return; }
-    if (e.target.closest('#invAddBtn')) { const i = $('#invAddInput'); if (i) addInventoryCard(i.value); return; }
+    if (e.target.closest('#invAddCards')) { openAdd('store'); return; }
+    if (e.target.closest('#invRefreshPrices')) { refreshStorePrices(); return; }
     let m;
     if ((m = e.target.closest('[data-imode]'))) { storeInvMode = m.dataset.imode; $$('#storeInvMode .seg-btn').forEach(b => b.classList.toggle('is-active', b === m)); renderStoreInventory(); return; }
     if ((m = e.target.closest('[data-invbinder]'))) { storeInvBinder = m.dataset.invbinder; storeInvShown = 80; renderStoreInvBinders(); renderStoreInventory(); return; }
     if (e.target.closest('[data-invbindernew]')) { const nm = prompt('Name this binder (e.g. Commander singles, Sealed, New arrivals):', ''); if (nm) addInvBinder(nm); return; }
     if ((m = e.target.closest('[data-invbinderrename]'))) { const b = storeInv().binders.find(x => x.id === m.dataset.invbinderrename); const nm = prompt('Rename binder:', b ? b.name : ''); if (nm != null) renameInvBinder(m.dataset.invbinderrename, nm); return; }
     if ((m = e.target.closest('[data-invbinderdel]'))) { if (confirm('Delete this binder? Its cards move to Unfiled (they stay in your inventory).')) deleteInvBinder(m.dataset.invbinderdel); return; }
-    if ((m = e.target.closest('[data-invqty]'))) { const nm = m.dataset.name, b = m.dataset.invb, c = invCardAt(nm, b); if (c) setInvQty(nm, b, c.qty + parseInt(m.dataset.invqty, 10)); return; }
+    if ((m = e.target.closest('[data-invsell]'))) { sellInvCopy(m.dataset.invsell, m.dataset.invb); return; }
+    if ((m = e.target.closest('[data-invbuy]'))) { restockInvCopy(m.dataset.invbuy, m.dataset.invb); return; }
     if ((m = e.target.closest('[data-invres]'))) { toggleInvReserved(m.dataset.invres, m.dataset.invb); return; }
     if ((m = e.target.closest('[data-invrm]'))) { removeInvCard(m.dataset.invrm, m.dataset.invb); return; }
     if ((m = e.target.closest('[data-evedit]'))) { openStoreEvent(m.dataset.evedit); return; }
@@ -5257,9 +5271,12 @@ function renderStoreDashboard() {
       <div class="store-card-h"><h3>Inventory <span class="store-savestate" id="invCount"></span></h3>
         <div class="seg" id="storeInvMode"><button class="seg-btn ${storeInvMode === 'art' ? 'is-active' : ''}" data-imode="art"><i class="ms ms-token"></i> Art</button><button class="seg-btn ${storeInvMode === 'list' ? 'is-active' : ''}" data-imode="list"><i class="ms ms-multiple"></i> List</button></div>
       </div>
-      <p class="bd-note" style="margin:0 0 12px">Every card here is automatically listed for sale — unless you mark it <b>Reserved</b>.</p>
+      <p class="bd-note" style="margin:0 0 12px">Every card here is automatically for sale (at Card Kingdom price) — unless you mark it <b>Reserved</b>. Search a card and hit <b>Sell</b> when one leaves the shelf.</p>
+      <div class="inv-actions">
+        <button class="btn gold sm" id="invAddCards"><i class="ms ms-multiple btn-ico" aria-hidden="true"></i> Add cards</button>
+        <button class="btn sm" id="invRefreshPrices" title="Pull the latest Card Kingdom prices"><i class="ms ms-counter-gold btn-ico" aria-hidden="true"></i> Refresh prices</button>
+      </div>
       <div class="inv-binders" id="storeInvBinders"></div>
-      <div class="binder-add"><i class="ms ms-counter-lore binder-add-ic"></i><input type="text" id="invAddInput" class="binder-add-input" placeholder="Add a card by name — type it and press Enter…" autocomplete="off" /><button class="btn gold sm" id="invAddBtn">Add</button><span class="binder-add-status" id="invAddStatus"></span></div>
       <input type="search" id="invSearchInput" class="lib-search" placeholder="Search your inventory…" value="${esc(storeInvQuery)}" autocomplete="off" />
       <div id="storeInvBody"></div>
     </section>
@@ -5308,6 +5325,39 @@ function storeInv() {
   return myStore.inventory;
 }
 function invCardAt(name, binder) { return storeInv().cards.find(c => key(c.name) === key(name) && (c.binder || '') === (binder || '')); }
+// store prices come from the pricing system, Card Kingdom preferred (never set by hand)
+function storePriceOf(name) { const ck = ckPriceOf(name, false); return ck > 0 ? ck : (priceOf(name) || 0); }
+// add resolved cards (from the Add Cards modal in store mode) into the active store's inventory
+function addResolvedToStore(resolved) {
+  if (!myStore) return 0;
+  const inv = storeInv(); let added = 0;
+  resolved.forEach(c => {
+    const q = c.qty || 1;
+    const ex = inv.cards.find(x => key(x.name) === key(c.name) && (x.binder || '') === (storeInvBinder || '') && !!x.foil === !!c.foil);
+    if (ex) ex.qty += q;
+    else inv.cards.push({ name: c.name, qty: q, price: +(storePriceOf(c.name) || 0).toFixed(2), set: c.set || (card(c.name).set || ''), foil: !!c.foil, binder: storeInvBinder || '', reserved: false });
+    added += q;
+  });
+  return added;
+}
+function refreshStorePrices() {
+  if (!myStore) return;
+  storeInv().cards.forEach(c => { c.price = +(storePriceOf(c.name) || 0).toFixed(2); });
+  scheduleStoreSave(); renderStoreInventory();
+  toast('Inventory prices refreshed from Card Kingdom.');
+}
+// sell / restock a single copy — the core "keep a tight ship" action
+function sellInvCopy(name, binder) {
+  const c = invCardAt(name, binder); if (!c) return;
+  const left = c.qty - 1;
+  if (left <= 0) { removeInvCard(name, binder); toast(`Sold the last ${name} — out of stock.`); }
+  else { c.qty = left; scheduleStoreSave(); renderStoreInvBinders(); renderStoreInventory(); toast(`Sold 1 ${name} · ${left} left in stock.`); }
+}
+function restockInvCopy(name, binder) {
+  const c = invCardAt(name, binder); if (!c) return;
+  c.qty += 1; scheduleStoreSave(); renderStoreInvBinders(); renderStoreInventory();
+  toast(`Restocked ${name} · ${c.qty} in stock.`);
+}
 async function addInventoryCard(name) {
   name = (name || '').trim(); if (!name || !myStore) return;
   let meta = card(name);
@@ -5359,19 +5409,22 @@ function renderStoreInventory() {
   if (storeInvMode === 'art') {
     wrap.innerHTML = `<div class="binder-gallery">${shown.map(c => `
       <div class="art-tile buy store-inv-tile${c.reserved ? ' reserved' : ''}">
-        <button class="bd-x tile" data-invrm="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="Remove">✕</button>
+        <button class="bd-x tile" data-invrm="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="Remove entirely">✕</button>
         <button class="siv-res-tile" data-invres="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="${c.reserved ? 'Reserved (not for sale)' : 'For sale — click to reserve'}"><i class="ms ms-counter-${c.reserved ? 'skull' : 'gold'}"></i></button>
-        <button class="art-open" data-name="${esc(c.name)}">${artTile(c.name, c.qty + '×', `<span class="art-val">${money(c.price)}</span>`)}</button>
+        <button class="art-open" data-name="${esc(c.name)}">${artTile(c.name, c.qty + ' in stock', `<span class="art-val">${money(c.price)}</span>`)}</button>
+        <div class="siv-tile-sell"><button data-invsell="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="Sell one">Sell</button><button class="siv-tile-buy" data-invbuy="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="Restock one">+1</button></div>
       </div>`).join('')}</div>${more}`;
   } else {
     wrap.innerHTML = `<div class="inv-rows">${shown.map(c => `
       <div class="store-inv-row${c.reserved ? ' reserved' : ''}">
         <span class="siv-name nm" data-name="${esc(c.name)}">${esc(c.name)}</span>
-        <span class="siv-step"><button data-invqty="-1" data-name="${esc(c.name)}" data-invb="${esc(c.binder || '')}" aria-label="One fewer">−</button><b>${c.qty}</b><button data-invqty="1" data-name="${esc(c.name)}" data-invb="${esc(c.binder || '')}" aria-label="One more">+</button></span>
-        <span class="siv-price">$<input type="number" min="0" step="0.01" class="siv-price-in" value="${c.price}" data-invprice="${esc(c.name)}" data-invb="${esc(c.binder || '')}" aria-label="Price" /></span>
+        <span class="siv-stock">${c.qty} in stock</span>
+        <span class="siv-price">${money(c.price)}</span>
+        <button class="siv-sell" data-invsell="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="Sell one copy"><i class="ms ms-counter-gold" aria-hidden="true"></i> Sell</button>
+        <button class="siv-buy" data-invbuy="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="Add one copy (restock)">+1</button>
         ${storeInv().binders.length ? `<select class="siv-binder" data-invmove="${esc(c.name)}" data-invb="${esc(c.binder || '')}">${binderOpts(c.binder || '')}</select>` : ''}
         <button class="siv-res link-btn${c.reserved ? ' danger' : ''}" data-invres="${esc(c.name)}" data-invb="${esc(c.binder || '')}">${c.reserved ? 'Reserved' : 'For sale'}</button>
-        <button class="bd-x" data-invrm="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="Remove">✕</button>
+        <button class="bd-x" data-invrm="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="Remove entirely">✕</button>
       </div>`).join('')}</div>${more}`;
   }
   const moreBtn = $('#invMore'); if (moreBtn) moreBtn.addEventListener('click', () => { storeInvShown += 120; renderStoreInventory(); });
