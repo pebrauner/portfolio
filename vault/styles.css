@@ -1348,7 +1348,9 @@ html[data-theme="ember"] .topbar { background: linear-gradient(180deg, rgba(31,1
 .toast-undo:hover { filter: brightness(1.08); }
 
 /* ============ home (landing) ============ */
-#view-home { position: relative; min-height: 70vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+/* keep display OFF the bare #view-home id — it would override `.view{display:none}` and show home on every tab */
+#view-home { position: relative; min-height: 70vh; overflow: hidden; }
+#view-home.is-active { display: flex; align-items: center; justify-content: center; }
 .home-bg { position: absolute; inset: -10% 0; z-index: 0; pointer-events: none; -webkit-mask-image: radial-gradient(120% 80% at 50% 40%, #000 35%, transparent 75%); mask-image: radial-gradient(120% 80% at 50% 40%, #000 35%, transparent 75%); }
 .home-drift { display: flex; gap: 18px; padding: 0 18px; width: max-content; opacity: .14; filter: saturate(.85); animation: home-drift 70s linear infinite; }
 .home-card { width: 230px; aspect-ratio: 626/457; flex-shrink: 0; border-radius: 12px; background-size: cover; background-position: center; box-shadow: 0 12px 30px -16px #000; align-self: center; }
