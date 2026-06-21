@@ -1363,8 +1363,9 @@ html.home-active #app { padding-bottom: 0; }
 @keyframes home-roll-up { from { transform: translateY(0); } to { transform: translateY(-50%); } }
 @keyframes home-roll-down { from { transform: translateY(-50%); } to { transform: translateY(0); } }
 @media (prefers-reduced-motion: reduce) { .home-col-track, .home-col:nth-child(even) .home-col-track { animation: none; } }
-/* radial dim — darker behind the hero, fading toward the edges, but sized large so it still covers the whole screen (no bare corners) */
-#view-home::after { content: ''; position: fixed; inset: 0; z-index: 1; pointer-events: none; background: radial-gradient(135% 115% at 50% 44%, rgba(8,7,4,.72) 0%, rgba(8,7,4,.4) 100%); }
+/* dim: dark behind the hero (centre), lighter mid-ring so the cards show, then darker again at the edges (vignette) so the whole frame is covered */
+#view-home::after { content: ''; position: fixed; inset: 0; z-index: 1; pointer-events: none;
+  background: radial-gradient(125% 118% at 50% 44%, rgba(8,7,4,.72) 0%, rgba(8,7,4,.32) 46%, rgba(8,7,4,.66) 100%); }
 .home-hero { position: relative; z-index: 2; text-align: center; max-width: 620px; width: 100%; padding: 40px 20px; }
 .home-hero > * { text-shadow: 0 2px 16px rgba(8,7,4,.9); }
 .home-sigil { font-size: 30px; color: var(--gold); margin-bottom: 6px; }
