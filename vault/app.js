@@ -938,9 +938,14 @@ function renderHome() {
 // a small built-in fallback so the wall is never empty before the big Scryfall pool loads
 const HOME_SHOWCASE = ['Sol Ring', 'Lightning Bolt', 'Counterspell', 'Llanowar Elves', 'Cyclonic Rift', 'Smothering Tithe', 'Rhystic Study', 'Birds of Paradise', 'Brainstorm', 'Cultivate', 'Sword of Fire and Ice', 'Wrath of God', 'Swords to Plowshares', 'Demonic Tutor', 'Solemn Simulacrum', 'Eternal Witness', 'Aura Shards', 'Mana Crypt'].map(n => `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(n)}&format=image&version=small`);
 const safeArt = (u) => /^https:\/\/[^'"()\s]+$/.test(String(u || '')) ? String(u) : '';   // safe in a CSS url('…')
-// A big, varied pool of striking alternate-art / showcase / borderless / full-art cards, fetched from Scryfall
-// and cached in localStorage (NOT in the synced state blob). Refreshed weekly.
-const HOME_ART_KEY = STORE_KEY + ':homeart';
+// A big, VARIED pool of beautiful cards across types & eras — creatures, planeswalkers, spells and full-art lands
+// in their striking printings — DE-DUPED by card name (so it isn't 40 Sol Rings) and shuffled. Cached in
+// localStorage (NOT the synced state blob), refreshed weekly.
+const HOME_ART_KEY = STORE_KEY + ':homeart2';
+const HOME_QUERIES = [
+  '(t:creature or t:planeswalker or t:enchantment or t:instant or t:sorcery) (is:showcase or is:borderless or is:extendedart or is:fullart) -is:digital game:paper',
+  'is:fullart (t:land or t:creature) -is:digital game:paper'
+];
 let homeArtPool = [];
 let homeArtFetching = false;
 try { const j = JSON.parse(localStorage.getItem(HOME_ART_KEY)); if (j && Array.isArray(j.pool)) homeArtPool = j.pool.filter(safeArt); } catch (e) {}
@@ -949,18 +954,24 @@ async function loadHomeArtPool() {
   if (homeArtFetching || homeArtFresh()) return;
   homeArtFetching = true;
   try {
-    let url = 'https://api.scryfall.com/cards/search?q=' + encodeURIComponent('(is:showcase or is:borderless or is:extendedart or is:fullart) -is:digital game:paper') + '&unique=art&order=edhrec';
-    const pool = [];
-    for (let p = 0; p < 2 && url && pool.length < 340; p++) {
-      const r = await fetch(url); if (!r.ok) break;
-      const j = await r.json();
-      (j.data || []).forEach(c => {
-        const u = (c.image_uris && c.image_uris.small) || (c.card_faces && c.card_faces[0] && c.card_faces[0].image_uris && c.card_faces[0].image_uris.small);
-        if (safeArt(u)) pool.push(u);
-      });
-      url = j.has_more ? j.next_page : null;
-      if (url) await new Promise(res => setTimeout(res, 120));   // be gentle to Scryfall
+    const byName = new Map();   // one art per card name → no repeats of the same card
+    for (const q of HOME_QUERIES) {
+      let url = 'https://api.scryfall.com/cards/search?q=' + encodeURIComponent(q) + '&unique=art&order=edhrec';
+      for (let p = 0; p < 2 && url; p++) {
+        const r = await fetch(url); if (!r.ok) break;
+        const j = await r.json();
+        (j.data || []).forEach(c => {
+          const u = (c.image_uris && c.image_uris.small) || (c.card_faces && c.card_faces[0] && c.card_faces[0].image_uris && c.card_faces[0].image_uris.small);
+          const nm = c.name || c.oracle_id || u;
+          if (safeArt(u) && !byName.has(nm)) byName.set(nm, u);
+        });
+        url = j.has_more ? j.next_page : null;
+        if (url) await new Promise(res => setTimeout(res, 110));   // be gentle to Scryfall
+      }
     }
+    let pool = [...byName.values()];
+    for (let i = pool.length - 1; i > 0; i--) { const k = Math.floor(Math.random() * (i + 1)); [pool[i], pool[k]] = [pool[k], pool[i]]; }   // shuffle
+    pool = pool.slice(0, 320);
     if (pool.length >= 40) {
       homeArtPool = pool;
       try { localStorage.setItem(HOME_ART_KEY, JSON.stringify({ pool, at: Date.now() })); } catch (e) {}
@@ -977,7 +988,7 @@ function renderHomeBg() {
   const sig = imgs.length + '·' + COLS + '·' + imgs[0];
   if (bg.dataset.sig === sig) return;   // don't rebuild (and restart the roll) every render
   bg.dataset.sig = sig;
-  const PER = 7, DUR = [40, 30, 52, 36, 47, 33, 44, 38, 50, 31, 45, 37];   // each column its own velocity
+  const PER = 7, DUR = [24, 18, 30, 21, 27, 19, 26, 22, 29, 17, 25, 20];   // each column its own (clearly visible) velocity
   let html = '';
   for (let c = 0; c < COLS; c++) {
     let set = '';
