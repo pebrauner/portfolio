@@ -4570,7 +4570,7 @@ async function signOut() {
   clearTimeout(publicProfileTimer); publicProfileTimer = null;
   try { await sb.auth.signOut(); } catch (e) {}
   authUser = null; authProfile = null; setSyncMeta({});
-  myStore = null; storeEvents = []; pendingStoreInvite = null; refreshStoreMenu();
+  myStore = null; myStores = []; storeEvents = []; storeTx = []; pendingStoreInvite = null; refreshStoreMenu();
   closeProfile(); renderAccount();
   if (['view-profile', 'view-store'].some(v => $('#' + v) && $('#' + v).classList.contains('is-active'))) setView('decks');
   toast('Signed out — this device is now local-only.');
@@ -5124,6 +5124,7 @@ async function consumeIncomingDeck() {
 let myStore = null;             // the active store I manage | null
 let myStores = [];              // all stores I manage (owner or staff)
 let storeEvents = [];           // myStore's events (owner editing)
+let storeTx = [];               // myStore's recent transactions (sales / stock-ins ledger)
 let pendingStoreInvite = null;  // ?store-invite=CODE captured at boot until sign-in
 let pendingStaffInvite = null;  // ?store-staff=CODE captured at boot until sign-in
 let storeInviteResult = '';     // last-minted invite link (admin modal)
@@ -5146,12 +5147,28 @@ async function loadMyStore() {
     const { data: stores } = await sb.from('store_profiles').select('*').in('slug', slugs);
     myStores = stores || [];
     myStore = myStores.find(s => s.owner === authUser.id) || myStores[0] || null;   // a store I own takes precedence as the active one
-    if (myStore) await loadStoreEvents();
+    if (myStore) { await loadStoreEvents(); loadStoreTransactions(); }
   } catch (e) {}
 }
 async function loadStoreEvents() {
   if (!sb || !myStore) { storeEvents = []; return; }
   try { const { data } = await sb.from('store_events').select('*').eq('store_slug', myStore.slug).order('starts_at'); storeEvents = Array.isArray(data) ? data : []; } catch (e) { storeEvents = []; }
+}
+async function loadStoreTransactions() {
+  storeTx = [];
+  if (!sb || !myStore) return;
+  try { const { data } = await sb.from('store_transactions').select('*').eq('store_slug', myStore.slug).order('created_at', { ascending: false }).limit(250); storeTx = Array.isArray(data) ? data : []; renderStoreHistory(); } catch (e) {}
+}
+// record a sale or a stock-in to the immutable ledger (fire-and-forget; prepends + re-renders on success)
+function recordStoreTx(kind, name, qty, unitPrice) {
+  if (!sb || !myStore) return;
+  const q = Number(qty) || 1, up = +(Number(unitPrice) || 0).toFixed(2);
+  const row = { store_slug: myStore.slug, kind, name, qty: q, unit_price: up, value: +(up * q).toFixed(2) };
+  try {
+    sb.from('store_transactions').insert(row).then(({ error }) => {
+      if (!error) { storeTx.unshift({ ...row, created_at: new Date().toISOString() }); if (storeTx.length > 250) storeTx.pop(); renderStoreHistory(); }
+    });
+  } catch (e) {}
 }
 function refreshStoreMenu() {
   const inv = $('#genStoreInvite'); if (inv) inv.hidden = !isStoreAdmin();
@@ -5281,10 +5298,29 @@ function renderStoreDashboard() {
       <div id="storeInvBody"></div>
     </section>
     <section class="store-card"><div class="store-card-h"><h3>Events</h3><button class="btn gold sm" id="storeAddEvent">+ Add event</button></div>
-      <div id="storeEventList"></div></section>`;
+      <div id="storeEventList"></div></section>
+    <section class="store-card"><div class="store-card-h"><h3>Sales &amp; history</h3><span class="store-savestate" id="storeHistSummary"></span></div>
+      <div id="storeHistList"></div></section>`;
   renderStoreEventList();
   renderStoreInvBinders();
   renderStoreInventory();
+  renderStoreHistory();
+}
+function renderStoreHistory() {
+  const el = $('#storeHistList'); if (!el) return;
+  const sum = $('#storeHistSummary');
+  if (!storeTx.length) { el.innerHTML = `<p class="bd-note">No sales yet. The green <b>Sell</b> button on a card logs each sale here — your running record of what's moved.</p>`; if (sum) sum.textContent = ''; return; }
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const sold = storeTx.filter(t => t.kind === 'sold');
+  const soldToday = sold.filter(t => t.created_at && new Date(t.created_at) >= today);
+  const todayQty = soldToday.reduce((a, t) => a + (Number(t.qty) || 0), 0), todayVal = soldToday.reduce((a, t) => a + (Number(t.value) || 0), 0);
+  const shownVal = sold.reduce((a, t) => a + (Number(t.value) || 0), 0);
+  if (sum) sum.textContent = `${todayQty} sold today · ${money(todayVal)} · ${money(shownVal)} recent`;
+  el.innerHTML = storeTx.slice(0, 80).map(t => {
+    const when = t.created_at ? new Date(t.created_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
+    const isSold = t.kind === 'sold';
+    return `<div class="store-tx-row"><span class="tx-badge ${isSold ? 'sold' : 'stock'}">${isSold ? 'Sold' : 'Stocked'}</span><span class="tx-name">${esc(t.name)}</span><span class="tx-qty">${Number(t.qty) || 1}×</span><span class="tx-val${isSold ? ' sold' : ''}">${money(t.value)}</span><span class="tx-when">${esc(when)}</span></div>`;
+  }).join('');
 }
 function renderStoreEventList() {
   const el = $('#storeEventList'); if (!el) return;
@@ -5330,14 +5366,18 @@ function storePriceOf(name) { const ck = ckPriceOf(name, false); return ck > 0 ?
 // add resolved cards (from the Add Cards modal in store mode) into the active store's inventory
 function addResolvedToStore(resolved) {
   if (!myStore) return 0;
-  const inv = storeInv(); let added = 0;
+  const inv = storeInv(); let added = 0; const txRows = [];
   resolved.forEach(c => {
-    const q = c.qty || 1;
+    const q = c.qty || 1, up = +(storePriceOf(c.name) || 0).toFixed(2);
     const ex = inv.cards.find(x => key(x.name) === key(c.name) && (x.binder || '') === (storeInvBinder || '') && !!x.foil === !!c.foil);
     if (ex) ex.qty += q;
-    else inv.cards.push({ name: c.name, qty: q, price: +(storePriceOf(c.name) || 0).toFixed(2), set: c.set || (card(c.name).set || ''), foil: !!c.foil, binder: storeInvBinder || '', reserved: false });
+    else inv.cards.push({ name: c.name, qty: q, price: up, set: c.set || (card(c.name).set || ''), foil: !!c.foil, binder: storeInvBinder || '', reserved: false });
     added += q;
+    txRows.push({ store_slug: myStore.slug, kind: 'stocked', name: c.name, qty: q, unit_price: up, value: +(up * q).toFixed(2) });
   });
+  if (sb && txRows.length) {   // one batch insert for the stock-in, not one per card
+    try { sb.from('store_transactions').insert(txRows).then(({ error }) => { if (!error) { txRows.forEach(r => storeTx.unshift({ ...r, created_at: new Date().toISOString() })); storeTx = storeTx.slice(0, 250); renderStoreHistory(); } }); } catch (e) {}
+  }
   return added;
 }
 function refreshStorePrices() {
@@ -5349,13 +5389,14 @@ function refreshStorePrices() {
 // sell / restock a single copy — the core "keep a tight ship" action
 function sellInvCopy(name, binder) {
   const c = invCardAt(name, binder); if (!c) return;
+  recordStoreTx('sold', name, 1, c.price);   // log the sale to the ledger
   const left = c.qty - 1;
   if (left <= 0) { removeInvCard(name, binder); toast(`Sold the last ${name} — out of stock.`); }
   else { c.qty = left; scheduleStoreSave(); renderStoreInvBinders(); renderStoreInventory(); toast(`Sold 1 ${name} · ${left} left in stock.`); }
 }
 function restockInvCopy(name, binder) {
   const c = invCardAt(name, binder); if (!c) return;
-  c.qty += 1; scheduleStoreSave(); renderStoreInvBinders(); renderStoreInventory();
+  c.qty += 1; recordStoreTx('stocked', name, 1, c.price); scheduleStoreSave(); renderStoreInvBinders(); renderStoreInventory();
   toast(`Restocked ${name} · ${c.qty} in stock.`);
 }
 async function addInventoryCard(name) {

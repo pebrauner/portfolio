@@ -645,6 +645,16 @@ html[data-theme="ember"] .topbar { background: linear-gradient(180deg, rgba(31,1
 .store-inv-tile .bd-x.tile { right: 8px; left: auto; }
 .more-btn { display: block; width: 100%; margin-top: 12px; text-align: center; background: var(--panel-2); border: 1px solid var(--edge); color: var(--gold-soft); border-radius: 9px; padding: 9px; cursor: pointer; font-family: var(--label); font-size: 12px; }
 .more-btn:hover { border-color: var(--gold); }
+/* store transaction ledger */
+.store-tx-row { display: flex; align-items: center; gap: 11px; padding: 7px 4px; border-bottom: 1px solid var(--edge-soft); font-size: 13.5px; }
+.tx-badge { font-family: var(--label); font-size: 9.5px; letter-spacing: .05em; text-transform: uppercase; padding: 2px 7px; border-radius: 5px; white-space: nowrap; }
+.tx-badge.sold { color: #0f1a0f; background: linear-gradient(180deg, #7cb877, #549058); }
+.tx-badge.stock { color: var(--gold-soft); border: 1px solid var(--edge); }
+.tx-name { flex: 1; min-width: 0; color: var(--parch); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tx-qty { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.tx-val { font-family: var(--mono); font-size: 13px; color: var(--parch-dim); white-space: nowrap; }
+.tx-val.sold { color: #7cb877; }
+.tx-when { font-family: var(--label); font-size: 11px; color: var(--faint); white-space: nowrap; }
 
 /* ============ card tables ============ */
 .card-table { display: flex; flex-direction: column; gap: 7px; }
