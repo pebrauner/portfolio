@@ -16,15 +16,15 @@
   <div class="app-bg" aria-hidden="true"></div>
 
   <header class="topbar">
-    <div class="brand">
+    <button class="brand" id="brandHome" title="Home" aria-label="Home">
       <span class="sigil" aria-hidden="true">✦</span>
       <div class="brand-text">
         <h1>The Vault</h1>
         <p>Collection &amp; Deck Ledger</p>
       </div>
-    </div>
+    </button>
     <nav class="tabs" id="tabs">
-      <button class="tab is-active" data-view="decks"><i class="ms ms-saga tab-ico" aria-hidden="true"></i>Decks</button>
+      <button class="tab" data-view="decks"><i class="ms ms-saga tab-ico" aria-hidden="true"></i>Decks</button>
       <button class="tab" data-view="inventory"><i class="ms ms-library tab-ico" aria-hidden="true"></i>Collection</button>
       <div class="nav-group" id="buysellGroup">
         <button class="tab" id="buysellTab" data-navgroup aria-haspopup="true" aria-expanded="false"><i class="ms ms-counter-gold tab-ico" aria-hidden="true"></i>Buy / Sell<span class="tab-caret">▾</span></button>
@@ -39,7 +39,7 @@
     </nav>
     <div class="topbar-actions">
       <button class="btn ghost undo-btn" id="undoBtn" hidden>↶ Undo</button>
-      <button class="btn gold" id="newDeckBtn"><i class="ms ms-saga btn-ico" aria-hidden="true"></i>Import Deck</button>
+      <button class="btn gold" id="newDeckBtn"><i class="ms ms-saga btn-ico" aria-hidden="true"></i>New Deck</button>
       <div class="settings-group" id="settingsGroup">
         <button class="btn ghost cog-btn" id="settingsBtn" aria-label="Settings" aria-haspopup="true" aria-expanded="false">⚙</button>
         <div class="settings-menu" id="settingsMenu" role="menu">
@@ -73,15 +73,40 @@
   </header>
 
   <main id="app">
+    <!-- Home -->
+    <section class="view is-active" id="view-home">
+      <div class="home-bg" id="homeBg" aria-hidden="true"></div>
+      <div class="home-hero">
+        <div class="home-sigil" aria-hidden="true">✦</div>
+        <h1 class="home-title">The Vault</h1>
+        <p class="home-tag">Your Magic: The Gathering collection &amp; deck ledger.</p>
+        <div class="home-searchwrap">
+          <i class="ms ms-ability-investigate home-search-ic" aria-hidden="true"></i>
+          <input type="search" id="homeSearch" class="home-search" placeholder="Search your decks, your cards, or all of Magic…" spellcheck="false" autocomplete="off" />
+          <div class="home-results" id="homeResults" hidden></div>
+        </div>
+        <div class="home-stats" id="homeStats"></div>
+        <div class="home-quick">
+          <button class="home-link" data-homego="inventory"><i class="ms ms-library" aria-hidden="true"></i> Collection</button>
+          <button class="home-link" data-homego="decks"><i class="ms ms-saga" aria-hidden="true"></i> Decks</button>
+          <button class="home-link" data-homego="buylist"><i class="ms ms-counter-gold" aria-hidden="true"></i> Buy / Sell</button>
+          <button class="home-link" data-homego="browse"><i class="ms ms-ability-investigate" aria-hidden="true"></i> Browse</button>
+        </div>
+      </div>
+    </section>
+
     <!-- Decks overview -->
-    <section class="view is-active" id="view-decks">
+    <section class="view" id="view-decks">
       <div class="ledger-summary" id="ledgerSummary"></div>
       <div class="deck-grid" id="deckGrid"></div>
       <div class="empty-state" id="decksEmpty" hidden>
         <span class="empty-mark"><i class="ms ms-saga" aria-hidden="true"></i></span>
-        <h2>Your collection is empty</h2>
-        <p>Import a deck list to begin cataloguing your collection.</p>
-        <button class="btn gold" id="emptyImportBtn"><i class="ms ms-saga btn-ico" aria-hidden="true"></i>Import your first deck</button>
+        <h2>No decks yet</h2>
+        <p>Import a list, build one from scratch, or start from a famous deck.</p>
+        <div class="empty-actions">
+          <button class="btn gold" id="emptyImportBtn"><i class="ms ms-saga btn-ico" aria-hidden="true"></i>New deck</button>
+          <button class="btn" id="emptyBrowseDecks"><i class="ms ms-ability-investigate btn-ico" aria-hidden="true"></i>Browse famous decks</button>
+        </div>
       </div>
     </section>
 
@@ -329,13 +354,16 @@
   <div class="modal-scrim" id="importModal" hidden>
     <div class="modal">
       <button class="modal-close" id="closeImport" aria-label="Close">✕</button>
-      <h2 class="modal-title"><i class="ms ms-library" aria-hidden="true"></i> Import a Deck</h2>
-      <p class="modal-hint">Paste a decklist — one card per line. Quantities and set codes are understood.</p>
+      <h2 class="modal-title"><i class="ms ms-library" aria-hidden="true"></i> New Deck</h2>
+      <p class="modal-hint">Name it, then paste a decklist — or build it from scratch and add cards as you go.</p>
       <input type="text" id="deckNameInput" class="text-input" placeholder="Deck name (e.g. Mono-Red Aggro)" />
       <textarea id="decklistInput" class="decklist-input" spellcheck="false" placeholder="4 Lightning Bolt&#10;4 Monastery Swiftspear&#10;20 Mountain&#10;1 Sol Ring (CMM) 472"></textarea>
       <div class="modal-foot">
         <label class="check-own"><input type="checkbox" id="ownAllInput" /> Mark every card as already owned</label>
-        <button class="btn gold" id="confirmImport"><i class="ms ms-library btn-ico" aria-hidden="true"></i>Catalogue Deck</button>
+        <div class="modal-foot-btns">
+          <button class="btn ghost" id="scratchDeckBtn" title="Create an empty deck and add cards one by one"><i class="ms ms-ability-craft btn-ico" aria-hidden="true"></i>Build from scratch</button>
+          <button class="btn gold" id="confirmImport"><i class="ms ms-library btn-ico" aria-hidden="true"></i>Catalogue Deck</button>
+        </div>
       </div>
       <div class="modal-status" id="importStatus"></div>
     </div>

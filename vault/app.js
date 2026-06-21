@@ -919,7 +919,55 @@ function applyFacet(facet) {
 /* =====================================================================
    RENDERING
    ===================================================================== */
+/* ---------- home ---------- */
+let homeQuery = '';
+function renderHome() {
+  const view = $('#view-home');
+  if (!view || !view.classList.contains('is-active')) return;   // only build when the home view is showing
+  const g = globalStats();
+  const stats = $('#homeStats');
+  if (stats) stats.innerHTML = `
+    <span class="home-stat"><b>${g.decks}</b> deck${g.decks === 1 ? '' : 's'}</span>
+    <span class="home-stat"><b>${g.ownedCount}</b> card${g.ownedCount === 1 ? '' : 's'}</span>
+    <span class="home-stat"><b>${money(g.ownedValue)}</b> value</span>`;
+  renderHomeBg();
+  renderHomeResults();
+}
+function renderHomeBg() {
+  const bg = $('#homeBg'); if (!bg) return;
+  // your richest cards' art, slowly drifting behind the hero
+  const arts = allCardNames().filter(n => ownedOf(n) > 0).map(n => ({ art: displayArt(n), v: unitPrice(n) }))
+    .filter(c => c.art).sort((a, b) => b.v - a.v).slice(0, 12);
+  if (!arts.length) { bg.innerHTML = ''; return; }
+  const tiles = arts.concat(arts).map(c => `<div class="home-card" style="background-image:url('${esc(c.art)}')"></div>`).join('');
+  bg.innerHTML = `<div class="home-drift">${tiles}</div>`;
+}
+function homeResults(q) {
+  q = q.trim().toLowerCase();
+  if (q.length < 2) return null;
+  const decks = state.decks.filter(d => d.name.toLowerCase().includes(q)).slice(0, 5);
+  const cards = allCardNames().filter(n => ownedOf(n) > 0 && n.toLowerCase().includes(q)).slice(0, 6);
+  return { decks, cards };
+}
+function renderHomeResults() {
+  const box = $('#homeResults'); if (!box) return;
+  const inp = $('#homeSearch'); if (inp && inp.value !== homeQuery) inp.value = homeQuery;
+  const r = homeResults(homeQuery);
+  if (!r) { box.hidden = true; box.innerHTML = ''; return; }
+  let html = '';
+  if (r.decks.length) html += `<div class="hr-group"><div class="hr-h">Decks</div>${r.decks.map(d => `<button class="hr-item" data-homedeck="${d.id}"><i class="ms ms-saga" aria-hidden="true"></i><span class="hr-name">${esc(d.name)}</span><span class="hr-sub">${(d.cards || []).reduce((a, c) => a + c.qty, 0)} cards</span></button>`).join('')}</div>`;
+  if (r.cards.length) html += `<div class="hr-group"><div class="hr-h">Your cards</div>${r.cards.map(n => `<button class="hr-item" data-homecard="${esc(n)}"><i class="ms ms-token" aria-hidden="true"></i><span class="hr-name">${esc(n)}</span><span class="hr-sub">${ownedOf(n)}×</span></button>`).join('')}</div>`;
+  html += `<button class="hr-item hr-all" data-homebrowse><i class="ms ms-ability-investigate" aria-hidden="true"></i><span class="hr-name">Search all cards for “${esc(homeQuery.trim())}”</span><span class="hr-go">→</span></button>`;
+  box.innerHTML = html; box.hidden = false;
+}
+function homeGoBrowse() {
+  const q = homeQuery.trim();
+  setView('browse');
+  if (q) { const inp = $('#browseSearch'); if (inp) inp.value = q; browseQuery = q; browseSearch(q, { fresh: true }); }
+}
+
 function render() {
+  renderHome();
   renderDecks();
   if (currentDeckId) renderDeckDetail();
   renderInventory();
@@ -1912,6 +1960,19 @@ async function importDeck() {
   }
 }
 
+// Build from scratch: create an empty deck and open it so cards can be added one by one (or from Browse).
+function createEmptyDeck() {
+  const name = $('#deckNameInput').value.trim() || 'New Deck';
+  const deck = { id: uid(), name, cards: [], original: [] };
+  state.decks.push(deck);
+  save();
+  closeImport();
+  openDeck(deck.id);
+  deckEdit = true;            // open straight into edit mode so the add-card bar is ready (openDeck resets it)
+  renderDeckDetail();
+  $('#deckAddInput') && $('#deckAddInput').focus();
+  toast(`Created “${name}” — add cards below, or from Browse.`);
+}
 function openImport() { $('#importModal').hidden = false; $('#deckNameInput').focus(); }
 function closeImport() {
   $('#importModal').hidden = true;
@@ -3350,8 +3411,10 @@ const undoBtnEl = $('#undoBtn'); if (undoBtnEl) undoBtnEl.addEventListener('clic
 const toastEl = $('#toast'); if (toastEl) toastEl.addEventListener('click', e => { if (e.target.closest('#toastUndo')) { toastEl.hidden = true; undo(); } });
 $('#newDeckBtn').addEventListener('click', openImport);
 $('#emptyImportBtn').addEventListener('click', openImport);
+const emptyBrowseDecksEl = $('#emptyBrowseDecks'); if (emptyBrowseDecksEl) emptyBrowseDecksEl.addEventListener('click', () => { setView('browse'); setBrowseMode('decks'); });
 $('#closeImport').addEventListener('click', closeImport);
 $('#confirmImport').addEventListener('click', importDeck);
+const scratchDeckBtn = $('#scratchDeckBtn'); if (scratchDeckBtn) scratchDeckBtn.addEventListener('click', createEmptyDeck);
 $('#importModal').addEventListener('click', e => { if (e.target.id === 'importModal') closeImport(); });
 $('#backToDecks').addEventListener('click', () => { currentDeckId = null; setView('decks'); });
 $('#addCardsBtn').addEventListener('click', openAdd);
@@ -4933,6 +4996,22 @@ if (shareModalEl) shareModalEl.addEventListener('click', e => {
   if (e.target.closest('#shareCopyBtn')) { const inp = $('#shareLinkInput'); if (inp) copyText(inp.value).then(ok => toast(ok ? 'Link copied ✓' : 'Copy failed')); return; }
   if ((m = e.target.closest('[data-sharecopy]'))) { copyText(shareUrl(m.dataset.sharecopy)).then(ok => toast(ok ? 'Link copied ✓' : 'Copy failed')); return; }
   if ((m = e.target.closest('[data-sharerevoke]'))) { const code = m.dataset.sharerevoke; if (confirm('Revoke this link? Anyone holding it will no longer be able to open the list.')) revokeShare(code).then(() => { renderShareModal(); renderProfileView(); }); return; }
+});
+
+// home (landing) listeners
+const brandHomeEl = $('#brandHome'); if (brandHomeEl) brandHomeEl.addEventListener('click', () => { setView('home'); renderHome(); $('#homeSearch') && $('#homeSearch').focus(); });
+const homeSearchEl = $('#homeSearch');
+if (homeSearchEl) {
+  homeSearchEl.addEventListener('input', e => { homeQuery = e.target.value; renderHomeResults(); });
+  homeSearchEl.addEventListener('keydown', e => { if (e.key === 'Enter') { homeQuery = e.target.value; homeGoBrowse(); } });
+}
+const homeViewEl = $('#view-home');
+if (homeViewEl) homeViewEl.addEventListener('click', e => {
+  let m;
+  if ((m = e.target.closest('[data-homego]'))) { setView(m.dataset.homego); return; }
+  if ((m = e.target.closest('[data-homedeck]'))) { openDeck(m.dataset.homedeck); return; }
+  if ((m = e.target.closest('[data-homecard]'))) { openCardView(m.dataset.homecard); return; }
+  if (e.target.closest('[data-homebrowse]')) { homeGoBrowse(); return; }
 });
 
 /* ---------- boot ---------- */

@@ -339,6 +339,7 @@ html[data-theme="ember"] .topbar { background: linear-gradient(180deg, rgba(31,1
 .empty-mark { font-size: 46px; color: var(--brass); display: block; margin-bottom: 12px; }
 .empty-state h2 { font-family: var(--display); font-size: 24px; margin-bottom: 6px; }
 .empty-state p { color: var(--muted); margin-bottom: 22px; }
+.empty-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
 
 /* ============ deck detail ============ */
 .back-link { background: none; border: none; color: var(--muted); cursor: pointer; font-family: var(--body); font-size: 14px; margin-bottom: 18px; transition: .2s; }
@@ -827,6 +828,7 @@ html[data-theme="ember"] .topbar { background: linear-gradient(180deg, rgba(31,1
 .paste-fold > summary:hover { color: var(--gold-soft); }
 .paste-fold .decklist-input { min-height: 130px; margin-top: 10px; }
 .modal-foot { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 16px; flex-wrap: wrap; }
+.modal-foot-btns { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .check-own { font-size: 13px; color: var(--parch-dim); display: flex; align-items: center; gap: 8px; cursor: pointer; }
 .check-own input { accent-color: var(--gold); width: 15px; height: 15px; }
 .modal-status { margin-top: 14px; font-size: 13px; color: var(--gold-soft); min-height: 18px; font-family: var(--mono); }
@@ -1344,6 +1346,42 @@ html[data-theme="ember"] .topbar { background: linear-gradient(180deg, rgba(31,1
 .toast[hidden] { display: none; }   /* the class sets display:inline-flex, which would otherwise override the [hidden] attribute and pin the toast on screen forever */
 .toast-undo { font-family: var(--label); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink); background: linear-gradient(180deg, var(--gold-soft), var(--gold)); border: none; border-radius: 7px; padding: 6px 12px; cursor: pointer; white-space: nowrap; transition: .15s; }
 .toast-undo:hover { filter: brightness(1.08); }
+
+/* ============ home (landing) ============ */
+#view-home { position: relative; min-height: 70vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.home-bg { position: absolute; inset: -10% 0; z-index: 0; pointer-events: none; -webkit-mask-image: radial-gradient(120% 80% at 50% 40%, #000 35%, transparent 75%); mask-image: radial-gradient(120% 80% at 50% 40%, #000 35%, transparent 75%); }
+.home-drift { display: flex; gap: 18px; padding: 0 18px; width: max-content; opacity: .14; filter: saturate(.85); animation: home-drift 70s linear infinite; }
+.home-card { width: 230px; aspect-ratio: 626/457; flex-shrink: 0; border-radius: 12px; background-size: cover; background-position: center; box-shadow: 0 12px 30px -16px #000; align-self: center; }
+@keyframes home-drift { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .home-drift { animation: none; } }
+.home-hero { position: relative; z-index: 1; text-align: center; max-width: 620px; width: 100%; padding: 40px 20px; }
+.home-sigil { font-size: 30px; color: var(--gold); margin-bottom: 6px; }
+.home-title { font-family: var(--display); font-weight: 700; font-size: clamp(42px, 8vw, 68px); line-height: .95; margin: 0;
+  background: linear-gradient(100deg, var(--gold), var(--gold-soft) 35%, #f6e6a8 50%, var(--gold-soft) 65%, var(--gold)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.home-tag { color: var(--parch-dim); font-size: 16px; margin: 10px 0 26px; }
+.home-searchwrap { position: relative; max-width: 540px; margin: 0 auto; }
+.home-search-ic { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--brass); font-size: 16px; pointer-events: none; }
+.home-search { width: 100%; font-family: var(--body); font-size: 16px; color: var(--parch); background: color-mix(in srgb, var(--panel-2) 88%, #000); border: 1px solid var(--edge); border-radius: 14px; padding: 16px 18px 16px 44px; box-shadow: 0 18px 40px -24px #000; transition: border-color .15s; }
+.home-search:focus { outline: none; border-color: var(--gold); }
+.home-search::placeholder { color: var(--muted); }
+.home-results { position: absolute; top: calc(100% + 8px); left: 0; right: 0; z-index: 20; background: var(--panel-2); border: 1px solid var(--edge); border-radius: 13px; padding: 8px; box-shadow: var(--shadow); text-align: left; max-height: 60vh; overflow-y: auto; }
+.hr-group { margin-bottom: 4px; }
+.hr-h { font-family: var(--label); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--brass); padding: 8px 10px 4px; }
+.hr-item { width: 100%; display: flex; align-items: center; gap: 10px; text-align: left; background: none; border: none; cursor: pointer; padding: 9px 10px; border-radius: 9px; color: var(--parch); font-size: 14px; }
+.hr-item:hover { background: rgba(201,162,39,.08); }
+.hr-item .ms { color: var(--brass); font-size: 14px; flex-shrink: 0; }
+.hr-name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hr-sub, .hr-go { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.hr-all { border-top: 1px solid var(--edge-soft); margin-top: 4px; color: var(--gold-soft); }
+.hr-all .ms, .hr-all .hr-go { color: var(--gold-soft); }
+.home-stats { display: flex; flex-wrap: wrap; gap: 8px 22px; justify-content: center; margin-top: 22px; font-size: 14px; color: var(--muted); }
+.home-stat b { color: var(--parch); font-family: var(--mono); }
+.home-quick { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 22px; }
+.home-link { display: inline-flex; align-items: center; gap: 7px; font-family: var(--label); font-size: 12px; letter-spacing: .03em; cursor: pointer; color: var(--parch-dim); background: var(--panel); border: 1px solid var(--edge); border-radius: 999px; padding: 9px 16px; transition: .15s; }
+.home-link:hover { border-color: var(--gold); color: var(--gold-soft); }
+.home-link .ms { color: var(--brass); }
+.home-link:hover .ms { color: var(--gold-soft); }
+.brand { background: none; border: none; cursor: pointer; font: inherit; color: inherit; text-align: left; }
 
 /* ============ misc ============ */
 .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--edge); border-top-color: var(--gold); border-radius: 50%; animation: spin .7s linear infinite; vertical-align: -2px; margin-right: 7px; }
