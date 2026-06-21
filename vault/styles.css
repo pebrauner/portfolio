@@ -29,11 +29,11 @@
 
   --shadow: 0 24px 60px -28px rgba(0,0,0,.85);
   --radius: 14px;
-  /* TWO fonts only across the whole project: Grenze Gotisch (blackletter display) + Spline Sans Mono (everything else) */
+  /* TWO fonts only across the whole project: Grenze Gotisch (blackletter display) + Spline Sans (everything else) */
   --display: 'Grenze Gotisch', serif;                    /* blackletter — titles & brand */
-  --body: 'Spline Sans Mono', ui-monospace, monospace;   /* all body / UI / prose */
-  --label: 'Spline Sans Mono', ui-monospace, monospace;  /* small uppercase labels */
-  --mono: 'Spline Sans Mono', ui-monospace, monospace;
+  --body: 'Spline Sans', system-ui, sans-serif;          /* all body / UI / prose */
+  --label: 'Spline Sans', system-ui, sans-serif;         /* small uppercase labels */
+  --mono: 'Spline Sans', system-ui, sans-serif;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
