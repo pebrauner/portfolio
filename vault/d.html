@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="grimoire">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>A shared deck · The Vault</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@500;700&family=Spline+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/mana-font@1.15.7/css/mana.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --ink: #0b0a07; --ink-2: #120e08; --panel: #181107; --panel-2: #1f1709;
+      --edge: #342a17; --edge-soft: #28200f; --parch: #ece0c4; --parch-dim: #b0a384;
+      --muted: #8a8070; --faint: #5f5648; --gold: #c9a227; --gold-soft: #e3c869; --brass: #9a7b3f;
+      --display: 'Grenze Gotisch', serif; --body: 'Spline Sans', system-ui, sans-serif;
+      --mono: 'Spline Sans', system-ui, sans-serif; --label: 'Spline Sans', system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body { color: var(--parch); font-family: var(--body); background: var(--ink); -webkit-font-smoothing: antialiased; }
+    .bg { position: fixed; inset: 0; z-index: -2; background-size: cover; background-position: center; filter: blur(3px) brightness(.62) saturate(.95); transform: scale(1.06); }
+    .bg-veil { position: fixed; inset: 0; z-index: -1; background:
+      radial-gradient(1100px 760px at 50% 6%, rgba(18,14,7,.10), rgba(8,7,4,.62) 78%),
+      linear-gradient(180deg, rgba(8,7,4,.34), rgba(8,7,4,.72)); }
+    .wrap { max-width: 880px; margin: 0 auto; padding: 34px 20px 70px; }
+    .brand { display: flex; align-items: center; gap: 9px; justify-content: center; margin-bottom: 24px; }
+    .brand .seal { font-size: 22px; color: var(--gold); }
+    .brand .word { font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: .5px;
+      background: linear-gradient(100deg, var(--gold), var(--gold-soft) 40%, #f6e6a8 50%, var(--gold-soft) 60%, var(--gold));
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .card { background: linear-gradient(180deg, rgba(31,23,9,.92), rgba(24,17,7,.94)); border: 1px solid var(--edge);
+      border-radius: 16px; padding: 26px 26px 30px; box-shadow: 0 30px 70px -30px #000; backdrop-filter: blur(3px); }
+    .state { text-align: center; color: var(--muted); padding: 40px 10px; font-size: 15px; }
+    .state .big { font-size: 40px; color: var(--brass); display: block; margin-bottom: 12px; }
+    .head { display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+    .kind-tag { font-family: var(--label); font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
+      padding: 5px 10px; border-radius: 999px; color: var(--ink); white-space: nowrap; background: linear-gradient(180deg, var(--gold-soft), var(--gold)); }
+    h1 { font-family: var(--display); font-weight: 700; font-size: 28px; margin: 0; color: var(--parch); line-height: 1.1; }
+    .by { font-size: 14px; color: var(--brass); margin-top: 3px; }
+    .by a { color: var(--gold-soft); text-decoration: none; }
+    .by a:hover { text-decoration: underline; }
+    .pips { display: inline-flex; gap: 3px; vertical-align: middle; margin-left: 2px; }
+    .pips .ms { font-size: 13px; }
+    .subbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 14px 0 18px; }
+    .sub { font-family: var(--label); font-size: 11.5px; color: var(--muted); letter-spacing: .03em; }
+    /* like button */
+    .like { display: inline-flex; align-items: center; gap: 8px; font-family: var(--label); font-size: 14px; cursor: pointer;
+      border: 1px solid var(--edge); background: var(--panel-2); color: var(--parch-dim); border-radius: 999px; padding: 8px 16px; transition: .15s; }
+    .like:hover { border-color: var(--gold); color: var(--gold-soft); }
+    .like .heart { font-size: 16px; line-height: 1; color: var(--brass); transition: .15s; }
+    .like.liked { border-color: var(--gold-soft); color: var(--gold-soft); background: color-mix(in srgb, var(--gold) 14%, var(--panel-2)); }
+    .like.liked .heart { color: #e0556a; }
+    .like .count { font-family: var(--mono); }
+    .like[disabled] { cursor: default; opacity: .85; }
+    .cat-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 8px 2px 12px; padding-bottom: 7px; border-bottom: 1px solid var(--edge); }
+    .cat-head:not(:first-child) { margin-top: 26px; }
+    .cat-name { font-family: var(--display); font-size: 19px; color: var(--gold-soft); letter-spacing: .01em; }
+    .cat-name.cmd { color: var(--gold); }
+    .cat-meta { font-family: var(--mono); font-size: 11px; color: var(--muted); white-space: nowrap; }
+    .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 14px; }
+    .tile { cursor: pointer; border: none; background: none; padding: 0; text-align: left; }
+    .tile-art { position: relative; aspect-ratio: 488/680; border-radius: 9px; overflow: hidden; border: 1px solid var(--edge);
+      background: #0c0a07 center/cover no-repeat; box-shadow: 0 10px 24px -14px #000; transition: transform .15s, box-shadow .15s; }
+    .tile:hover .tile-art { transform: translateY(-3px); box-shadow: 0 16px 30px -14px #000; }
+    .tile.cmd .tile-art { border-color: color-mix(in srgb, var(--gold) 50%, var(--edge)); box-shadow: 0 10px 24px -14px #000, 0 0 0 1px rgba(201,162,39,.35); }
+    .tile-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .tile-fallback { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--faint); font-size: 22px; padding: 8px; text-align: center; font-family: var(--display); }
+    .tile-qty { position: absolute; top: 7px; left: 7px; font-family: var(--mono); font-size: 12px; color: var(--ink);
+      background: linear-gradient(180deg, var(--gold-soft), var(--gold)); border-radius: 6px; padding: 2px 7px; }
+    .tile-cap { display: flex; justify-content: space-between; gap: 6px; margin-top: 6px; font-size: 12px; }
+    .tile-cap .tn { color: var(--parch-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 26px; }
+    .btn { font-family: var(--label); font-size: 12px; letter-spacing: .04em; cursor: pointer; border: 1px solid var(--edge);
+      background: var(--panel-2); color: var(--parch-dim); border-radius: 9px; padding: 10px 15px; transition: .15s;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+    .btn:hover { border-color: var(--gold); color: var(--gold-soft); }
+    .btn.gold { color: var(--ink); background: linear-gradient(180deg, var(--gold-soft), var(--gold)); border-color: var(--gold-soft); }
+    .foot { text-align: center; margin-top: 26px; font-size: 12px; color: var(--faint); }
+    .foot a { color: var(--brass); text-decoration: none; }
+    .foot a:hover { color: var(--gold-soft); }
+    .lb { position: fixed; inset: 0; z-index: 50; display: none; align-items: center; justify-content: center; padding: 24px;
+      background: rgba(6,5,3,.82); backdrop-filter: blur(4px); }
+    .lb.on { display: flex; }
+    .lb-card { display: flex; flex-direction: column; align-items: center; gap: 14px; max-width: 92vw; }
+    .lb-img { width: 340px; max-width: 78vw; border-radius: 16px; box-shadow: 0 30px 70px -20px #000; display: block; }
+    .lb-meta { text-align: center; }
+    .lb-name { font-family: var(--display); font-size: 22px; color: var(--parch); }
+    .lb-info { font-family: var(--label); font-size: 12px; color: var(--muted); margin-top: 5px; letter-spacing: .03em; }
+    .lb-link { display: inline-block; margin-top: 12px; font-family: var(--label); font-size: 12px; color: var(--ink);
+      background: linear-gradient(180deg, var(--gold-soft), var(--gold)); border-radius: 8px; padding: 9px 16px; text-decoration: none; }
+    .lb-close { position: fixed; top: 18px; right: 22px; font-size: 26px; color: var(--parch-dim); background: none; border: none; cursor: pointer; line-height: 1; }
+    .lb-close:hover { color: var(--gold-soft); }
+    @media (max-width: 480px) { .gallery { grid-template-columns: repeat(auto-fill, minmax(108px, 1fr)); } h1 { font-size: 23px; } }
+  </style>
+</head>
+<body>
+  <div class="bg" id="bg" aria-hidden="true"></div>
+  <div class="bg-veil" aria-hidden="true"></div>
+  <div class="wrap">
+    <div class="brand"><span class="seal"><i class="ms ms-counter-lore" aria-hidden="true"></i></span><span class="word">The Vault</span></div>
+    <div class="card" id="card">
+      <div class="state"><span class="big"><i class="ms ms-ability-investigate"></i></span>Loading deck…</div>
+    </div>
+    <div class="foot">Shared from <a href="./" target="_blank" rel="noopener">The Vault</a> — a Magic: The Gathering collection &amp; deck tracker.</div>
+  </div>
+
+  <div class="lb" id="lb" aria-hidden="true">
+    <button class="lb-close" id="lbClose" aria-label="Close">✕</button>
+    <div class="lb-card" id="lbCard"></div>
+  </div>
+
+  <script>
+    const SUPA_URL = 'https://yaxczuttvpvqfomhyfbg.supabase.co';
+    const SUPA_KEY = 'sb_publishable_le56dg5VAp5Bmfg3BZ4XCQ_c2sSPuOu';
+    const card = document.getElementById('card');
+
+    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const money = (n) => '$' + (Number(n) || 0).toFixed(2);
+    const safeUrl = (u) => { u = String(u || ''); return /^https?:\/\//i.test(u) ? u : ''; };
+    const safeUser = (u) => /^[a-zA-Z0-9_.]{1,32}$/.test(String(u || '')) ? String(u) : '';   // usernames only
+
+    const BG = ['grimoire','abstract','arcane','tome','tome2','ember','space1','space2','space3','space4','space5',
+      'manamist1','manamist2','manamist3','manamist4','manamist5','mountain1','mountain2','mountain3','mountain4','archway1','archway2','archway3'];
+    document.getElementById('bg').style.backgroundImage = `url("bg/${BG[Math.floor(Math.random() * BG.length)]}.jpg")`;
+
+    const CAT_ORDER = ['Creatures', 'Planeswalkers', 'Instants', 'Sorceries', 'Artifacts', 'Enchantments', 'Lands', 'Other'];
+    const COLOR_PIP = { W: 'ms-w', U: 'ms-u', B: 'ms-b', R: 'ms-r', G: 'ms-g' };
+
+    let DECK = null;     // { code, name, commander, username, data, likes, liked, ... }
+    let sb = null, ME = null;
+    const cards = () => (DECK && DECK.data && Array.isArray(DECK.data.cards)) ? DECK.data.cards : [];
+
+    function showState(icon, msg) { card.innerHTML = `<div class="state"><span class="big"><i class="ms ${icon}"></i></span>${esc(msg)}</div>`; }
+
+    function pipsHtml(colors) {
+      if (!Array.isArray(colors) || !colors.length) return '';
+      return `<span class="pips">${colors.filter(c => COLOR_PIP[c]).map(c => `<i class="ms ms-cost ${COLOR_PIP[c]} ms-shadow" aria-hidden="true"></i>`).join('')}</span>`;
+    }
+    // group cards by type, commander first; returns ordered [{label, cmd, items:[{card, gi}]}] with global indices for the lightbox
+    function sections() {
+      const all = cards();
+      const cmdName = (DECK.commander || (DECK.data && DECK.data.commander) || '').toLowerCase();
+      const groups = {};
+      all.forEach((c, gi) => {
+        const isCmd = cmdName && String(c.name).toLowerCase() === cmdName;
+        const label = isCmd ? 'Commander' : (CAT_ORDER.includes(c.type) ? c.type : 'Other');
+        (groups[label] ||= []).push({ c, gi });
+      });
+      const out = [];
+      if (groups['Commander']) out.push({ label: 'Commander', cmd: true, items: groups['Commander'] });
+      CAT_ORDER.forEach(cat => { if (groups[cat]) out.push({ label: cat, cmd: false, items: groups[cat] }); });
+      return out;
+    }
+    function tileHtml({ c, gi }, cmd) {
+      const q = Number(c.qty) || 0, img = safeUrl(c.img);
+      const art = img ? `<img src="${esc(img)}" alt="${esc(c.name)}" loading="lazy" />` : `<div class="tile-fallback">${esc(c.name)}</div>`;
+      return `<button class="tile${cmd ? ' cmd' : ''}" data-i="${gi}">
+        <div class="tile-art"><span class="tile-qty">${q}×</span>${art}</div>
+        <div class="tile-cap"><span class="tn">${esc(c.name)}</span></div></button>`;
+    }
+    function deckBody() {
+      return sections().map(s => {
+        const n = s.items.reduce((a, x) => a + (Number(x.c.qty) || 0), 0);
+        return `<div class="cat-head"><span class="cat-name${s.cmd ? ' cmd' : ''}">${esc(s.label)}</span><span class="cat-meta">${n} card${n === 1 ? '' : 's'}</span></div>`
+          + `<div class="gallery">${s.items.map(it => tileHtml(it, s.cmd)).join('')}</div>`;
+      }).join('');
+    }
+
+    function likeBtnHtml() {
+      const liked = !!DECK.liked, n = Number(DECK.likes) || 0;
+      return `<button class="like${liked ? ' liked' : ''}" id="likeBtn" aria-pressed="${liked}" title="${ME ? (liked ? 'Unlike' : 'Like this deck') : 'Sign in on The Vault to like'}">
+        <span class="heart">${liked ? '♥' : '♡'}</span><span class="count" id="likeCount">${n}</span><span>${n === 1 ? 'like' : 'likes'}</span></button>`;
+    }
+
+    function render() {
+      const d = DECK.data || {};
+      const total = cards().reduce((a, c) => a + (Number(c.qty) || 0) * (Number(c.price) || 0), 0);
+      const count = cards().reduce((a, c) => a + (Number(c.qty) || 0), 0);
+      const uname = safeUser(DECK.username);
+      const by = uname
+        ? `a deck by <a href="u.html?u=${encodeURIComponent(uname)}">@${esc(uname)}</a>`
+        : (d.owner ? `a deck by ${esc(d.owner)}` : '');
+      const when = DECK.updated_at || DECK.created_at;
+      const dateStr = when ? new Date(when).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '';
+      if (!cards().length) { card.innerHTML = headHtml(d, by) + `<div class="state" style="padding:24px 0"><span class="big"><i class="ms ms-token"></i></span>This deck is empty.</div>`; return; }
+      card.innerHTML = headHtml(d, by) + `
+        <div class="subbar">
+          <span class="sub">${count} card${count === 1 ? '' : 's'}${total ? ` · ~${money(total)}` : ''}${dateStr ? ` · ${esc(dateStr)}` : ''}</span>
+          ${likeBtnHtml()}
+        </div>
+        <div id="body">${deckBody()}</div>
+        <div class="actions">
+          ${uname ? `<a class="btn" href="u.html?u=${encodeURIComponent(uname)}"><i class="ms ms-counter-lore"></i> @${esc(uname)}'s profile</a>` : ''}
+          <a class="btn gold" href="./" target="_blank" rel="noopener"><i class="ms ms-token"></i> Track your own collection</a>
+        </div>`;
+      wire();
+    }
+    function headHtml(d, by) {
+      return `<div class="head"><span class="kind-tag">Deck</span>
+        <div style="flex:1;min-width:0"><h1>${esc(DECK.name || 'Untitled Deck')} ${pipsHtml(d.colors)}</h1>${by ? `<div class="by">${by}</div>` : ''}</div></div>`;
+    }
+
+    function openLightbox(i) {
+      const it = cards()[i]; if (!it) return;
+      const img = safeUrl(it.img), uri = safeUrl(it.uri);
+      document.getElementById('lbCard').innerHTML =
+        (img ? `<img class="lb-img" src="${esc(img)}" alt="${esc(it.name)}" />` : '') +
+        `<div class="lb-meta"><div class="lb-name">${esc(it.name)}</div><div class="lb-info">${Number(it.qty) || 0}× in this deck</div>` +
+        (uri ? `<a class="lb-link" href="${esc(uri)}" target="_blank" rel="noopener">View on Scryfall ↗</a>` : '') + `</div>`;
+      const lb = document.getElementById('lb'); lb.classList.add('on'); lb.setAttribute('aria-hidden', 'false');
+    }
+    function closeLightbox() { const lb = document.getElementById('lb'); lb.classList.remove('on'); lb.setAttribute('aria-hidden', 'true'); }
+
+    async function toggleLike() {
+      const btn = document.getElementById('likeBtn'); if (!btn) return;
+      if (!ME) { location.href = './'; return; }   // not signed in → send them to the app to sign in
+      if (btn.dataset.busy) return; btn.dataset.busy = '1';
+      try {
+        const { data, error } = await sb.rpc('toggle_deck_like', { p_code: DECK.code });
+        if (!error && data) {
+          DECK.liked = !!data.liked; DECK.likes = Number(data.likes) || 0;
+          btn.classList.toggle('liked', DECK.liked);
+          btn.setAttribute('aria-pressed', String(DECK.liked));
+          btn.querySelector('.heart').textContent = DECK.liked ? '♥' : '♡';
+          const c = btn.querySelector('.count'); if (c) c.textContent = DECK.likes;
+          const lbl = btn.querySelector('span:last-child'); if (lbl) lbl.textContent = DECK.likes === 1 ? 'like' : 'likes';
+        }
+      } catch (e) {}
+      delete btn.dataset.busy;
+    }
+
+    function wire() {
+      const body = document.getElementById('body');
+      if (body) body.addEventListener('click', e => { const t = e.target.closest('[data-i]'); if (t) openLightbox(+t.dataset.i); });
+      const lk = document.getElementById('likeBtn'); if (lk) lk.addEventListener('click', toggleLike);
+    }
+
+    document.getElementById('lbClose').addEventListener('click', closeLightbox);
+    document.getElementById('lb').addEventListener('click', e => { if (e.target.id === 'lb') closeLightbox(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+    (async () => {
+      const code = new URLSearchParams(location.search).get('id');
+      if (!code) { showState('ms-counter-shield', 'No deck code in this link.'); return; }
+      if (!window.supabase) { showState('ms-counter-shield', 'Could not load — please check your connection.'); return; }
+      sb = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+      try { const { data: { user } } = await sb.auth.getUser(); ME = user || null; } catch (e) { ME = null; }   // same-origin session (if signed in on the app) lets likes work
+      try {
+        const { data, error } = await sb.rpc('get_shared_deck', { p_code: code });
+        if (error) { showState('ms-counter-shield', 'Could not load this deck. It may have been removed.'); return; }
+        if (!data) { showState('ms-graveyard', 'This deck link no longer exists or was made private.'); return; }
+        DECK = data;
+        render();
+      } catch (e) { showState('ms-counter-shield', 'Something went wrong loading this deck.'); }
+    })();
+  </script>
+</body>
+</html>

@@ -59,6 +59,10 @@
     .deck .dn { flex: 1; min-width: 0; }
     .deck .dname { font-size: 15px; color: var(--parch); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .deck .dsub { font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    a.deck.linked { text-decoration: none; color: inherit; transition: .15s; }
+    a.deck.linked:hover { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 10%, var(--ink-2)); }
+    .deck .dgo { font-family: var(--label); font-size: 11px; color: var(--brass); white-space: nowrap; }
+    a.deck.linked:hover .dgo { color: var(--gold-soft); }
     .chips { display: flex; flex-wrap: wrap; gap: 8px; }
     .chip { font-size: 13px; color: var(--parch-dim); border: 1px solid var(--edge); border-radius: 999px; padding: 5px 12px; }
     .chip .n { font-family: var(--mono); font-size: 11px; color: var(--ink); background: linear-gradient(180deg, var(--gold-soft), var(--gold)); border-radius: 999px; padding: 1px 6px; margin-left: 5px; }
@@ -142,11 +146,13 @@
         }).join('')}</div></div>`;
       }
       if (Array.isArray(d.decks) && d.decks.length) {
-        html += `<div class="sec"><div class="sec-h">Playing</div><div class="decks">${d.decks.map(dk => `
-          <div class="deck ${dk.playing ? 'playing' : ''}">
-            <span class="star">★</span>
-            <div class="dn"><div class="dname">${esc(dk.name)}</div><div class="dsub">${Number(dk.count) || 0} cards${dk.commander ? ' · ' + esc(dk.commander) : ''}</div></div>
-          </div>`).join('')}</div></div>`;
+        html += `<div class="sec"><div class="sec-h">Playing</div><div class="decks">${d.decks.map(dk => {
+          const code = /^[A-Za-z0-9]{4,16}$/.test(String(dk.code || '')) ? dk.code : '';
+          const inner = `<span class="star">★</span><div class="dn"><div class="dname">${esc(dk.name)}</div><div class="dsub">${Number(dk.count) || 0} cards${dk.commander ? ' · ' + esc(dk.commander) : ''}</div></div>${code ? '<span class="dgo">View ↗</span>' : ''}`;
+          return code
+            ? `<a class="deck linked ${dk.playing ? 'playing' : ''}" href="d.html?id=${encodeURIComponent(code)}">${inner}</a>`
+            : `<div class="deck ${dk.playing ? 'playing' : ''}">${inner}</div>`;
+        }).join('')}</div></div>`;
       }
       if (Array.isArray(d.stores) && d.stores.length) {
         html += `<div class="sec"><div class="sec-h">Plays at</div><div class="chips">${d.stores.map(s =>

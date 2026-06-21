@@ -579,6 +579,15 @@ html[data-theme="ember"] .topbar { background: linear-gradient(180deg, rgba(31,1
 .precon-meta { font-family: var(--label); font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--faint); }
 .precon-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
 .precon-actions .btn { font-size: 10px; padding: 8px 10px; letter-spacing: .5px; }
+/* browse: community vs starter deck sections */
+.bd-sec { margin-bottom: 30px; }
+.bd-sec-h { font-family: var(--display); font-size: 20px; font-weight: 600; color: var(--parch); margin: 0 0 14px; display: flex; align-items: center; gap: 9px; }
+.bd-sec-h .ms { color: var(--gold-soft); font-size: 18px; }
+.bd-note { font-size: 13px; color: var(--muted); line-height: 1.5; padding: 6px 2px 2px; }
+.precon-card.community { border-color: color-mix(in srgb, var(--gold) 24%, var(--edge-soft)); }
+.precon-card.community .precon-actions a.btn { text-decoration: none; }
+.cd-likes { color: var(--gold-soft); white-space: nowrap; }
+.cd-heart { color: #e0556a; }
 
 /* ============ card tables ============ */
 .card-table { display: flex; flex-direction: column; gap: 7px; }

@@ -323,8 +323,8 @@
       </div>
 
       <div id="browsePaneDecks" hidden>
-        <p class="view-sub" style="margin-bottom:16px">Recommended Commander decks — import as a deck, add to your buy list, or mark the whole deck owned.</p>
-        <div class="precon-grid" id="browseDecks"></div>
+        <p class="view-sub" style="margin-bottom:16px">Community decks players have published &amp; liked, plus starter Commander decks to import, buy, or mark owned.</p>
+        <div id="browseDecks"></div>
       </div>
     </section>
 
@@ -476,6 +476,15 @@
       <button class="modal-close" id="closeShare" aria-label="Close">✕</button>
       <h2 class="modal-title"><i class="ms ms-counter-lore" aria-hidden="true"></i> Share a list</h2>
       <div id="shareBody"></div>
+    </div>
+  </div>
+
+  <!-- Publish a deck to the community (view + like) -->
+  <div class="modal-scrim" id="deckShareModal" hidden>
+    <div class="modal modal-sm">
+      <button class="modal-close" id="closeDeckShare" aria-label="Close">✕</button>
+      <h2 class="modal-title"><i class="ms ms-commander" aria-hidden="true"></i> Share this deck</h2>
+      <div id="deckShareBody"></div>
     </div>
   </div>
 

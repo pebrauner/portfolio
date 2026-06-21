@@ -1191,6 +1191,7 @@ function renderDeckDetail() {
       <input type="range" id="deckSizeRange" class="size-range" min="110" max="280" step="2" value="${deckTile}" aria-label="Card size" />
       <i class="ms ms-token size-ic size-ic--lg" aria-hidden="true"></i>
     </label>` : ''}
+    <button class="lg-toggle ${deck.shareCode ? 'on' : ''}" data-deckshare title="${deck.shareCode ? 'Published to the community — manage the link' : 'Publish this deck so others can view & like it'}"><i class="ms ms-counter-lore" aria-hidden="true"></i> ${deck.shareCode ? 'Published' : 'Share'}</button>
     <button class="lg-toggle ${deckEdit ? 'on' : ''}" data-deckedit title="Add / remove cards in this deck"><i class="ms ms-ability-craft" aria-hidden="true"></i> Edit</button>
     <button class="lg-toggle ${state.prefs.showLegality ? 'on' : ''}" data-lgtoggle title="Show format legality"><i class="ms ms-counter-shield" aria-hidden="true"></i> Legality</button>
     <button class="lg-toggle ${deckShowOriginal ? 'on' : ''}" data-origtoggle title="Compare with the original imported list"><i class="ms ms-saga" aria-hidden="true"></i> Original${deckDivergence(deck) ? ` <span class="og-badge">${deckDivergence(deck)}</span>` : ''}</button>
@@ -1482,6 +1483,7 @@ function deckDeleteBar(deck) {
 function deleteDeck(id) {
   const deck = state.decks.find(d => d.id === id);
   if (!deck) return;
+  if (deck.shareCode) unpublishDeck(deck);   // remove its community/public deck row + likes
   state.decks = state.decks.filter(d => d.id !== id);
   deckPendingDelete = null; currentDeckId = null;
   save(); render(); setView('decks');
@@ -1490,6 +1492,7 @@ function deleteDeck(id) {
 function deleteDeckAndCards(id) {
   const deck = state.decks.find(d => d.id === id);
   if (!deck) return;
+  if (deck.shareCode) unpublishDeck(deck);   // unpublish + clear shareCode BEFORE the undo snapshot, so undo can't restore a dead "Published" link
   pushUndo(`delete of “${deck.name}”`);
   let removed = 0, removedVal = 0;
   deck.cards.forEach(c => {
@@ -2644,26 +2647,79 @@ function parsedCuratedDeck(d) {
   return _curatedParsed.get(d.id);
 }
 
+// Community decks (published by players, surfaced once liked) — cached; null = not loaded yet.
+const COMMUNITY_MIN_LIKES = 1;   // a published deck appears in Browse once it has at least this many likes
+let communityDecks = null, communityLoading = false;
+async function loadCommunityDecks() {
+  if (!sb || communityLoading) return;
+  communityLoading = true;
+  try {
+    const { data, error } = await sb.rpc('top_community_decks', { p_min_likes: COMMUNITY_MIN_LIKES, p_limit: 24 });
+    communityDecks = (!error && Array.isArray(data)) ? data : [];
+  } catch (e) { communityDecks = []; }
+  communityLoading = false;
+  if (browseMode === 'decks') renderBrowseDecks();
+}
+function preconCardHtml(d, i) {
+  const count = parsedCuratedDeck(d).reduce((a, c) => a + c.qty, 0);
+  return `<article class="precon-card">
+    <div class="precon-head">
+      <div class="pips">${pips(d.colors)}</div>
+      <h3>${esc(d.name)}</h3>
+      <div class="precon-cmd"><i class="ms ms-commander" aria-hidden="true"></i> ${esc(d.commander)}</div>
+    </div>
+    <p class="precon-blurb">${esc(d.blurb)}</p>
+    <div class="precon-meta">${count} cards · Commander</div>
+    <div class="precon-actions">
+      <button class="btn ghost" data-recimport="${i}"><i class="ms ms-saga btn-ico" aria-hidden="true"></i>Import as deck</button>
+      <button class="btn ghost" data-recwish="${i}"><i class="ms ms-counter-gold btn-ico" aria-hidden="true"></i>To buy list</button>
+      <button class="btn ghost" data-recown="${i}"><i class="ms ms-counter-plus btn-ico" aria-hidden="true"></i>Mark owned</button>
+    </div>
+  </article>`;
+}
+function communityCardHtml(cd) {
+  const data = cd.data || {};
+  const count = Number(data.count) || (Array.isArray(data.cards) ? data.cards.reduce((a, c) => a + (Number(c.qty) || 0), 0) : 0);
+  const url = deckShareUrl(cd.code);
+  const likes = Number(cd.likes) || 0;
+  return `<article class="precon-card community">
+    <div class="precon-head">
+      <div class="pips">${pips(Array.isArray(data.colors) ? data.colors : [])}</div>
+      <h3>${esc(cd.name || 'Untitled Deck')}</h3>
+      ${cd.commander ? `<div class="precon-cmd"><i class="ms ms-commander" aria-hidden="true"></i> ${esc(cd.commander)}</div>` : ''}
+    </div>
+    <div class="precon-meta">${count} cards${cd.username ? ` · by @${esc(cd.username)}` : ''} · <span class="cd-likes"><span class="cd-heart">♥</span> ${likes}</span></div>
+    <div class="precon-actions">
+      <a class="btn ghost" href="${esc(url)}" target="_blank" rel="noopener"><i class="ms ms-ability-investigate btn-ico" aria-hidden="true"></i>View deck</a>
+      <button class="btn ghost" data-cdimport="${esc(cd.code)}"><i class="ms ms-saga btn-ico" aria-hidden="true"></i>Import as deck</button>
+    </div>
+  </article>`;
+}
 function renderBrowseDecks() {
-  const g = $('#browseDecks');
-  if (!g) return;
-  g.innerHTML = (typeof CURATED_DECKS !== 'undefined' ? CURATED_DECKS : []).map((d, i) => {
-    const count = parsedCuratedDeck(d).reduce((a, c) => a + c.qty, 0);
-    return `<article class="precon-card">
-      <div class="precon-head">
-        <div class="pips">${pips(d.colors)}</div>
-        <h3>${esc(d.name)}</h3>
-        <div class="precon-cmd"><i class="ms ms-commander" aria-hidden="true"></i> ${esc(d.commander)}</div>
-      </div>
-      <p class="precon-blurb">${esc(d.blurb)}</p>
-      <div class="precon-meta">${count} cards · Commander</div>
-      <div class="precon-actions">
-        <button class="btn ghost" data-recimport="${i}"><i class="ms ms-saga btn-ico" aria-hidden="true"></i>Import as deck</button>
-        <button class="btn ghost" data-recwish="${i}"><i class="ms ms-counter-gold btn-ico" aria-hidden="true"></i>To buy list</button>
-        <button class="btn ghost" data-recown="${i}"><i class="ms ms-counter-plus btn-ico" aria-hidden="true"></i>Mark owned</button>
-      </div>
-    </article>`;
-  }).join('');
+  const g = $('#browseDecks'); if (!g) return;
+  if (communityDecks === null && sb) loadCommunityDecks();   // lazy first load
+  let html = '';
+  const communityInner = communityDecks === null
+    ? `<p class="bd-note">Loading community decks…</p>`
+    : (communityDecks.length
+        ? `<div class="precon-grid">${communityDecks.map(communityCardHtml).join('')}</div>`
+        : `<p class="bd-note">No community decks yet — publish one from a deck’s <b>Share</b> button. Decks appear here once they’re liked.</p>`);
+  html += `<div class="bd-sec"><h2 class="bd-sec-h"><i class="ms ms-counter-lore" aria-hidden="true"></i> Community decks</h2>${communityInner}</div>`;
+  html += `<div class="bd-sec"><h2 class="bd-sec-h"><i class="ms ms-commander" aria-hidden="true"></i> Starter decks</h2><div class="precon-grid">${(typeof CURATED_DECKS !== 'undefined' ? CURATED_DECKS : []).map(preconCardHtml).join('')}</div></div>`;
+  g.innerHTML = html;
+}
+async function communityDeckImport(code) {
+  const cd = (communityDecks || []).find(d => d.code === code);
+  if (!cd || !cd.data || !Array.isArray(cd.data.cards)) { toast('Could not load that deck.'); return; }
+  toast(`Importing ${cd.name}…`);
+  try {
+    const { resolved, missing } = await resolveCards(cd.data.cards.map(c => ({ name: c.name, qty: c.qty })));
+    const cards = resolved.map(c => ({ name: c.name, qty: c.qty }));
+    const deck = { id: uid(), name: cd.name || 'Imported Deck', cards, original: cards.map(c => ({ ...c })), commander: cd.commander || '' };
+    state.decks.push(deck);
+    save(); render(); setView('decks');
+    toast(`Imported “${cd.name}”${missing ? ` · ${missing} card${missing > 1 ? 's' : ''} not found` : ''}.`);
+  } catch (e) { toast('Scryfall lookup failed — try again.'); }
 }
 async function recDeckImport(i) {
   const d = CURATED_DECKS[i];
@@ -3828,6 +3884,8 @@ $('#deckDetail').addEventListener('click', e => {
   if (cf) { deckCardFilter = cf.dataset.cardfilter; renderDeckDetail(); return; }
   const lgt = e.target.closest('[data-lgtoggle]');
   if (lgt) { state.prefs.showLegality = !state.prefs.showLegality; save(); renderDeckDetail(); return; }
+  const deckShareBtn = e.target.closest('[data-deckshare]');
+  if (deckShareBtn) { openDeckShare(currentDeckId); return; }
   const editToggle = e.target.closest('[data-deckedit]');
   if (editToggle) { deckEdit = !deckEdit; deckHideAc(); renderDeckDetail(); return; }
   const origToggle = e.target.closest('[data-origtoggle]');
@@ -4093,6 +4151,7 @@ $('#browseSets').addEventListener('click', e => {
   if (c) browseSet(c.dataset.setcode);
 });
 $('#browseDecks').addEventListener('click', e => {
+  const cdi = e.target.closest('[data-cdimport]'); if (cdi) { communityDeckImport(cdi.dataset.cdimport); return; }
   const imp = e.target.closest('[data-recimport]'); if (imp) { recDeckImport(+imp.dataset.recimport); return; }
   const wish = e.target.closest('[data-recwish]'); if (wish) { recDeckWish(+wish.dataset.recwish); return; }
   const own = e.target.closest('[data-recown]'); if (own) { recDeckOwn(+own.dataset.recown); return; }
@@ -4290,6 +4349,7 @@ document.addEventListener('keydown', e => {
   if (!$('#importModal').hidden) closeImport();
   if (!$('#addModal').hidden) closeAdd();
   const sm = $('#shareModal'); if (sm && !sm.hidden) closeShare();
+  const dsm = $('#deckShareModal'); if (dsm && !dsm.hidden) closeDeckShare();
 });
 
 /* ---------- theme ---------- */
@@ -4505,6 +4565,7 @@ function scheduleSyncPush() {
   syncPushTimer = setTimeout(() => { syncPushTimer = null; pushNow(); }, 2500);
   scheduleLiveShareRefresh();        // keep any "live" shared links current too
   schedulePublicProfileRefresh();    // and a public profile snapshot, if enabled
+  scheduleDeckShareRefresh();        // and any published community decks
   renderAccount();
 }
 // Owned/deck/wishlist card metadata must sync (prices/images render offline);
@@ -4735,6 +4796,117 @@ function scheduleLiveShareRefresh() {
   clearTimeout(liveShareTimer);
   liveShareTimer = setTimeout(refreshLiveShares, 3000);
 }
+
+/* =====================================================================
+   COMMUNITY DECKS — publish a deck publicly (shared_decks), like decks, surface popular ones in Browse
+   deck.shareCode = its published code; RLS is owner-only, anon reads via the get_shared_deck RPC.
+   ===================================================================== */
+let deckShareTimer = null, deckShareBusy = false;
+const lastDeckPush = new Map();   // shareCode -> JSON of the last-pushed snapshot (skip needless re-writes; NOT synced)
+function deckShareUrl(code) { return vaultPageUrl('d.html') + '?id=' + code; }
+function deckPushSig(deck) { return JSON.stringify({ name: deck.name, commander: deckCommander(deck) || '', data: deckShareData(deck) }); }
+// curated, anonymous-readable snapshot (no private/collection data — just the deck list + art)
+function deckShareData(deck) {
+  const cards = deck.cards.map(c => ({
+    name: c.name, qty: c.qty, type: category(c.name),
+    img: displayImage(c.name) || '', uri: (card(c.name).uri) || '', price: +(priceOf(c.name) || 0).toFixed(2)
+  }));
+  return { owner: ownerDisplayName(), commander: deckCommander(deck) || '', colors: deckColors(deck), count: deck.cards.reduce((a, c) => a + c.qty, 0), cards };
+}
+async function publishDeck(deck) {
+  if (!sb || !authUser) return { error: 'not signed in' };
+  if (!deck.cards.length) return { error: 'empty' };
+  const code = deck.shareCode || shareCode();   // reuse a stable code so re-publishing updates the same row
+  const row = {
+    code, owner: authUser.id, username: (authProfile && authProfile.username) || null,
+    name: deck.name, commander: deckCommander(deck) || '', data: deckShareData(deck),
+    public: true, updated_at: new Date().toISOString()
+  };
+  try {
+    const { error } = await sb.from('shared_decks').upsert(row);
+    if (error) return { error: error.message };
+    deck.shareCode = code; lastDeckPush.set(code, deckPushSig(deck)); save();
+    return { code, url: deckShareUrl(code) };
+  } catch (e) { return { error: e.message }; }
+}
+async function unpublishDeck(deck) {
+  if (!sb || !authUser || !deck.shareCode) return;
+  const code = deck.shareCode;
+  try { await sb.from('shared_decks').delete().eq('code', code).eq('owner', authUser.id); } catch (e) {}
+  lastDeckPush.delete(code); communityDecks = null;   // drop the cached Browse community list so it refetches without this deck
+  delete deck.shareCode; save();
+}
+// keep published decks' snapshots current when the deck changes (debounced off save → scheduleSyncPush)
+function scheduleDeckShareRefresh() {
+  if (!sb || !authUser || !state.decks.some(d => d.shareCode)) return;
+  clearTimeout(deckShareTimer); deckShareTimer = setTimeout(refreshPublishedDecks, 3500);
+}
+async function refreshPublishedDecks() {
+  if (!sb || !authUser || deckShareBusy) return;
+  const uid = authUser.id; deckShareBusy = true;
+  try {
+    for (const d of state.decks.filter(x => x.shareCode)) {
+      if (!authUser || authUser.id !== uid) return;
+      const sig = deckPushSig(d);
+      if (lastDeckPush.get(d.shareCode) === sig) continue;   // unchanged since last push — skip the write
+      try {
+        const { error } = await sb.from('shared_decks').update({ name: d.name, commander: deckCommander(d) || '', data: deckShareData(d), updated_at: new Date().toISOString() }).eq('code', d.shareCode).eq('owner', uid);
+        if (!error) lastDeckPush.set(d.shareCode, sig);
+      } catch (e) {}
+    }
+  } finally { deckShareBusy = false; }
+}
+
+/* deck-share modal (publish / copy link + QR / unpublish) */
+let deckShareDeckId = null;
+function openDeckShare(deckId) {
+  deckShareDeckId = deckId || currentDeckId;
+  const m = $('#deckShareModal'); if (m) m.hidden = false;
+  renderDeckShareModal();
+}
+function closeDeckShare() { const m = $('#deckShareModal'); if (m) m.hidden = true; deckShareDeckId = null; }
+function renderDeckShareModal() {
+  const body = $('#deckShareBody'); if (!body) return;
+  const deck = state.decks.find(d => d.id === deckShareDeckId);
+  if (!deck) { body.innerHTML = '<p class="share-note">Deck not found.</p>'; return; }
+  if (!sb || !authUser) {
+    body.innerHTML = `<div class="share-signin"><p>Create a free account to publish decks to the community — others can view and like them.</p><button class="btn gold" id="deckShareSignIn">Sign in / Create account</button></div>`;
+    return;
+  }
+  if (deck.shareCode) {
+    const url = deckShareUrl(deck.shareCode);
+    const qrMarkup = qrSvg(url, { margin: 4 });
+    body.innerHTML = `
+      <div class="share-result">
+        <div class="share-result-h"><i class="ms ms-counter-gold" aria-hidden="true"></i> Published to the community</div>
+        <div class="share-link-row"><input type="text" id="deckShareLink" readonly value="${esc(url)}" /><button class="btn gold" id="deckShareCopy">Copy</button></div>
+        <p class="share-note">Anyone with this link can view <b>${esc(deck.name)}</b> and like it. It updates automatically when you change the deck. <a href="${esc(url)}" target="_blank" rel="noopener">Open ↗</a></p>
+        ${qrMarkup ? `<div class="share-qr"><div class="share-qr-code">${qrMarkup}</div><div class="share-qr-side"><div class="share-qr-cap">Scan to open on a phone.</div><button class="btn gold sm" id="deckShareQr">Download QR</button></div></div>` : ''}
+      </div>
+      <button class="btn share-create" id="deckUnpublishBtn"><i class="ms ms-counter-skull" aria-hidden="true"></i> Unpublish this deck</button>`;
+  } else {
+    const n = deck.cards.reduce((a, c) => a + c.qty, 0);
+    body.innerHTML = `
+      <p class="share-lead">Publish <b>${esc(deck.name)}</b> — ${n} card${n === 1 ? '' : 's'} — so other players can view and like it. Your collection and prices stay private.</p>
+      <button class="btn gold share-create" id="deckPublishBtn" ${deck.cards.length ? '' : 'disabled'}><i class="ms ms-commander" aria-hidden="true"></i> Publish to community</button>`;
+  }
+}
+async function doPublishDeck() {
+  const deck = state.decks.find(d => d.id === deckShareDeckId); if (!deck) return;
+  const btn = $('#deckPublishBtn'); if (btn) { btn.disabled = true; btn.textContent = 'Publishing…'; }
+  const r = await publishDeck(deck);
+  if (r.error) { toast(r.error === 'empty' ? 'This deck is empty — add cards first.' : 'Could not publish: ' + r.error); renderDeckShareModal(); return; }
+  renderDeckShareModal(); renderDeckDetail();
+  const ok = await copyText(r.url);
+  toast(ok ? 'Deck published & link copied ✓' : 'Deck published ✓');
+}
+async function doUnpublishDeck() {
+  const deck = state.decks.find(d => d.id === deckShareDeckId); if (!deck) return;
+  if (!confirm(`Unpublish “${deck.name}”? Its public link and any likes will be removed.`)) return;
+  await unpublishDeck(deck);
+  renderDeckShareModal(); renderDeckDetail();
+  toast('Deck unpublished.');
+}
 let liveShareBusy = false;
 async function refreshLiveShares() {
   if (!sb || !authUser || liveShareBusy) return;
@@ -4870,7 +5042,7 @@ function buildPublicProfileSnapshot() {
   if (p.publicDecks !== false) {
     snap.decks = [...state.decks]
       .sort((a, b) => (b.playing ? 1 : 0) - (a.playing ? 1 : 0) || a.name.localeCompare(b.name))
-      .map(d => ({ name: d.name, commander: d.commander || '', count: (d.cards || []).reduce((a, c) => a + c.qty, 0), playing: !!d.playing }));
+      .map(d => ({ name: d.name, commander: d.commander || '', count: (d.cards || []).reduce((a, c) => a + c.qty, 0), playing: !!d.playing, code: d.shareCode || '' }));
   }
   if (p.publicStores !== false) {
     snap.stores = (Array.isArray(p.favorite_stores) ? p.favorite_stores : []).map(s => ({ name: s, count: storeCounts[s] || 0 }));
@@ -5511,6 +5683,18 @@ if (qrModalEl) qrModalEl.addEventListener('click', e => {
   let m;
   if ((m = e.target.closest('[data-qrdownload]'))) { const s = myShares.find(x => x.code === m.dataset.qrdownload); downloadQrPng(shareUrl(m.dataset.qrdownload), qrSlug(s && s.title ? s.title : (s && s.kind === 'sell' ? 'sell-list' : 'buy-list'))); return; }
   if ((m = e.target.closest('[data-qrcopy]'))) { copyText(shareUrl(m.dataset.qrcopy)).then(ok => toast(ok ? 'Link copied ✓' : 'Copy failed')); return; }
+});
+
+// deck publish / community-share modal
+const closeDeckShareEl = $('#closeDeckShare'); if (closeDeckShareEl) closeDeckShareEl.addEventListener('click', closeDeckShare);
+const deckShareModalEl = $('#deckShareModal');
+if (deckShareModalEl) deckShareModalEl.addEventListener('click', e => {
+  if (e.target.id === 'deckShareModal') { closeDeckShare(); return; }
+  if (e.target.closest('#deckShareSignIn')) { closeDeckShare(); openAuth('signin'); return; }
+  if (e.target.closest('#deckPublishBtn')) { doPublishDeck(); return; }
+  if (e.target.closest('#deckUnpublishBtn')) { doUnpublishDeck(); return; }
+  if (e.target.closest('#deckShareCopy')) { const inp = $('#deckShareLink'); if (inp) copyText(inp.value).then(ok => toast(ok ? 'Link copied ✓' : 'Copy failed')); return; }
+  if (e.target.closest('#deckShareQr')) { const inp = $('#deckShareLink'); if (inp) downloadQrPng(inp.value, 'vault-deck'); return; }
 });
 
 // home (landing) listeners
