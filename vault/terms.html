@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@500;700&family=Spline+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/mana-font@1.15.7/css/mana.min.css" rel="stylesheet" />
+  <script src="i18n.js?v=12"></script>
   <style>
     :root {
       --ink:#0b0a07; --ink-2:#120e08; --panel:#181107; --panel-2:#1f1709; --edge:#342a17; --edge-soft:#28200f;
@@ -38,17 +39,33 @@
     .doc-foot a { color:var(--brass); }
     .doc-foot .links { margin-bottom:12px; font-family:var(--label); font-size:12px; }
     .doc-foot .links a { color:var(--parch-dim); }
+    .lang-toggle { display:inline-flex; border:1px solid var(--edge); border-radius:9px; overflow:hidden; }
+    .lang-toggle button { font-family:var(--label); font-size:12px; letter-spacing:.04em; cursor:pointer; border:none; background:transparent; color:var(--parch-dim); padding:8px 14px; transition:.15s; }
+    .lang-toggle button:hover { color:var(--gold-soft); }
+    .lang-toggle button.on { color:var(--ink); background:linear-gradient(180deg,var(--gold-soft),var(--gold)); }
+    .prevail-note { font-size:13.5px; color:var(--muted); font-style:italic; margin:0 0 22px; }
+    .doc-lang { display:none; }
+    .doc-lang.show { display:block; }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="doc-top">
       <a class="brand" href="./"><span class="seal"><i class="ms ms-counter-lore" aria-hidden="true"></i></span><span class="word">The Vault</span></a>
-      <a class="back" href="./">← Back to The Vault</a>
+      <span style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span class="lang-toggle" role="group" aria-label="Language">
+          <button type="button" id="langEn" data-lang="en">EN</button>
+          <button type="button" id="langEs" data-lang="es">ES</button>
+        </span>
+        <a class="back" href="./" data-i18n="← Back to The Vault">← Back to The Vault</a>
+      </span>
     </div>
 
+    <!-- ===== ENGLISH ===== -->
+    <div class="doc-lang" lang="en" id="docEn">
     <h1>Terms of Service</h1>
     <div class="updated">Last updated: 21 June 2026</div>
+    <p class="prevail-note">The English version of this document governs.</p>
     <p class="lede">These terms are the agreement between you and Pedro Brauner, the operator of The Vault. By using the app, you agree to them. If you don't agree, please don't use The Vault.</p>
 
     <h2>1. The service</h2>
@@ -107,6 +124,91 @@
       The Vault is unofficial Fan Content permitted under the <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Wizards of the Coast Fan Content Policy</a>. Not approved or endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC. Card data and images courtesy of <a href="https://scryfall.com" target="_blank" rel="noopener">Scryfall</a>.<br>
       © 2026 Pedro Brauner · The Vault.
     </div>
+    </div><!-- /docEn -->
+
+    <!-- ===== ESPAÑOL ===== -->
+    <div class="doc-lang" lang="es" id="docEs">
+    <h1>Términos del servicio</h1>
+    <div class="updated">Última actualización: 21 de junio de 2026</div>
+    <p class="prevail-note">La versión en inglés de este documento es la que prevalece legalmente.</p>
+    <p class="lede">Estos términos constituyen el acuerdo entre tú y Pedro Brauner, el operador de The Vault. Al usar la aplicación, aceptas estos términos. Si no estás de acuerdo, por favor no uses The Vault.</p>
+
+    <h2>1. El servicio</h2>
+    <p>The Vault es una herramienta gratuita para catalogar tu colección y mazos de Magic: The Gathering, hacer seguimiento de precios estimados de cartas, crear listas de compra y venta y, opcionalmente, sincronizar tus datos entre dispositivos con una cuenta. Se ofrece “tal cual” y puede cambiar, pausarse o suspenderse en cualquier momento.</p>
+
+    <h2>2. Cuentas</h2>
+    <ul>
+      <li>Puedes crear una cuenta para sincronizar tus datos. Eres responsable de tus credenciales de acceso y de la actividad realizada bajo tu cuenta.</li>
+      <li>Proporciona información veraz y mantén tu contraseña segura. Las cuentas son de uso individual.</li>
+      <li>Avísanos a <a href="mailto:hello@pedrobrauner.com">hello@pedrobrauner.com</a> si crees que tu cuenta ha sido comprometida.</li>
+    </ul>
+
+    <h2>3. Tu contenido y propiedad</h2>
+    <p>Los datos que ingresas — tu colección, mazos, listas y perfil — son tuyos. Nos otorgas una licencia limitada para almacenarlos, procesarlos y mostrarlos únicamente con el fin de operar la aplicación para ti (incluyendo sincronizarlos y mostrar cualquier lista o perfil que decidas hacer público). Eres responsable de todo lo que decidas compartir públicamente.</p>
+
+    <h2>4. Uso aceptable</h2>
+    <p>Por favor, no:</p>
+    <ul>
+      <li>uses la aplicación para infringir la ley o vulnerar los derechos de terceros;</li>
+      <li>intentes acceder a los datos o cuentas de otros usuarios;</li>
+      <li>abuses, sobrecargues, interrumpas o intentes aplicar ingeniería inversa al servicio;</li>
+      <li>extraigas (scraping), descargues de forma masiva o revendas datos obtenidos a través de la aplicación;</li>
+      <li>subas contenido malicioso o tergiverses tu propiedad sobre cualquier carta.</li>
+    </ul>
+
+    <h2>5. Datos de cartas, imágenes y precios</h2>
+    <p>La información y las imágenes de las cartas son proporcionadas por <a href="https://scryfall.com" target="_blank" rel="noopener">Scryfall</a>, y las cifras de precios provienen de TCGplayer y Card Kingdom. Esta información se ofrece solo como referencia y por comodidad. Puede ser inexacta, incompleta o estar desactualizada.</p>
+    <div class="callout">Los precios mostrados son <b>estimaciones, no ofertas ni garantías</b>, y nada en The Vault constituye asesoramiento financiero o de inversión. El valor de las cartas cambia constantemente — confirma siempre los precios con el vendedor antes de comprar o vender.</div>
+
+    <h2>6. Propiedad intelectual</h2>
+    <p>Magic: The Gathering, los nombres de las cartas, el texto de las cartas y el arte de las cartas son propiedad de Wizards of the Coast. The Vault es <b>Contenido de Fans no oficial</b> permitido bajo la <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Política de Contenido de Fans de Wizards of the Coast</a>, y no está producido, respaldado, apoyado ni afiliado con Wizards of the Coast. El nombre, el código y el diseño propios de The Vault pertenecen al operador.</p>
+
+    <h2>7. Servicios de terceros</h2>
+    <p>The Vault depende de servicios de terceros (incluyendo Scryfall y Supabase) para funcionar. Esos servicios tienen sus propios términos y políticas de privacidad que rigen sus partes, y no somos responsables de ellos.</p>
+
+    <h2>8. Exenciones de responsabilidad</h2>
+    <p>La aplicación se ofrece “tal cual” y “según disponibilidad”, sin garantías de ningún tipo. No garantizamos que esté disponible, libre de errores, ni que tus datos no se pierdan. Eres responsable de mantener tus propias copias de seguridad (usa Ajustes → Exportar).</p>
+
+    <h2>9. Limitación de responsabilidad</h2>
+    <p>En la máxima medida permitida por la ley, el operador no será responsable de daños indirectos, incidentales o consecuentes, ni de ninguna pérdida de datos, ganancias o valor de cartas, derivados de tu uso de (o imposibilidad de usar) The Vault. The Vault es una herramienta gratuita ofrecida de buena fe.</p>
+
+    <h2>10. Terminación</h2>
+    <p>Puedes dejar de usar The Vault en cualquier momento. Podemos suspender o cancelar el acceso si se incumplen estos términos, o descontinuar el servicio. Siempre puedes exportar tus datos primero.</p>
+
+    <h2>11. Cambios en estos términos</h2>
+    <p>Podemos actualizar estos términos de vez en cuando. Cambiaremos la fecha de “Última actualización” de arriba, y el uso continuado de la aplicación significa que aceptas los términos actualizados.</p>
+
+    <h2>12. Ley aplicable</h2>
+    <p>Estos términos se rigen por las leyes de Perú, sin atender a las normas de conflicto de leyes. Cualquier disputa será resuelta por los tribunales competentes de Lima, Perú.</p>
+
+    <h2>13. Contacto</h2>
+    <p>Preguntas sobre estos términos: <a href="mailto:hello@pedrobrauner.com">hello@pedrobrauner.com</a>.</p>
+
+    <div class="doc-foot">
+      <div class="links"><a href="./">Inicio</a> · <a href="terms.html">Términos del servicio</a> · <a href="privacy.html">Política de privacidad</a> · <a href="mailto:hello@pedrobrauner.com">Contacto</a></div>
+      The Vault es Contenido de Fans no oficial permitido bajo la <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Política de Contenido de Fans de Wizards of the Coast</a>. No está aprobado ni respaldado por Wizards. Parte del material utilizado es propiedad de Wizards of the Coast. ©Wizards of the Coast LLC. Datos e imágenes de cartas cortesía de <a href="https://scryfall.com" target="_blank" rel="noopener">Scryfall</a>.<br>
+      © 2026 Pedro Brauner · The Vault.
+    </div>
+    </div><!-- /docEs -->
   </div>
+
+  <script>
+    (function () {
+      var en = document.getElementById('docEn'), es = document.getElementById('docEs');
+      var bEn = document.getElementById('langEn'), bEs = document.getElementById('langEs');
+      function setLang(lang) {
+        var isEs = (lang === 'es');
+        es.classList.toggle('show', isEs); en.classList.toggle('show', !isEs);
+        bEs.classList.toggle('on', isEs); bEn.classList.toggle('on', !isEs);
+        document.documentElement.lang = isEs ? 'es' : 'en';
+        try { I18N.lang = isEs ? 'es' : 'en'; I18N.apply(document); } catch (e) {}
+      }
+      bEn.addEventListener('click', function () { setLang('en'); });
+      bEs.addEventListener('click', function () { setLang('es'); });
+      var initial = 'en';
+      try { initial = I18N.detect(); } catch (e) {}
+      setLang(initial);
+    })();
+  </script>
 </body>
 </html>

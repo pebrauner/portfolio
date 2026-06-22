@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@500;700&family=Spline+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/mana-font@1.15.7/css/mana.min.css" rel="stylesheet" />
+  <script src="i18n.js?v=12"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -120,17 +121,21 @@
   <div class="wrap">
     <div class="brand"><span class="seal"><i class="ms ms-counter-lore" aria-hidden="true"></i></span><span class="word">The Vault</span></div>
     <div class="card" id="card">
-      <div class="state"><span class="big"><i class="ms ms-ability-investigate"></i></span>Loading shared list…</div>
+      <div class="state"><span class="big"><i class="ms ms-ability-investigate"></i></span><span data-i18n="Loading shared list…">Loading shared list…</span></div>
     </div>
-    <div class="foot">Shared from <a href="./" target="_blank" rel="noopener">The Vault</a> — a Magic: The Gathering collection tracker.</div>
+    <div class="foot" data-i18n-html="Shared from &lt;a href=&quot;./&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;The Vault&lt;/a&gt; — a Magic: The Gathering collection tracker.">Shared from <a href="./" target="_blank" rel="noopener">The Vault</a> — a Magic: The Gathering collection tracker.</div>
   </div>
 
   <div class="lb" id="lb" aria-hidden="true">
-    <button class="lb-close" id="lbClose" aria-label="Close">✕</button>
+    <button class="lb-close" id="lbClose" aria-label="Close" data-i18n-aria="Close">✕</button>
     <div class="lb-card" id="lbCard"></div>
   </div>
 
   <script>
+    I18N.lang = I18N.detect();
+    document.documentElement.lang = I18N.lang;
+    I18N.apply(document);
+
     const SUPA_URL = 'https://yaxczuttvpvqfomhyfbg.supabase.co';
     const SUPA_KEY = 'sb_publishable_le56dg5VAp5Bmfg3BZ4XCQ_c2sSPuOu';
     const card = document.getElementById('card');
@@ -156,24 +161,25 @@
     function catHead(s) {
       const c = s.items.reduce((a, it) => a + (Number(it.qty) || 0), 0);
       const t = s.items.reduce((a, it) => a + (Number(it.qty) || 0) * (Number(it.price) || 0), 0);
-      return `<div class="cat-head"><span class="cat-name">${esc(s.label)}</span><span class="cat-meta">${c} card${c === 1 ? '' : 's'} · ${money(t)}</span></div>`;
+      const cLabel = c === 1 ? tr('{n} card', { n: c }) : tr('{n} cards', { n: c });
+      return `<div class="cat-head"><span class="cat-name">${esc(s.label)}</span><span class="cat-meta">${esc(cLabel)} · ${money(t)}</span></div>`;
     }
     function listRowsHtml(arr, base) {
       return arr.map((it, j) => {
         const i = base + j, q = Number(it.qty) || 0, p = Number(it.price) || 0;
         const setBadge = it.set ? `<span class="setbadge">${esc(it.set)}</span>` : '';
-        const foil = it.foil ? `<span class="foil" title="Foil">✦ foil</span>` : '';
+        const foil = it.foil ? `<span class="foil" title="${esc(tr('Foil'))}">✦ ${esc(tr('foil'))}</span>` : '';
         return `<tr data-i="${i}"><td class="qty">${q}×</td><td><span class="nm">${esc(it.name)}</span>${setBadge}${foil}</td><td class="r price">${money(p)}</td><td class="r line">${money(q * p)}</td></tr>`;
       }).join('');
     }
     function listTable(arr, base) {
-      return `<table><thead><tr><th>Qty</th><th>Card</th><th class="r">Each</th><th class="r">Total</th></tr></thead><tbody>${listRowsHtml(arr, base)}</tbody></table>`;
+      return `<table><thead><tr><th>${esc(tr('Qty'))}</th><th>${esc(tr('Card'))}</th><th class="r">${esc(tr('Each'))}</th><th class="r">${esc(tr('Total'))}</th></tr></thead><tbody>${listRowsHtml(arr, base)}</tbody></table>`;
     }
     function artTiles(arr, base) {
       return arr.map((it, j) => {
         const i = base + j, q = Number(it.qty) || 0, p = Number(it.price) || 0, img = safeUrl(it.img);
         const art = img ? `<img src="${esc(img)}" alt="${esc(it.name)}" loading="lazy" />` : `<div class="tile-fallback">${esc(it.name)}</div>`;
-        const foil = it.foil ? `<span class="tile-foil" title="Foil">✦</span>` : '';
+        const foil = it.foil ? `<span class="tile-foil" title="${esc(tr('Foil'))}">✦</span>` : '';
         return `<button class="tile" data-i="${i}"><div class="tile-art"><span class="tile-qty">${q}×</span>${foil}${art}</div><div class="tile-cap"><span class="tn">${esc(it.name)}</span><span class="tp">${money(p)}</span></div></button>`;
       }).join('');
     }
@@ -181,8 +187,8 @@
       const secs = sections();
       if (!secs) {
         const total = items().reduce((a, it) => a + (Number(it.qty) || 0) * (Number(it.price) || 0), 0);
-        const verb = ROW.kind === 'sell' ? 'Asking total' : 'Estimated total';
-        return `<table><thead><tr><th>Qty</th><th>Card</th><th class="r">Each</th><th class="r">Total</th></tr></thead><tbody>${listRowsHtml(items(), 0)}</tbody><tfoot><tr><td></td><td>${verb}</td><td></td><td class="r total">${money(total)}</td></tr></tfoot></table>`;
+        const verb = ROW.kind === 'sell' ? tr('Asking total') : tr('Estimated total');
+        return `<table><thead><tr><th>${esc(tr('Qty'))}</th><th>${esc(tr('Card'))}</th><th class="r">${esc(tr('Each'))}</th><th class="r">${esc(tr('Total'))}</th></tr></thead><tbody>${listRowsHtml(items(), 0)}</tbody><tfoot><tr><td></td><td>${esc(verb)}</td><td></td><td class="r total">${money(total)}</td></tr></tfoot></table>`;
       }
       let gi = 0, html = '';
       for (const s of secs) { html += catHead(s) + listTable(s.items, gi); gi += s.items.length; }
@@ -199,44 +205,46 @@
     function render() {
       const d = ROW.data || {};
       const kind = ROW.kind === 'sell' ? 'sell' : 'buy';
-      const verb = kind === 'sell' ? 'Selling' : 'Buying';
+      const verb = kind === 'sell' ? tr('Selling') : tr('Buying');
       const copies = items().reduce((a, it) => a + (Number(it.qty) || 0), 0);
       const total = items().reduce((a, it) => a + (Number(it.qty) || 0) * (Number(it.price) || 0), 0);
-      const src = PRICE_SRC[d.priceSrc] || 'market';
+      const src = PRICE_SRC[d.priceSrc] || tr('market');
       const when = ROW.updated_at || ROW.created_at;
-      const dateStr = when ? new Date(when).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '';
-      const matchLabel = kind === 'sell' ? 'Match with my Buy List' : 'Match with my Sell List';
+      const dateStr = when ? new Date(when).toLocaleDateString(I18N.locale(), { year: 'numeric', month: 'short', day: 'numeric' }) : '';
+      const matchLabel = kind === 'sell' ? tr('Match with my Buy List') : tr('Match with my Sell List');
 
       if (!items().length) {
-        card.innerHTML = headHtml(verb, kind, d) + `<div class="state" style="padding:24px 0"><span class="big"><i class="ms ms-token"></i></span>This list is empty right now.</div>`;
+        card.innerHTML = headHtml(verb, kind, d) + `<div class="state" style="padding:24px 0"><span class="big"><i class="ms ms-token"></i></span>${esc(tr('This list is empty right now.'))}</div>`;
         return;
       }
+      const copiesLabel = copies === 1 ? tr('{n} card', { n: copies }) : tr('{n} cards', { n: copies });
+      const atPrice = tr('{copies} · {total} at {src} price', { copies: copiesLabel, total: money(total), src: src });
       card.innerHTML = headHtml(verb, kind, d) + `
         <div class="subbar">
-          <span class="sub">${copies} card${copies === 1 ? '' : 's'} · ${money(total)} at ${esc(src)} price${ROW.live ? ' · <span class="live-dot">● live</span>' : ''}${dateStr ? ` · ${esc(dateStr)}` : ''}</span>
-          <span class="seg"><button data-view="art" class="${view === 'art' ? 'on' : ''}"><i class="ms ms-token"></i> Art</button><button data-view="list" class="${view === 'list' ? 'on' : ''}"><i class="ms ms-multiple"></i> List</button></span>
+          <span class="sub">${esc(atPrice)}${ROW.live ? ` · <span class="live-dot">● ${esc(tr('live'))}</span>` : ''}${dateStr ? ` · ${esc(dateStr)}` : ''}</span>
+          <span class="seg"><button data-view="art" class="${view === 'art' ? 'on' : ''}"><i class="ms ms-token"></i> ${esc(tr('Art'))}</button><button data-view="list" class="${view === 'list' ? 'on' : ''}"><i class="ms ms-multiple"></i> ${esc(tr('List'))}</button></span>
         </div>
         <div class="actions">
-          <button class="btn gold" id="matchBtn"><i class="ms ms-ability-investigate"></i> ${matchLabel}</button>
-          <button class="btn" id="copyText"><i class="ms ms-multiple"></i> Copy as text</button>
-          <a class="btn" href="./" target="_blank" rel="noopener"><i class="ms ms-counter-lore"></i> Track your own collection</a>
+          <button class="btn gold" id="matchBtn"><i class="ms ms-ability-investigate"></i> ${esc(matchLabel)}</button>
+          <button class="btn" id="copyText"><i class="ms ms-multiple"></i> ${esc(tr('Copy as text'))}</button>
+          <a class="btn" href="./" target="_blank" rel="noopener"><i class="ms ms-counter-lore"></i> ${esc(tr('Track your own collection'))}</a>
         </div>
         <div id="body">${view === 'art' ? artView() : listView()}</div>`;
       wire();
     }
     function headHtml(verb, kind, d) {
-      return `<div class="head"><span class="kind-tag ${kind}">${verb}</span>
-        <div style="flex:1;min-width:0"><h1>${esc(ROW.title || (kind === 'sell' ? 'Sell List' : 'Buy List'))}</h1>${d.owner ? `<div class="owner">${esc(d.owner)}</div>` : ''}</div></div>`;
+      return `<div class="head"><span class="kind-tag ${kind}">${esc(verb)}</span>
+        <div style="flex:1;min-width:0"><h1>${esc(ROW.title || (kind === 'sell' ? tr('Sell List') : tr('Buy List')))}</h1>${d.owner ? `<div class="owner">${esc(d.owner)}</div>` : ''}</div></div>`;
     }
 
     function openLightbox(i) {
       const it = items()[i]; if (!it) return;
       const img = safeUrl(it.img), uri = safeUrl(it.uri);
-      const bits = [it.set ? esc(it.set) : '', it.foil ? 'Foil' : '', money(it.price)].filter(Boolean).join(' · ');
+      const bits = [it.set ? esc(it.set) : '', it.foil ? esc(tr('Foil')) : '', money(it.price)].filter(Boolean).join(' · ');
       document.getElementById('lbCard').innerHTML =
         (img ? `<img class="lb-img" src="${esc(img)}" alt="${esc(it.name)}" />` : '') +
         `<div class="lb-meta"><div class="lb-name">${esc(it.name)}</div><div class="lb-info">${Number(it.qty) || 0}× · ${bits}</div>` +
-        (uri ? `<a class="lb-link" href="${esc(uri)}" target="_blank" rel="noopener">View on Scryfall ↗</a>` : '') + `</div>`;
+        (uri ? `<a class="lb-link" href="${esc(uri)}" target="_blank" rel="noopener">${esc(tr('View on Scryfall ↗'))}</a>` : '') + `</div>`;
       const lb = document.getElementById('lb'); lb.classList.add('on'); lb.setAttribute('aria-hidden', 'false');
     }
     function closeLightbox() { const lb = document.getElementById('lb'); lb.classList.remove('on'); lb.setAttribute('aria-hidden', 'true'); }
@@ -255,7 +263,7 @@
       const cp = document.getElementById('copyText');
       if (cp) cp.addEventListener('click', async () => {
         const text = items().map(it => `${Number(it.qty) || 0} ${it.name}${it.set ? ' (' + it.set + ')' : ''}${it.foil ? ' [foil]' : ''}`).join('\n');
-        try { await navigator.clipboard.writeText(text); cp.innerHTML = '<i class="ms ms-counter-gold"></i> Copied ✓'; } catch (e) { cp.textContent = 'Copy failed'; }
+        try { await navigator.clipboard.writeText(text); cp.innerHTML = `<i class="ms ms-counter-gold"></i> ${esc(tr('Copied ✓'))}`; } catch (e) { cp.textContent = tr('Copy failed'); }
       });
     }
 
@@ -265,16 +273,16 @@
 
     (async () => {
       const code = new URLSearchParams(location.search).get('id');
-      if (!code) { showState('ms-counter-shield', 'No list code in this link.'); return; }
-      if (!window.supabase) { showState('ms-counter-shield', 'Could not load — please check your connection.'); return; }
+      if (!code) { showState('ms-counter-shield', tr('No list code in this link.')); return; }
+      if (!window.supabase) { showState('ms-counter-shield', tr('Could not load — please check your connection.')); return; }
       const sb = window.supabase.createClient(SUPA_URL, SUPA_KEY);
       try {
         const { data, error } = await sb.rpc('get_shared_list', { p_code: code });
-        if (error) { showState('ms-counter-shield', 'Could not load this list. It may have been removed.'); return; }
-        if (!data || (Array.isArray(data) && !data.length)) { showState('ms-graveyard', 'This link has expired or no longer exists.'); return; }
+        if (error) { showState('ms-counter-shield', tr('Could not load this list. It may have been removed.')); return; }
+        if (!data || (Array.isArray(data) && !data.length)) { showState('ms-graveyard', tr('This link has expired or no longer exists.')); return; }
         ROW = Array.isArray(data) ? data[0] : data;
         render();
-      } catch (e) { showState('ms-counter-shield', 'Something went wrong loading this list.'); }
+      } catch (e) { showState('ms-counter-shield', tr('Something went wrong loading this list.')); }
     })();
   </script>
 </body>

@@ -214,6 +214,11 @@ html[data-theme="ember"] .topbar { background: linear-gradient(180deg, rgba(31,1
 .ps-opt { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--parch-dim); background: none; border: 1px solid transparent; border-radius: 6px; padding: 4px 8px; cursor: pointer; transition: .14s; }
 .ps-opt:hover { color: var(--parch); }
 .ps-opt.on { color: var(--ink); background: linear-gradient(180deg, var(--gold-soft), var(--gold)); }
+.lang-switch { gap: 4px; padding: 3px 4px; border: 1px solid var(--edge); border-radius: 9px; background: var(--ink-2); }
+.lang-opt { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--parch-dim); background: none; border: 1px solid transparent; border-radius: 6px; padding: 4px 9px; cursor: pointer; transition: .14s; }
+.lang-opt:hover { color: var(--parch); }
+.lang-opt.on { color: var(--ink); background: linear-gradient(180deg, var(--gold-soft), var(--gold)); }
+.lang-opt:focus-visible { outline: 2px solid var(--gold-soft); outline-offset: 2px; }
 .ps-refresh { width: 25px; height: 24px; display: grid; place-items: center; font-size: 14px; color: var(--parch-dim); background: none; border: none; border-left: 1px solid var(--edge); margin-left: 2px; cursor: pointer; transition: .14s; }
 .ps-refresh:hover { color: var(--gold-soft); }
 .ps-refresh.spinning { animation: ck-spin .8s linear infinite; color: var(--gold-soft); }

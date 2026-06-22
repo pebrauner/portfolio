@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@400;500;600;700;800&family=Spline+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/mana-font@latest/css/mana.css" rel="stylesheet" type="text/css" />
-  <link rel="stylesheet" href="styles.css?v=11" />
+  <link rel="stylesheet" href="styles.css?v=12" />
 </head>
 <body>
   <div class="grain" aria-hidden="true"></div>
@@ -20,56 +20,63 @@
       <span class="sigil" aria-hidden="true">✦</span>
       <div class="brand-text">
         <h1>The Vault</h1>
-        <p>Collection &amp; Deck Ledger</p>
+        <p data-i18n="Collection &amp; Deck Ledger">Collection &amp; Deck Ledger</p>
       </div>
     </button>
     <nav class="tabs" id="tabs">
-      <button class="tab" data-view="decks"><i class="ms ms-saga tab-ico" aria-hidden="true"></i>Decks</button>
-      <button class="tab" data-view="inventory"><i class="ms ms-library tab-ico" aria-hidden="true"></i>Collection</button>
+      <button class="tab" data-view="decks"><i class="ms ms-saga tab-ico" aria-hidden="true"></i><span data-i18n="Decks">Decks</span></button>
+      <button class="tab" data-view="inventory"><i class="ms ms-library tab-ico" aria-hidden="true"></i><span data-i18n="Collection">Collection</span></button>
       <div class="nav-group" id="buysellGroup">
-        <button class="tab" id="buysellTab" data-navgroup aria-haspopup="true" aria-expanded="false"><i class="ms ms-counter-gold tab-ico" aria-hidden="true"></i>Buy / Sell<span class="tab-caret">▾</span></button>
+        <button class="tab" id="buysellTab" data-navgroup aria-haspopup="true" aria-expanded="false"><i class="ms ms-counter-gold tab-ico" aria-hidden="true"></i><span data-i18n="Buy / Sell">Buy / Sell</span><span class="tab-caret">▾</span></button>
         <div class="nav-menu" id="buysellMenu" role="menu">
-          <button role="menuitem" data-view="buylist"><i class="ms ms-counter-gold" aria-hidden="true"></i> Buy List</button>
-          <button role="menuitem" data-view="selllist"><i class="ms ms-loyalty-up" aria-hidden="true"></i> Sell List</button>
-          <button role="menuitem" data-view="history"><i class="ms ms-counter-lore" aria-hidden="true"></i> History</button>
+          <button role="menuitem" data-view="buylist"><i class="ms ms-counter-gold" aria-hidden="true"></i> <span data-i18n="Buy List">Buy List</span></button>
+          <button role="menuitem" data-view="selllist"><i class="ms ms-loyalty-up" aria-hidden="true"></i> <span data-i18n="Sell List">Sell List</span></button>
+          <button role="menuitem" data-view="history"><i class="ms ms-counter-lore" aria-hidden="true"></i> <span data-i18n="History">History</span></button>
         </div>
       </div>
-      <button class="tab" data-view="browse"><i class="ms ms-ability-investigate tab-ico" aria-hidden="true"></i>Browse</button>
-      <button class="tab" data-view="forge"><i class="ms ms-ability-craft tab-ico" aria-hidden="true"></i>Forge</button>
+      <button class="tab" data-view="browse"><i class="ms ms-ability-investigate tab-ico" aria-hidden="true"></i><span data-i18n="Browse">Browse</span></button>
+      <button class="tab" data-view="forge"><i class="ms ms-ability-craft tab-ico" aria-hidden="true"></i><span data-i18n="Forge">Forge</span></button>
     </nav>
     <div class="topbar-actions">
-      <button class="btn ghost undo-btn" id="undoBtn" hidden>↶ Undo</button>
-      <button class="btn gold" id="newDeckBtn"><i class="ms ms-saga btn-ico" aria-hidden="true"></i>New Deck</button>
+      <button class="btn ghost undo-btn" id="undoBtn" hidden>↶ <span data-i18n="Undo">Undo</span></button>
+      <button class="btn gold" id="newDeckBtn"><i class="ms ms-saga btn-ico" aria-hidden="true"></i><span data-i18n="New Deck">New Deck</span></button>
       <div class="settings-group" id="settingsGroup">
-        <button class="btn ghost cog-btn" id="settingsBtn" aria-label="Settings" aria-haspopup="true" aria-expanded="false">⚙</button>
+        <button class="btn ghost cog-btn" id="settingsBtn" aria-label="Settings" data-i18n-aria="Settings" aria-haspopup="true" aria-expanded="false">⚙</button>
         <div class="settings-menu" id="settingsMenu" role="menu">
           <div class="set-row">
-            <span class="set-label">Prices</span>
+            <span class="set-label" data-i18n="Prices">Prices</span>
             <div class="price-src" id="priceSrc">
               <button class="ps-opt" data-pricesrc="tcg">TCG</button>
               <button class="ps-opt" data-pricesrc="ck">CK</button>
-              <button class="ps-refresh" id="ckRefresh" aria-label="Refresh Card Kingdom prices">↻</button>
+              <button class="ps-refresh" id="ckRefresh" aria-label="Refresh Card Kingdom prices" data-i18n-aria="Refresh Card Kingdom prices">↻</button>
             </div>
           </div>
           <div class="set-row">
-            <span class="set-label">Theme</span>
-            <div class="theme-switch" id="themeSwitch" role="group" aria-label="Colour theme">
-              <button class="sw" data-theme="grimoire" title="Grimoire" aria-label="Grimoire" style="--sw:#c9a227"></button>
-              <button class="sw" data-theme="arcane"   title="Arcane"   aria-label="Arcane"   style="--sw:#8a6fa3"></button>
-              <button class="sw" data-theme="tome"     title="Tome"     aria-label="Tome"     style="--sw:#4a8fd6"></button>
-              <button class="sw" data-theme="verdant"  title="Verdant"  aria-label="Verdant"  style="--sw:#3fa86a"></button>
-              <button class="sw" data-theme="ember"    title="Ember"    aria-label="Ember"    style="--sw:#d4452f"></button>
+            <span class="set-label" data-i18n="Theme">Theme</span>
+            <div class="theme-switch" id="themeSwitch" role="group" aria-label="Colour theme" data-i18n-aria="Colour theme">
+              <button class="sw" data-theme="grimoire" title="Grimoire" aria-label="Grimoire" data-i18n-title="Grimoire" data-i18n-aria="Grimoire" style="--sw:#c9a227"></button>
+              <button class="sw" data-theme="arcane"   title="Arcane"   aria-label="Arcane"   data-i18n-title="Arcane"   data-i18n-aria="Arcane"   style="--sw:#8a6fa3"></button>
+              <button class="sw" data-theme="tome"     title="Tome"     aria-label="Tome"     data-i18n-title="Tome"     data-i18n-aria="Tome"     style="--sw:#4a8fd6"></button>
+              <button class="sw" data-theme="verdant"  title="Verdant"  aria-label="Verdant"  data-i18n-title="Verdant"  data-i18n-aria="Verdant"  style="--sw:#3fa86a"></button>
+              <button class="sw" data-theme="ember"    title="Ember"    aria-label="Ember"    data-i18n-title="Ember"    data-i18n-aria="Ember"    style="--sw:#d4452f"></button>
+            </div>
+          </div>
+          <div class="set-row">
+            <span class="set-label" data-i18n="Language">Language</span>
+            <div class="theme-switch lang-switch" id="langSwitch" role="group" aria-label="Language" data-i18n-aria="Language">
+              <button class="lang-opt" data-lang="en" title="English" aria-label="English">EN</button>
+              <button class="lang-opt" data-lang="es" title="Español" aria-label="Español">ES</button>
             </div>
           </div>
           <div class="set-actions">
-            <button class="btn ghost" id="myStoreBtn" hidden><i class="ms ms-counter-lore btn-ico" aria-hidden="true"></i>My Store</button>
-            <button class="btn ghost" id="genStoreInvite" hidden><i class="ms ms-counter-shield btn-ico" aria-hidden="true"></i>Generate store invite</button>
-            <button class="btn ghost" id="exportBtn"><i class="ms ms-loyalty-down btn-ico" aria-hidden="true"></i>Export backup</button>
-            <button class="btn ghost" id="importFileBtn"><i class="ms ms-loyalty-up btn-ico" aria-hidden="true"></i>Restore backup</button>
+            <button class="btn ghost" id="myStoreBtn" hidden><i class="ms ms-counter-lore btn-ico" aria-hidden="true"></i><span data-i18n="My Store">My Store</span></button>
+            <button class="btn ghost" id="genStoreInvite" hidden><i class="ms ms-counter-shield btn-ico" aria-hidden="true"></i><span data-i18n="Generate store invite">Generate store invite</span></button>
+            <button class="btn ghost" id="exportBtn"><i class="ms ms-loyalty-down btn-ico" aria-hidden="true"></i><span data-i18n="Export backup">Export backup</span></button>
+            <button class="btn ghost" id="importFileBtn"><i class="ms ms-loyalty-up btn-ico" aria-hidden="true"></i><span data-i18n="Restore backup">Restore backup</span></button>
           </div>
         </div>
       </div>
-      <button class="btn ghost account-btn" id="accountBtn" hidden>Sign in</button>
+      <button class="btn ghost account-btn" id="accountBtn" hidden data-i18n="Sign in">Sign in</button>
       <input type="file" id="restoreInput" accept="application/json" hidden />
     </div>
   </header>
@@ -81,23 +88,23 @@
       <div class="home-hero">
         <div class="home-sigil" aria-hidden="true">✦</div>
         <h1 class="home-title">The Vault</h1>
-        <p class="home-tag">Your Magic: The Gathering collection &amp; deck ledger.</p>
+        <p class="home-tag" data-i18n="Your Magic: The Gathering collection &amp; deck ledger.">Your Magic: The Gathering collection &amp; deck ledger.</p>
         <div class="home-searchwrap">
           <i class="ms ms-ability-investigate home-search-ic" aria-hidden="true"></i>
-          <input type="search" id="homeSearch" class="home-search" placeholder="Search your decks, your cards, or all of Magic…" spellcheck="false" autocomplete="off" />
+          <input type="search" id="homeSearch" class="home-search" placeholder="Search your decks, your cards, or all of Magic…" data-i18n-ph="Search your decks, your cards, or all of Magic…" spellcheck="false" autocomplete="off" />
           <div class="home-results" id="homeResults" hidden></div>
         </div>
         <div class="home-stats" id="homeStats"></div>
         <div class="home-quick">
-          <button class="home-link" data-homego="inventory"><i class="ms ms-library" aria-hidden="true"></i> Collection</button>
-          <button class="home-link" data-homego="decks"><i class="ms ms-saga" aria-hidden="true"></i> Decks</button>
-          <button class="home-link" data-homego="buylist"><i class="ms ms-counter-gold" aria-hidden="true"></i> Buy / Sell</button>
-          <button class="home-link" data-homego="browse"><i class="ms ms-ability-investigate" aria-hidden="true"></i> Browse</button>
+          <button class="home-link" data-homego="inventory"><i class="ms ms-library" aria-hidden="true"></i> <span data-i18n="Collection">Collection</span></button>
+          <button class="home-link" data-homego="decks"><i class="ms ms-saga" aria-hidden="true"></i> <span data-i18n="Decks">Decks</span></button>
+          <button class="home-link" data-homego="buylist"><i class="ms ms-counter-gold" aria-hidden="true"></i> <span data-i18n="Buy / Sell">Buy / Sell</span></button>
+          <button class="home-link" data-homego="browse"><i class="ms ms-ability-investigate" aria-hidden="true"></i> <span data-i18n="Browse">Browse</span></button>
         </div>
       </div>
       <div class="home-foot">
-        <span><a href="terms.html">Terms</a> · <a href="privacy.html">Privacy</a> · <a href="mailto:hello@pedrobrauner.com">Contact</a></span>
-        <span class="home-foot-fan">Unofficial fan content — not affiliated with Wizards of the Coast. Card data by Scryfall.</span>
+        <span><a href="terms.html" data-i18n="Terms">Terms</a> · <a href="privacy.html" data-i18n="Privacy">Privacy</a> · <a href="mailto:hello@pedrobrauner.com" data-i18n="Contact">Contact</a></span>
+        <span class="home-foot-fan" data-i18n="Unofficial fan content — not affiliated with Wizards of the Coast. Card data by Scryfall.">Unofficial fan content — not affiliated with Wizards of the Coast. Card data by Scryfall.</span>
       </div>
     </section>
 
@@ -107,82 +114,82 @@
       <div class="deck-grid" id="deckGrid"></div>
       <div class="empty-state" id="decksEmpty" hidden>
         <span class="empty-mark"><i class="ms ms-saga" aria-hidden="true"></i></span>
-        <h2>No decks yet</h2>
-        <p>Import a list, build one from scratch, or start from a famous deck.</p>
+        <h2 data-i18n="No decks yet">No decks yet</h2>
+        <p data-i18n="Import a list, build one from scratch, or start from a famous deck.">Import a list, build one from scratch, or start from a famous deck.</p>
         <div class="empty-actions">
-          <button class="btn gold" id="emptyImportBtn"><i class="ms ms-saga btn-ico" aria-hidden="true"></i>New deck</button>
-          <button class="btn" id="emptyBrowseDecks"><i class="ms ms-ability-investigate btn-ico" aria-hidden="true"></i>Browse famous decks</button>
+          <button class="btn gold" id="emptyImportBtn"><i class="ms ms-saga btn-ico" aria-hidden="true"></i><span data-i18n="New deck">New deck</span></button>
+          <button class="btn" id="emptyBrowseDecks"><i class="ms ms-ability-investigate btn-ico" aria-hidden="true"></i><span data-i18n="Browse famous decks">Browse famous decks</span></button>
         </div>
       </div>
     </section>
 
     <!-- Single deck detail -->
     <section class="view" id="view-deck">
-      <button class="back-link" id="backToDecks">← All decks</button>
+      <button class="back-link" id="backToDecks" data-i18n="← All decks">← All decks</button>
       <div id="deckDetail"></div>
     </section>
 
     <!-- Inventory -->
     <section class="view" id="view-inventory">
       <div class="view-head">
-        <h2 class="view-title">Collection</h2>
+        <h2 class="view-title" data-i18n="Collection">Collection</h2>
         <div class="inv-controls">
-          <input type="search" id="invSearch" class="search" placeholder="Search cards…" />
+          <input type="search" id="invSearch" class="search" placeholder="Search cards…" data-i18n-ph="Search cards…" />
           <div class="seg" id="invFilter">
-            <button class="seg-btn is-active" data-filter="all"><i class="ms ms-multiple" aria-hidden="true"></i> All</button>
-            <button class="seg-btn" data-filter="loose"><i class="ms ms-graveyard" aria-hidden="true"></i> Unlinked</button>
+            <button class="seg-btn is-active" data-filter="all"><i class="ms ms-multiple" aria-hidden="true"></i> <span data-i18n="All">All</span></button>
+            <button class="seg-btn" data-filter="loose"><i class="ms ms-graveyard" aria-hidden="true"></i> <span data-i18n="Unlinked">Unlinked</span></button>
           </div>
-          <div class="seg" id="invViewMode" title="Switch between card art and a text list">
-            <button class="seg-btn is-active" data-mode="art"><i class="ms ms-token" aria-hidden="true"></i> Art</button>
-            <button class="seg-btn" data-mode="text"><i class="ms ms-multiple" aria-hidden="true"></i> List</button>
+          <div class="seg" id="invViewMode" title="Switch between card art and a text list" data-i18n-title="Switch between card art and a text list">
+            <button class="seg-btn is-active" data-mode="art"><i class="ms ms-token" aria-hidden="true"></i> <span data-i18n="Art">Art</span></button>
+            <button class="seg-btn" data-mode="text"><i class="ms ms-multiple" aria-hidden="true"></i> <span data-i18n="List">List</span></button>
           </div>
-          <label class="size-ctl" id="invSizeWrap" title="Card size">
+          <label class="size-ctl" id="invSizeWrap" title="Card size" data-i18n-title="Card size">
             <i class="ms ms-token size-ic size-ic--sm" aria-hidden="true"></i>
-            <input type="range" id="invSizeRange" class="size-range" min="110" max="280" step="2" value="168" aria-label="Card size" />
+            <input type="range" id="invSizeRange" class="size-range" min="110" max="280" step="2" value="168" aria-label="Card size" data-i18n-aria="Card size" />
             <i class="ms ms-token size-ic size-ic--lg" aria-hidden="true"></i>
           </label>
-          <button class="btn ghost" id="copyCollectionBtn" title="Copy your whole collection as text"><i class="ms ms-library btn-ico" aria-hidden="true"></i>Copy collection</button>
-          <button class="btn gold" id="addCardsBtn"><i class="ms ms-counter-plus btn-ico" aria-hidden="true"></i>Add Cards</button>
+          <button class="btn ghost" id="copyCollectionBtn" title="Copy your whole collection as text" data-i18n-title="Copy your whole collection as text"><i class="ms ms-library btn-ico" aria-hidden="true"></i><span data-i18n="Copy collection">Copy collection</span></button>
+          <button class="btn gold" id="addCardsBtn"><i class="ms ms-counter-plus btn-ico" aria-hidden="true"></i><span data-i18n="Add Cards">Add Cards</span></button>
         </div>
       </div>
       <div class="inv-filters" id="invFilters">
-        <div class="filt-colors" id="invColorFilter" title="Filter by colour">
-          <button class="cpip" data-color="W" aria-label="White"><i class="ms ms-cost ms-shadow ms-w"></i></button>
-          <button class="cpip" data-color="U" aria-label="Blue"><i class="ms ms-cost ms-shadow ms-u"></i></button>
-          <button class="cpip" data-color="B" aria-label="Black"><i class="ms ms-cost ms-shadow ms-b"></i></button>
-          <button class="cpip" data-color="R" aria-label="Red"><i class="ms ms-cost ms-shadow ms-r"></i></button>
-          <button class="cpip" data-color="G" aria-label="Green"><i class="ms ms-cost ms-shadow ms-g"></i></button>
-          <button class="cpip" data-color="C" aria-label="Colourless"><i class="ms ms-cost ms-shadow ms-c"></i></button>
+        <div class="filt-colors" id="invColorFilter" title="Filter by colour" data-i18n-title="Filter by colour">
+          <button class="cpip" data-color="W" aria-label="White" data-i18n-aria="White"><i class="ms ms-cost ms-shadow ms-w"></i></button>
+          <button class="cpip" data-color="U" aria-label="Blue" data-i18n-aria="Blue"><i class="ms ms-cost ms-shadow ms-u"></i></button>
+          <button class="cpip" data-color="B" aria-label="Black" data-i18n-aria="Black"><i class="ms ms-cost ms-shadow ms-b"></i></button>
+          <button class="cpip" data-color="R" aria-label="Red" data-i18n-aria="Red"><i class="ms ms-cost ms-shadow ms-r"></i></button>
+          <button class="cpip" data-color="G" aria-label="Green" data-i18n-aria="Green"><i class="ms ms-cost ms-shadow ms-g"></i></button>
+          <button class="cpip" data-color="C" aria-label="Colourless" data-i18n-aria="Colourless"><i class="ms ms-cost ms-shadow ms-c"></i></button>
         </div>
-        <label class="filt-only" id="invColorOnly" title="Show only cards confined to the selected colours (e.g. mono-red)">
-          <input type="checkbox" id="invColorOnlyInput" /> Only
+        <label class="filt-only" id="invColorOnly" title="Show only cards confined to the selected colours (e.g. mono-red)" data-i18n-title="Show only cards confined to the selected colours (e.g. mono-red)">
+          <input type="checkbox" id="invColorOnlyInput" /> <span data-i18n="Only">Only</span>
         </label>
-        <select class="filt-select" id="invSortFilter" title="Sort cards">
-          <option value="name">Sort: A → Z</option>
-          <option value="price-desc">Sort: Price ↓</option>
-          <option value="price-asc">Sort: Price ↑</option>
-          <option value="rarity-desc">Sort: Rarity ↓</option>
-          <option value="rarity-asc">Sort: Rarity ↑</option>
-          <option value="new">Sort: Newest added</option>
-          <option value="old">Sort: Oldest added</option>
+        <select class="filt-select" id="invSortFilter" title="Sort cards" data-i18n-title="Sort cards">
+          <option value="name" data-i18n="Sort: A → Z">Sort: A → Z</option>
+          <option value="price-desc" data-i18n="Sort: Price ↓">Sort: Price ↓</option>
+          <option value="price-asc" data-i18n="Sort: Price ↑">Sort: Price ↑</option>
+          <option value="rarity-desc" data-i18n="Sort: Rarity ↓">Sort: Rarity ↓</option>
+          <option value="rarity-asc" data-i18n="Sort: Rarity ↑">Sort: Rarity ↑</option>
+          <option value="new" data-i18n="Sort: Newest added">Sort: Newest added</option>
+          <option value="old" data-i18n="Sort: Oldest added">Sort: Oldest added</option>
         </select>
-        <div class="filt-types" id="invTypeFilter" title="Filter by card type" role="group" aria-label="Filter by card type">
-          <button class="tpip" data-type="Creatures" aria-label="Creatures" title="Creatures"><i class="ms ms-creature"></i></button>
-          <button class="tpip" data-type="Planeswalkers" aria-label="Planeswalkers" title="Planeswalkers"><i class="ms ms-planeswalker"></i></button>
-          <button class="tpip" data-type="Instants" aria-label="Instants" title="Instants"><i class="ms ms-instant"></i></button>
-          <button class="tpip" data-type="Sorceries" aria-label="Sorceries" title="Sorceries"><i class="ms ms-sorcery"></i></button>
-          <button class="tpip" data-type="Artifacts" aria-label="Artifacts" title="Artifacts"><i class="ms ms-artifact"></i></button>
-          <button class="tpip" data-type="Enchantments" aria-label="Enchantments" title="Enchantments"><i class="ms ms-enchantment"></i></button>
-          <button class="tpip" data-type="Lands" aria-label="Lands" title="Lands"><i class="ms ms-land"></i></button>
-          <button class="tpip" data-type="Other" aria-label="Other" title="Other"><i class="ms ms-multiple"></i></button>
+        <div class="filt-types" id="invTypeFilter" title="Filter by card type" data-i18n-title="Filter by card type" role="group" aria-label="Filter by card type" data-i18n-aria="Filter by card type">
+          <button class="tpip" data-type="Creatures" aria-label="Creatures" title="Creatures" data-i18n-aria="Creatures" data-i18n-title="Creatures"><i class="ms ms-creature"></i></button>
+          <button class="tpip" data-type="Planeswalkers" aria-label="Planeswalkers" title="Planeswalkers" data-i18n-aria="Planeswalkers" data-i18n-title="Planeswalkers"><i class="ms ms-planeswalker"></i></button>
+          <button class="tpip" data-type="Instants" aria-label="Instants" title="Instants" data-i18n-aria="Instants" data-i18n-title="Instants"><i class="ms ms-instant"></i></button>
+          <button class="tpip" data-type="Sorceries" aria-label="Sorceries" title="Sorceries" data-i18n-aria="Sorceries" data-i18n-title="Sorceries"><i class="ms ms-sorcery"></i></button>
+          <button class="tpip" data-type="Artifacts" aria-label="Artifacts" title="Artifacts" data-i18n-aria="Artifacts" data-i18n-title="Artifacts"><i class="ms ms-artifact"></i></button>
+          <button class="tpip" data-type="Enchantments" aria-label="Enchantments" title="Enchantments" data-i18n-aria="Enchantments" data-i18n-title="Enchantments"><i class="ms ms-enchantment"></i></button>
+          <button class="tpip" data-type="Lands" aria-label="Lands" title="Lands" data-i18n-aria="Lands" data-i18n-title="Lands"><i class="ms ms-land"></i></button>
+          <button class="tpip" data-type="Other" aria-label="Other" title="Other" data-i18n-aria="Other" data-i18n-title="Other"><i class="ms ms-multiple"></i></button>
         </div>
-        <div class="filt-rarity" id="invRarityFilter" title="Filter by rarity" role="group" aria-label="Filter by rarity">
-          <button class="rpip common" data-rarity="common" aria-label="Common" title="Common"><i class="ms ms-rarity"></i></button>
-          <button class="rpip uncommon" data-rarity="uncommon" aria-label="Uncommon" title="Uncommon"><i class="ms ms-rarity"></i></button>
-          <button class="rpip rare" data-rarity="rare" aria-label="Rare" title="Rare"><i class="ms ms-rarity"></i></button>
-          <button class="rpip mythic" data-rarity="mythic" aria-label="Mythic" title="Mythic"><i class="ms ms-rarity ms-shadow"></i></button>
+        <div class="filt-rarity" id="invRarityFilter" title="Filter by rarity" data-i18n-title="Filter by rarity" role="group" aria-label="Filter by rarity" data-i18n-aria="Filter by rarity">
+          <button class="rpip common" data-rarity="common" aria-label="Common" title="Common" data-i18n-aria="Common" data-i18n-title="Common"><i class="ms ms-rarity"></i></button>
+          <button class="rpip uncommon" data-rarity="uncommon" aria-label="Uncommon" title="Uncommon" data-i18n-aria="Uncommon" data-i18n-title="Uncommon"><i class="ms ms-rarity"></i></button>
+          <button class="rpip rare" data-rarity="rare" aria-label="Rare" title="Rare" data-i18n-aria="Rare" data-i18n-title="Rare"><i class="ms ms-rarity"></i></button>
+          <button class="rpip mythic" data-rarity="mythic" aria-label="Mythic" title="Mythic" data-i18n-aria="Mythic" data-i18n-title="Mythic"><i class="ms ms-rarity ms-shadow"></i></button>
         </div>
-        <button class="filt-clear" id="invFilterClear" hidden>✕ clear filters</button>
+        <button class="filt-clear" id="invFilterClear" hidden data-i18n="✕ clear filters">✕ clear filters</button>
       </div>
       <div class="inv-facet-bar" id="invFacetBar" hidden></div>
       <div class="inv-stats" id="invStats"></div>
@@ -192,8 +199,8 @@
     <!-- Forge (deck-building lens) -->
     <section class="view" id="view-forge">
       <div class="view-head">
-        <h2 class="view-title">The Forge</h2>
-        <p class="view-sub">What your collection is ready to become</p>
+        <h2 class="view-title" data-i18n="The Forge">The Forge</h2>
+        <p class="view-sub" data-i18n="What your collection is ready to become">What your collection is ready to become</p>
       </div>
       <div id="forgeBody"></div>
     </section>
@@ -202,34 +209,34 @@
     <section class="view" id="view-buylist">
       <div class="view-head">
         <div>
-          <h2 class="view-title">Buy List</h2>
+          <h2 class="view-title" data-i18n="Buy List">Buy List</h2>
           <p class="view-sub" id="buyListSub"></p>
         </div>
         <div class="buy-head-actions">
-          <input type="search" id="buySearch" class="search list-search" placeholder="Find by name…" aria-label="Find a buy-list card by name" />
-          <select class="filt-select" id="buySortFilter" title="Sort cards">
-            <option value="name">Sort: A → Z</option>
-            <option value="price-desc" selected>Sort: Price ↓</option>
-            <option value="price-asc">Sort: Price ↑</option>
-            <option value="rarity-desc">Sort: Rarity ↓</option>
-            <option value="rarity-asc">Sort: Rarity ↑</option>
-            <option value="color">Sort: Colour (WUBRG)</option>
-            <option value="type">Sort: Card type</option>
-            <option value="set">Sort: Set / edition</option>
+          <input type="search" id="buySearch" class="search list-search" placeholder="Find by name…" data-i18n-ph="Find by name…" aria-label="Find a buy-list card by name" data-i18n-aria="Find a buy-list card by name" />
+          <select class="filt-select" id="buySortFilter" title="Sort cards" data-i18n-title="Sort cards">
+            <option value="name" data-i18n="Sort: A → Z">Sort: A → Z</option>
+            <option value="price-desc" selected data-i18n="Sort: Price ↓">Sort: Price ↓</option>
+            <option value="price-asc" data-i18n="Sort: Price ↑">Sort: Price ↑</option>
+            <option value="rarity-desc" data-i18n="Sort: Rarity ↓">Sort: Rarity ↓</option>
+            <option value="rarity-asc" data-i18n="Sort: Rarity ↑">Sort: Rarity ↑</option>
+            <option value="color" data-i18n="Sort: Colour (WUBRG)">Sort: Colour (WUBRG)</option>
+            <option value="type" data-i18n="Sort: Card type">Sort: Card type</option>
+            <option value="set" data-i18n="Sort: Set / edition">Sort: Set / edition</option>
           </select>
-          <div class="seg" id="buyViewMode" title="Switch between card art and a text list">
-            <button class="seg-btn is-active" data-mode="art"><i class="ms ms-token" aria-hidden="true"></i> Art</button>
-            <button class="seg-btn" data-mode="text"><i class="ms ms-multiple" aria-hidden="true"></i> List</button>
+          <div class="seg" id="buyViewMode" title="Switch between card art and a text list" data-i18n-title="Switch between card art and a text list">
+            <button class="seg-btn is-active" data-mode="art"><i class="ms ms-token" aria-hidden="true"></i> <span data-i18n="Art">Art</span></button>
+            <button class="seg-btn" data-mode="text"><i class="ms ms-multiple" aria-hidden="true"></i> <span data-i18n="List">List</span></button>
           </div>
-          <label class="size-ctl" id="buySizeWrap" title="Card size">
+          <label class="size-ctl" id="buySizeWrap" title="Card size" data-i18n-title="Card size">
             <i class="ms ms-token size-ic size-ic--sm" aria-hidden="true"></i>
-            <input type="range" id="buySizeRange" class="size-range" min="110" max="280" step="2" value="168" aria-label="Card size" />
+            <input type="range" id="buySizeRange" class="size-range" min="110" max="280" step="2" value="168" aria-label="Card size" data-i18n-aria="Card size" />
             <i class="ms ms-token size-ic size-ic--lg" aria-hidden="true"></i>
           </label>
-          <button class="btn ghost" id="buyMatchBtn" title="Paste a seller’s list and see which of those cards you still need"><i class="ms ms-ability-investigate" aria-hidden="true"></i> Match a list</button>
-          <button class="btn ghost" id="exportPdfBtn" title="Export a printable PDF — 6 cards per page">⎙ PDF</button>
-          <button class="btn ghost" id="copyBuyBtn" title="Copy as text for a seller">⧉ Copy list</button>
-          <button class="btn ghost" id="buyShareBtn" title="Create a shareable link to this list"><i class="ms ms-counter-lore" aria-hidden="true"></i> Share</button>
+          <button class="btn ghost" id="buyMatchBtn" title="Paste a seller’s list and see which of those cards you still need" data-i18n-title="Paste a seller’s list and see which of those cards you still need"><i class="ms ms-ability-investigate" aria-hidden="true"></i> <span data-i18n="Match a list">Match a list</span></button>
+          <button class="btn ghost" id="exportPdfBtn" title="Export a printable PDF — 6 cards per page" data-i18n-title="Export a printable PDF — 6 cards per page">⎙ PDF</button>
+          <button class="btn ghost" id="copyBuyBtn" title="Copy as text for a seller" data-i18n-title="Copy as text for a seller" data-i18n="⧉ Copy list">⧉ Copy list</button>
+          <button class="btn ghost" id="buyShareBtn" title="Create a shareable link to this list" data-i18n-title="Create a shareable link to this list"><i class="ms ms-counter-lore" aria-hidden="true"></i> <span data-i18n="Share">Share</span></button>
         </div>
       </div>
       <div class="sell-folders buy-folders" id="buyFolders"></div>
@@ -241,36 +248,36 @@
     <section class="view" id="view-selllist">
       <div class="view-head">
         <div>
-          <h2 class="view-title">Sell List</h2>
+          <h2 class="view-title" data-i18n="Sell List">Sell List</h2>
           <p class="view-sub" id="sellListSub"></p>
         </div>
         <div class="buy-head-actions">
-          <input type="search" id="sellSearch" class="search list-search" placeholder="Find by name…" aria-label="Find a sell-list card by name" />
-          <button class="btn ghost" id="sellMatchBtn" title="Paste a wants-list and see which of those cards you own"><i class="ms ms-ability-investigate" aria-hidden="true"></i> Match a list</button>
-          <select class="filt-select" id="sellSortFilter" title="Sort cards">
-            <option value="name">Sort: A → Z</option>
-            <option value="price-desc" selected>Sort: Price ↓</option>
-            <option value="price-asc">Sort: Price ↑</option>
-            <option value="rarity-desc">Sort: Rarity ↓</option>
-            <option value="rarity-asc">Sort: Rarity ↑</option>
-            <option value="color">Sort: Colour (WUBRG)</option>
-            <option value="type">Sort: Card type</option>
-            <option value="set">Sort: Set / edition</option>
+          <input type="search" id="sellSearch" class="search list-search" placeholder="Find by name…" data-i18n-ph="Find by name…" aria-label="Find a sell-list card by name" data-i18n-aria="Find a sell-list card by name" />
+          <button class="btn ghost" id="sellMatchBtn" title="Paste a wants-list and see which of those cards you own" data-i18n-title="Paste a wants-list and see which of those cards you own"><i class="ms ms-ability-investigate" aria-hidden="true"></i> <span data-i18n="Match a list">Match a list</span></button>
+          <select class="filt-select" id="sellSortFilter" title="Sort cards" data-i18n-title="Sort cards">
+            <option value="name" data-i18n="Sort: A → Z">Sort: A → Z</option>
+            <option value="price-desc" selected data-i18n="Sort: Price ↓">Sort: Price ↓</option>
+            <option value="price-asc" data-i18n="Sort: Price ↑">Sort: Price ↑</option>
+            <option value="rarity-desc" data-i18n="Sort: Rarity ↓">Sort: Rarity ↓</option>
+            <option value="rarity-asc" data-i18n="Sort: Rarity ↑">Sort: Rarity ↑</option>
+            <option value="color" data-i18n="Sort: Colour (WUBRG)">Sort: Colour (WUBRG)</option>
+            <option value="type" data-i18n="Sort: Card type">Sort: Card type</option>
+            <option value="set" data-i18n="Sort: Set / edition">Sort: Set / edition</option>
           </select>
-          <div class="seg" id="sellViewMode" title="Switch between card art and a text list">
-            <button class="seg-btn is-active" data-mode="art"><i class="ms ms-token" aria-hidden="true"></i> Art</button>
-            <button class="seg-btn" data-mode="text"><i class="ms ms-multiple" aria-hidden="true"></i> List</button>
+          <div class="seg" id="sellViewMode" title="Switch between card art and a text list" data-i18n-title="Switch between card art and a text list">
+            <button class="seg-btn is-active" data-mode="art"><i class="ms ms-token" aria-hidden="true"></i> <span data-i18n="Art">Art</span></button>
+            <button class="seg-btn" data-mode="text"><i class="ms ms-multiple" aria-hidden="true"></i> <span data-i18n="List">List</span></button>
           </div>
-          <label class="size-ctl" id="sellSizeWrap" title="Card size">
+          <label class="size-ctl" id="sellSizeWrap" title="Card size" data-i18n-title="Card size">
             <i class="ms ms-token size-ic size-ic--sm" aria-hidden="true"></i>
-            <input type="range" id="sellSizeRange" class="size-range" min="110" max="280" step="2" value="168" aria-label="Card size" />
+            <input type="range" id="sellSizeRange" class="size-range" min="110" max="280" step="2" value="168" aria-label="Card size" data-i18n-aria="Card size" />
             <i class="ms ms-token size-ic size-ic--lg" aria-hidden="true"></i>
           </label>
-          <button class="btn ghost" id="sellAddUnlinkedBtn" title="List every owned card that isn't in a deck"><i class="ms ms-land" aria-hidden="true"></i> Add unlinked</button>
-          <button class="btn ghost" id="sellMarkAllBtn" title="Mark everything listed as sold and remove from collection">✓ Sold all</button>
-          <button class="btn ghost" id="exportSellPdfBtn" title="Export a printable PDF — 8 cards per page">⎙ PDF</button>
-          <button class="btn ghost" id="copySellBtn" title="Copy as text for a buyer">⧉ Copy list</button>
-          <button class="btn ghost" id="sellShareBtn" title="Create a shareable link to this list"><i class="ms ms-counter-lore" aria-hidden="true"></i> Share</button>
+          <button class="btn ghost" id="sellAddUnlinkedBtn" title="List every owned card that isn't in a deck" data-i18n-title="List every owned card that isn't in a deck"><i class="ms ms-land" aria-hidden="true"></i> <span data-i18n="Add unlinked">Add unlinked</span></button>
+          <button class="btn ghost" id="sellMarkAllBtn" title="Mark everything listed as sold and remove from collection" data-i18n-title="Mark everything listed as sold and remove from collection" data-i18n="✓ Sold all">✓ Sold all</button>
+          <button class="btn ghost" id="exportSellPdfBtn" title="Export a printable PDF — 8 cards per page" data-i18n-title="Export a printable PDF — 8 cards per page">⎙ PDF</button>
+          <button class="btn ghost" id="copySellBtn" title="Copy as text for a buyer" data-i18n-title="Copy as text for a buyer" data-i18n="⧉ Copy list">⧉ Copy list</button>
+          <button class="btn ghost" id="sellShareBtn" title="Create a shareable link to this list" data-i18n-title="Create a shareable link to this list"><i class="ms ms-counter-lore" aria-hidden="true"></i> <span data-i18n="Share">Share</span></button>
         </div>
       </div>
       <div class="sell-folders" id="sellFolders"></div>
@@ -280,52 +287,52 @@
     <!-- Browse (Scryfall card search, expansions, recommended decks) -->
     <section class="view" id="view-browse">
       <div class="view-head">
-        <div class="seg" id="browseModes" title="Browse cards, expansions, or recommended decks">
-          <button class="seg-btn is-active" data-bmode="cards"><i class="ms ms-ability-investigate" aria-hidden="true"></i> Cards</button>
-          <button class="seg-btn" data-bmode="sets"><i class="ms ms-multiple" aria-hidden="true"></i> Sets</button>
-          <button class="seg-btn" data-bmode="decks"><i class="ms ms-commander" aria-hidden="true"></i> Decks</button>
+        <div class="seg" id="browseModes" title="Browse cards, expansions, or recommended decks" data-i18n-title="Browse cards, expansions, or recommended decks">
+          <button class="seg-btn is-active" data-bmode="cards"><i class="ms ms-ability-investigate" aria-hidden="true"></i> <span data-i18n="Cards">Cards</span></button>
+          <button class="seg-btn" data-bmode="sets"><i class="ms ms-multiple" aria-hidden="true"></i> <span data-i18n="Sets">Sets</span></button>
+          <button class="seg-btn" data-bmode="decks"><i class="ms ms-commander" aria-hidden="true"></i> <span data-i18n="Decks">Decks</span></button>
         </div>
-        <label class="filt-only" id="browseCmdrWrap" title="Restrict card results to cards legal in Commander">
-          <input type="checkbox" id="browseCmdrOnly" checked /> Commander legal
+        <label class="filt-only" id="browseCmdrWrap" title="Restrict card results to cards legal in Commander" data-i18n-title="Restrict card results to cards legal in Commander">
+          <input type="checkbox" id="browseCmdrOnly" checked /> <span data-i18n="Commander legal">Commander legal</span>
         </label>
       </div>
 
       <div id="browsePaneCards">
         <div class="browse-toolbar">
-          <input type="search" id="browseSearch" class="search browse-search" placeholder='Search any card — name, or t:creature, o:"draw a card", mv<=3…' spellcheck="false" />
-          <div class="filt-colors" id="browseIdFilter" title="Filter by colour identity">
-            <button class="cpip" data-color="W" aria-label="White"><i class="ms ms-cost ms-shadow ms-w"></i></button>
-            <button class="cpip" data-color="U" aria-label="Blue"><i class="ms ms-cost ms-shadow ms-u"></i></button>
-            <button class="cpip" data-color="B" aria-label="Black"><i class="ms ms-cost ms-shadow ms-b"></i></button>
-            <button class="cpip" data-color="R" aria-label="Red"><i class="ms ms-cost ms-shadow ms-r"></i></button>
-            <button class="cpip" data-color="G" aria-label="Green"><i class="ms ms-cost ms-shadow ms-g"></i></button>
-            <button class="cpip" data-color="C" aria-label="Colourless"><i class="ms ms-cost ms-shadow ms-c"></i></button>
+          <input type="search" id="browseSearch" class="search browse-search" placeholder='Search any card — name, or t:creature, o:"draw a card", mv<=3…' data-i18n-ph='Search any card — name, or t:creature, o:"draw a card", mv<=3…' spellcheck="false" />
+          <div class="filt-colors" id="browseIdFilter" title="Filter by colour identity" data-i18n-title="Filter by colour identity">
+            <button class="cpip" data-color="W" aria-label="White" data-i18n-aria="White"><i class="ms ms-cost ms-shadow ms-w"></i></button>
+            <button class="cpip" data-color="U" aria-label="Blue" data-i18n-aria="Blue"><i class="ms ms-cost ms-shadow ms-u"></i></button>
+            <button class="cpip" data-color="B" aria-label="Black" data-i18n-aria="Black"><i class="ms ms-cost ms-shadow ms-b"></i></button>
+            <button class="cpip" data-color="R" aria-label="Red" data-i18n-aria="Red"><i class="ms ms-cost ms-shadow ms-r"></i></button>
+            <button class="cpip" data-color="G" aria-label="Green" data-i18n-aria="Green"><i class="ms ms-cost ms-shadow ms-g"></i></button>
+            <button class="cpip" data-color="C" aria-label="Colourless" data-i18n-aria="Colourless"><i class="ms ms-cost ms-shadow ms-c"></i></button>
           </div>
-          <select class="filt-select" id="browseOrder" title="Sort results">
-            <option value="edhrec">Sort: Popularity</option>
-            <option value="name">Sort: A → Z</option>
-            <option value="usd">Sort: Price</option>
-            <option value="cmc">Sort: Mana value</option>
-            <option value="released">Sort: Newest</option>
+          <select class="filt-select" id="browseOrder" title="Sort results" data-i18n-title="Sort results">
+            <option value="edhrec" data-i18n="Sort: Popularity">Sort: Popularity</option>
+            <option value="name" data-i18n="Sort: A → Z">Sort: A → Z</option>
+            <option value="usd" data-i18n="Sort: Price">Sort: Price</option>
+            <option value="cmc" data-i18n="Sort: Mana value">Sort: Mana value</option>
+            <option value="released" data-i18n="Sort: Newest">Sort: Newest</option>
           </select>
-          <label class="size-ctl" id="browseSizeWrap" title="Card size">
+          <label class="size-ctl" id="browseSizeWrap" title="Card size" data-i18n-title="Card size">
             <i class="ms ms-token size-ic size-ic--sm" aria-hidden="true"></i>
-            <input type="range" id="browseSizeRange" class="size-range" min="110" max="280" step="2" value="168" aria-label="Card size" />
+            <input type="range" id="browseSizeRange" class="size-range" min="110" max="280" step="2" value="168" aria-label="Card size" data-i18n-aria="Card size" />
             <i class="ms ms-token size-ic size-ic--lg" aria-hidden="true"></i>
           </label>
         </div>
         <div class="browse-status" id="browseStatus"></div>
         <div class="card-table gallery" id="browseTable" style="--tile:168px"></div>
-        <div class="browse-more" id="browseMore" hidden><button class="btn ghost" id="browseMoreBtn">Load more ↓</button></div>
+        <div class="browse-more" id="browseMore" hidden><button class="btn ghost" id="browseMoreBtn" data-i18n="Load more ↓">Load more ↓</button></div>
       </div>
 
       <div id="browsePaneSets" hidden>
-        <p class="view-sub" style="margin-bottom:16px">Every Magic expansion — click one to browse its cards.</p>
+        <p class="view-sub" style="margin-bottom:16px" data-i18n="Every Magic expansion — click one to browse its cards.">Every Magic expansion — click one to browse its cards.</p>
         <div class="set-grid" id="browseSets"></div>
       </div>
 
       <div id="browsePaneDecks" hidden>
-        <p class="view-sub" style="margin-bottom:16px">Community decks players have published &amp; liked, plus starter Commander decks to import, buy, or mark owned.</p>
+        <p class="view-sub" style="margin-bottom:16px" data-i18n="Community decks players have published &amp; liked, plus starter Commander decks to import, buy, or mark owned.">Community decks players have published &amp; liked, plus starter Commander decks to import, buy, or mark owned.</p>
         <div id="browseDecks"></div>
       </div>
     </section>
@@ -334,17 +341,17 @@
     <section class="view" id="view-history">
       <div class="view-head">
         <div>
-          <h2 class="view-title">History</h2>
-          <p class="view-sub">A day-by-day ledger of everything you buy, sell, and add to your collection.</p>
+          <h2 class="view-title" data-i18n="History">History</h2>
+          <p class="view-sub" data-i18n="A day-by-day ledger of everything you buy, sell, and add to your collection.">A day-by-day ledger of everything you buy, sell, and add to your collection.</p>
         </div>
         <div class="buy-head-actions">
-          <div class="seg" id="histFilter" title="Filter activity">
-            <button class="seg-btn is-active" data-hfilter="all">All</button>
-            <button class="seg-btn" data-hfilter="bought"><i class="ms ms-counter-shield" aria-hidden="true"></i> Bought</button>
-            <button class="seg-btn" data-hfilter="sold"><i class="ms ms-counter-gold" aria-hidden="true"></i> Sold</button>
-            <button class="seg-btn" data-hfilter="adjust"><i class="ms ms-token" aria-hidden="true"></i> Adjustments</button>
+          <div class="seg" id="histFilter" title="Filter activity" data-i18n-title="Filter activity">
+            <button class="seg-btn is-active" data-hfilter="all" data-i18n="All">All</button>
+            <button class="seg-btn" data-hfilter="bought"><i class="ms ms-counter-shield" aria-hidden="true"></i> <span data-i18n="Bought">Bought</span></button>
+            <button class="seg-btn" data-hfilter="sold"><i class="ms ms-counter-gold" aria-hidden="true"></i> <span data-i18n="Sold">Sold</span></button>
+            <button class="seg-btn" data-hfilter="adjust"><i class="ms ms-token" aria-hidden="true"></i> <span data-i18n="Adjustments">Adjustments</span></button>
           </div>
-          <button class="btn ghost" id="histClearBtn" title="Erase the activity history (your collection is not affected)">✕ Clear history</button>
+          <button class="btn ghost" id="histClearBtn" title="Erase the activity history (your collection is not affected)" data-i18n-title="Erase the activity history (your collection is not affected)" data-i18n="✕ Clear history">✕ Clear history</button>
         </div>
       </div>
       <div class="ledger-summary" id="histSummary"></div>
@@ -364,25 +371,25 @@
       <div class="foot-grid">
         <div class="foot-brand">
           <div class="foot-word"><span class="foot-sigil" aria-hidden="true">✦</span> The Vault</div>
-          <p class="foot-tag">Your Magic: The Gathering collection &amp; deck ledger.</p>
+          <p class="foot-tag" data-i18n="Your Magic: The Gathering collection &amp; deck ledger.">Your Magic: The Gathering collection &amp; deck ledger.</p>
         </div>
-        <nav class="foot-col" aria-label="Sections">
-          <h4>Explore</h4>
-          <button class="foot-link" data-foot-view="home">Home</button>
-          <button class="foot-link" data-foot-view="inventory">Collection</button>
-          <button class="foot-link" data-foot-view="decks">Decks</button>
-          <button class="foot-link" data-foot-view="browse">Browse</button>
-          <button class="foot-link" data-foot-view="forge">Forge</button>
+        <nav class="foot-col" aria-label="Sections" data-i18n-aria="Sections">
+          <h4 data-i18n="Explore">Explore</h4>
+          <button class="foot-link" data-foot-view="home" data-i18n="Home">Home</button>
+          <button class="foot-link" data-foot-view="inventory" data-i18n="Collection">Collection</button>
+          <button class="foot-link" data-foot-view="decks" data-i18n="Decks">Decks</button>
+          <button class="foot-link" data-foot-view="browse" data-i18n="Browse">Browse</button>
+          <button class="foot-link" data-foot-view="forge" data-i18n="Forge">Forge</button>
         </nav>
-        <nav class="foot-col" aria-label="Legal &amp; contact">
-          <h4>Legal</h4>
-          <a class="foot-link" href="terms.html">Terms of Service</a>
-          <a class="foot-link" href="privacy.html">Privacy Policy</a>
-          <a class="foot-link" href="mailto:hello@pedrobrauner.com">Contact</a>
+        <nav class="foot-col" aria-label="Legal &amp; contact" data-i18n-aria="Legal &amp; contact">
+          <h4 data-i18n="Legal">Legal</h4>
+          <a class="foot-link" href="terms.html" data-i18n="Terms of Service">Terms of Service</a>
+          <a class="foot-link" href="privacy.html" data-i18n="Privacy Policy">Privacy Policy</a>
+          <a class="foot-link" href="mailto:hello@pedrobrauner.com" data-i18n="Contact">Contact</a>
         </nav>
       </div>
       <div class="foot-fine">
-        <p class="foot-disclaimer">The Vault is unofficial Fan Content permitted under the <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Wizards of the Coast Fan Content Policy</a>. Not approved or endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC. Card data and images courtesy of <a href="https://scryfall.com" target="_blank" rel="noopener">Scryfall</a>; prices from TCGplayer and Card Kingdom and shown as estimates only — not offers, and not financial advice.</p>
+        <p class="foot-disclaimer" data-i18n-html="The Vault is unofficial Fan Content permitted under the &lt;a href=&quot;https://company.wizards.com/en/legal/fancontentpolicy&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Wizards of the Coast Fan Content Policy&lt;/a&gt;. Not approved or endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC. Card data and images courtesy of &lt;a href=&quot;https://scryfall.com&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Scryfall&lt;/a&gt;; prices from TCGplayer and Card Kingdom and shown as estimates only — not offers, and not financial advice.">The Vault is unofficial Fan Content permitted under the <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Wizards of the Coast Fan Content Policy</a>. Not approved or endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC. Card data and images courtesy of <a href="https://scryfall.com" target="_blank" rel="noopener">Scryfall</a>; prices from TCGplayer and Card Kingdom and shown as estimates only — not offers, and not financial advice.</p>
         <p class="foot-copy">© 2026 Pedro Brauner · The Vault.</p>
       </div>
     </footer>
@@ -391,16 +398,16 @@
   <!-- Import modal -->
   <div class="modal-scrim" id="importModal" hidden>
     <div class="modal">
-      <button class="modal-close" id="closeImport" aria-label="Close">✕</button>
-      <h2 class="modal-title"><i class="ms ms-library" aria-hidden="true"></i> New Deck</h2>
-      <p class="modal-hint">Name it, then paste a decklist — or build it from scratch and add cards as you go.</p>
-      <input type="text" id="deckNameInput" class="text-input" placeholder="Deck name (e.g. Mono-Red Aggro)" />
+      <button class="modal-close" id="closeImport" aria-label="Close" data-i18n-aria="Close">✕</button>
+      <h2 class="modal-title"><i class="ms ms-library" aria-hidden="true"></i> <span data-i18n="New Deck">New Deck</span></h2>
+      <p class="modal-hint" data-i18n="Name it, then paste a decklist — or build it from scratch and add cards as you go.">Name it, then paste a decklist — or build it from scratch and add cards as you go.</p>
+      <input type="text" id="deckNameInput" class="text-input" placeholder="Deck name (e.g. Mono-Red Aggro)" data-i18n-ph="Deck name (e.g. Mono-Red Aggro)" />
       <textarea id="decklistInput" class="decklist-input" spellcheck="false" placeholder="4 Lightning Bolt&#10;4 Monastery Swiftspear&#10;20 Mountain&#10;1 Sol Ring (CMM) 472"></textarea>
       <div class="modal-foot">
-        <label class="check-own"><input type="checkbox" id="ownAllInput" /> Mark every card as already owned</label>
+        <label class="check-own"><input type="checkbox" id="ownAllInput" /> <span data-i18n="Mark every card as already owned">Mark every card as already owned</span></label>
         <div class="modal-foot-btns">
-          <button class="btn ghost" id="scratchDeckBtn" title="Create an empty deck and add cards one by one"><i class="ms ms-ability-craft btn-ico" aria-hidden="true"></i>Build from scratch</button>
-          <button class="btn gold" id="confirmImport"><i class="ms ms-library btn-ico" aria-hidden="true"></i>Catalogue Deck</button>
+          <button class="btn ghost" id="scratchDeckBtn" title="Create an empty deck and add cards one by one" data-i18n-title="Create an empty deck and add cards one by one"><i class="ms ms-ability-craft btn-ico" aria-hidden="true"></i><span data-i18n="Build from scratch">Build from scratch</span></button>
+          <button class="btn gold" id="confirmImport"><i class="ms ms-library btn-ico" aria-hidden="true"></i><span data-i18n="Catalogue Deck">Catalogue Deck</span></button>
         </div>
       </div>
       <div class="modal-status" id="importStatus"></div>
@@ -410,28 +417,28 @@
   <!-- Add loose cards modal -->
   <div class="modal-scrim" id="addModal" hidden>
     <div class="modal">
-      <button class="modal-close" id="closeAdd" aria-label="Close">✕</button>
-      <h2 class="modal-title"><i class="ms ms-multiple" aria-hidden="true"></i> <span id="addModalTitle">Add Cards to Collection</span></h2>
-      <p class="modal-hint">Loose cards you own that aren't in a deck. Search to add them one by one, paste a list, or import a ManaBox CSV scan.</p>
+      <button class="modal-close" id="closeAdd" aria-label="Close" data-i18n-aria="Close">✕</button>
+      <h2 class="modal-title"><i class="ms ms-multiple" aria-hidden="true"></i> <span id="addModalTitle" data-i18n="Add Cards to Collection">Add Cards to Collection</span></h2>
+      <p class="modal-hint" data-i18n="Loose cards you own that aren't in a deck. Search to add them one by one, paste a list, or import a ManaBox CSV scan.">Loose cards you own that aren't in a deck. Search to add them one by one, paste a list, or import a ManaBox CSV scan.</p>
       <div class="tag-compose">
         <div class="tag-field" id="addTagField">
-          <input type="text" id="addAutocomplete" class="tag-input" placeholder="Search a card by name…" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="false" aria-controls="acMenu" aria-autocomplete="list" />
+          <input type="text" id="addAutocomplete" class="tag-input" placeholder="Search a card by name…" data-i18n-ph="Search a card by name…" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="false" aria-controls="acMenu" aria-autocomplete="list" />
           <div class="ac-menu" id="acMenu" role="listbox" hidden></div>
         </div>
         <div class="tag-list" id="addTagList" aria-live="polite"></div>
       </div>
       <div class="csv-row">
-        <button class="btn ghost" id="csvBtn">⤓ Import ManaBox CSV</button>
-        <span class="csv-hint">Quantities, sets &amp; foils are read automatically.</span>
+        <button class="btn ghost" id="csvBtn" data-i18n="⤓ Import ManaBox CSV">⤓ Import ManaBox CSV</button>
+        <span class="csv-hint" data-i18n="Quantities, sets &amp; foils are read automatically.">Quantities, sets &amp; foils are read automatically.</span>
         <input type="file" id="csvInput" accept=".csv,text/csv" hidden />
       </div>
       <details class="paste-fold">
-        <summary>or paste a whole list</summary>
+        <summary data-i18n="or paste a whole list">or paste a whole list</summary>
         <textarea id="addInput" class="decklist-input" spellcheck="false" placeholder="2 Sol Ring&#10;1 Arcane Signet&#10;4 Fabled Passage"></textarea>
       </details>
       <div class="modal-foot">
-        <span class="modal-note">These are catalogued as unlinked until a deck uses them.</span>
-        <button class="btn gold" id="confirmAdd"><i class="ms ms-multiple btn-ico" aria-hidden="true"></i>Add to Collection</button>
+        <span class="modal-note" data-i18n="These are catalogued as unlinked until a deck uses them.">These are catalogued as unlinked until a deck uses them.</span>
+        <button class="btn gold" id="confirmAdd"><i class="ms ms-multiple btn-ico" aria-hidden="true"></i><span data-i18n="Add to Collection">Add to Collection</span></button>
       </div>
       <div class="modal-status" id="addStatus"></div>
     </div>
@@ -440,7 +447,7 @@
   <!-- Card art viewer -->
   <div class="modal-scrim card-view" id="cardModal" hidden>
     <div class="card-view-inner">
-      <button class="modal-close" id="closeCard" aria-label="Close">✕</button>
+      <button class="modal-close" id="closeCard" aria-label="Close" data-i18n-aria="Close">✕</button>
       <div class="card-view-frame">
         <img id="cardViewImg" alt="" />
         <div class="card-view-fallback" id="cardViewFallback" hidden><i class="ms ms-dfc-back" aria-hidden="true"></i></div>
@@ -452,13 +459,13 @@
   <!-- Account / sign-in modal -->
   <div class="modal-scrim" id="authModal" hidden>
     <div class="modal modal-sm">
-      <button class="modal-close" id="closeAuth" aria-label="Close">✕</button>
+      <button class="modal-close" id="closeAuth" aria-label="Close" data-i18n-aria="Close">✕</button>
       <h2 class="modal-title"><i class="ms ms-counter-lore" aria-hidden="true"></i> <span id="authTitle">Sign in</span></h2>
       <p class="modal-hint" id="authHint">Sign in to sync your collection across devices.</p>
-      <input type="text" id="authUsername" class="text-input" placeholder="Username" autocomplete="username" maxlength="24" hidden />
+      <input type="text" id="authUsername" class="text-input" placeholder="Username" data-i18n-ph="Username" autocomplete="username" maxlength="24" hidden />
       <input type="email" id="authEmail" class="text-input" placeholder="you@email.com" autocomplete="email" />
-      <input type="password" id="authPassword" class="text-input" placeholder="Password" autocomplete="current-password" />
-      <input type="password" id="authConfirm" class="text-input" placeholder="Confirm password" autocomplete="new-password" hidden />
+      <input type="password" id="authPassword" class="text-input" placeholder="Password" data-i18n-ph="Password" autocomplete="current-password" />
+      <input type="password" id="authConfirm" class="text-input" placeholder="Confirm password" data-i18n-ph="Confirm password" autocomplete="new-password" hidden />
       <div class="modal-foot">
         <button class="auth-switch" id="authSwitch">Need an account? Create one</button>
         <button class="btn gold" id="authSubmit">Sign in</button>
@@ -470,8 +477,8 @@
   <!-- Profile modal -->
   <div class="modal-scrim" id="profileModal" hidden>
     <div class="modal modal-sm">
-      <button class="modal-close" id="closeProfile" aria-label="Close">✕</button>
-      <h2 class="modal-title"><i class="ms ms-counter-lore" aria-hidden="true"></i> Profile</h2>
+      <button class="modal-close" id="closeProfile" aria-label="Close" data-i18n-aria="Close">✕</button>
+      <h2 class="modal-title"><i class="ms ms-counter-lore" aria-hidden="true"></i> <span data-i18n="Profile">Profile</span></h2>
       <div id="profileBody"></div>
     </div>
   </div>
@@ -479,8 +486,8 @@
   <!-- Share a buy/sell list (creates a short link) -->
   <div class="modal-scrim" id="shareModal" hidden>
     <div class="modal modal-sm">
-      <button class="modal-close" id="closeShare" aria-label="Close">✕</button>
-      <h2 class="modal-title"><i class="ms ms-counter-lore" aria-hidden="true"></i> Share a list</h2>
+      <button class="modal-close" id="closeShare" aria-label="Close" data-i18n-aria="Close">✕</button>
+      <h2 class="modal-title"><i class="ms ms-counter-lore" aria-hidden="true"></i> <span data-i18n="Share a list">Share a list</span></h2>
       <div id="shareBody"></div>
     </div>
   </div>
@@ -488,8 +495,8 @@
   <!-- Publish a deck to the community (view + like) -->
   <div class="modal-scrim" id="deckShareModal" hidden>
     <div class="modal modal-sm">
-      <button class="modal-close" id="closeDeckShare" aria-label="Close">✕</button>
-      <h2 class="modal-title"><i class="ms ms-commander" aria-hidden="true"></i> Share this deck</h2>
+      <button class="modal-close" id="closeDeckShare" aria-label="Close" data-i18n-aria="Close">✕</button>
+      <h2 class="modal-title"><i class="ms ms-commander" aria-hidden="true"></i> <span data-i18n="Share this deck">Share this deck</span></h2>
       <div id="deckShareBody"></div>
     </div>
   </div>
@@ -497,8 +504,8 @@
   <!-- Store: admin invite result -->
   <div class="modal-scrim" id="storeInviteModal" hidden>
     <div class="modal modal-sm">
-      <button class="modal-close" id="closeStoreInvite" aria-label="Close">✕</button>
-      <h2 class="modal-title"><i class="ms ms-counter-shield" aria-hidden="true"></i> Store invite</h2>
+      <button class="modal-close" id="closeStoreInvite" aria-label="Close" data-i18n-aria="Close">✕</button>
+      <h2 class="modal-title"><i class="ms ms-counter-shield" aria-hidden="true"></i> <span data-i18n="Store invite">Store invite</span></h2>
       <div id="storeInviteBody"></div>
     </div>
   </div>
@@ -506,8 +513,8 @@
   <!-- Store: redeem an invite + create the store -->
   <div class="modal-scrim" id="storeCreateModal" hidden>
     <div class="modal modal-sm">
-      <button class="modal-close" id="closeStoreCreate" aria-label="Close">✕</button>
-      <h2 class="modal-title"><i class="ms ms-counter-lore" aria-hidden="true"></i> Create your store</h2>
+      <button class="modal-close" id="closeStoreCreate" aria-label="Close" data-i18n-aria="Close">✕</button>
+      <h2 class="modal-title"><i class="ms ms-counter-lore" aria-hidden="true"></i> <span data-i18n="Create your store">Create your store</span></h2>
       <div id="storeCreateBody"></div>
     </div>
   </div>
@@ -515,8 +522,8 @@
   <!-- Friends: trade-match result -->
   <div class="modal-scrim" id="friendMatchModal" hidden>
     <div class="modal modal-sm">
-      <button class="modal-close" id="closeFriendMatch" aria-label="Close">✕</button>
-      <h2 class="modal-title"><i class="ms ms-ability-investigate" aria-hidden="true"></i> Trade match</h2>
+      <button class="modal-close" id="closeFriendMatch" aria-label="Close" data-i18n-aria="Close">✕</button>
+      <h2 class="modal-title"><i class="ms ms-ability-investigate" aria-hidden="true"></i> <span data-i18n="Trade match">Trade match</span></h2>
       <div id="friendMatchBody"></div>
     </div>
   </div>
@@ -524,8 +531,8 @@
   <!-- Store: add / edit an event -->
   <div class="modal-scrim" id="storeEventModal" hidden>
     <div class="modal modal-sm">
-      <button class="modal-close" id="closeStoreEvent" aria-label="Close">✕</button>
-      <h2 class="modal-title"><i class="ms ms-counter-lore" aria-hidden="true"></i> Event</h2>
+      <button class="modal-close" id="closeStoreEvent" aria-label="Close" data-i18n-aria="Close">✕</button>
+      <h2 class="modal-title"><i class="ms ms-counter-lore" aria-hidden="true"></i> <span data-i18n="Event">Event</span></h2>
       <div id="storeEventBody"></div>
     </div>
   </div>
@@ -533,8 +540,8 @@
   <!-- QR code for a share link (opens over the share modal or the profile view) -->
   <div class="modal-scrim qr-scrim" id="qrModal" hidden>
     <div class="modal modal-sm">
-      <button class="modal-close" id="closeQr" aria-label="Close">✕</button>
-      <h2 class="modal-title"><i class="ms ms-counter-gold" aria-hidden="true"></i> List QR code</h2>
+      <button class="modal-close" id="closeQr" aria-label="Close" data-i18n-aria="Close">✕</button>
+      <h2 class="modal-title"><i class="ms ms-counter-gold" aria-hidden="true"></i> <span data-i18n="List QR code">List QR code</span></h2>
       <div id="qrBody"></div>
     </div>
   </div>
@@ -543,7 +550,7 @@
   <div class="onboard-scrim" id="onboardModal" hidden>
     <div class="onboard">
       <div class="onb-progress"><div id="onbProgress"></div></div>
-      <button class="onb-skipall" id="onbSkipAll">Skip setup</button>
+      <button class="onb-skipall" id="onbSkipAll" data-i18n="Skip setup">Skip setup</button>
       <div class="onb-body" id="onboardBody"></div>
     </div>
   </div>
@@ -551,11 +558,11 @@
   <!-- Sync progress overlay (first upload / first download) -->
   <div class="modal-scrim" id="syncModal" hidden>
     <div class="modal modal-sm sync-modal">
-      <button class="modal-close" id="syncClose" aria-label="Close">✕</button>
+      <button class="modal-close" id="syncClose" aria-label="Close" data-i18n-aria="Close">✕</button>
       <h2 class="modal-title" id="syncTitle">Syncing…</h2>
       <div class="sync-bar"><div class="sync-fill" id="syncFill"></div></div>
       <div class="sync-msg" id="syncStatus"></div>
-      <button class="btn gold" id="syncDone" hidden>Done</button>
+      <button class="btn gold" id="syncDone" hidden data-i18n="Done">Done</button>
     </div>
   </div>
 
@@ -572,7 +579,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
-  <script src="decks.js?v=11"></script>
-  <script src="app.js?v=11"></script>
+  <script src="i18n.js?v=12"></script>
+  <script src="decks.js?v=12"></script>
+  <script src="app.js?v=12"></script>
 </body>
 </html>

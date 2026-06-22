@@ -121,6 +121,7 @@ function migrate(s) {
   s.prefs.browseTile = clampTile(s.prefs.browseTile);
   s.prefs.showLegality = !!s.prefs.showLegality;
   s.prefs.priceSource = (s.prefs.priceSource === 'ck') ? 'ck' : 'tcg';   // 'tcg' (TCGplayer) | 'ck' (Card Kingdom)
+  s.prefs.lang = (s.prefs.lang === 'es') ? 'es' : 'en';   // UI language ('en' source | 'es'); cards always stay English
   s.ckPrices ||= {};   // persisted per-collection CK cache: { nameKey: [retail, retailFoil] }
   if (s.ckCacheV !== 2) { s.ckPrices = {}; s.ckCacheV = 2; }   // drop pre-fix (imprecise) CK cache
   return s;
@@ -422,7 +423,7 @@ function pushUndo(label) {
 function dropUndo() { undoStack.pop(); renderUndo(); }   // discard the last point (action turned out to be a no-op)
 function undo() {
   const u = undoStack.pop();
-  if (!u) { toast('Nothing to undo.'); renderUndo(); return; }
+  if (!u) { toast(tr('Nothing to undo.')); renderUndo(); return; }
   const s = JSON.parse(u.snap);
   state.variants = s.variants; state.sellLists = s.sellLists; state.activeSellList = s.activeSellList;
   state.wishlist = s.wishlist; state.decks = s.decks; state.history = s.history;
@@ -430,13 +431,13 @@ function undo() {
   if ('activeBuyBinder' in s) state.activeBuyBinder = s.activeBuyBinder;
   currentDeckId = null;   // a restored/removed deck may no longer match the open detail view
   save(); render();
-  toast(`Undone — ${u.label}.`);
+  toast(tr('Undone — {label}.', { label: u.label }));
 }
 function renderUndo() {
   const b = $('#undoBtn'); if (!b) return;
   const u = undoStack[undoStack.length - 1];
   b.hidden = !u;
-  if (u) b.title = `Undo: ${u.label}`;
+  if (u) b.title = tr('Undo: {label}', { label: u.label });
 }
 const histValue = e => e.value != null ? e.value : e.qty * (e.unit || 0);
 
@@ -650,7 +651,7 @@ function typeIconClass(name) {
 }
 // Inline card-type glyph for a card by name.
 function typeIcon(name) {
-  return `<i class="ms ${typeIconClass(name)} type-ico" title="${esc(category(name))}" aria-hidden="true"></i>`;
+  return `<i class="ms ${typeIconClass(name)} type-ico" title="${esc(tr(category(name)))}" aria-hidden="true"></i>`;
 }
 // Card-type glyph for a category label (group headers); inherits the header's brass colour.
 function catIcon(cat) {
@@ -659,7 +660,7 @@ function catIcon(cat) {
 // Rarity gem, tinted per tier via the rar-* colour classes (RARITY_LABEL is defined later; only read at call time).
 function rarityIcon(rarity) {
   if (!rarity) return '';
-  return `<i class="ms ms-rarity rar rar-${esc(rarity)}" title="${esc(RARITY_LABEL[rarity] || rarity)}" aria-hidden="true"></i>`;
+  return `<i class="ms ms-rarity rar rar-${esc(rarity)}" title="${esc(tr(RARITY_LABEL[rarity] || rarity))}" aria-hidden="true"></i>`;
 }
 // Foil shimmer glyph — one coherent sparkle used wherever a foil copy is marked.
 const FOIL_SPARK = '<i class="ms ms-dfc-spark foil-spark" title="Foil" aria-hidden="true"></i>';
@@ -852,7 +853,7 @@ function renderForge() {
   const { colors, tribes } = forgeData();
 
   if (!COLOR_ORDER.some(c => colors[c].copies > 0)) {
-    el.innerHTML = `<div class="empty-state"><span class="empty-mark"><i class="ms ms-ability-craft" aria-hidden="true"></i></span><h2>Nothing forged yet</h2><p>Mark cards as owned and the Forge will reveal what you can build.</p></div>`;
+    el.innerHTML = `<div class="empty-state"><span class="empty-mark"><i class="ms ms-ability-craft" aria-hidden="true"></i></span><h2>${tr('Nothing forged yet')}</h2><p>${tr('Mark cards as owned and the Forge will reveal what you can build.')}</p></div>`;
     return;
   }
 
@@ -861,10 +862,10 @@ function renderForge() {
     const b = colors[c];
     return `<div class="cspread-row">
       ${manaPip(c)}
-      <span class="cs-name">${COLOR_NAME[c]}</span>
+      <span class="cs-name">${tr(COLOR_NAME[c])}</span>
       <div class="cs-bar"><i class="${c}" style="width:${Math.round(b.copies / maxC * 100)}%"></i></div>
       <span class="cs-copies">${b.copies}</span>
-      <span class="cs-unique">${b.unique} unique</span>
+      <span class="cs-unique">${b.unique} ${tr('unique')}</span>
       <span class="cs-val"><i class="ms ms-counter-gold cs-coin" aria-hidden="true"></i>${money(b.value)}</span>
     </div>`;
   }).join('');
@@ -879,15 +880,15 @@ function renderForge() {
   }
   pairs.sort((x, y) => y.depth - x.depth);
   const sugg = pairs.slice(0, 3).filter(p => p.depth > 0).map(p =>
-    `<span class="sug-chip" data-colors="${p.a}${p.b}" data-guild="${p.guild}"><i class="ms ms-guild-${p.guild.toLowerCase()} guild-crest" aria-hidden="true"></i>${manaPip(p.a)}${manaPip(p.b)}<b>${p.guild}</b><span class="sug-n">~${p.depth} per colour</span></span>`
+    `<span class="sug-chip" data-colors="${p.a}${p.b}" data-guild="${p.guild}"><i class="ms ms-guild-${p.guild.toLowerCase()} guild-crest" aria-hidden="true"></i>${manaPip(p.a)}${manaPip(p.b)}<b>${p.guild}</b><span class="sug-n">~${p.depth} ${tr('per colour')}</span></span>`
   ).join('');
-  const suggBlock = sugg ? `<div class="forge-suggest"><span class="sug-label">Strongest pairings</span><div class="sug-row">${sugg}</div></div>` : '';
+  const suggBlock = sugg ? `<div class="forge-suggest"><span class="sug-label">${tr('Strongest pairings')}</span><div class="sug-row">${sugg}</div></div>` : '';
 
   const tribeList = Object.entries(tribes).sort((a, b) => b[1] - a[1]);
   const maxT = tribeList.length ? tribeList[0][1] : 1;
   const tribeRows = tribeList.slice(0, 16).map(([name, count]) => {
-    const verdict = count >= 12 ? '<span class="tribe-verdict ready"><i class="ms ms-ability-craft" aria-hidden="true"></i> Deck-ready</span>'
-      : count >= 6 ? '<span class="tribe-verdict brew"><i class="ms ms-creature" aria-hidden="true"></i> Brewing</span>' : '<span class="tribe-verdict"></span>';
+    const verdict = count >= 12 ? `<span class="tribe-verdict ready"><i class="ms ms-ability-craft" aria-hidden="true"></i> ${tr('Deck-ready')}</span>`
+      : count >= 6 ? `<span class="tribe-verdict brew"><i class="ms ms-creature" aria-hidden="true"></i> ${tr('Brewing')}</span>` : '<span class="tribe-verdict"></span>';
     return `<div class="tribe-row" data-tribe="${esc(name)}">
       <i class="ms ms-creature tribe-ico" aria-hidden="true"></i>
       <span class="tribe-name">${esc(name)}</span>
@@ -896,12 +897,12 @@ function renderForge() {
       ${verdict}
     </div>`;
   }).join('');
-  const tribeHead = `<div class="group-head"><i class="ms ms-creature gh-ico" aria-hidden="true"></i>Tribal Potential</div>`;
+  const tribeHead = `<div class="group-head"><i class="ms ms-creature gh-ico" aria-hidden="true"></i>${tr('Tribal Potential')}</div>`;
   const tribeBlock = tribeList.length
     ? `${tribeHead}<div class="forge-tribes">${tribeRows}</div>`
-    : `${tribeHead}<p class="view-sub" style="padding:8px 2px">No creature types catalogued yet.</p>`;
+    : `${tribeHead}<p class="view-sub" style="padding:8px 2px">${tr('No creature types catalogued yet.')}</p>`;
 
-  el.innerHTML = `<div class="group-head">Colour Spread</div><div class="forge-colors">${colorRows}</div>${suggBlock}${tribeBlock}`;
+  el.innerHTML = `<div class="group-head">${tr('Colour Spread')}</div><div class="forge-colors">${colorRows}</div>${suggBlock}${tribeBlock}`;
 }
 
 /* ---------- inventory facet (drill-down from the Forge) ---------- */
@@ -911,9 +912,9 @@ function renderFacetBar() {
   if (!invFacet) { bar.hidden = true; bar.innerHTML = ''; return; }
   bar.hidden = false;
   const tag = invFacet.kind === 'guild'
-    ? `<i class="ms ms-guild-${(invFacet.label || '').toLowerCase()} guild-crest" aria-hidden="true"></i>${invFacet.colors.map(manaPip).join('')}<span>${esc(invFacet.label)} — castable cards</span>`
-    : `<i class="ms ms-creature facet-creature" aria-hidden="true"></i><span>Tribe · ${esc(invFacet.value)}</span>`;
-  bar.innerHTML = `<span class="facet-tag">${tag}</span><button class="facet-clear" id="facetClear">✕ clear</button>`;
+    ? `<i class="ms ms-guild-${(invFacet.label || '').toLowerCase()} guild-crest" aria-hidden="true"></i>${invFacet.colors.map(manaPip).join('')}<span>${esc(invFacet.label)} — ${tr('castable cards')}</span>`
+    : `<i class="ms ms-creature facet-creature" aria-hidden="true"></i><span>${tr('Tribe')} · ${esc(invFacet.value)}</span>`;
+  bar.innerHTML = `<span class="facet-tag">${tag}</span><button class="facet-clear" id="facetClear">${tr('✕ clear')}</button>`;
 }
 function syncSeg() {
   $$('#invFilter .seg-btn').forEach(x => x.classList.toggle('is-active', x.dataset.filter === invFilter));
@@ -938,9 +939,9 @@ function renderHome() {
   const g = globalStats();
   const stats = $('#homeStats');
   if (stats) stats.innerHTML = `
-    <span class="home-stat"><b>${g.decks}</b> deck${g.decks === 1 ? '' : 's'}</span>
-    <span class="home-stat"><b>${g.ownedCount}</b> card${g.ownedCount === 1 ? '' : 's'}</span>
-    <span class="home-stat"><b>${money(g.ownedValue)}</b> value</span>`;
+    <span class="home-stat"><b>${g.decks}</b> ${tr(g.decks === 1 ? 'deck' : 'decks')}</span>
+    <span class="home-stat"><b>${g.ownedCount}</b> ${tr(g.ownedCount === 1 ? 'card' : 'cards')}</span>
+    <span class="home-stat"><b>${money(g.ownedValue)}</b> ${tr('value')}</span>`;
   renderHomeBg();
   renderHomeResults();
 }
@@ -1023,9 +1024,9 @@ function renderHomeResults() {
   const r = homeResults(homeQuery);
   if (!r) { box.hidden = true; box.innerHTML = ''; return; }
   let html = '';
-  if (r.decks.length) html += `<div class="hr-group"><div class="hr-h">Decks</div>${r.decks.map(d => `<button class="hr-item" data-homedeck="${d.id}"><i class="ms ms-saga" aria-hidden="true"></i><span class="hr-name">${esc(d.name)}</span><span class="hr-sub">${(d.cards || []).reduce((a, c) => a + c.qty, 0)} cards</span></button>`).join('')}</div>`;
-  if (r.cards.length) html += `<div class="hr-group"><div class="hr-h">Your cards</div>${r.cards.map(n => `<button class="hr-item" data-homecard="${esc(n)}"><i class="ms ms-token" aria-hidden="true"></i><span class="hr-name">${esc(n)}</span><span class="hr-sub">${ownedOf(n)}×</span></button>`).join('')}</div>`;
-  html += `<button class="hr-item hr-all" data-homebrowse><i class="ms ms-ability-investigate" aria-hidden="true"></i><span class="hr-name">Search all cards for “${esc(homeQuery.trim())}”</span><span class="hr-go">→</span></button>`;
+  if (r.decks.length) html += `<div class="hr-group"><div class="hr-h">${tr('Decks')}</div>${r.decks.map(d => { const n = (d.cards || []).reduce((a, c) => a + c.qty, 0); return `<button class="hr-item" data-homedeck="${d.id}"><i class="ms ms-saga" aria-hidden="true"></i><span class="hr-name">${esc(d.name)}</span><span class="hr-sub">${n} ${tr(n === 1 ? 'card' : 'cards')}</span></button>`; }).join('')}</div>`;
+  if (r.cards.length) html += `<div class="hr-group"><div class="hr-h">${tr('Your cards')}</div>${r.cards.map(n => `<button class="hr-item" data-homecard="${esc(n)}"><i class="ms ms-token" aria-hidden="true"></i><span class="hr-name">${esc(n)}</span><span class="hr-sub">${ownedOf(n)}×</span></button>`).join('')}</div>`;
+  html += `<button class="hr-item hr-all" data-homebrowse><i class="ms ms-ability-investigate" aria-hidden="true"></i><span class="hr-name">${tr('Search all cards for “{q}”', { q: esc(homeQuery.trim()) })}</span><span class="hr-go">→</span></button>`;
   box.innerHTML = html; box.hidden = false;
 }
 function homeGoBrowse() {
@@ -1059,14 +1060,14 @@ const HIST_META = {
   removed: { label: 'Removed', ic: 'ms-graveyard',      sign: ''    },
 };
 function clearHistory() {
-  if (!(state.history || []).length) { toast('History is already empty.'); return; }
-  if (!confirm('Clear the entire activity history? This can’t be undone. (Your collection and prices are not affected.)')) return;
+  if (!(state.history || []).length) { toast(tr('History is already empty.')); return; }
+  if (!confirm(tr('Clear the entire activity history? This can’t be undone. (Your collection and prices are not affected.)'))) return;
   state.history = []; save(); render();
-  toast('Activity history cleared.');
+  toast(tr('Activity history cleared.'));
 }
 function histRow(e) {
   const meta = HIST_META[e.type] || HIST_META.added;
-  const time = new Date(e.t).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  const time = new Date(e.t).toLocaleTimeString(I18N.locale(), { hour: 'numeric', minute: '2-digit' });
   const val = histValue(e);
   const valStr = val ? `${meta.sign === 'in' ? '+' : meta.sign === 'out' ? '−' : ''}${money(val)}` : '—';
   const isCard = !e.note && state.cards[key(e.name)];
@@ -1075,7 +1076,7 @@ function histRow(e) {
     ? `<span class="hr-name nm" data-name="${esc(e.name)}" title="${esc(e.name)}">${nm}</span>`
     : `<span class="hr-name" title="${esc(e.name)}">${nm}</span>`;
   return `<div class="hist-row ${e.type}">
-    <span class="hr-badge ${e.type}"><i class="ms ${meta.ic}" aria-hidden="true"></i> ${meta.label}</span>
+    <span class="hr-badge ${e.type}"><i class="ms ${meta.ic}" aria-hidden="true"></i> ${tr(meta.label)}</span>
     ${nameHtml}
     <span class="hr-qty">×${e.qty}</span>
     <span class="hr-val ${meta.sign}">${valStr}</span>
@@ -1089,16 +1090,16 @@ function renderHistory() {
   const net = soldVal - boughtVal;
   const sumEl = $('#histSummary');
   if (sumEl) sumEl.innerHTML = all.length ? `
-    <div class="stat-card"><div class="label"><i class="ms ms-counter-gold stat-ic" aria-hidden="true"></i>Sold</div><div class="value gold">${money(soldVal)}</div><div class="sub">money in</div></div>
-    <div class="stat-card"><div class="label"><i class="ms ms-counter-shield stat-ic" aria-hidden="true"></i>Bought</div><div class="value">${money(boughtVal)}</div><div class="sub">money out</div></div>
-    <div class="stat-card"><div class="label"><i class="ms ms-ability-craft stat-ic" aria-hidden="true"></i>Net</div><div class="value ${net >= 0 ? 'gold' : ''}">${net < 0 ? '−' : ''}${money(Math.abs(net))}</div><div class="sub">sold − bought</div></div>
-    <div class="stat-card"><div class="label"><i class="ms ms-counter-lore stat-ic" aria-hidden="true"></i>Entries</div><div class="value">${all.length}</div><div class="sub">logged events</div></div>` : '';
+    <div class="stat-card"><div class="label"><i class="ms ms-counter-gold stat-ic" aria-hidden="true"></i>${tr('Sold')}</div><div class="value gold">${money(soldVal)}</div><div class="sub">${tr('money in')}</div></div>
+    <div class="stat-card"><div class="label"><i class="ms ms-counter-shield stat-ic" aria-hidden="true"></i>${tr('Bought')}</div><div class="value">${money(boughtVal)}</div><div class="sub">${tr('money out')}</div></div>
+    <div class="stat-card"><div class="label"><i class="ms ms-ability-craft stat-ic" aria-hidden="true"></i>${tr('Net')}</div><div class="value ${net >= 0 ? 'gold' : ''}">${net < 0 ? '−' : ''}${money(Math.abs(net))}</div><div class="sub">${tr('sold − bought')}</div></div>
+    <div class="stat-card"><div class="label"><i class="ms ms-counter-lore stat-ic" aria-hidden="true"></i>${tr('Entries')}</div><div class="value">${all.length}</div><div class="sub">${tr('logged events')}</div></div>` : '';
   $$('#histFilter .seg-btn').forEach(b => b.classList.toggle('is-active', b.dataset.hfilter === histFilter));
   const rows = all.filter(e => histFilter === 'all' || (histFilter === 'adjust' ? (e.type === 'added' || e.type === 'removed') : e.type === histFilter));
   const body = $('#historyBody');
   if (!body) return;
   if (!rows.length) {
-    body.innerHTML = `<div class="empty-state"><span class="empty-mark"><i class="ms ms-counter-lore" aria-hidden="true"></i></span><h2>${all.length ? 'Nothing here' : 'No activity yet'}</h2><p>${all.length ? 'No events match this filter.' : 'Buy, sell, or add cards and every change is logged here, day by day.'}</p></div>`;
+    body.innerHTML = `<div class="empty-state"><span class="empty-mark"><i class="ms ms-counter-lore" aria-hidden="true"></i></span><h2>${all.length ? tr('Nothing here') : tr('No activity yet')}</h2><p>${all.length ? tr('No events match this filter.') : tr('Buy, sell, or add cards and every change is logged here, day by day.')}</p></div>`;
     return;
   }
   const groups = [];
@@ -1111,7 +1112,7 @@ function renderHistory() {
   body.innerHTML = groups.map(g => {
     const dBought = g.items.filter(e => e.type === 'bought').reduce((a, e) => a + histValue(e), 0);
     const dSold = g.items.filter(e => e.type === 'sold').reduce((a, e) => a + histValue(e), 0);
-    const dayLabel = new Date(g.t).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const dayLabel = new Date(g.t).toLocaleDateString(I18N.locale(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     const tally = [dSold ? `<span class="ht-in">+${money(dSold)}</span>` : '', dBought ? `<span class="ht-out">−${money(dBought)}</span>` : ''].filter(Boolean).join(' ');
     return `<div class="hist-day">
       <div class="hist-day-head"><span class="hd-date">${dayLabel}</span><span class="hd-tally">${tally}</span></div>
@@ -1123,10 +1124,10 @@ function renderHistory() {
 function renderDecks() {
   const g = globalStats();
   $('#ledgerSummary').innerHTML = state.decks.length ? `
-    <div class="stat-card"><div class="label"><i class="ms ms-saga stat-ic" aria-hidden="true"></i>Decks</div><div class="value">${g.decks}</div></div>
-    <div class="stat-card"><div class="label"><i class="ms ms-multiple stat-ic" aria-hidden="true"></i>Unique Cards</div><div class="value">${g.unique}</div><div class="sub">${g.ownedCount} owned copies</div></div>
-    <div class="stat-card"><div class="label"><i class="ms ms-counter-gold stat-ic" aria-hidden="true"></i>Collection Value</div><div class="value gold">${money(g.ownedValue)}</div><div class="sub">at market price</div></div>
-    <div class="stat-card"><div class="label"><i class="ms ms-counter-gold stat-ic" aria-hidden="true"></i>Cost to Complete All</div><div class="value">${money(g.buyCost)}</div><div class="sub">still to acquire</div></div>` : '';
+    <div class="stat-card"><div class="label"><i class="ms ms-saga stat-ic" aria-hidden="true"></i>${tr('Decks')}</div><div class="value">${g.decks}</div></div>
+    <div class="stat-card"><div class="label"><i class="ms ms-multiple stat-ic" aria-hidden="true"></i>${tr('Unique Cards')}</div><div class="value">${g.unique}</div><div class="sub">${tr('{n} owned copies', { n: g.ownedCount })}</div></div>
+    <div class="stat-card"><div class="label"><i class="ms ms-counter-gold stat-ic" aria-hidden="true"></i>${tr('Collection Value')}</div><div class="value gold">${money(g.ownedValue)}</div><div class="sub">${tr('at market price')}</div></div>
+    <div class="stat-card"><div class="label"><i class="ms ms-counter-gold stat-ic" aria-hidden="true"></i>${tr('Cost to Complete All')}</div><div class="value">${money(g.buyCost)}</div><div class="sub">${tr('still to acquire')}</div></div>` : '';
 
   const grid = $('#deckGrid');
   $('#decksEmpty').hidden = state.decks.length > 0;
@@ -1141,11 +1142,11 @@ function renderDecks() {
       </div>
       <div class="body">
         <h3>${esc(d.name)}</h3>
-        <div class="meta">${s.total} cards · ${s.pct}% complete</div>
+        <div class="meta">${tr('{n} cards', { n: s.total })} · ${tr('{p}% complete', { p: s.pct })}</div>
         <div class="progress"><i style="width:${s.pct}%"></i></div>
         <div class="foot">
-          <span class="have">${s.ownedFull}/${s.total} owned</span>
-          <span class="cost ${s.completeCost === 0 ? 'zero' : ''}">${s.completeCost === 0 ? '✓ Complete' : '<i class="ms ms-counter-gold foot-coin" aria-hidden="true"></i>' + money(s.completeCost) + ' to finish'}</span>
+          <span class="have">${tr('{a}/{b} owned', { a: s.ownedFull, b: s.total })}</span>
+          <span class="cost ${s.completeCost === 0 ? 'zero' : ''}">${s.completeCost === 0 ? tr('✓ Complete') : '<i class="ms ms-counter-gold foot-coin" aria-hidden="true"></i>' + money(s.completeCost) + ' ' + tr('to finish')}</span>
         </div>
       </div>
       ${DECK_CORNERS}
@@ -1172,34 +1173,34 @@ function renderDeckDetail() {
     <div>
       <div class="deck-title">
         <h2 data-deck-title="${deck.id}">${esc(deck.name)}</h2>
-        <button class="rename" data-rename-deck="${deck.id}" title="Rename deck" aria-label="Rename deck"><i class="ms ms-artist-nib" aria-hidden="true"></i></button>
+        <button class="rename" data-rename-deck="${deck.id}" title="${tr('Rename deck')}" aria-label="${tr('Rename deck')}"><i class="ms ms-artist-nib" aria-hidden="true"></i></button>
       </div>
       <div class="pips">${pips(deckColors(deck))}</div>
     </div>
     <div class="spacer"></div>
-    <div class="seg" id="deckViewMode" title="Switch between stacked art, a full card grid, or a text list">
-      <button class="seg-btn ${deckView === 'stacks' ? 'is-active' : ''}" data-mode="stacks"><i class="ms ms-token" aria-hidden="true"></i> Stacks</button>
-      <button class="seg-btn ${deckView === 'grid' ? 'is-active' : ''}" data-mode="grid"><i class="ms ms-library" aria-hidden="true"></i> Grid</button>
-      <button class="seg-btn ${deckView === 'list' ? 'is-active' : ''}" data-mode="list"><i class="ms ms-multiple" aria-hidden="true"></i> List</button>
+    <div class="seg" id="deckViewMode" title="${tr('Switch between stacked art, a full card grid, or a text list')}">
+      <button class="seg-btn ${deckView === 'stacks' ? 'is-active' : ''}" data-mode="stacks"><i class="ms ms-token" aria-hidden="true"></i> ${tr('Stacks')}</button>
+      <button class="seg-btn ${deckView === 'grid' ? 'is-active' : ''}" data-mode="grid"><i class="ms ms-library" aria-hidden="true"></i> ${tr('Grid')}</button>
+      <button class="seg-btn ${deckView === 'list' ? 'is-active' : ''}" data-mode="list"><i class="ms ms-multiple" aria-hidden="true"></i> ${tr('List')}</button>
     </div>
-    <div class="seg" id="deckCardFilter" title="Show all cards, only the ones you own, or only the ones you're still missing">
-      <button class="seg-btn ${deckCardFilter === 'all' ? 'is-active' : ''}" data-cardfilter="all">All</button>
-      <button class="seg-btn ${deckCardFilter === 'owned' ? 'is-active' : ''}" data-cardfilter="owned">Owned ${ownedCount}</button>
-      <button class="seg-btn ${deckCardFilter === 'missing' ? 'is-active' : ''}" data-cardfilter="missing">Missing ${missingCount}</button>
+    <div class="seg" id="deckCardFilter" title="${tr('Show all cards, only the ones you own, or only the ones you\'re still missing')}">
+      <button class="seg-btn ${deckCardFilter === 'all' ? 'is-active' : ''}" data-cardfilter="all">${tr('All')}</button>
+      <button class="seg-btn ${deckCardFilter === 'owned' ? 'is-active' : ''}" data-cardfilter="owned">${tr('Owned')} ${ownedCount}</button>
+      <button class="seg-btn ${deckCardFilter === 'missing' ? 'is-active' : ''}" data-cardfilter="missing">${tr('Missing')} ${missingCount}</button>
     </div>
-    ${(deckView === 'stacks' || deckView === 'grid') ? `<label class="size-ctl" id="deckSizeWrap" title="Card size">
+    ${(deckView === 'stacks' || deckView === 'grid') ? `<label class="size-ctl" id="deckSizeWrap" title="${tr('Card size')}">
       <i class="ms ms-token size-ic size-ic--sm" aria-hidden="true"></i>
-      <input type="range" id="deckSizeRange" class="size-range" min="110" max="280" step="2" value="${deckTile}" aria-label="Card size" />
+      <input type="range" id="deckSizeRange" class="size-range" min="110" max="280" step="2" value="${deckTile}" aria-label="${tr('Card size')}" />
       <i class="ms ms-token size-ic size-ic--lg" aria-hidden="true"></i>
     </label>` : ''}
-    <button class="lg-toggle ${deck.shareCode ? 'on' : ''}" data-deckshare title="${deck.shareCode ? 'Published to the community — manage the link' : 'Publish this deck so others can view & like it'}"><i class="ms ms-counter-lore" aria-hidden="true"></i> ${deck.shareCode ? 'Published' : 'Share'}</button>
-    <button class="lg-toggle ${deckEdit ? 'on' : ''}" data-deckedit title="Add / remove cards in this deck"><i class="ms ms-ability-craft" aria-hidden="true"></i> Edit</button>
-    <button class="lg-toggle ${state.prefs.showLegality ? 'on' : ''}" data-lgtoggle title="Show format legality"><i class="ms ms-counter-shield" aria-hidden="true"></i> Legality</button>
-    <button class="lg-toggle ${deckShowOriginal ? 'on' : ''}" data-origtoggle title="Compare with the original imported list"><i class="ms ms-saga" aria-hidden="true"></i> Original${deckDivergence(deck) ? ` <span class="og-badge">${deckDivergence(deck)}</span>` : ''}</button>
-    <div class="hero-stat"><div class="v">${s.pct}%</div><div class="l">Complete</div></div>
-    <div class="hero-stat"><div class="v">${money(s.value)}</div><div class="l"><i class="ms ms-counter-gold stat-ic" aria-hidden="true"></i>Owned Value</div></div>
-    <div class="hero-stat"><div class="v">${money(s.completeCost)}</div><div class="l"><i class="ms ms-counter-gold stat-ic" aria-hidden="true"></i>To Finish</div></div>
-    <button class="del" data-del-deck="${deck.id}"><i class="ms ms-counter-skull" aria-hidden="true"></i> Delete</button>
+    <button class="lg-toggle ${deck.shareCode ? 'on' : ''}" data-deckshare title="${deck.shareCode ? tr('Published to the community — manage the link') : tr('Publish this deck so others can view & like it')}"><i class="ms ms-counter-lore" aria-hidden="true"></i> ${deck.shareCode ? tr('Published') : tr('Share')}</button>
+    <button class="lg-toggle ${deckEdit ? 'on' : ''}" data-deckedit title="${tr('Add / remove cards in this deck')}"><i class="ms ms-ability-craft" aria-hidden="true"></i> ${tr('Edit')}</button>
+    <button class="lg-toggle ${state.prefs.showLegality ? 'on' : ''}" data-lgtoggle title="${tr('Show format legality')}"><i class="ms ms-counter-shield" aria-hidden="true"></i> ${tr('Legality')}</button>
+    <button class="lg-toggle ${deckShowOriginal ? 'on' : ''}" data-origtoggle title="${tr('Compare with the original imported list')}"><i class="ms ms-saga" aria-hidden="true"></i> ${tr('Original')}${deckDivergence(deck) ? ` <span class="og-badge">${deckDivergence(deck)}</span>` : ''}</button>
+    <div class="hero-stat"><div class="v">${s.pct}%</div><div class="l">${tr('Complete')}</div></div>
+    <div class="hero-stat"><div class="v">${money(s.value)}</div><div class="l"><i class="ms ms-counter-gold stat-ic" aria-hidden="true"></i>${tr('Owned Value')}</div></div>
+    <div class="hero-stat"><div class="v">${money(s.completeCost)}</div><div class="l"><i class="ms ms-counter-gold stat-ic" aria-hidden="true"></i>${tr('To Finish')}</div></div>
+    <button class="del" data-del-deck="${deck.id}"><i class="ms ms-counter-skull" aria-hidden="true"></i> ${tr('Delete')}</button>
   </div>`;
 
   if (state.prefs.showLegality) body += legalityBar(deck);
@@ -1208,9 +1209,9 @@ function renderDeckDetail() {
 
   const shownTotal = deckCardFilter === 'owned' ? ownedCount : deckCardFilter === 'missing' ? missingCount : deck.cards.length;
   if (deck.cards.length === 0) {
-    body += `<div class="empty-state" style="padding:64px 20px"><span class="empty-mark"><i class="ms ms-ability-craft" aria-hidden="true"></i></span><h2>No cards yet</h2><p>Add cards above${deckEdit ? '' : ' (tap <b>Edit</b>)'}, or from the <b>Browse</b> tab.</p></div>`;
+    body += `<div class="empty-state" style="padding:64px 20px"><span class="empty-mark"><i class="ms ms-ability-craft" aria-hidden="true"></i></span><h2>${tr('No cards yet')}</h2><p>${deckEdit ? tr('Add cards above, or from the {browse} tab.', { browse: '<b>' + tr('Browse') + '</b>' }) : tr('Add cards above (tap {edit}), or from the {browse} tab.', { edit: '<b>' + tr('Edit') + '</b>', browse: '<b>' + tr('Browse') + '</b>' })}</p></div>`;
   } else if (shownTotal === 0) {
-    body += `<div class="empty-state" style="padding:64px 20px"><span class="empty-mark"><i class="ms ms-counter-shield" aria-hidden="true"></i></span><h2>${deckCardFilter === 'missing' ? 'Deck complete' : 'Nothing owned yet'}</h2><p>${deckCardFilter === 'missing' ? 'You own every card in this deck.' : 'You don’t own any of this deck’s cards yet.'}</p></div>`;
+    body += `<div class="empty-state" style="padding:64px 20px"><span class="empty-mark"><i class="ms ms-counter-shield" aria-hidden="true"></i></span><h2>${deckCardFilter === 'missing' ? tr('Deck complete') : tr('Nothing owned yet')}</h2><p>${deckCardFilter === 'missing' ? tr('You own every card in this deck.') : tr('You don’t own any of this deck’s cards yet.')}</p></div>`;
   } else if (deckView === 'stacks') {
     body += renderDeckCards(groups, showCmd ? cmd : null);
   } else if (deckView === 'grid') {
@@ -1218,13 +1219,13 @@ function renderDeckDetail() {
   } else {
     if (showCmd) {
       const cq = (deck.cards.find(c => key(c.name) === key(cmd)) || {}).qty || 1;
-      body += `<div class="group-head cmd-head"><i class="ms ms-commander" aria-hidden="true"></i>Commander</div><div class="card-table">${cardRow(cmd, cq, true)}</div>`;
+      body += `<div class="group-head cmd-head"><i class="ms ms-commander" aria-hidden="true"></i>${tr('Commander')}</div><div class="card-table">${cardRow(cmd, cq, true)}</div>`;
     }
     CAT_ORDER.forEach(cat => {
       const rows = groups[cat];
       if (!rows || !rows.length) return;
       const count = rows.reduce((a, c) => a + c.qty, 0);
-      body += `<div class="group-head">${catIcon(cat)}${cat} · ${count}</div><div class="card-table">`;
+      body += `<div class="group-head">${catIcon(cat)}${tr(cat)} · ${count}</div><div class="card-table">`;
       body += rows.sort((a, b) => a.name.localeCompare(b.name)).map(c => cardRow(c.name, c.qty, true)).join('');
       body += `</div>`;
     });
@@ -1271,7 +1272,7 @@ function renderDeckCards(groups, cmd) {
   if (cmd) {
     const deck = state.decks.find(d => d.id === currentDeckId);
     const cq = ((deck && deck.cards.find(c => key(c.name) === key(cmd))) || {}).qty || 1;
-    html += deckCardColumn('Commander', [{ name: cmd, qty: cq }]);
+    html += deckCardColumn('Commander', [{ name: cmd, qty: cq }]);   // 'Commander' is a category key; column header translates it
   }
   CAT_ORDER.forEach(cat => {
     const rows = groups[cat];
@@ -1285,7 +1286,7 @@ function deckCardColumn(cat, rows) {
   const total = sorted.reduce((a, c) => a + c.qty * priceOf(c.name), 0);
   const headIcon = cat === 'Commander' ? '<i class="ms ms-commander gh-ico" aria-hidden="true"></i>' : catIcon(cat);
   let html = `<section class="stack-col${cat === 'Commander' ? ' cmd-col' : ''}">
-    <header class="stack-head">${headIcon}<span class="sh-name">${esc(cat)}</span><span class="sh-qty">${qty}</span><span class="sh-price">${money(total)}</span></header>
+    <header class="stack-head">${headIcon}<span class="sh-name">${esc(tr(cat))}</span><span class="sh-qty">${qty}</span><span class="sh-price">${money(total)}</span></header>
     <div class="stack-cards">`;
   sorted.forEach((c, i) => {
     const meta = card(c.name);
@@ -1296,8 +1297,8 @@ function deckCardColumn(cat, rows) {
     const pr = priceOf(c.name);
     const price = pr ? money(pr) : '—';
     const owned = ownedOf(c.name) > 0;
-    const rm = deckEdit ? `<button class="sc-remove" data-deckremove="${esc(c.name)}" title="Remove from deck" aria-label="Remove">✕</button>` : '';
-    html += `<div class="stack-card nm${owned ? '' : ' not-owned'}" data-name="${esc(c.name)}" style="z-index:${i + 1}" title="${esc(c.name)}${owned ? '' : ' — not owned'}">
+    const rm = deckEdit ? `<button class="sc-remove" data-deckremove="${esc(c.name)}" title="${tr('Remove from deck')}" aria-label="${tr('Remove')}">✕</button>` : '';
+    html += `<div class="stack-card nm${owned ? '' : ' not-owned'}" data-name="${esc(c.name)}" style="z-index:${i + 1}" title="${esc(c.name)}${owned ? '' : ' — ' + tr('not owned')}">
       ${art}
       <span class="sc-strip"><span class="sc-qty">${c.qty}×</span><span class="sc-name">${esc(c.name)}</span><span class="sc-price">${price}</span></span>
       ${rm}
@@ -1314,7 +1315,7 @@ function renderDeckGrid(groups, cmd) {
     const qty = sorted.reduce((a, c) => a + c.qty, 0);
     const val = sorted.reduce((a, c) => a + c.qty * priceOf(c.name), 0);
     const icon = isCmd ? '<i class="ms ms-commander gh-ico" aria-hidden="true"></i>' : catIcon(cat);
-    return `<div class="group-head${isCmd ? ' cmd-head' : ''}">${icon}${esc(cat)} · ${qty}<span class="gh-val">${money(val)}</span></div>`
+    return `<div class="group-head${isCmd ? ' cmd-head' : ''}">${icon}${esc(tr(cat))} · ${qty}<span class="gh-val">${money(val)}</span></div>`
       + `<div class="deck-gallery">${sorted.map(c => deckGridTile(c.name, c.qty)).join('')}</div>`;
   };
   if (cmd) {
@@ -1327,7 +1328,7 @@ function renderDeckGrid(groups, cmd) {
 }
 function deckGridTile(name, qty) {
   const owned = ownedOf(name) > 0;   // not-owned cards grey out (restore on hover), mirroring the stacks view
-  return `<div class="art-tile deckcard${owned ? '' : ' not-owned'}" title="${esc(name)}${owned ? '' : ' — not owned'}">
+  return `<div class="art-tile deckcard${owned ? '' : ' not-owned'}" title="${esc(name)}${owned ? '' : ' — ' + tr('not owned')}">
     <button class="art-open" data-name="${esc(name)}">
       ${artTile(name, qty + '×', `<span class="art-val">${money(priceOf(name))}</span>`)}
     </button>
@@ -1340,11 +1341,11 @@ function legalityBar(deck) {
   const chips = LEGAL_FORMATS.map(([fmt, label]) => {
     const v = formats[fmt];
     const count = v.bad.length;
-    const tip = v.status === 'legal' ? 'Legal' : v.status === 'unknown' ? 'Unknown — re-check' : count + ' card' + (count === 1 ? '' : 's') + ' not legal';
+    const tipText = v.status === 'legal' ? tr('Legal|status') : v.status === 'unknown' ? tr('Unknown — re-check') : tr(count === 1 ? '{n} card not legal' : '{n} cards not legal', { n: count });
     const badge = v.status === 'illegal' ? `<span class="lg-count">${count}</span>`
       : v.status === 'unknown' ? `<span class="lg-count q">?</span>` : `<i class="ms ms-counter-shield lg-ok" aria-hidden="true"></i>`;
-    return `<button class="lg-chip ${v.status}" data-lgfmt="${fmt}" title="${esc(label)} — ${esc(tip)}" aria-expanded="false">
-      <span class="lg-name">${esc(label)}</span>${badge}<i class="ms ms-ability-investigate lg-i" aria-hidden="true"></i>
+    return `<button class="lg-chip ${v.status}" data-lgfmt="${fmt}" title="${esc(tr(label))} — ${esc(tipText)}" aria-expanded="false">
+      <span class="lg-name">${esc(tr(label))}</span>${badge}<i class="ms ms-ability-investigate lg-i" aria-hidden="true"></i>
     </button>`;
   }).join('');
   const panels = LEGAL_FORMATS.map(([fmt, label]) => {
@@ -1352,25 +1353,25 @@ function legalityBar(deck) {
     if (v.status === 'legal') return '';
     const list = (names, kind) => names.length
       ? `<div class="lg-list ${kind}">${names.map(n => `<button class="lg-card nm" data-name="${esc(n)}">${esc(n)}</button>`).join('')}</div>` : '';
-    const body = `${v.bad.length ? `<div class="lg-sub">Not legal in ${esc(label)}</div>${list(v.bad, 'bad')}` : ''}`
-      + `${v.missing.length ? `<div class="lg-sub">Unknown — re-check to confirm</div>${list(v.missing, 'unknown')}` : ''}`;
+    const body = `${v.bad.length ? `<div class="lg-sub">${tr('Not legal in {fmt}', { fmt: esc(tr(label)) })}</div>${list(v.bad, 'bad')}` : ''}`
+      + `${v.missing.length ? `<div class="lg-sub">${tr('Unknown — re-check to confirm')}</div>${list(v.missing, 'unknown')}` : ''}`;
     return `<div class="lg-panel" data-lgpanel="${fmt}" hidden>${body}</div>`;
   }).join('');
   const recheck = anyUnknown
-    ? `<button class="lg-recheck" data-lgrecheck="${deck.id}"><i class="ms ms-ability-investigate" aria-hidden="true"></i> Re-check legality</button>` : '';
+    ? `<button class="lg-recheck" data-lgrecheck="${deck.id}"><i class="ms ms-ability-investigate" aria-hidden="true"></i> ${tr('Re-check legality')}</button>` : '';
   return `<div class="deck-legality"><div class="lg-row">${chips}${recheck}</div>${panels}</div>`;
 }
 async function recheckDeckLegality(deckId) {
   const deck = state.decks.find(d => d.id === deckId);
   if (!deck) return;
-  toast('Re-checking legality…');
+  toast(tr('Re-checking legality…'));
   try {
     await resolveCards(deck.cards.map(c => ({ name: c.name, qty: c.qty })));
     save();
     render();
-    toast('Legality updated.');
+    toast(tr('Legality updated.'));
   } catch (e) {
-    toast('Scryfall lookup failed — try again.');
+    toast(tr('Scryfall lookup failed — try again.'));
   }
 }
 
@@ -1412,44 +1413,44 @@ function originalPanel(deck) {
     : '';
   return `<div class="deck-original">
     <div class="og-head">
-      <span class="og-title"><i class="ms ms-saga" aria-hidden="true"></i> Original list · ${origQty} cards${origUnique !== origQty ? ` (${origUnique} unique)` : ''}</span>
+      <span class="og-title"><i class="ms ms-saga" aria-hidden="true"></i> ${tr('Original list · {n} cards', { n: origQty })}${origUnique !== origQty ? ` ${tr('({n} unique)', { n: origUnique })}` : ''}</span>
       <div class="og-actions">
-        <button class="og-btn" data-origcopy="${deck.id}" title="Copy the original list as text"><i class="ms ms-multiple" aria-hidden="true"></i> Copy</button>
-        <button class="og-btn" data-origrebaseline="${deck.id}" title="Record the current list as the new original"><i class="ms ms-artist-nib" aria-hidden="true"></i> Set current as original</button>
-        <button class="og-btn warn" data-origrestore="${deck.id}" title="Revert this deck to its original list"${unchanged ? ' disabled' : ''}>↺ Restore original</button>
+        <button class="og-btn" data-origcopy="${deck.id}" title="${tr('Copy the original list as text')}"><i class="ms ms-multiple" aria-hidden="true"></i> ${tr('Copy')}</button>
+        <button class="og-btn" data-origrebaseline="${deck.id}" title="${tr('Record the current list as the new original')}"><i class="ms ms-artist-nib" aria-hidden="true"></i> ${tr('Set current as original')}</button>
+        <button class="og-btn warn" data-origrestore="${deck.id}" title="${tr('Revert this deck to its original list')}"${unchanged ? ' disabled' : ''}>${tr('↺ Restore original')}</button>
       </div>
     </div>
     ${unchanged
-      ? `<div class="og-empty">Unchanged from the original import.</div>`
+      ? `<div class="og-empty">${tr('Unchanged from the original import.')}</div>`
       : `<div class="og-groups">
-          ${section('add', '<i class="ms ms-counter-plus" aria-hidden="true"></i>', 'Added since', added)}
-          ${section('rem', '<i class="ms ms-counter-skull" aria-hidden="true"></i>', 'Removed since', removed)}
-          ${section('chg', '<i class="ms ms-loyalty-up" aria-hidden="true"></i>', 'Quantity changed', changed)}
+          ${section('add', '<i class="ms ms-counter-plus" aria-hidden="true"></i>', tr('Added since'), added)}
+          ${section('rem', '<i class="ms ms-counter-skull" aria-hidden="true"></i>', tr('Removed since'), removed)}
+          ${section('chg', '<i class="ms ms-loyalty-up" aria-hidden="true"></i>', tr('Quantity changed'), changed)}
         </div>`}
   </div>`;
 }
 function restoreDeckOriginal(deckId) {
   const deck = state.decks.find(d => d.id === deckId);
   if (!deck || !deck.original) return;
-  if (!confirm(`Revert “${deck.name}” to its original ${deck.original.length}-card list? Cards added since will be removed and any cuts restored. (Your owned-card counts are untouched.)`)) return;
+  if (!confirm(tr('Revert “{name}” to its original {n}-card list? Cards added since will be removed and any cuts restored. (Your owned-card counts are untouched.)', { name: deck.name, n: deck.original.length }))) return;
   deck.cards = deck.original.map(c => ({ name: c.name, qty: c.qty }));
   if (deck.commander && !deck.cards.some(c => key(c.name) === key(deck.commander))) deck.commander = null;
   save(); render();
-  toast(`Reverted “${deck.name}” to its original list.`);
+  toast(tr('Reverted “{name}” to its original list.', { name: deck.name }));
 }
 function rebaselineDeck(deckId) {
   const deck = state.decks.find(d => d.id === deckId);
   if (!deck) return;
-  if (!confirm(`Record the current ${deck.cards.length}-card list of “${deck.name}” as the new original? This replaces the previously recorded original.`)) return;
+  if (!confirm(tr('Record the current {n}-card list of “{name}” as the new original? This replaces the previously recorded original.', { n: deck.cards.length, name: deck.name }))) return;
   deck.original = deck.cards.map(c => ({ name: c.name, qty: c.qty }));
   save(); render();
-  toast(`Recorded the current list as the original for “${deck.name}”.`);
+  toast(tr('Recorded the current list as the original for “{name}”.', { name: deck.name }));
 }
 function copyDeckOriginal(deckId) {
   const deck = state.decks.find(d => d.id === deckId);
   if (!deck || !deck.original) return;
   const text = deck.original.slice().sort((a, b) => a.name.localeCompare(b.name)).map(c => `${c.qty} ${c.name}`).join('\n');
-  navigator.clipboard.writeText(text).then(() => toast('Original list copied to clipboard.'), () => toast('Copy failed.'));
+  navigator.clipboard.writeText(text).then(() => toast(tr('Original list copied to clipboard.')), () => toast(tr('Copy failed.')));
 }
 
 /* ---------- delete a deck (optionally selling off its cards) ---------- */
@@ -1469,14 +1470,14 @@ function deckDeleteStats(deck) {
 function deckDeleteBar(deck) {
   const { copies, sharedDecks } = deckDeleteStats(deck);
   const sharedNote = sharedDecks.length
-    ? `<div class="ddc-warn"><i class="ms ms-counter-shield" aria-hidden="true"></i> Some of these cards are also in <b>${esc(sharedDecks.join('</b>, <b>'))}</b> — removing copies will leave ${sharedDecks.length === 1 ? 'it' : 'them'} short.</div>`
+    ? `<div class="ddc-warn"><i class="ms ms-counter-shield" aria-hidden="true"></i> ${tr(sharedDecks.length === 1 ? 'Some of these cards are also in {decks} — removing copies will leave it short.' : 'Some of these cards are also in {decks} — removing copies will leave them short.', { decks: '<b>' + esc(sharedDecks.join('</b>, <b>')) + '</b>' })}</div>`
     : '';
   return `<div class="deck-delete-confirm">
-    <div class="ddc-head"><i class="ms ms-counter-skull" aria-hidden="true"></i> Delete “${esc(deck.name)}”?</div>
+    <div class="ddc-head"><i class="ms ms-counter-skull" aria-hidden="true"></i> ${tr('Delete “{name}”?', { name: esc(deck.name) })}</div>
     <div class="ddc-actions">
-      <button class="ddc-btn" data-confirm-del-only="${deck.id}">Delete deck only<span class="ddc-sub">keep my cards in my collection</span></button>
-      <button class="ddc-btn danger" data-confirm-del-cards="${deck.id}"${copies ? '' : ' disabled'}>Delete &amp; remove ${copies} cop${copies === 1 ? 'y' : 'ies'} from collection<span class="ddc-sub">I sold this deck</span></button>
-      <button class="ddc-btn ghost" data-confirm-del-cancel>Cancel</button>
+      <button class="ddc-btn" data-confirm-del-only="${deck.id}">${tr('Delete deck only')}<span class="ddc-sub">${tr('keep my cards in my collection')}</span></button>
+      <button class="ddc-btn danger" data-confirm-del-cards="${deck.id}"${copies ? '' : ' disabled'}>${tr(copies === 1 ? 'Delete & remove {n} copy from collection' : 'Delete & remove {n} copies from collection', { n: copies })}<span class="ddc-sub">${tr('I sold this deck')}</span></button>
+      <button class="ddc-btn ghost" data-confirm-del-cancel>${tr('Cancel')}</button>
     </div>
     ${sharedNote}
   </div>`;
@@ -1488,13 +1489,13 @@ function deleteDeck(id) {
   state.decks = state.decks.filter(d => d.id !== id);
   deckPendingDelete = null; currentDeckId = null;
   save(); render(); setView('decks');
-  toast(`Deleted “${deck.name}”. Your cards stay in your collection.`);
+  toast(tr('Deleted “{name}”. Your cards stay in your collection.', { name: deck.name }));
 }
 function deleteDeckAndCards(id) {
   const deck = state.decks.find(d => d.id === id);
   if (!deck) return;
   if (deck.shareCode) unpublishDeck(deck);   // unpublish + clear shareCode BEFORE the undo snapshot, so undo can't restore a dead "Published" link
-  pushUndo(`delete of “${deck.name}”`);
+  pushUndo(tr('delete of “{name}”', { name: deck.name }));
   let removed = 0, removedVal = 0;
   deck.cards.forEach(c => {
     const take = Math.min(c.qty, ownedOf(c.name));
@@ -1504,7 +1505,7 @@ function deleteDeckAndCards(id) {
   state.decks = state.decks.filter(d => d.id !== id);
   deckPendingDelete = null; currentDeckId = null;
   save(); render(); setView('decks');
-  toast(`Deleted “${deck.name}” and removed ${removed} cop${removed === 1 ? 'y' : 'ies'} from your collection.`, { undo: true });
+  toast(tr(removed === 1 ? 'Deleted “{name}” and removed {n} copy from your collection.' : 'Deleted “{name}” and removed {n} copies from your collection.', { name: deck.name, n: removed }), { undo: true });
 }
 
 /* ---------- deck editing (add / remove / qty) ---------- */
@@ -1512,10 +1513,10 @@ function deckAddBar() {
   return `<div class="deck-add-bar">
     <div class="deck-add-field">
       <i class="ms ms-counter-plus deck-add-ic" aria-hidden="true"></i>
-      <input type="text" id="deckAddInput" class="deck-add-input" placeholder="Add a card to this deck…" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="false" aria-controls="deckAddMenu" />
+      <input type="text" id="deckAddInput" class="deck-add-input" placeholder="${tr('Add a card to this deck…')}" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="false" aria-controls="deckAddMenu" />
       <div class="deck-ac" id="deckAddMenu" role="listbox" hidden></div>
     </div>
-    <span class="deck-add-hint">Pick a suggestion or press Enter to add.</span>
+    <span class="deck-add-hint">${tr('Pick a suggestion or press Enter to add.')}</span>
   </div>`;
 }
 function deckHideAc() { const m = $('#deckAddMenu'); if (m) { m.hidden = true; m.innerHTML = ''; } deckAcItems = []; }
@@ -1546,7 +1547,7 @@ async function addCardToDeck(name) {
   save();
   render();
   const ni = $('#deckAddInput'); if (ni) ni.focus();   // re-rendered input
-  toast(`Added ${canonical} to “${deck.name}”.`);
+  toast(tr('Added {card} to “{name}”.', { card: canonical, name: deck.name }));
 }
 function removeCardFromDeck(name) {
   const deck = state.decks.find(d => d.id === currentDeckId);
@@ -1591,31 +1592,31 @@ function toggleCardInDeck(name, deckId) {
   if (!deck) return;
   const wasIn = deckQtyOf(name, deck) > 0;
   setCardInDeck(name, deckId, wasIn ? 0 : 1);
-  toast(`${wasIn ? 'Removed' : 'Added'} ${name} ${wasIn ? 'from' : 'to'} “${deck.name}”.`);
+  toast(tr(wasIn ? 'Removed {card} from “{name}”.' : 'Added {card} to “{name}”.', { card: name, name: deck.name }));
 }
 // The "Assign to decks" block inside the card viewer — every deck as a toggle row + qty stepper.
 function deckAssignHtml(name) {
   if (!state.decks.length) {
-    return `<div class="cv-decks-head"><i class="ms ms-saga" aria-hidden="true"></i> Assign to decks</div>
-      <div class="cv-decks-empty">No decks yet — import or build one first.</div>`;
+    return `<div class="cv-decks-head"><i class="ms ms-saga" aria-hidden="true"></i> ${tr('Assign to decks')}</div>
+      <div class="cv-decks-empty">${tr('No decks yet — import or build one first.')}</div>`;
   }
   const rows = state.decks.map(d => {
     const q = deckQtyOf(name, d);
     const isCmd = d.commander && key(d.commander) === key(name);
     return `<div class="cv-deck-row${q ? ' in' : ''}">
-      <button type="button" class="cv-deck-tog" data-assigndeck="${esc(d.id)}" data-name="${esc(name)}" title="${q ? 'Remove from' : 'Add to'} ${esc(d.name)}">
+      <button type="button" class="cv-deck-tog" data-assigndeck="${esc(d.id)}" data-name="${esc(name)}" title="${q ? tr('Remove from {name}', { name: esc(d.name) }) : tr('Add to {name}', { name: esc(d.name) })}">
         <i class="ms ${q ? 'ms-saga' : 'ms-counter-plus'} cv-deck-ic" aria-hidden="true"></i>
         <span class="cv-deck-name">${esc(d.name)}</span>
-        ${isCmd ? `<i class="ms ms-commander cv-deck-cmd" title="Commander" aria-hidden="true"></i>` : ''}
+        ${isCmd ? `<i class="ms ms-commander cv-deck-cmd" title="${tr('Commander')}" aria-hidden="true"></i>` : ''}
       </button>
       <div class="cv-deck-step">
-        <button type="button" data-assignqty="-1" data-deck="${esc(d.id)}" data-name="${esc(name)}" ${q ? '' : 'disabled'} aria-label="One fewer in ${esc(d.name)}">−</button>
+        <button type="button" data-assignqty="-1" data-deck="${esc(d.id)}" data-name="${esc(name)}" ${q ? '' : 'disabled'} aria-label="${tr('One fewer in {name}', { name: esc(d.name) })}">−</button>
         <span class="n">${q}</span>
-        <button type="button" data-assignqty="1" data-deck="${esc(d.id)}" data-name="${esc(name)}" aria-label="One more in ${esc(d.name)}">+</button>
+        <button type="button" data-assignqty="1" data-deck="${esc(d.id)}" data-name="${esc(name)}" aria-label="${tr('One more in {name}', { name: esc(d.name) })}">+</button>
       </div>
     </div>`;
   }).join('');
-  return `<div class="cv-decks-head"><i class="ms ms-saga" aria-hidden="true"></i> Assign to decks</div>
+  return `<div class="cv-decks-head"><i class="ms ms-saga" aria-hidden="true"></i> ${tr('Assign to decks')}</div>
     <div class="cv-decks-list">${rows}</div>`;
 }
 function refreshDeckAssign(name) {
@@ -1628,15 +1629,15 @@ function cardRow(name, reqQty, showStepper) {
   if (deckEdit) {
     return `<div class="card-row editing">
       <div class="deck-qty">
-        <button data-deckqty="-1" data-name="${esc(name)}" aria-label="One fewer">−</button>
+        <button data-deckqty="-1" data-name="${esc(name)}" aria-label="${tr('One fewer')}">−</button>
         <span class="n">${reqQty}</span>
-        <button data-deckqty="1" data-name="${esc(name)}" aria-label="One more">+</button>
+        <button data-deckqty="1" data-name="${esc(name)}" aria-label="${tr('One more')}">+</button>
       </div>
       <div class="cname">
         <span class="nm" data-name="${esc(name)}" data-uri="${esc(meta.uri || '')}" title="${esc(name)}">${esc(name)}</span>
         ${manaSymbols(meta.mana_cost)}
       </div>
-      <button class="deck-remove" data-deckremove="${esc(name)}" title="Remove from deck" aria-label="Remove ${esc(name)}">✕</button>
+      <button class="deck-remove" data-deckremove="${esc(name)}" title="${tr('Remove from deck')}" aria-label="${tr('Remove {name}', { name: esc(name) })}">✕</button>
     </div>`;
   }
   const have = ownedOf(name);
@@ -1645,7 +1646,7 @@ function cardRow(name, reqQty, showStepper) {
   const priceEach = priceOf(name);
   const priceCell = need > 0
     ? `<div class="price"><span class="need">${money(need * priceEach)}</span></div>`
-    : `<div class="price have-all">✓ owned</div>`;
+    : `<div class="price have-all">${tr('✓ owned')}</div>`;
   const stepper = showStepper ? `
     <div class="own-step">
       <button data-step="-1" data-name="${esc(name)}">−</button>
@@ -1653,7 +1654,7 @@ function cardRow(name, reqQty, showStepper) {
       <button data-step="1" data-name="${esc(name)}">+</button>
     </div>` : '';
   return `<div class="card-row ${cls}">
-    <button class="toggle ${have >= reqQty ? 'on' : ''}" data-toggle="${esc(name)}" data-req="${reqQty}" title="Toggle owned"></button>
+    <button class="toggle ${have >= reqQty ? 'on' : ''}" data-toggle="${esc(name)}" data-req="${reqQty}" title="${tr('Toggle owned')}"></button>
     <div class="cname">
       <span class="qty">${reqQty}×</span>
       <span class="nm" data-uri="${esc(meta.uri || '')}" title="${esc(name)}">${esc(name)}</span>
@@ -1706,10 +1707,10 @@ function renderInventory() {
   const faceted = !!invFacet;
   const g = faceted ? statsFor(names) : globalStats();
   $('#invStats').innerHTML = `
-    <div class="s"><div class="v">${g.unique}</div><div class="l"><i class="ms ms-multiple stat-ic" aria-hidden="true"></i>${faceted ? 'Cards Shown' : 'Unique Cards'}</div></div>
-    <div class="s"><div class="v">${g.ownedCount}</div><div class="l"><i class="ms ms-library stat-ic" aria-hidden="true"></i>Owned Copies</div></div>
-    <div class="s"><div class="v">${money(g.ownedValue)}</div><div class="l"><i class="ms ms-counter-gold stat-ic" aria-hidden="true"></i>${faceted ? 'Value Shown' : 'Collection Value'}</div></div>
-    <div class="s"><div class="v">${money(g.buyCost)}</div><div class="l"><i class="ms ms-counter-gold stat-ic" aria-hidden="true"></i>Still to Buy</div></div>`;
+    <div class="s"><div class="v">${g.unique}</div><div class="l"><i class="ms ms-multiple stat-ic" aria-hidden="true"></i>${faceted ? tr('Cards Shown') : tr('Unique Cards')}</div></div>
+    <div class="s"><div class="v">${g.ownedCount}</div><div class="l"><i class="ms ms-library stat-ic" aria-hidden="true"></i>${tr('Owned Copies')}</div></div>
+    <div class="s"><div class="v">${money(g.ownedValue)}</div><div class="l"><i class="ms ms-counter-gold stat-ic" aria-hidden="true"></i>${faceted ? tr('Value Shown') : tr('Collection Value')}</div></div>
+    <div class="s"><div class="v">${money(g.buyCost)}</div><div class="l"><i class="ms ms-counter-gold stat-ic" aria-hidden="true"></i>${tr('Still to Buy')}</div></div>`;
 
   const table = $('#inventoryTable');
   table.classList.toggle('gallery', invMode === 'art');
@@ -1717,7 +1718,7 @@ function renderInventory() {
   const invSizeWrap = $('#invSizeWrap');
   if (invSizeWrap) { invSizeWrap.hidden = invMode !== 'art'; const r = $('#invSizeRange'); if (r) r.value = invTile; }
   if (!names.length) {
-    table.innerHTML = `<div class="view-sub" style="padding:30px 0">No cards match.</div>`;
+    table.innerHTML = `<div class="view-sub" style="padding:30px 0">${tr('No cards match.')}</div>`;
   } else if (invMode === 'art') {
     table.innerHTML = names.map(n => inventoryArtTile(n)).join('');
   } else {
@@ -1740,21 +1741,21 @@ function inventoryArtTile(name) {
   const meta = card(name);
   const have = ownedOf(name);
   const anyFoil = variantsOf(name).some(v => v.foil);
-  const foilTag = anyFoil ? `<span class="art-foil" title="Foil copy">${FOIL_SPARK}</span>` : '';
+  const foilTag = anyFoil ? `<span class="art-foil" title="${tr('Foil copy')}">${FOIL_SPARK}</span>` : '';
   const listed = cardListedAnywhere(name);
   return `<div class="art-tile inv${listed ? ' listed' : ''}">
     <button class="art-open" data-name="${esc(name)}">
       ${artTile(name, have + '×', `<span class="art-val">${money(ownedValueOf(name))}</span>`, foilTag)}
     </button>
-    <button class="inv-sell" data-sellcard="${esc(name)}" title="${listed ? 'In a sell list — choose lists' : 'Add to a sell list'}" aria-label="Choose sell lists"><i class="ms ms-counter-gold" aria-hidden="true"></i></button>
+    <button class="inv-sell" data-sellcard="${esc(name)}" title="${listed ? tr('In a sell list — choose lists') : tr('Add to a sell list')}" aria-label="${tr('Choose sell lists')}"><i class="ms ms-counter-gold" aria-hidden="true"></i></button>
   </div>`;
 }
 
 function whereCell(name) {
   const used = decksUsing(name);
   return used.length
-    ? `<span class="where"><i class="ms ms-saga where-ic" aria-hidden="true"></i>in <b>${used.map(d => esc(d.name)).join('</b>, <b>')}</b></span>`
-    : `<span class="where unlinked" style="color:var(--brass)"><i class="ms ms-land where-ic" aria-hidden="true"></i>unlinked</span>`;
+    ? `<span class="where"><i class="ms ms-saga where-ic" aria-hidden="true"></i>${tr('in')} <b>${used.map(d => esc(d.name)).join('</b>, <b>')}</b></span>`
+    : `<span class="where unlinked" style="color:var(--brass)"><i class="ms ms-land where-ic" aria-hidden="true"></i>${tr('unlinked')}</span>`;
 }
 
 // One card = its own variant rows (foil / printing / condition split out).
@@ -1776,7 +1777,7 @@ function inventoryVariantRow(name, v) {
   ].join('');
   return `<div class="variant-wrap" data-vwrap="${v.id}">
     <div class="card-row owned">
-      <span class="toggle on" title="Owned"></span>
+      <span class="toggle on" title="${tr('Owned')}"></span>
       <div class="cname">
         <span class="row-marks">${typeIcon(name)}${rarityIcon(meta.rarity)}</span>
         <span class="nm" data-name="${esc(name)}" data-uri="${esc(meta.uri || '')}" title="${esc(name)}">${esc(name)}</span>
@@ -1790,7 +1791,7 @@ function inventoryVariantRow(name, v) {
       </div>
       ${whereCell(name)}
       <div class="price">${money(unit)}<br><span style="color:var(--gold-soft)">${money(unit * v.qty)}</span></div>
-      <button class="inv-sell-btn ${variantListedAnywhere(v.id) ? 'on' : ''}" data-sellvar="${v.id}" data-name="${esc(name)}" title="Choose which sell list(s) this copy goes in"><i class="ms ms-counter-gold" aria-hidden="true"></i> ${variantListedAnywhere(v.id) ? 'Listed' : 'Sell'}</button>
+      <button class="inv-sell-btn ${variantListedAnywhere(v.id) ? 'on' : ''}" data-sellvar="${v.id}" data-name="${esc(name)}" title="${tr('Choose which sell list(s) this copy goes in')}"><i class="ms ms-counter-gold" aria-hidden="true"></i> ${variantListedAnywhere(v.id) ? tr('Listed') : tr('Sell')}</button>
     </div>
   </div>`;
 }
@@ -1807,22 +1808,22 @@ function cardVariantsEditor(name) {
           <button data-vstep="1" data-vid="${v.id}" data-name="${esc(name)}">+</button>
         </div>
         <label class="ve-toggle"><input type="checkbox" data-vfoil="${v.id}" ${v.foil ? 'checked' : ''}/> ${FOIL_SPARK} Foil</label>
-        <button class="ve-print" data-vprint="${v.id}" data-name="${esc(name)}" title="Choose this copy's printing"><i class="ms ms-artist-nib" aria-hidden="true"></i> ${v.set ? esc(v.set) : 'Printing'}</button>
-        <button class="ve-sell ${variantListedAnywhere(v.id) ? 'on' : ''}" data-cvsell="${v.id}" data-name="${esc(name)}" title="Choose which sell list(s) this copy goes in"><i class="ms ms-counter-gold" aria-hidden="true"></i> ${variantListedAnywhere(v.id) ? 'Listed' : 'Sell'}</button>
-        <button class="ve-del" data-vdel="${v.id}" data-name="${esc(name)}" title="Remove this copy">Delete</button>
+        <button class="ve-print" data-vprint="${v.id}" data-name="${esc(name)}" title="${tr('Choose this copy\'s printing')}"><i class="ms ms-artist-nib" aria-hidden="true"></i> ${v.set ? esc(v.set) : tr('Printing')}</button>
+        <button class="ve-sell ${variantListedAnywhere(v.id) ? 'on' : ''}" data-cvsell="${v.id}" data-name="${esc(name)}" title="${tr('Choose which sell list(s) this copy goes in')}"><i class="ms ms-counter-gold" aria-hidden="true"></i> ${variantListedAnywhere(v.id) ? tr('Listed') : tr('Sell')}</button>
+        <button class="ve-del" data-vdel="${v.id}" data-name="${esc(name)}" title="${tr('Remove this copy')}">${tr('Delete')}</button>
       </div>
       <div class="cvv-strip" data-vstripwrap="${v.id}" hidden></div>
       <div class="cvv-fields">
-        <label class="ve-field"><span>Condition</span>
-          <select data-vcond="${v.id}">${CONDITIONS.map(c => `<option value="${c}" ${v.condition === c ? 'selected' : ''}>${COND_LABEL[c]}</option>`).join('')}</select>
+        <label class="ve-field"><span>${tr('Condition')}</span>
+          <select data-vcond="${v.id}">${CONDITIONS.map(c => `<option value="${c}" ${v.condition === c ? 'selected' : ''}>${tr(COND_LABEL[c])}</option>`).join('')}</select>
         </label>
-        <label class="ve-field"><span>Set</span><input type="text" data-vset="${v.id}" value="${esc(v.set || '')}" placeholder="CMM" maxlength="6"/></label>
-        <label class="ve-field"><span>Collector №</span><input type="text" data-vcoll="${v.id}" value="${esc(v.collector || '')}" placeholder="—" maxlength="12"/></label>
-        <label class="ve-field grow"><span>Notes / tags</span><input type="text" data-vnotes="${v.id}" value="${esc(v.notes || '')}" placeholder="signed, altered, traded…"/></label>
+        <label class="ve-field"><span>${tr('Set')}</span><input type="text" data-vset="${v.id}" value="${esc(v.set || '')}" placeholder="CMM" maxlength="6"/></label>
+        <label class="ve-field"><span>${tr('Collector №')}</span><input type="text" data-vcoll="${v.id}" value="${esc(v.collector || '')}" placeholder="—" maxlength="12"/></label>
+        <label class="ve-field grow"><span>${tr('Notes / tags')}</span><input type="text" data-vnotes="${v.id}" value="${esc(v.notes || '')}" placeholder="${tr('signed, altered, traded…')}"/></label>
       </div>
     </div>`).join('');
-  return `${rows || '<p class="cvv-empty">No copies catalogued yet — add one below.</p>'}
-    <button class="add-variant" data-addvar="${esc(name)}"><i class="ms ms-token" aria-hidden="true"></i> add a printing or foil</button>`;
+  return `${rows || `<p class="cvv-empty">${tr('No copies catalogued yet — add one below.')}</p>`}
+    <button class="add-variant" data-addvar="${esc(name)}"><i class="ms ms-token" aria-hidden="true"></i> ${tr('add a printing or foil')}</button>`;
 }
 function refreshCardEditor() {
   const box = $('#cvVariants');
@@ -1852,8 +1853,8 @@ function renderBuyDeckFilter() {
     const on = buyDeckSel.length === 0 || buyDeckSel.includes(d.id);
     return `<button class="buy-deck-chip ${on ? 'on' : ''}" data-deck="${d.id}">${esc(d.name)}</button>`;
   }).join('');
-  bar.innerHTML = `<span class="buy-filter-label"><i class="ms ms-library" aria-hidden="true"></i> Decks</span>${chips}` +
-    (buyDeckSel.length ? `<button class="buy-deck-chip clear" data-deck="all">↺ All decks</button>` : '');
+  bar.innerHTML = `<span class="buy-filter-label"><i class="ms ms-library" aria-hidden="true"></i> ${tr('Decks')}</span>${chips}` +
+    (buyDeckSel.length ? `<button class="buy-deck-chip clear" data-deck="all">${tr('↺ All decks')}</button>` : '');
 }
 
 // Single source of truth for buy-list ordering — shared by renderBuyList, buyListText, buyExportRows.
@@ -1895,7 +1896,7 @@ function renderBuyList() {
   renderBuyDeckFilter();
   const matchBtn = $('#buyMatchBtn'); if (matchBtn) matchBtn.classList.toggle('on', buyMatchOpen);
   if (buyMatchOpen) {
-    if ($('#buyListSub')) $('#buyListSub').textContent = 'Paste a seller’s list to see what you’d buy.';
+    if ($('#buyListSub')) $('#buyListSub').textContent = tr('Paste a seller’s list to see what you’d buy.');
     const wrap = $('#buySizeWrap'); if (wrap) wrap.hidden = true;
     const t = $('#buyTable'); if (t) { t.classList.remove('gallery'); t.innerHTML = buyMatchPanel(); }
     return;
@@ -1920,10 +1921,10 @@ function renderBuyList() {
   const selecting = picked !== copies;
   $('#buyListSub').textContent = names.length
     ? ((selecting
-        ? `${picked} of ${copies} cards selected · ${money(pickedCost)} of ${money(total)}`
-        : `${copies} cards across ${deckCount} deck${deckCount === 1 ? '' : 's'} · ${money(total)} total`) + (q ? ` · matching “${buySearch.trim()}”` : ''))
-    : (q ? `No buy-list cards match “${buySearch.trim()}”.`
-         : (buyDeckSel.length ? 'Nothing to buy for the selected decks.' : 'Nothing to buy — every deck is complete.'));
+        ? tr('{picked} of {copies} cards selected · {pickedCost} of {total}', { picked, copies, pickedCost: money(pickedCost), total: money(total) })
+        : tr(deckCount === 1 ? '{copies} cards across {decks} deck · {total} total' : '{copies} cards across {decks} decks · {total} total', { copies, decks: deckCount, total: money(total) })) + (q ? ' · ' + tr('matching “{q}”', { q: buySearch.trim() }) : ''))
+    : (q ? tr('No buy-list cards match “{q}”.', { q: buySearch.trim() })
+         : (buyDeckSel.length ? tr('Nothing to buy for the selected decks.') : tr('Nothing to buy — every deck is complete.')));
 
   const table = $('#buyTable');
   table.classList.toggle('gallery', buyMode === 'art');
@@ -1932,8 +1933,8 @@ function renderBuyList() {
   if (buySizeWrap) { buySizeWrap.hidden = buyMode !== 'art'; const r = $('#buySizeRange'); if (r) r.value = buyTile; }
   if (!names.length) {
     table.innerHTML = q
-      ? `<div class="empty-state"><span class="empty-mark"><i class="ms ms-ability-investigate" aria-hidden="true"></i></span><h2>No matches</h2><p>No buy-list cards match “${esc(buySearch.trim())}”.</p></div>`
-      : `<div class="empty-state"><span class="empty-mark"><i class="ms ms-counter-shield" aria-hidden="true"></i></span><h2>Fully stocked</h2><p>You own everything your decks require.</p></div>`;
+      ? `<div class="empty-state"><span class="empty-mark"><i class="ms ms-ability-investigate" aria-hidden="true"></i></span><h2>${tr('No matches')}</h2><p>${tr('No buy-list cards match “{q}”.', { q: esc(buySearch.trim()) })}</p></div>`
+      : `<div class="empty-state"><span class="empty-mark"><i class="ms ms-counter-shield" aria-hidden="true"></i></span><h2>${tr('Fully stocked')}</h2><p>${tr('You own everything your decks require.')}</p></div>`;
   } else if (buyMode === 'art') {
     table.innerHTML = rowData.map(buyArtTile).join('');
   } else {
@@ -1944,7 +1945,7 @@ function renderBuyList() {
       let head = '';
       if (grouping) {
         const g = buySort === 'color' ? colorGroupLabel(rd.n) : category(rd.n);
-        if (g !== last) { head = `<div class="buy-group-head">${esc(g)}</div>`; last = g; }
+        if (g !== last) { head = `<div class="buy-group-head">${esc(tr(g))}</div>`; last = g; }
       }
       return head + buyRow(rd);
     }).join('');
@@ -1953,23 +1954,23 @@ function renderBuyList() {
 function buyRow({ n, need, sub, included, used, wished }) {
   const meta = card(n);
   const where = used.length
-    ? `<i class="ms ms-saga where-ic" aria-hidden="true"></i>for <b>${used.map(d => esc(d.name)).join('</b>, <b>')}</b>${wished ? ' <b class="wish-tag">＋ wishlist</b>' : ''}`
-    : `<i class="ms ms-counter-gold where-ic" aria-hidden="true"></i><b class="wish-tag">Wishlist</b>`;
+    ? `<i class="ms ms-saga where-ic" aria-hidden="true"></i>${tr('for')} <b>${used.map(d => esc(d.name)).join('</b>, <b>')}</b>${wished ? ` <b class="wish-tag">${tr('＋ wishlist')}</b>` : ''}`
+    : `<i class="ms ms-counter-gold where-ic" aria-hidden="true"></i><b class="wish-tag">${tr('Wishlist')}</b>`;
   return `<div class="card-row missing ${included ? '' : 'excluded'}">
-    <input type="checkbox" class="buy-pick" data-pick="${esc(n)}" ${included ? 'checked' : ''} title="On your buy list — uncheck to permanently skip buying this card" />
+    <input type="checkbox" class="buy-pick" data-pick="${esc(n)}" ${included ? 'checked' : ''} title="${tr('On your buy list — uncheck to permanently skip buying this card')}" />
     <div class="cname"><span class="row-marks">${typeIcon(n)}${rarityIcon(meta.rarity)}</span><span class="qty">${need}×</span><span class="nm" data-name="${esc(n)}" data-uri="${esc(meta.uri || '')}">${esc(n)}</span>${manaSymbols(meta.mana_cost)}</div>
     <span class="where">${where}</span>
     <div class="price"><span class="need">${money(sub)}</span></div>
-    ${state.buyBinders.length ? `<button class="to-binder" data-tobinder="${esc(n)}" title="File into a buy binder" aria-label="Add to a buy binder"><i class="ms ms-counter-lore" aria-hidden="true"></i></button>` : ''}
-    <button class="buy-got" data-bought="${esc(n)}" title="I bought ${need} — add to my collection"><i class="ms ms-counter-shield" aria-hidden="true"></i> Bought</button>
+    ${state.buyBinders.length ? `<button class="to-binder" data-tobinder="${esc(n)}" title="${tr('File into a buy binder')}" aria-label="${tr('Add to a buy binder')}"><i class="ms ms-counter-lore" aria-hidden="true"></i></button>` : ''}
+    <button class="buy-got" data-bought="${esc(n)}" title="${tr('I bought {n} — add to my collection', { n: need })}"><i class="ms ms-counter-shield" aria-hidden="true"></i> ${tr('Bought')}</button>
   </div>`;
 }
 function buyArtTile({ n, need, sub, included }) {
-  const pick = `<input type="checkbox" class="buy-pick art-pick" data-pick="${esc(n)}" ${included ? 'checked' : ''} title="Include in the exported list" />`;
+  const pick = `<input type="checkbox" class="buy-pick art-pick" data-pick="${esc(n)}" ${included ? 'checked' : ''} title="${tr('Include in the exported list')}" />`;
   return `<div class="art-tile buy ${included ? '' : 'excluded'}">
     ${pick}
-    ${state.buyBinders.length ? `<button class="to-binder tile" data-tobinder="${esc(n)}" title="File into a buy binder" aria-label="Add to a buy binder"><i class="ms ms-counter-lore" aria-hidden="true"></i></button>` : ''}
-    <button class="buy-got-tile" data-bought="${esc(n)}" title="I bought ${need} — add to my collection"><i class="ms ms-counter-shield" aria-hidden="true"></i></button>
+    ${state.buyBinders.length ? `<button class="to-binder tile" data-tobinder="${esc(n)}" title="${tr('File into a buy binder')}" aria-label="${tr('Add to a buy binder')}"><i class="ms ms-counter-lore" aria-hidden="true"></i></button>` : ''}
+    <button class="buy-got-tile" data-bought="${esc(n)}" title="${tr('I bought {n} — add to my collection', { n: need })}"><i class="ms ms-counter-shield" aria-hidden="true"></i></button>
     <button class="art-open" data-name="${esc(n)}">
       ${artTile(n, need + '×', `<span class="art-val need">${money(sub)}</span>`)}
     </button>
@@ -1979,11 +1980,11 @@ function buyArtTile({ n, need, sub, included }) {
 function markBought(name) {
   const need = requiredFor(name, buyDecksActive()) - ownedOf(name);
   if (need <= 0) return;
-  pushUndo(`buy of ${need}× ${name}`);
+  pushUndo(tr('buy of {n}× {name}', { n: need, name }));
   addVariant(name, { qty: need });
   logEvent('bought', name, need, priceOf(name));
   save(); render();
-  toast(`Bought ${need}× ${name} — added to your collection.`, { undo: true });
+  toast(tr('Bought {n}× {name} — added to your collection.', { n: need, name }), { undo: true });
 }
 
 /* =====================================================================
@@ -2041,9 +2042,9 @@ async function importDeck() {
   const ownAll = $('#ownAllInput').checked;
   const parsed = parseDecklist(text);
   const status = $('#importStatus');
-  if (!parsed.length) { status.textContent = 'No cards detected — check the list.'; return; }
+  if (!parsed.length) { status.textContent = tr('No cards detected — check the list.'); return; }
 
-  status.innerHTML = `<span class="spin"></span>Summoning ${parsed.length} cards from Scryfall…`;
+  status.innerHTML = `<span class="spin"></span>${tr('Summoning {n} cards from Scryfall…', { n: parsed.length })}`;
   $('#confirmImport').disabled = true;
   try {
     const { resolved, missing } = await resolveCards(parsed);
@@ -2065,9 +2066,9 @@ async function importDeck() {
     closeImport();
     render();
     setView('decks');
-    toast(`“${name}” catalogued${cmd ? ` · ${esc(cmd.name)} set as commander` : ''}${missing ? ` · ${missing} card${missing > 1 ? 's' : ''} not found` : ''}.`);
+    toast(tr('“{name}” catalogued', { name }) + (cmd ? ' · ' + tr('{name} set as commander', { name: esc(cmd.name) }) : '') + (missing ? ' · ' + tr(missing === 1 ? '{n} card not found' : '{n} cards not found', { n: missing }) : '') + '.');
   } catch (e) {
-    status.textContent = 'Scryfall lookup failed — check your connection and retry.';
+    status.textContent = tr('Scryfall lookup failed — check your connection and retry.');
   } finally {
     $('#confirmImport').disabled = false;
   }
@@ -2084,7 +2085,7 @@ function createEmptyDeck() {
   deckEdit = true;            // open straight into edit mode so the add-card bar is ready (openDeck resets it)
   renderDeckDetail();
   $('#deckAddInput') && $('#deckAddInput').focus();
-  toast(`Created “${name}” — add cards below, or from Browse.`);
+  toast(tr('Created “{name}” — add cards below, or from Browse.', { name }));
 }
 function openImport() { $('#importModal').hidden = false; $('#deckNameInput').focus(); }
 function closeImport() {
@@ -2101,28 +2102,28 @@ async function addLooseCards() {
   const tagEntries = addTags.map(t => ({ name: t.name, qty: t.qty, foil: t.foil }));
   const combined = [...tagEntries, ...parseDecklist(text)];
   const status = $('#addStatus');
-  if (!combined.length) { status.textContent = 'No cards yet — search to add some, or paste a list.'; return; }
+  if (!combined.length) { status.textContent = tr('No cards yet — search to add some, or paste a list.'); return; }
 
-  status.innerHTML = `<span class="spin"></span>Looking up ${combined.length} cards…`;
+  status.innerHTML = `<span class="spin"></span>${tr('Looking up {n} cards…', { n: combined.length })}`;
   $('#confirmAdd').disabled = true;
   try {
     const { resolved, missing } = await resolveCards(combined);
     if (addTarget === 'store' && myStore) {
       const added = addResolvedToStore(resolved);
       scheduleStoreSave(); closeAdd(); setView('store'); renderStoreDashboard();
-      toast(`Added ${added} card${added > 1 ? 's' : ''} to your inventory${missing ? ` · ${missing} not found` : ''}.`);
+      toast(tr(added === 1 ? 'Added {n} card to your inventory' : 'Added {n} cards to your inventory', { n: added }) + (missing ? ' · ' + tr('{n} not found', { n: missing }) : '') + '.');
       return;
     }
     resolved.forEach(c => addVariant(c.name, { qty: c.qty, foil: !!c.foil }));
-    logAcquired(resolved, `Added ${resolved.length} cards`);
+    logAcquired(resolved, tr('Added {n} cards', { n: resolved.length }));
     save();
     closeAdd();
     render();
     setView('inventory');
     const n = resolved.length;
-    toast(`Added ${n} card${n > 1 ? 's' : ''} to your collection${missing ? ` · ${missing} not found` : ''}.`);
+    toast(tr(n === 1 ? 'Added {n} card to your collection' : 'Added {n} cards to your collection', { n }) + (missing ? ' · ' + tr('{n} not found', { n: missing }) : '') + '.');
   } catch (e) {
-    status.textContent = 'Scryfall lookup failed — check your connection and retry.';
+    status.textContent = tr('Scryfall lookup failed — check your connection and retry.');
   } finally {
     $('#confirmAdd').disabled = false;
   }
@@ -2133,10 +2134,10 @@ async function importCSV(file) {
   const status = $('#addStatus');
   let parsed;
   try { parsed = parseCardCSV(await file.text()); }
-  catch (e) { status.textContent = 'Could not read that file.'; return; }
-  if (!parsed.length) { status.textContent = 'No cards found — is this a ManaBox CSV export?'; return; }
+  catch (e) { status.textContent = tr('Could not read that file.'); return; }
+  if (!parsed.length) { status.textContent = tr('No cards found — is this a ManaBox CSV export?'); return; }
 
-  status.innerHTML = `<span class="spin"></span>Importing ${parsed.length} cards from “${esc(file.name)}”…`;
+  status.innerHTML = `<span class="spin"></span>${tr('Importing {n} cards from “{file}”…', { n: parsed.length, file: esc(file.name) })}`;
   $('#confirmAdd').disabled = true;
   $('#csvBtn').disabled = true;
   try {
@@ -2144,7 +2145,7 @@ async function importCSV(file) {
     if (addTarget === 'store' && myStore) {
       const added = addResolvedToStore(resolved);
       scheduleStoreSave(); closeAdd(); setView('store'); renderStoreDashboard();
-      toast(`Imported ${added} cards into your inventory${missing ? ` · ${missing} not found` : ''}.`);
+      toast(tr('Imported {n} cards into your inventory', { n: added }) + (missing ? ' · ' + tr('{n} not found', { n: missing }) : '') + '.');
       return;
     }
     resolved.forEach(c => addVariant(c.name, { qty: c.qty, foil: c.foil, condition: c.condition, set: c.set, collector: c.collector, scryfallId: c.scryfallId }));
@@ -2154,9 +2155,9 @@ async function importCSV(file) {
     render();
     setView('inventory');
     const copies = resolved.reduce((a, c) => a + c.qty, 0);
-    toast(`Imported ${copies} cards from CSV${missing ? ` · ${missing} not found` : ''}.`);
+    toast(tr('Imported {n} cards from CSV', { n: copies }) + (missing ? ' · ' + tr('{n} not found', { n: missing }) : '') + '.');
   } catch (e) {
-    status.textContent = 'Import failed — check your connection and retry.';
+    status.textContent = tr('Import failed — check your connection and retry.');
   } finally {
     $('#confirmAdd').disabled = false;
     $('#csvBtn').disabled = false;
@@ -2263,7 +2264,7 @@ function openCardView(name) {
   const showCmd = deckCtx && deckCtx.cards.some(c => key(c.name) === key(name)) && canBeCommander(name);
   const isCmd = showCmd && key(deckCtx.commander || '') === key(name);
   const commanderHtml = showCmd
-    ? `<label class="cv-commander${isCmd ? ' on' : ''}"><input type="checkbox" id="cvCommander" ${isCmd ? 'checked' : ''}/> <i class="ms ms-commander" aria-hidden="true"></i> Commander of “${esc(deckCtx.name)}”</label>`
+    ? `<label class="cv-commander${isCmd ? ' on' : ''}"><input type="checkbox" id="cvCommander" ${isCmd ? 'checked' : ''}/> <i class="ms ms-commander" aria-hidden="true"></i> ${tr('Commander of “{name}”', { name: esc(deckCtx.name) })}</label>`
     : '';
   $('#cardViewMeta').innerHTML = `
     <h3>${esc(meta.name)}</h3>
@@ -2272,25 +2273,25 @@ function openCardView(name) {
     ${commanderHtml}
     <div class="cv-tags">
       <span class="cv-set" id="cvSet">${setTagHtml(name)}</span>
-      ${meta.rarity ? `<span class="cv-rarity ${esc(meta.rarity)}"><i class="ms ms-rarity" aria-hidden="true"></i> ${esc(RARITY_LABEL[meta.rarity] || meta.rarity)}</span>` : ''}
+      ${meta.rarity ? `<span class="cv-rarity ${esc(meta.rarity)}"><i class="ms ms-rarity" aria-hidden="true"></i> ${esc(tr(RARITY_LABEL[meta.rarity] || meta.rarity))}</span>` : ''}
     </div>
     <div class="cv-quick">
-      <button class="cvq pos" data-cvbought title="I bought one — add a copy to your collection"><i class="ms ms-counter-shield" aria-hidden="true"></i> Bought</button>
-      <button class="cvq neg" data-cvsold ${ownedOf(name) ? '' : 'disabled'} title="I sold one — remove a copy from your collection"><i class="ms ms-counter-gold" aria-hidden="true"></i> Sold</button>
-      <button class="cvq ${wishOf(name) ? 'on' : ''}" data-cvwish title="Add to / remove from your buy list">${wishOf(name) ? '✓ Buy list' : '＋ Buy list'}</button>
-      <button class="cvq ${variantsOf(name).some(v => variantListedAnywhere(v.id)) ? 'on' : ''}" data-cvsell ${ownedOf(name) ? '' : 'disabled'} title="List your copies for sale">${variantsOf(name).some(v => variantListedAnywhere(v.id)) ? '✓ Sell list' : '＋ Sell list'}</button>
+      <button class="cvq pos" data-cvbought title="${tr('I bought one — add a copy to your collection')}"><i class="ms ms-counter-shield" aria-hidden="true"></i> ${tr('Bought')}</button>
+      <button class="cvq neg" data-cvsold ${ownedOf(name) ? '' : 'disabled'} title="${tr('I sold one — remove a copy from your collection')}"><i class="ms ms-counter-gold" aria-hidden="true"></i> ${tr('Sold')}</button>
+      <button class="cvq ${wishOf(name) ? 'on' : ''}" data-cvwish title="${tr('Add to / remove from your buy list')}">${wishOf(name) ? tr('✓ Buy list') : tr('＋ Buy list')}</button>
+      <button class="cvq ${variantsOf(name).some(v => variantListedAnywhere(v.id)) ? 'on' : ''}" data-cvsell ${ownedOf(name) ? '' : 'disabled'} title="${tr('List your copies for sale')}">${variantsOf(name).some(v => variantListedAnywhere(v.id)) ? tr('✓ Sell list') : tr('＋ Sell list')}</button>
     </div>
     <div class="cv-prices" id="cvPrices">${pricesHtml(name)}</div>
     <div class="cv-arts" id="cvArts">
-      <button class="cv-art-btn" id="cvArtBtn"><i class="ms ms-artist-brush" aria-hidden="true"></i> Choose art / printing</button>
+      <button class="cv-art-btn" id="cvArtBtn"><i class="ms ms-artist-brush" aria-hidden="true"></i> ${tr('Choose art / printing')}</button>
       <div class="cv-art-strip" id="cvArtStrip" hidden></div>
     </div>
     <div class="cv-cheapest" id="cvCheapest"></div>
-    ${meta.notFound ? `<div class="cv-missing">No printing matched on Scryfall — re-import to fetch its art.</div>` : ''}
-    ${meta.uri ? `<a class="cv-link" href="${esc(meta.uri)}" target="_blank" rel="noopener">View on Scryfall ↗</a>` : ''}
+    ${meta.notFound ? `<div class="cv-missing">${tr('No printing matched on Scryfall — re-import to fetch its art.')}</div>` : ''}
+    ${meta.uri ? `<a class="cv-link" href="${esc(meta.uri)}" target="_blank" rel="noopener">${tr('View on Scryfall ↗')}</a>` : ''}
     <div class="cv-buys">${buyLinks(meta)}</div>
     <div class="cv-edit">
-      <button class="cv-edit-btn" id="cvEditBtn"><i class="ms ms-token" aria-hidden="true"></i> Edit copies${ownedOf(name) ? ` <span class="cv-edit-n">${ownedOf(name)}</span>` : ''}</button>
+      <button class="cv-edit-btn" id="cvEditBtn"><i class="ms ms-token" aria-hidden="true"></i> ${tr('Edit copies')}${ownedOf(name) ? ` <span class="cv-edit-n">${ownedOf(name)}</span>` : ''}</button>
       <div class="cv-variants" id="cvVariants" hidden></div>
     </div>
     <div class="cv-deckassign" id="cvDeckAssign">${deckAssignHtml(name)}</div>
@@ -2301,26 +2302,26 @@ function openCardView(name) {
 }
 // quick transaction + list actions from the card view
 function cvBought(name) {
-  pushUndo(`buy of 1× ${name}`);
+  pushUndo(tr('buy of {n}× {name}', { n: 1, name }));
   addVariant(name, { qty: 1 });
   logEvent('bought', name, 1, priceOf(name));
   save(); render(); openCardView(name);
-  toast(`Bought 1× ${name} — added to your collection.`, { undo: true });
+  toast(tr('Bought {n}× {name} — added to your collection.', { n: 1, name }), { undo: true });
 }
 function cvSold(name) {
   if (ownedOf(name) <= 0) return;
-  pushUndo(`sale of 1× ${name}`);
+  pushUndo(tr('sale of {n}× {name}', { n: 1, name }));
   const unit = priceOf(name);
   setOwned(name, ownedOf(name) - 1);
   logEvent('sold', name, 1, unit);
   save(); render(); openCardView(name);
-  toast(`Sold 1× ${name} — removed from your collection.`, { undo: true });
+  toast(tr('Sold {n}× {name} — removed from your collection.', { n: 1, name }), { undo: true });
 }
 function cvWishToggle(name) {
   const on = wishOf(name) > 0;
   addToWishlist(name, on ? -wishOf(name) : 1);
   render(); openCardView(name);
-  toast(on ? `Removed ${name} from your buy list.` : `Added ${name} to your buy list.`);
+  toast(on ? tr('Removed {name} from your buy list.', { name }) : tr('Added {name} to your buy list.', { name }));
 }
 function closeCardView() { $('#cardModal').hidden = true; cardViewName = null; $('#cardViewImg').removeAttribute('src'); }
 
@@ -2330,19 +2331,19 @@ async function revealPrintings(name) {
   if (!strip) return;
   if (!strip.hidden) { strip.hidden = true; btn.classList.remove('on'); return; }
   strip.hidden = false; btn.classList.add('on');
-  strip.innerHTML = `<span class="spin"></span><span class="cv-cheap-label">Loading printings…</span>`;
+  strip.innerHTML = `<span class="spin"></span><span class="cv-cheap-label">${tr('Loading printings…')}</span>`;
   const prints = await loadPrintings(name);
   if (cardViewName !== name || !$('#cvArtStrip')) return;
-  if (!prints.length) { $('#cvArtStrip').innerHTML = `<span class="cv-art-empty">No alternate printings found.</span>`; return; }
+  if (!prints.length) { $('#cvArtStrip').innerHTML = `<span class="cv-art-empty">${tr('No alternate printings found.')}</span>`; return; }
   // With CK pricing on, load the CK index so each printing shows its exact CK price (and the
   // main price re-syncs to CK for the chosen printing).
   if (ckActive() && !ckById) {
-    $('#cvArtStrip').innerHTML = `<span class="spin"></span><span class="cv-cheap-label">Loading Card Kingdom prices…</span>`;
+    $('#cvArtStrip').innerHTML = `<span class="spin"></span><span class="cv-cheap-label">${tr('Loading Card Kingdom prices…')}</span>`;
     await ensureCKIndex();
     if (cardViewName !== name || !$('#cvArtStrip')) return;
     const pe = $('#cvPrices'); if (pe) pe.innerHTML = pricesHtml(name);
   }
-  $('#cvArtStrip').innerHTML = `<input type="text" id="cvArtSearch" class="cv-art-search" placeholder="Filter printings — set, name or № (e.g. “MH2 376”)" autocomplete="off" spellcheck="false" />
+  $('#cvArtStrip').innerHTML = `<input type="text" id="cvArtSearch" class="cv-art-search" placeholder="${tr('Filter printings — set, name or № (e.g. “MH2 376”)')}" autocomplete="off" spellcheck="false" />
     <div class="cv-art-results" id="cvArtResults"></div>`;
   renderPrintings(name, '');
   const inp = $('#cvArtSearch'); if (inp) inp.focus();
@@ -2368,13 +2369,13 @@ function renderPrintings(name, q) {
       const on = curId ? p.id === curId : p.set === curSet;
       const owned = ownsPrinting(p);
       const pr = (ckActive() && ckById) ? ((ckById.get(p.id) || [0])[0] || 0) : p.price;   // CK retail per printing when CK active
-      return `<button type="button" class="cv-art ${on ? 'on' : ''}${owned ? ' owned' : ''}" data-printidx="${i}" title="${esc(p.set_name || p.set)}${p.collector ? ' · #' + esc(p.collector) : ''}${owned ? ' · owned' : ''}${pr ? ' · ' + money(pr) : ''}">
+      return `<button type="button" class="cv-art ${on ? 'on' : ''}${owned ? ' owned' : ''}" data-printidx="${i}" title="${esc(p.set_name || p.set)}${p.collector ? ' · #' + esc(p.collector) : ''}${owned ? ' · ' + tr('owned') : ''}${pr ? ' · ' + money(pr) : ''}">
         <img src="${esc(p.small)}" alt="${esc(p.set_name)}" loading="lazy"/>
         <span class="cv-art-set">${esc(p.set)}${p.collector ? ' ' + esc(p.collector) : ''}</span>
         <span class="cv-art-price">${pr ? money(pr) : '—'}</span>
       </button>`;
     }).join('');
-  box.innerHTML = html || `<span class="cv-art-empty">No printing matches “${esc(q)}”.</span>`;
+  box.innerHTML = html || `<span class="cv-art-empty">${tr('No printing matches “{q}”.', { q: esc(q) })}</span>`;
 }
 
 // Lock a chosen printing's art as this card's display art.
@@ -2390,7 +2391,7 @@ function pickPrinting(name, idx) {
   const pricesEl = $('#cvPrices'); if (pricesEl) pricesEl.innerHTML = pricesHtml(name);
   const setEl = $('#cvSet'); if (setEl) setEl.innerHTML = setTagHtml(name);
   renderInventory();   // the inventory tile behind the modal now shows the new art + price
-  toast(`Art set to ${p.set_name || p.set}${p.price ? ' · ' + money(p.price) : ''}.`);
+  toast(tr('Art set to {set}', { set: p.set_name || p.set }) + (p.price ? ' · ' + money(p.price) : '') + '.');
 }
 
 // Reveal a per-copy printing strip inside the "Edit copies" editor so a single
@@ -2403,11 +2404,11 @@ async function revealCopyPrintings(name, vid, btn) {
   $$('.cvv-strip').forEach(s => { if (s !== strip) { s.hidden = true; s.innerHTML = ''; } });
   $$('.ve-print').forEach(b => { if (b !== btn) b.classList.remove('on'); });
   strip.hidden = false; btn.classList.add('on');
-  strip.innerHTML = `<span class="spin"></span><span class="cv-cheap-label">Loading printings…</span>`;
+  strip.innerHTML = `<span class="spin"></span><span class="cv-cheap-label">${tr('Loading printings…')}</span>`;
   const prints = await loadPrintings(name);
   if (cardViewName !== name || !document.querySelector(`.cvv-strip[data-vstripwrap="${vid}"]`)) return;
   const box = document.querySelector(`.cvv-strip[data-vstripwrap="${vid}"]`);
-  if (!prints.length) { box.innerHTML = `<span class="cv-art-empty">No alternate printings found.</span>`; return; }
+  if (!prints.length) { box.innerHTML = `<span class="cv-art-empty">${tr('No alternate printings found.')}</span>`; return; }
   const v = variantById(name, vid);
   box.innerHTML = prints.map((p, i) => {
     const on = v && (v.scryfallId ? p.id === v.scryfallId : (v.set && p.set === v.set && (!v.collector || p.collector === v.collector)));
@@ -2427,14 +2428,14 @@ function pickCopyPrinting(name, vid, idx) {
   if (!p || !v) return;
   v.set = p.set; v.collector = p.collector; v.scryfallId = p.id;
   save(); render(); refreshCardEditor();
-  toast(`Copy tagged ${p.set_name || p.set}${p.collector ? ' #' + p.collector : ''}.`);
+  toast(tr('Copy tagged {set}', { set: p.set_name || p.set }) + (p.collector ? ' #' + p.collector : '') + '.');
 }
 
 // Primary "cheaper option": the cheapest printing of the same card across all sets.
 async function loadCheapest(name, meta) {
   const el = $('#cvCheapest');
   if (!el) return;
-  el.innerHTML = `<span class="spin"></span><span class="cv-cheap-label"><i class="ms ms-counter-gold" aria-hidden="true"></i> Finding cheapest printing…</span>`;
+  el.innerHTML = `<span class="spin"></span><span class="cv-cheap-label"><i class="ms ms-counter-gold" aria-hidden="true"></i> ${tr('Finding cheapest printing…')}</span>`;
   const cp = await cheapestPrinting(name);
   if (cardViewName !== name || !$('#cvCheapest')) return;
   const box = $('#cvCheapest');
@@ -2443,13 +2444,13 @@ async function loadCheapest(name, meta) {
   const save = listed - cp.price;
   if (listed && save > 0.01) {
     box.innerHTML = `<div class="cv-cheap hit">
-      <span class="cv-cheap-label"><i class="ms ms-counter-gold" aria-hidden="true"></i> Cheapest printing</span>
+      <span class="cv-cheap-label"><i class="ms ms-counter-gold" aria-hidden="true"></i> ${tr('Cheapest printing')}</span>
       <b>${money(cp.price)}</b>
       <span class="cv-cheap-set">${esc(cp.set)}${cp.set_name ? ' · ' + esc(cp.set_name) : ''}</span>
-      <span class="cv-cheap-save">save ${money(save)}</span>
+      <span class="cv-cheap-save">${tr('save {amount}', { amount: money(save) })}</span>
     </div>`;
   } else {
-    box.innerHTML = `<div class="cv-cheap ok"><i class="ms ms-counter-shield" aria-hidden="true"></i> Cheapest printing is ${money(cp.price)} (${esc(cp.set)})</div>`;
+    box.innerHTML = `<div class="cv-cheap ok"><i class="ms ms-counter-shield" aria-hidden="true"></i> ${tr('Cheapest printing is {price} ({set})', { price: money(cp.price), set: esc(cp.set) })}</div>`;
   }
 }
 
@@ -2459,13 +2460,13 @@ function renderSwaps(name) {
   if (!wrap) return;
   const list = SWAPS[key(name)];
   if (!list || !list.length) { wrap.innerHTML = ''; return; }
-  wrap.innerHTML = `<button class="cv-swap-btn" id="cvSwapBtn"><i class="ms ms-loyalty-down" aria-hidden="true"></i> Show ${list.length} budget alternative${list.length > 1 ? 's' : ''}</button><div class="cv-swap-list" id="cvSwapList" hidden></div>`;
+  wrap.innerHTML = `<button class="cv-swap-btn" id="cvSwapBtn"><i class="ms ms-loyalty-down" aria-hidden="true"></i> ${tr(list.length === 1 ? 'Show {n} budget alternative' : 'Show {n} budget alternatives', { n: list.length })}</button><div class="cv-swap-list" id="cvSwapList" hidden></div>`;
 }
 
 async function revealSwaps(name, btn) {
   const list = SWAPS[key(name)] || [];
   btn.disabled = true;
-  btn.innerHTML = `<span class="spin"></span>Pricing alternatives…`;
+  btn.innerHTML = `<span class="spin"></span>${tr('Pricing alternatives…')}`;
   const need = list.filter(n => { const m = state.cards[key(n)]; return !m || m.notFound; });
   if (need.length) {
     try {
@@ -2538,14 +2539,14 @@ async function browseSearch(raw, { fresh = true } = {}) {
     if (fresh) { browseResults = []; browseNextPage = null; browseTotal = 0; }
   }
   browseLoading = true;
-  setBrowseStatus(fresh ? 'Searching the multiverse…' : 'Loading more…');
+  setBrowseStatus(fresh ? tr('Searching the multiverse…') : tr('Loading more…'));
   try {
     const res = await fetch(url);
     if (seq !== browseSeq) return;
     if (res.status === 404) {                        // 404 = zero matches, NOT an error
       if (fresh) browseResults = [];
       browseNextPage = null; browseTotal = browseResults.length;
-      renderBrowse(); setBrowseStatus(browseResults.length ? '' : 'No cards match.');
+      renderBrowse(); setBrowseStatus(browseResults.length ? '' : tr('No cards match.'));
       return;
     }
     if (!res.ok) throw new Error('Scryfall ' + res.status);
@@ -2556,10 +2557,10 @@ async function browseSearch(raw, { fresh = true } = {}) {
     browseNextPage = data.has_more ? data.next_page : null;
     browseTotal = data.total_cards || browseResults.length;
     renderBrowse();
-    setBrowseStatus(`${browseTotal.toLocaleString()} card${browseTotal === 1 ? '' : 's'} found`);
+    setBrowseStatus(tr(browseTotal === 1 ? '{n} card found' : '{n} cards found', { n: browseTotal.toLocaleString() }));
     await sleep(75);                                 // be polite to Scryfall
   } catch (e) {
-    if (seq === browseSeq) setBrowseStatus('Scryfall is unreachable — try again.');
+    if (seq === browseSeq) setBrowseStatus(tr('Scryfall is unreachable — try again.'));
   } finally {
     if (seq === browseSeq) browseLoading = false;
   }
@@ -2570,14 +2571,14 @@ function browseResultTile(c, i) {
   const name = c.name;
   const owned = ownedOf(name), wished = wishOf(name);
   const val = `<span class="art-val">${priceOf(name) ? money(priceOf(name)) : '—'}</span>`;
-  const status = owned ? `<span class="browse-badge owned"><i class="ms ms-counter-shield" aria-hidden="true"></i> ${owned} owned</span>`
-    : wished ? `<span class="browse-badge wished"><i class="ms ms-counter-gold" aria-hidden="true"></i> on buy list</span>` : '';
+  const status = owned ? `<span class="browse-badge owned"><i class="ms ms-counter-shield" aria-hidden="true"></i> ${tr('{n} owned', { n: owned })}</span>`
+    : wished ? `<span class="browse-badge wished"><i class="ms ms-counter-gold" aria-hidden="true"></i> ${tr('on buy list')}</span>` : '';
   return `<div class="art-tile browse">
     ${status}
     <button class="art-open" data-name="${esc(name)}">${artTile(name, '', val)}</button>
     <div class="browse-actions">
-      <button class="browse-act${wished ? ' on' : ''}" data-bwish="${i}" title="${wished ? 'Remove from buy list' : 'Add to buy list'}"><i class="ms ms-counter-gold" aria-hidden="true"></i></button>
-      <button class="browse-act${owned ? ' on' : ''}" data-bown="${i}" title="Add a copy to your collection"><i class="ms ms-counter-plus" aria-hidden="true"></i></button>
+      <button class="browse-act${wished ? ' on' : ''}" data-bwish="${i}" title="${wished ? tr('Remove from buy list') : tr('Add to buy list')}"><i class="ms ms-counter-gold" aria-hidden="true"></i></button>
+      <button class="browse-act${owned ? ' on' : ''}" data-bown="${i}" title="${tr('Add a copy to your collection')}"><i class="ms ms-counter-plus" aria-hidden="true"></i></button>
     </div>
   </div>`;
 }
@@ -2605,8 +2606,8 @@ function renderBrowseCards() {
   const r = $('#browseSizeRange'); if (r) r.value = browseTile;
   if (!browseResults.length) {
     t.innerHTML = browseLoading ? '' : (browseQuery || browseIds.length
-      ? `<div class="empty-state"><span class="empty-mark"><i class="ms ms-ability-investigate" aria-hidden="true"></i></span><h2>No cards match</h2><p>Try a different search or loosen the filters.</p></div>`
-      : `<div class="empty-state"><span class="empty-mark"><i class="ms ms-ability-investigate" aria-hidden="true"></i></span><h2>Browse the multiverse</h2><p>Search any card by name, or use Scryfall syntax like <code>t:creature</code>, <code>o:"flying"</code>, <code>mv&lt;=3</code>.</p></div>`);
+      ? `<div class="empty-state"><span class="empty-mark"><i class="ms ms-ability-investigate" aria-hidden="true"></i></span><h2>${tr('No cards match')}</h2><p>${tr('Try a different search or loosen the filters.')}</p></div>`
+      : `<div class="empty-state"><span class="empty-mark"><i class="ms ms-ability-investigate" aria-hidden="true"></i></span><h2>${tr('Browse the multiverse')}</h2><p>${tr('Search any card by name, or use Scryfall syntax like {a}, {b}, {c}.', { a: '<code>t:creature</code>', b: '<code>o:"flying"</code>', c: '<code>mv&lt;=3</code>' })}</p></div>`);
   } else {
     t.innerHTML = browseResults.map((c, i) => browseResultTile(c, i)).join('');
   }
@@ -2633,13 +2634,13 @@ async function loadSets() {
 function renderBrowseSets() {
   const g = $('#browseSets');
   if (!g) return;
-  if (!setsCache) { g.innerHTML = `<div class="view-sub" style="padding:24px 0"><span class="spin"></span> Loading expansions…</div>`; return; }
-  if (!setsCache.length) { g.innerHTML = `<div class="view-sub" style="padding:24px 0">Couldn't load expansions — try again.</div>`; return; }
+  if (!setsCache) { g.innerHTML = `<div class="view-sub" style="padding:24px 0"><span class="spin"></span> ${tr('Loading expansions…')}</div>`; return; }
+  if (!setsCache.length) { g.innerHTML = `<div class="view-sub" style="padding:24px 0">${tr('Couldn\'t load expansions — try again.')}</div>`; return; }
   g.innerHTML = setsCache.map(s => {
     const year = (s.released_at || '').slice(0, 4);
     return `<button class="set-chip" data-setcode="${esc(s.code)}" title="${esc(s.name)}">
       ${s.icon_svg_uri ? `<img class="set-icon" src="${esc(s.icon_svg_uri)}" alt="" loading="lazy"/>` : '<span class="set-icon"></span>'}
-      <span class="set-text"><span class="set-name">${esc(s.name)}</span><span class="set-meta">${esc(s.code.toUpperCase())} · ${s.card_count} cards${year ? ' · ' + year : ''}</span></span>
+      <span class="set-text"><span class="set-name">${esc(s.name)}</span><span class="set-meta">${esc(s.code.toUpperCase())} · ${tr('{n} cards', { n: s.card_count })}${year ? ' · ' + year : ''}</span></span>
     </button>`;
   }).join('');
 }
@@ -2681,12 +2682,12 @@ function preconCardHtml(d, i) {
       <h3>${esc(d.name)}</h3>
       <div class="precon-cmd"><i class="ms ms-commander" aria-hidden="true"></i> ${esc(d.commander)}</div>
     </div>
-    <p class="precon-blurb">${esc(d.blurb)}</p>
-    <div class="precon-meta">${count} cards · Commander</div>
+    <p class="precon-blurb">${esc(tr(d.blurb))}</p>
+    <div class="precon-meta">${tr('{n} cards', { n: count })} · ${tr('Commander')}</div>
     <div class="precon-actions">
-      <button class="btn ghost" data-recimport="${i}"><i class="ms ms-saga btn-ico" aria-hidden="true"></i>Import as deck</button>
-      <button class="btn ghost" data-recwish="${i}"><i class="ms ms-counter-gold btn-ico" aria-hidden="true"></i>To buy list</button>
-      <button class="btn ghost" data-recown="${i}"><i class="ms ms-counter-plus btn-ico" aria-hidden="true"></i>Mark owned</button>
+      <button class="btn ghost" data-recimport="${i}"><i class="ms ms-saga btn-ico" aria-hidden="true"></i>${tr('Import as deck')}</button>
+      <button class="btn ghost" data-recwish="${i}"><i class="ms ms-counter-gold btn-ico" aria-hidden="true"></i>${tr('To buy list')}</button>
+      <button class="btn ghost" data-recown="${i}"><i class="ms ms-counter-plus btn-ico" aria-hidden="true"></i>${tr('Mark owned')}</button>
     </div>
   </article>`;
 }
@@ -2698,13 +2699,13 @@ function communityCardHtml(cd) {
   return `<article class="precon-card community">
     <div class="precon-head">
       <div class="pips">${pips(Array.isArray(data.colors) ? data.colors : [])}</div>
-      <h3>${esc(cd.name || 'Untitled Deck')}</h3>
+      <h3>${esc(cd.name || tr('Untitled Deck'))}</h3>
       ${cd.commander ? `<div class="precon-cmd"><i class="ms ms-commander" aria-hidden="true"></i> ${esc(cd.commander)}</div>` : ''}
     </div>
-    <div class="precon-meta">${count} cards${cd.username ? ` · by @${esc(cd.username)}` : ''} · <span class="cd-likes"><span class="cd-heart">♥</span> ${likes}</span></div>
+    <div class="precon-meta">${tr('{n} cards', { n: count })}${cd.username ? ` · ${tr('by @{user}', { user: esc(cd.username) })}` : ''} · <span class="cd-likes"><span class="cd-heart">♥</span> ${likes}</span></div>
     <div class="precon-actions">
-      <a class="btn ghost" href="${esc(url)}" target="_blank" rel="noopener"><i class="ms ms-ability-investigate btn-ico" aria-hidden="true"></i>View deck</a>
-      <button class="btn ghost" data-cdimport="${esc(cd.code)}"><i class="ms ms-saga btn-ico" aria-hidden="true"></i>Import as deck</button>
+      <a class="btn ghost" href="${esc(url)}" target="_blank" rel="noopener"><i class="ms ms-ability-investigate btn-ico" aria-hidden="true"></i>${tr('View deck')}</a>
+      <button class="btn ghost" data-cdimport="${esc(cd.code)}"><i class="ms ms-saga btn-ico" aria-hidden="true"></i>${tr('Import as deck')}</button>
     </div>
   </article>`;
 }
@@ -2713,62 +2714,62 @@ function renderBrowseDecks() {
   if (communityDecks === null && sb) loadCommunityDecks();   // lazy first load
   let html = '';
   const communityInner = communityDecks === null
-    ? `<p class="bd-note">Loading community decks…</p>`
+    ? `<p class="bd-note">${tr('Loading community decks…')}</p>`
     : (communityDecks.length
         ? `<div class="precon-grid">${communityDecks.map(communityCardHtml).join('')}</div>`
-        : `<p class="bd-note">No community decks yet — publish one from a deck’s <b>Share</b> button. Decks appear here once they’re liked.</p>`);
-  html += `<div class="bd-sec"><h2 class="bd-sec-h"><i class="ms ms-counter-lore" aria-hidden="true"></i> Community decks</h2>${communityInner}</div>`;
-  html += `<div class="bd-sec"><h2 class="bd-sec-h"><i class="ms ms-commander" aria-hidden="true"></i> Starter decks</h2><div class="precon-grid">${(typeof CURATED_DECKS !== 'undefined' ? CURATED_DECKS : []).map(preconCardHtml).join('')}</div></div>`;
+        : `<p class="bd-note">${tr('No community decks yet — publish one from a deck’s {share} button. Decks appear here once they’re liked.', { share: '<b>' + tr('Share') + '</b>' })}</p>`);
+  html += `<div class="bd-sec"><h2 class="bd-sec-h"><i class="ms ms-counter-lore" aria-hidden="true"></i> ${tr('Community decks')}</h2>${communityInner}</div>`;
+  html += `<div class="bd-sec"><h2 class="bd-sec-h"><i class="ms ms-commander" aria-hidden="true"></i> ${tr('Starter decks')}</h2><div class="precon-grid">${(typeof CURATED_DECKS !== 'undefined' ? CURATED_DECKS : []).map(preconCardHtml).join('')}</div></div>`;
   g.innerHTML = html;
 }
 async function communityDeckImport(code) {
   const cd = (communityDecks || []).find(d => d.code === code);
-  if (!cd || !cd.data || !Array.isArray(cd.data.cards)) { toast('Could not load that deck.'); return; }
-  toast(`Importing ${cd.name}…`);
+  if (!cd || !cd.data || !Array.isArray(cd.data.cards)) { toast(tr('Could not load that deck.')); return; }
+  toast(tr('Importing {name}…', { name: cd.name }));
   try {
     const { resolved, missing } = await resolveCards(cd.data.cards.map(c => ({ name: c.name, qty: c.qty })));
     const cards = resolved.map(c => ({ name: c.name, qty: c.qty }));
     const deck = { id: uid(), name: cd.name || 'Imported Deck', cards, original: cards.map(c => ({ ...c })), commander: cd.commander || '' };
     state.decks.push(deck);
     save(); render(); setView('decks');
-    toast(`Imported “${cd.name}”${missing ? ` · ${missing} card${missing > 1 ? 's' : ''} not found` : ''}.`);
-  } catch (e) { toast('Scryfall lookup failed — try again.'); }
+    toast(tr('Imported “{name}”', { name: cd.name }) + (missing ? ' · ' + tr(missing === 1 ? '{n} card not found' : '{n} cards not found', { n: missing }) : '') + '.');
+  } catch (e) { toast(tr('Scryfall lookup failed — try again.')); }
 }
 async function recDeckImport(i) {
   const d = CURATED_DECKS[i];
   if (!d) return;
-  toast(`Importing ${d.name}…`);
+  toast(tr('Importing {name}…', { name: d.name }));
   try {
     const { resolved, missing } = await resolveCards(parsedCuratedDeck(d).map(c => ({ name: c.name, qty: c.qty })));
     const cards = resolved.map(c => ({ name: c.name, qty: c.qty }));
     const deck = { id: uid(), name: d.name, cards, original: cards.map(c => ({ ...c })), commander: d.commander };
     state.decks.push(deck);
     save(); render(); setView('decks');
-    toast(`Imported “${d.name}”${missing ? ` · ${missing} card${missing > 1 ? 's' : ''} not found` : ''}.`);
-  } catch (e) { toast('Scryfall lookup failed — try again.'); }
+    toast(tr('Imported “{name}”', { name: d.name }) + (missing ? ' · ' + tr(missing === 1 ? '{n} card not found' : '{n} cards not found', { n: missing }) : '') + '.');
+  } catch (e) { toast(tr('Scryfall lookup failed — try again.')); }
 }
 async function recDeckWish(i) {
   const d = CURATED_DECKS[i];
   if (!d) return;
-  toast(`Adding ${d.name} to your buy list…`);
+  toast(tr('Adding {name} to your buy list…', { name: d.name }));
   try {
     const { resolved } = await resolveCards(parsedCuratedDeck(d).map(c => ({ name: c.name, qty: c.qty })));
     resolved.forEach(c => { if (!BROWSE_BASICS.has(key(c.name))) state.wishlist[key(c.name)] = Math.max(wishOf(c.name), 1); });
     save(); render();
-    toast(`${d.name} added to your buy list (basics skipped).`);
-  } catch (e) { toast('Scryfall lookup failed — try again.'); }
+    toast(tr('{name} added to your buy list (basics skipped).', { name: d.name }));
+  } catch (e) { toast(tr('Scryfall lookup failed — try again.')); }
 }
 async function recDeckOwn(i) {
   const d = CURATED_DECKS[i];
   if (!d) return;
-  toast(`Adding ${d.name} to your collection…`);
+  toast(tr('Adding {name} to your collection…', { name: d.name }));
   try {
     const { resolved } = await resolveCards(parsedCuratedDeck(d).map(c => ({ name: c.name, qty: c.qty })));
     resolved.forEach(c => addVariant(c.name, { qty: c.qty }));
     logAcquired(resolved, `${d.name} (deck)`);
     save(); render();
-    toast(`${d.name} added to your collection.`);
-  } catch (e) { toast('Scryfall lookup failed — try again.'); }
+    toast(tr('{name} added to your collection.', { name: d.name }));
+  } catch (e) { toast(tr('Scryfall lookup failed — try again.')); }
 }
 
 function commitBrowsed(cardObj) {
@@ -2781,12 +2782,12 @@ function addBrowsedToOwned(cardObj) {
   addVariant(n, { qty: 1 });
   logEvent('added', n, 1, priceOf(n));
   save(); render();
-  toast(`Added a copy of ${n} to your collection.`);
+  toast(tr('Added a copy of {name} to your collection.', { name: n }));
 }
 function addBrowsedToWishlist(cardObj) {
   const n = commitBrowsed(cardObj);
-  if (wishOf(n)) { addToWishlist(n, -wishOf(n)); render(); toast(`${n} removed from your buy list.`); }
-  else { addToWishlist(n, 1); render(); toast(`${n} added to your buy list.`); }
+  if (wishOf(n)) { addToWishlist(n, -wishOf(n)); render(); toast(tr('{name} removed from your buy list.', { name: n })); }
+  else { addToWishlist(n, 1); render(); toast(tr('{name} added to your buy list.', { name: n })); }
 }
 
 function showACMenu(names) {
@@ -2829,12 +2830,12 @@ function renderAddTags() {
       <span class="at-art" style="background-image:url('${addArtUrl(t.name)}')" aria-hidden="true"></span>
       <span class="at-name" title="${esc(t.name)}">${esc(t.name)}</span>
       <span class="at-step">
-        <button type="button" data-tagstep="-1" aria-label="One fewer">−</button>
+        <button type="button" data-tagstep="-1" aria-label="${tr('One fewer')}">−</button>
         <b>${t.qty}</b>
-        <button type="button" data-tagstep="1" aria-label="One more">+</button>
+        <button type="button" data-tagstep="1" aria-label="${tr('One more')}">+</button>
       </span>
-      <button type="button" class="at-foil ${t.foil ? 'on' : ''}" data-tagfoil title="Foil copy"><i class="ms ms-dfc-spark" aria-hidden="true"></i></button>
-      <button type="button" class="at-x" data-tagremove aria-label="Remove ${esc(t.name)}">✕</button>
+      <button type="button" class="at-foil ${t.foil ? 'on' : ''}" data-tagfoil title="${tr('Foil copy')}"><i class="ms ms-dfc-spark" aria-hidden="true"></i></button>
+      <button type="button" class="at-x" data-tagremove aria-label="${tr('Remove {name}', { name: esc(t.name) })}">✕</button>
     </span>`).join('');
 }
 
@@ -2842,7 +2843,7 @@ let addTarget = 'collection';   // 'collection' (personal) | 'store' (active sto
 function openAdd(target) {
   addTarget = (target === 'store' && myStore) ? 'store' : 'collection';
   $('#addModal').hidden = false;
-  const t = $('#addModalTitle'); if (t) t.textContent = addTarget === 'store' ? 'Add Cards to Inventory' : 'Add Cards to Collection';
+  const t = $('#addModalTitle'); if (t) t.textContent = addTarget === 'store' ? tr('Add Cards to Inventory') : tr('Add Cards to Collection');
   addTags = []; renderAddTags(); hideACMenu();
   $('#addAutocomplete').value = '';
   if ($('#addInput')) $('#addInput').value = '';
@@ -2869,7 +2870,7 @@ function exportBackup() {
   a.download = `vault-backup-${new Date().toISOString().slice(0, 10)}.json`;
   a.click();
   URL.revokeObjectURL(url);
-  toast('Backup exported.');
+  toast(tr('Backup exported.'));
 }
 function restoreBackup(file) {
   const reader = new FileReader();
@@ -2884,8 +2885,8 @@ function restoreBackup(file) {
       currentDeckId = null;
       render();
       setView('decks');
-      toast('Backup restored.');
-    } catch (e) { toast('That file is not a valid Vault backup.'); }
+      toast(tr('Backup restored.'));
+    } catch (e) { toast(tr('That file is not a valid Vault backup.')); }
   };
   reader.readAsText(file);
 }
@@ -2913,19 +2914,19 @@ function buyExportRows() {
 // Build a printable sheet (8 cards/page · 2×4) and open the browser's print → Save as PDF.
 async function exportBuyPDF() {
   const rows = buyExportRows();
-  if (!rows.length) { toast('Nothing to buy — every deck is complete.'); return; }
+  if (!rows.length) { toast(tr('Nothing to buy — every deck is complete.')); return; }
   const total = rows.reduce((a, r) => a + r.sub, 0);
   const copies = rows.reduce((a, r) => a + r.need, 0);
-  const scope = buyDeckSel.length ? buyDecksActive().map(d => d.name).join(', ') : 'All decks';
-  const date = new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+  const scope = buyDeckSel.length ? buyDecksActive().map(d => d.name).join(', ') : tr('All decks');
+  const date = new Date().toLocaleDateString(I18N.locale(), { year: 'numeric', month: 'long', day: 'numeric' });
 
   const cell = (r) => `<div class="print-card">
     <div class="pc-art">${r.image ? `<img src="${esc(r.image)}" alt="" />` : `<div class="pc-art-fallback">✶</div>`}<span class="pc-qty">${r.need}×</span></div>
     <div class="pc-info">
       <div class="pc-name">${esc(r.name)}</div>
       ${r.set ? `<div class="pc-set">${esc(r.set)}${r.set_name ? ' · ' + esc(r.set_name) : ''}</div>` : ''}
-      ${r.used.length ? `<div class="pc-decks">for ${esc(r.used.join(', '))}</div>` : ''}
-      <div class="pc-price"><span class="pc-each">${money(r.price)} ea</span><span class="pc-sub">${money(r.sub)}</span></div>
+      ${r.used.length ? `<div class="pc-decks">${tr('for {decks}', { decks: esc(r.used.join(', ')) })}</div>` : ''}
+      <div class="pc-price"><span class="pc-each">${tr('{price} ea', { price: money(r.price) })}</span><span class="pc-sub">${money(r.sub)}</span></div>
     </div>
   </div>`;
 
@@ -2933,8 +2934,8 @@ async function exportBuyPDF() {
   for (let i = 0; i < rows.length; i += 8) pages.push(rows.slice(i, i + 8));
   const html = pages.map((pg, i) => `<section class="print-page">
     ${i === 0 ? `<header class="print-head">
-      <h1>Buy List</h1>
-      <div class="print-meta">${copies} card${copies === 1 ? '' : 's'} · ${money(total)} · ${esc(scope)} · ${esc(date)}</div>
+      <h1>${tr('Buy List')}</h1>
+      <div class="print-meta">${tr(copies === 1 ? '{n} card' : '{n} cards', { n: copies })} · ${money(total)} · ${esc(scope)} · ${esc(date)}</div>
     </header>` : ''}
     <div class="print-grid">${pg.map(cell).join('')}</div>
   </section>`).join('');
@@ -2972,11 +2973,11 @@ async function copyText(text) {
 async function copyBuyList() {
   const binder = activeBinder();
   const text = binder ? binderRows(binder).map(r => `${r.q} ${r.n}`).join('\n') : buyListText();
-  if (!text) { toast(binder ? `“${binder.name}” is empty.` : 'Nothing to buy — every deck is complete.'); return; }
+  if (!text) { toast(binder ? tr('“{name}” is empty.', { name: binder.name }) : tr('Nothing to buy — every deck is complete.')); return; }
   const lines = text.split('\n').length;
   toast(await copyText(text)
-    ? `${binder ? `“${binder.name}”` : 'Buy list'} copied — ${lines} card${lines === 1 ? '' : 's'} ready to send.`
-    : 'Could not access the clipboard.');
+    ? tr(lines === 1 ? '{label} copied — {n} card ready to send.' : '{label} copied — {n} cards ready to send.', { label: binder ? `“${binder.name}”` : tr('Buy list'), n: lines })
+    : tr('Could not access the clipboard.'));
 }
 
 /* =====================================================================
@@ -3039,7 +3040,7 @@ function toggleSellCard(name) {
   const anyListed = vs.some(v => items[v.id] > 0);
   vs.forEach(v => { if (anyListed) delete items[v.id]; else if (v.qty > 0) items[v.id] = v.qty; });
   save(); render();
-  toast(anyListed ? `Removed ${name} from “${sellListName()}”.` : `Listed ${name} in “${sellListName()}”.`);
+  toast(anyListed ? tr('Removed {name} from “{list}”.', { name, list: sellListName() }) : tr('Listed {name} in “{list}”.', { name, list: sellListName() }));
 }
 function removeFromSell(vid) { delete sellItems()[vid]; save(); render(); }
 function removeVariantFromAllSellLists(vid) { state.sellLists.forEach(l => { delete l.items[vid]; }); }
@@ -3052,7 +3053,7 @@ function addUnlinkedToSell() {
     variantsOf(n).forEach(v => { if (v.qty > 0 && !(items[v.id] > 0)) { items[v.id] = v.qty; added++; } });
   });
   save(); render();
-  toast(added ? `Listed ${added} unlinked cop${added === 1 ? 'y' : 'ies'} in “${sellListName()}”.` : 'No unlinked cards to add — they’re all in decks or already listed.');
+  toast(added ? tr(added === 1 ? 'Listed {n} unlinked copy in “{list}”.' : 'Listed {n} unlinked copies in “{list}”.', { n: added, list: sellListName() }) : tr('No unlinked cards to add — they’re all in decks or already listed.'));
 }
 // Fresh, sorted sell rows for the ACTIVE folder.
 function sellRows() {
@@ -3071,9 +3072,9 @@ function sellRows() {
 /* sell list folders — create / switch / rename / delete */
 function setActiveSellList(id) { if (state.sellLists.some(l => l.id === id)) { state.activeSellList = id; save(); render(); } }
 function createSellList(name) {
-  const l = { id: uid(), name: (name || '').trim() || `List ${state.sellLists.length + 1}`, items: {} };
+  const l = { id: uid(), name: (name || '').trim() || tr('List {n}', { n: state.sellLists.length + 1 }), items: {} };
   state.sellLists.push(l); state.activeSellList = l.id; save(); render();
-  toast(`Created sell list “${l.name}”.`);
+  toast(tr('Created sell list “{name}”.', { name: l.name }));
 }
 function renameSellList(id, name) {
   const l = state.sellLists.find(x => x.id === id); if (!l) return;
@@ -3083,14 +3084,14 @@ function renameSellList(id, name) {
 function deleteSellList(id) {
   const l = state.sellLists.find(x => x.id === id); if (!l) return;
   const n = Object.keys(l.items).length;
-  if (n && !confirm(`Delete the sell list “${l.name}” and unlist its ${n} card${n === 1 ? '' : 's'}? (Your collection is untouched.)`)) return;
+  if (n && !confirm(tr(n === 1 ? 'Delete the sell list “{name}” and unlist its {n} card? (Your collection is untouched.)' : 'Delete the sell list “{name}” and unlist its {n} cards? (Your collection is untouched.)', { name: l.name, n }))) return;
   state.sellLists = state.sellLists.filter(x => x.id !== id);
   if (!state.sellLists.length) state.sellLists.push({ id: uid(), name: 'Sell List', items: {} });
   state.activeSellList = state.sellLists[0].id;
   // a shared link pointing at this folder is now orphaned — revoke it so it doesn't linger as a frozen "live" link
   if (typeof myShares !== 'undefined') myShares.filter(s => s.source === id).forEach(s => revokeShare(s.code));
   save(); render();
-  toast(`Deleted sell list “${l.name}”.`);
+  toast(tr('Deleted sell list “{name}”.', { name: l.name }));
 }
 function renderSellFolders() {
   const wrap = $('#sellFolders'); if (!wrap) return;
@@ -3100,9 +3101,9 @@ function renderSellFolders() {
     const on = active && l.id === active.id;
     return `<span class="sell-folder-wrap${on ? ' on' : ''}">
       <button class="sell-folder${on ? ' on' : ''}" data-sellfolder="${l.id}"><i class="ms ms-token" aria-hidden="true"></i> ${esc(l.name)}${count ? ` <span class="sf-count">${count}</span>` : ''}</button>
-      ${on ? `<button class="sf-icon" data-sellfolder-rename="${l.id}" title="Rename this list" aria-label="Rename"><i class="ms ms-artist-nib" aria-hidden="true"></i></button><button class="sf-icon" data-sellfolder-del="${l.id}" title="Delete this list" aria-label="Delete">✕</button>` : ''}
+      ${on ? `<button class="sf-icon" data-sellfolder-rename="${l.id}" title="${tr('Rename this list')}" aria-label="${tr('Rename')}"><i class="ms ms-artist-nib" aria-hidden="true"></i></button><button class="sf-icon" data-sellfolder-del="${l.id}" title="${tr('Delete this list')}" aria-label="${tr('Delete')}">✕</button>` : ''}
     </span>`;
-  }).join('') + `<button class="sell-folder add" data-sellfolder-new title="Create a new sell list">+ New list</button>`;
+  }).join('') + `<button class="sell-folder add" data-sellfolder-new title="${tr('Create a new sell list')}">${tr('+ New list')}</button>`;
 }
 
 /* an inventory card/copy is "listed" if it's in ANY folder (the gold tile state) */
@@ -3117,14 +3118,14 @@ function toggleSellVariantIn(name, vid, listId) {
   const adding = !(l.items[vid] > 0);
   if (adding) { if (v.qty > 0) l.items[vid] = v.qty; } else delete l.items[vid];
   save(); render();
-  toast(`${adding ? 'Listed' : 'Unlisted'} ${name} ${adding ? 'in' : 'from'} “${l.name}”.`);
+  toast(adding ? tr('Listed {name} in “{list}”.', { name, list: l.name }) : tr('Unlisted {name} from “{list}”.', { name, list: l.name }));
 }
 function toggleSellCardIn(name, listId) {
   const l = state.sellLists.find(x => x.id === listId); if (!l) return;
   const vs = variantsOf(name), any = vs.some(v => l.items[v.id] > 0);
   vs.forEach(v => { if (any) delete l.items[v.id]; else if (v.qty > 0) l.items[v.id] = v.qty; });
   save(); render();
-  toast(`${any ? 'Removed' : 'Listed'} ${name} ${any ? 'from' : 'in'} “${l.name}”.`);
+  toast(any ? tr('Removed {name} from “{list}”.', { name, list: l.name }) : tr('Listed {name} in “{list}”.', { name, list: l.name }));
 }
 
 /* folder-picker popover — choose which sell list(s) an inventory card / copy goes in */
@@ -3145,9 +3146,9 @@ function renderSellPicker() {
   const menu = $('#sellPickMenu'); if (!menu || !sellPickTarget) return;
   const { name, vid } = sellPickTarget;
   const inIt = (id) => vid ? variantInList(vid, id) : cardInList(name, id);
-  menu.innerHTML = `<div class="sp-head">List “${esc(name)}” in…</div>`
+  menu.innerHTML = `<div class="sp-head">${tr('List “{name}” in…', { name: esc(name) })}</div>`
     + state.sellLists.map(l => `<button class="sp-item${inIt(l.id) ? ' on' : ''}" data-sp-list="${l.id}"><span class="sp-check">${inIt(l.id) ? '✓' : ''}</span><span class="sp-name">${esc(l.name)}</span></button>`).join('')
-    + `<button class="sp-item sp-new" data-sp-new><span class="sp-check">+</span><span class="sp-name">New list…</span></button>`;
+    + `<button class="sp-item sp-new" data-sp-new><span class="sp-check">+</span><span class="sp-name">${tr('New list…')}</span></button>`;
 }
 function closeSellPicker() { const m = $('#sellPickMenu'); if (m) m.hidden = true; sellPickTarget = null; }
 
@@ -3164,9 +3165,9 @@ function binderItemQty(name, binderId) { const b = binderById(binderId); const i
 
 function setActiveBuyBinder(id) { if (id) buyMatchOpen = false; state.activeBuyBinder = id || null; save(); render(); }
 function createBuyBinder(name) {
-  const b = { id: uid(), name: (name || '').trim() || `Binder ${state.buyBinders.length + 1}`, items: {} };
+  const b = { id: uid(), name: (name || '').trim() || tr('Binder {n}', { n: state.buyBinders.length + 1 }), items: {} };
   state.buyBinders.push(b); state.activeBuyBinder = b.id; save(); render();
-  toast(`Created buy binder “${b.name}”.`);
+  toast(tr('Created buy binder “{name}”.', { name: b.name }));
   return b;
 }
 function renameBuyBinder(id, name) {
@@ -3177,11 +3178,11 @@ function renameBuyBinder(id, name) {
 function deleteBuyBinder(id) {
   const b = binderById(id); if (!b) return;
   const n = binderCount(b);
-  if (n && !confirm(`Delete the buy binder “${b.name}” and its ${n} card${n === 1 ? '' : 's'}? (Your collection and the auto buy list are untouched.)`)) return;
+  if (n && !confirm(tr(n === 1 ? 'Delete the buy binder “{name}” and its {n} card? (Your collection and the auto buy list are untouched.)' : 'Delete the buy binder “{name}” and its {n} cards? (Your collection and the auto buy list are untouched.)', { name: b.name, n }))) return;
   state.buyBinders = state.buyBinders.filter(x => x.id !== id);
   if (state.activeBuyBinder === id) state.activeBuyBinder = null;
   save(); render();
-  toast(`Deleted buy binder “${b.name}”.`);
+  toast(tr('Deleted buy binder “{name}”.', { name: b.name }));
 }
 // add / set / remove a card in a specific binder
 function addCardToBinder(name, binderId, qty) {
@@ -3202,40 +3203,40 @@ function setBinderQty(name, binderId, q) {
 function removeCardFromBinder(name, binderId) { const b = binderById(binderId); if (!b) return; delete b.items[key(name)]; save(); render(); }
 function toggleCardInBinder(name, binderId) {
   const b = binderById(binderId); if (!b) return;
-  if (b.items[key(name)]) { delete b.items[key(name)]; save(); render(); toast(`Removed ${name} from “${b.name}”.`); }
-  else { addCardToBinder(name, binderId, 1); render(); toast(`Added ${name} to “${b.name}”.`); }
+  if (b.items[key(name)]) { delete b.items[key(name)]; save(); render(); toast(tr('Removed {name} from “{binder}”.', { name, binder: b.name })); }
+  else { addCardToBinder(name, binderId, 1); render(); toast(tr('Added {name} to “{binder}”.', { name, binder: b.name })); }
 }
 // resolve a typed name (fetching card data if we've never seen it) and add it to a binder
 async function addNameToBinder(name, binderId) {
   name = (name || '').trim(); if (!name) return;
-  const b = binderById(binderId); if (!b) { toast('Open a binder first.'); return; }
+  const b = binderById(binderId); if (!b) { toast(tr('Open a binder first.')); return; }
   let meta = card(name);
   if (!meta || meta.notFound) {
-    const status = $('#binderAddStatus'); if (status) status.textContent = 'Looking up…';
+    const status = $('#binderAddStatus'); if (status) status.textContent = tr('Looking up…');
     try {
       const idx = await fetchCardData([{ name }]);
       const c = idx[key(name)] || idx[key(frontFace(name))];
       if (c) { state.cards[key(c.name)] = distill(c); name = c.name; }
-      else { if (status) status.textContent = `Couldn’t find “${name}”.`; return; }
-    } catch (e) { if (status) status.textContent = 'Lookup failed — check your connection.'; return; }
+      else { if (status) status.textContent = tr('Couldn’t find “{name}”.', { name }); return; }
+    } catch (e) { if (status) status.textContent = tr('Lookup failed — check your connection.'); return; }
   }
   addCardToBinder(name, binderId, 1);
   render();
   const inp = $('#binderAddInput'); if (inp) { inp.value = ''; inp.focus(); }
   const status = $('#binderAddStatus'); if (status) status.textContent = '';
-  toast(`Added ${name} to “${b.name}”.`);
+  toast(tr('Added {name} to “{binder}”.', { name, binder: b.name }));
 }
 // "Bought" from a binder — acquire the wanted copies into the collection, then drop them from the binder.
 function boughtFromBinder(name, binderId) {
   const b = binderById(binderId); if (!b) return;
   const it = b.items[key(name)]; if (!it) return;
   const q = it.q || 1;
-  pushUndo(`buy of ${q}× ${name}`);
+  pushUndo(tr('buy of {n}× {name}', { n: q, name }));
   addVariant(name, { qty: q });
   logEvent('bought', name, q, priceOf(name));
   delete b.items[key(name)];
   save(); render();
-  toast(`Bought ${q}× ${name} — added to your collection.`, { undo: true });
+  toast(tr('Bought {n}× {name} — added to your collection.', { n: q, name }), { undo: true });
 }
 // sorted rows for the active binder (reuses buyCompare's name comparator vocabulary)
 function binderRows(b) {
@@ -3255,15 +3256,15 @@ function renderBuyFolders() {
   const wrap = $('#buyFolders'); if (!wrap) return;
   const activeId = state.activeBuyBinder;
   const needsCount = (() => { try { return allCardNames().filter(n => requiredFor(n, state.decks) > ownedOf(n)).length; } catch (e) { return 0; } })();
-  let html = `<button class="sell-folder${!activeId ? ' on' : ''}" data-buyfolder="auto"><i class="ms ms-counter-lore" aria-hidden="true"></i> Deck needs${needsCount ? ` <span class="sf-count">${needsCount}</span>` : ''}</button>`;
+  let html = `<button class="sell-folder${!activeId ? ' on' : ''}" data-buyfolder="auto"><i class="ms ms-counter-lore" aria-hidden="true"></i> ${tr('Deck needs')}${needsCount ? ` <span class="sf-count">${needsCount}</span>` : ''}</button>`;
   html += state.buyBinders.map(b => {
     const on = b.id === activeId, n = binderCount(b);
     return `<span class="sell-folder-wrap${on ? ' on' : ''}">
       <button class="sell-folder${on ? ' on' : ''}" data-buyfolder="${b.id}"><i class="ms ms-token" aria-hidden="true"></i> ${esc(b.name)}${n ? ` <span class="sf-count">${n}</span>` : ''}</button>
-      ${on ? `<button class="sf-icon" data-buyfolder-rename="${b.id}" title="Rename this binder" aria-label="Rename"><i class="ms ms-artist-nib" aria-hidden="true"></i></button><button class="sf-icon" data-buyfolder-del="${b.id}" title="Delete this binder" aria-label="Delete">✕</button>` : ''}
+      ${on ? `<button class="sf-icon" data-buyfolder-rename="${b.id}" title="${tr('Rename this binder')}" aria-label="${tr('Rename')}"><i class="ms ms-artist-nib" aria-hidden="true"></i></button><button class="sf-icon" data-buyfolder-del="${b.id}" title="${tr('Delete this binder')}" aria-label="${tr('Delete')}">✕</button>` : ''}
     </span>`;
   }).join('');
-  html += `<button class="sell-folder add" data-buyfolder-new title="Create a buy binder (e.g. Need now / Soon / Someday)">+ New binder</button>`;
+  html += `<button class="sell-folder add" data-buyfolder-new title="${tr('Create a buy binder (e.g. Need now / Soon / Someday)')}">${tr('+ New binder')}</button>`;
   wrap.innerHTML = html;
 }
 
@@ -3280,8 +3281,8 @@ function renderBinder(b) {
   const copies = rows.reduce((a, r) => a + r.q, 0);
   const se = $('#buySearch'); if (se && se.value !== buySearch) se.value = buySearch;
   $('#buyListSub').textContent = rows.length
-    ? `${copies} card${copies === 1 ? '' : 's'} in “${b.name}” · ${money(total)}${buySearch.trim() ? ` · matching “${buySearch.trim()}”` : ''}`
-    : (buySearch.trim() ? `No cards in “${b.name}” match “${buySearch.trim()}”.` : `“${b.name}” is empty — add cards below.`);
+    ? tr(copies === 1 ? '{n} card in “{binder}” · {total}' : '{n} cards in “{binder}” · {total}', { n: copies, binder: b.name, total: money(total) }) + (buySearch.trim() ? ' · ' + tr('matching “{q}”', { q: buySearch.trim() }) : '')
+    : (buySearch.trim() ? tr('No cards in “{binder}” match “{q}”.', { binder: b.name, q: buySearch.trim() }) : tr('“{binder}” is empty — add cards below.', { binder: b.name }));
 
   const table = $('#buyTable');
   table.classList.remove('gallery');   // binder lays out its own add-bar + grid wrapper, so the table stays a plain block
@@ -3291,13 +3292,13 @@ function renderBinder(b) {
 
   const addBar = `<div class="binder-add">
     <i class="ms ms-counter-lore binder-add-ic" aria-hidden="true"></i>
-    <input type="text" id="binderAddInput" class="binder-add-input" placeholder="Add a card by name — type it and press Enter…" autocomplete="off" />
-    <button class="btn gold sm" id="binderAddBtn">Add</button>
+    <input type="text" id="binderAddInput" class="binder-add-input" placeholder="${tr('Add a card by name — type it and press Enter…')}" autocomplete="off" />
+    <button class="btn gold sm" id="binderAddBtn">${tr('Add')}</button>
     <span class="binder-add-status" id="binderAddStatus"></span>
   </div>`;
 
   if (!rows.length) {
-    table.innerHTML = addBar + `<div class="empty-state" style="padding:40px 20px"><span class="empty-mark"><i class="ms ms-token" aria-hidden="true"></i></span><h2>${esc(b.name)} is empty</h2><p>Add cards you plan to buy — by name above, or with the <i class="ms ms-counter-lore" aria-hidden="true"></i> button on any card in <b>Deck needs</b>.</p></div>`;
+    table.innerHTML = addBar + `<div class="empty-state" style="padding:40px 20px"><span class="empty-mark"><i class="ms ms-token" aria-hidden="true"></i></span><h2>${tr('{binder} is empty', { binder: esc(b.name) })}</h2><p>${tr('Add cards you plan to buy — by name above, or with the {icon} button on any card in {needs}.', { icon: '<i class="ms ms-counter-lore" aria-hidden="true"></i>', needs: '<b>' + tr('Deck needs') + '</b>' })}</p></div>`;
     return;
   }
   table.innerHTML = addBar + (buyMode === 'art'
@@ -3311,14 +3312,14 @@ function binderRow({ n, q }, binderId) {
       <span class="bd-step"><button data-binderstep="-1" data-bname="${esc(n)}" aria-label="One fewer">−</button><b>${q}×</b><button data-binderstep="1" data-bname="${esc(n)}" aria-label="One more">+</button></span>
       <span class="nm" data-name="${esc(n)}" data-uri="${esc(meta.uri || '')}">${esc(n)}</span>${manaSymbols(meta.mana_cost)}</div>
     <div class="price"><span class="need">${money(q * priceOf(n))}</span></div>
-    <button class="buy-got" data-binderbought="${esc(n)}" title="I bought ${q} — add to my collection"><i class="ms ms-counter-shield" aria-hidden="true"></i> Bought</button>
-    <button class="bd-x" data-binderremove="${esc(n)}" title="Remove from this binder" aria-label="Remove">✕</button>
+    <button class="buy-got" data-binderbought="${esc(n)}" title="${tr('I bought {n} — add to my collection', { n: q })}"><i class="ms ms-counter-shield" aria-hidden="true"></i> ${tr('Bought')}</button>
+    <button class="bd-x" data-binderremove="${esc(n)}" title="${tr('Remove from this binder')}" aria-label="${tr('Remove')}">✕</button>
   </div>`;
 }
 function binderArtTile({ n, q }, binderId) {
   return `<div class="art-tile buy binder-tile">
-    <button class="bd-x tile" data-binderremove="${esc(n)}" title="Remove from this binder" aria-label="Remove">✕</button>
-    <button class="buy-got-tile" data-binderbought="${esc(n)}" title="I bought ${q} — add to my collection"><i class="ms ms-counter-shield" aria-hidden="true"></i></button>
+    <button class="bd-x tile" data-binderremove="${esc(n)}" title="${tr('Remove from this binder')}" aria-label="${tr('Remove')}">✕</button>
+    <button class="buy-got-tile" data-binderbought="${esc(n)}" title="${tr('I bought {n} — add to my collection', { n: q })}"><i class="ms ms-counter-shield" aria-hidden="true"></i></button>
     <button class="art-open" data-name="${esc(n)}">
       ${artTile(n, q + '×', `<span class="art-val need">${money(q * priceOf(n))}</span>`)}
     </button>
@@ -3328,7 +3329,7 @@ function binderArtTile({ n, q }, binderId) {
 /* buy-binder picker — choose which binder(s) a card goes in (from the auto buy list / card view) */
 let buyPickName = null;
 function openBuyPicker(name, anchorEl) {
-  if (!state.buyBinders.length) { const b = createBuyBinder('Need now'); addCardToBinder(name, b.id, 1); render(); toast(`Added ${name} to “${b.name}”.`); return; }
+  if (!state.buyBinders.length) { const b = createBuyBinder(tr('Need now')); addCardToBinder(name, b.id, 1); render(); toast(tr('Added {name} to “{binder}”.', { name, binder: b.name })); return; }
   buyPickName = name;
   const menu = $('#buyPickMenu'); if (!menu) return;
   renderBuyPicker();
@@ -3341,9 +3342,9 @@ function openBuyPicker(name, anchorEl) {
 }
 function renderBuyPicker() {
   const menu = $('#buyPickMenu'); if (!menu || !buyPickName) return;
-  menu.innerHTML = `<div class="sp-head">Add “${esc(buyPickName)}” to…</div>`
+  menu.innerHTML = `<div class="sp-head">${tr('Add “{name}” to…', { name: esc(buyPickName) })}</div>`
     + state.buyBinders.map(b => `<button class="sp-item${cardInBinder(buyPickName, b.id) ? ' on' : ''}" data-bp-binder="${b.id}"><span class="sp-check">${cardInBinder(buyPickName, b.id) ? '✓' : ''}</span><span class="sp-name">${esc(b.name)}</span></button>`).join('')
-    + `<button class="sp-item sp-new" data-bp-new><span class="sp-check">+</span><span class="sp-name">New binder…</span></button>`;
+    + `<button class="sp-item sp-new" data-bp-new><span class="sp-check">+</span><span class="sp-name">${tr('New binder…')}</span></button>`;
 }
 function closeBuyPicker() { const m = $('#buyPickMenu'); if (m) m.hidden = true; buyPickName = null; }
 
@@ -3378,33 +3379,33 @@ async function runSellMatch() {
     sellMatchResult = buildMatchResult(resolved);
   } catch (e) {
     sellMatchResult = buildMatchResult(parsed);   // fall back to local exact-name match
-    toast('Scryfall lookup failed — matched names locally instead.');
+    toast(tr('Scryfall lookup failed — matched names locally instead.'));
   }
   sellMatchLoading = false; renderSellList();
 }
 function copyMatchHaves() {
-  if (!sellMatchResult || !sellMatchResult.matches.length) { toast('Nothing to copy — no matches.'); return; }
+  if (!sellMatchResult || !sellMatchResult.matches.length) { toast(tr('Nothing to copy — no matches.')); return; }
   const text = sellMatchResult.matches.map(m => `${Math.min(m.want, m.have)} ${m.name}${m.price ? ` — ${money(m.price)} ea` : ''}`).join('\n');
-  copyText(text).then(ok => toast(ok ? `Copied ${sellMatchResult.matches.length} card${sellMatchResult.matches.length === 1 ? '' : 's'} you have.` : 'Could not access the clipboard.'));
+  copyText(text).then(ok => toast(ok ? tr(sellMatchResult.matches.length === 1 ? 'Copied {n} card you have.' : 'Copied {n} cards you have.', { n: sellMatchResult.matches.length }) : tr('Could not access the clipboard.')));
 }
 function addMatchesToSell() {
-  if (!sellMatchResult || !sellMatchResult.matches.length) { toast('No matches to add.'); return; }
+  if (!sellMatchResult || !sellMatchResult.matches.length) { toast(tr('No matches to add.')); return; }
   const items = sellItems();
   let n = 0;
   sellMatchResult.matches.forEach(m => variantsOf(m.name).forEach(v => { if (v.qty > 0 && !(items[v.id] > 0)) { items[v.id] = v.qty; n++; } }));
   save(); render();
-  toast(n ? `Added ${n} matched cop${n === 1 ? 'y' : 'ies'} to “${sellListName()}”.` : 'Those matches are already in this list.');
+  toast(n ? tr(n === 1 ? 'Added {n} matched copy to “{list}”.' : 'Added {n} matched copies to “{list}”.', { n, list: sellListName() }) : tr('Those matches are already in this list.'));
 }
 // Quick-sell: I sold the matched copies — remove them from collection (plain
 // copies first via setOwned, keeping special printings/foils), then re-match.
 function quickSellMatches() {
   const r = sellMatchResult;
-  if (!r || !r.matches.length) { toast('No matched cards to sell.'); return; }
+  if (!r || !r.matches.length) { toast(tr('No matched cards to sell.')); return; }
   const ta = $('#sellMatchInput');
-  if (ta && ta.value.trim() !== (sellMatchOf || '').trim()) { toast('The list changed — click “Match against my collection” again first.'); return; }
+  if (ta && ta.value.trim() !== (sellMatchOf || '').trim()) { toast(tr('The list changed — click “Match against my collection” again first.')); return; }
   const copies = r.matches.reduce((a, m) => a + Math.min(m.want, ownedOf(m.name)), 0);   // LIVE owned, not the stale match value
-  if (!copies) { toast('Those copies are no longer in your collection.'); return; }
-  if (!confirm(`Sell ${copies} matched cop${copies === 1 ? 'y' : 'ies'}? They’ll be removed from your collection.`)) return;
+  if (!copies) { toast(tr('Those copies are no longer in your collection.')); return; }
+  if (!confirm(tr(copies === 1 ? 'Sell {n} matched copy? They’ll be removed from your collection.' : 'Sell {n} matched copies? They’ll be removed from your collection.', { n: copies }))) return;
   pushUndo('quick-sell');
   let cards = 0, sold = 0;
   const remWant = r.matches.map(m => {
@@ -3418,35 +3419,35 @@ function quickSellMatches() {
   const wanted = [...remWant, ...r.misses.map(x => ({ name: x.name, qty: x.want }))].filter(w => w.qty > 0);
   sellMatchResult = buildMatchResult(wanted);
   save(); render();
-  toast(sold ? `Sold ${sold} cop${sold === 1 ? 'y' : 'ies'} (${cards} card${cards === 1 ? '' : 's'}) — removed from collection.` : 'Nothing to sell.', { undo: !!sold });
+  toast(sold ? tr('Sold {copies} ({cards}) — removed from collection.', { copies: tr(sold === 1 ? '{n} copy' : '{n} copies', { n: sold }), cards: tr(cards === 1 ? '{n} card' : '{n} cards', { n: cards }) }) : tr('Nothing to sell.'), { undo: !!sold });
 }
 function renderMatchResults() {
   const r = sellMatchResult; if (!r) return '';
   const total = r.matches.length + r.misses.length;
-  if (!total) return `<div class="sm-summary">No cards found in that list — paste a Moxfield / Archidekt export (one card per line).</div>`;
+  if (!total) return `<div class="sm-summary">${tr('No cards found in that list — paste a Moxfield / Archidekt export (one card per line).')}</div>`;
   const fulfill = r.matches.reduce((a, m) => a + Math.min(m.want, m.have) * m.price, 0);
   const haveCopies = r.matches.reduce((a, m) => a + Math.min(m.want, m.have), 0);
-  const matchRow = m => `<div class="sm-row have"><span class="sm-name nm" data-name="${esc(m.name)}" title="${esc(m.name)}">${esc(m.name)}</span><span class="sm-qty">want ${m.want} · <b class="sm-have">have ${m.have}</b></span><span class="sm-price">${m.price ? money(m.price) : '—'}</span></div>`;
-  const missRow = m => `<div class="sm-row miss"><span class="sm-name nm" data-name="${esc(m.name)}" title="${esc(m.name)}">${esc(m.name)}</span><span class="sm-qty">want ${m.want}</span><span class="sm-x">not owned</span></div>`;
-  return `<div class="sm-summary">You have <b>${r.matches.length}</b> of the <b>${total}</b> requested · ${haveCopies} cop${haveCopies === 1 ? 'y' : 'ies'} · <b>${money(fulfill)}</b> at market</div>
+  const matchRow = m => `<div class="sm-row have"><span class="sm-name nm" data-name="${esc(m.name)}" title="${esc(m.name)}">${esc(m.name)}</span><span class="sm-qty">${tr('want {a} · {have}', { a: m.want, have: `<b class="sm-have">${tr('have {n}', { n: m.have })}</b>` })}</span><span class="sm-price">${m.price ? money(m.price) : '—'}</span></div>`;
+  const missRow = m => `<div class="sm-row miss"><span class="sm-name nm" data-name="${esc(m.name)}" title="${esc(m.name)}">${esc(m.name)}</span><span class="sm-qty">${tr('want {n}', { n: m.want })}</span><span class="sm-x">${tr('not owned')}</span></div>`;
+  return `<div class="sm-summary">${tr('You have {x} of the {total} requested · {copies} · {value} at market', { x: `<b>${r.matches.length}</b>`, total: `<b>${total}</b>`, copies: tr(haveCopies === 1 ? '{n} copy' : '{n} copies', { n: haveCopies }), value: `<b>${money(fulfill)}</b>` })}</div>
     ${r.matches.length ? `<div class="sm-act">
-      <button class="btn" id="sellMatchSell"><i class="ms ms-counter-gold" aria-hidden="true"></i> Quick-sell · −${haveCopies} from collection</button>
-      <button class="btn ghost" id="sellMatchAdd">＋ Add to “${esc(sellListName())}”</button>
-      <button class="btn ghost" id="sellMatchCopy">⧉ Copy what you have</button>
+      <button class="btn" id="sellMatchSell"><i class="ms ms-counter-gold" aria-hidden="true"></i> ${tr('Quick-sell · −{n} from collection', { n: haveCopies })}</button>
+      <button class="btn ghost" id="sellMatchAdd">${tr('＋ Add to “{list}”', { list: esc(sellListName()) })}</button>
+      <button class="btn ghost" id="sellMatchCopy">${tr('⧉ Copy what you have')}</button>
     </div>` : ''}
-    ${r.matches.length ? `<div class="sm-sec">You have · ${r.matches.length}</div><div class="sm-list">${r.matches.map(matchRow).join('')}</div>` : `<div class="sm-empty">None of those cards are in your collection.</div>`}
-    ${r.misses.length ? `<div class="sm-sec">Not owned · ${r.misses.length}</div><div class="sm-list">${r.misses.map(missRow).join('')}</div>` : ''}`;
+    ${r.matches.length ? `<div class="sm-sec">${tr('You have · {n}', { n: r.matches.length })}</div><div class="sm-list">${r.matches.map(matchRow).join('')}</div>` : `<div class="sm-empty">${tr('None of those cards are in your collection.')}</div>`}
+    ${r.misses.length ? `<div class="sm-sec">${tr('Not owned · {n}', { n: r.misses.length })}</div><div class="sm-list">${r.misses.map(missRow).join('')}</div>` : ''}`;
 }
 function sellMatchPanel() {
   const results = sellMatchLoading
-    ? `<div class="sm-loading"><span class="spin"></span><span>Looking the list up on Scryfall…</span></div>`
+    ? `<div class="sm-loading"><span class="spin"></span><span>${tr('Looking the list up on Scryfall…')}</span></div>`
     : renderMatchResults();
   return `<div class="sell-match">
-    <div class="sm-intro">Paste a wants-list (Moxfield / Archidekt export, or “1 Card Name” per line) and match it against everything you own.</div>
-    <textarea id="sellMatchInput" class="sm-input" placeholder="Paste a list — one card per line, e.g.  1 Lightning Bolt" spellcheck="false">${esc(sellMatchText)}</textarea>
+    <div class="sm-intro">${tr('Paste a wants-list (Moxfield / Archidekt export, or “1 Card Name” per line) and match it against everything you own.')}</div>
+    <textarea id="sellMatchInput" class="sm-input" placeholder="${tr('Paste a list — one card per line, e.g.  1 Lightning Bolt')}" spellcheck="false">${esc(sellMatchText)}</textarea>
     <div class="sm-controls">
-      <button class="btn" id="sellMatchRun" ${sellMatchLoading ? 'disabled' : ''}><i class="ms ms-ability-investigate" aria-hidden="true"></i> Match against my collection</button>
-      <button class="btn ghost" id="sellMatchClear">Clear</button>
+      <button class="btn" id="sellMatchRun" ${sellMatchLoading ? 'disabled' : ''}><i class="ms ms-ability-investigate" aria-hidden="true"></i> ${tr('Match against my collection')}</button>
+      <button class="btn ghost" id="sellMatchClear">${tr('Clear')}</button>
     </div>
     <div class="sm-results">${results}</div>
   </div>`;
@@ -3481,22 +3482,22 @@ async function runBuyMatch() {
     buyMatchResult = buildBuyMatchResult(resolved);
   } catch (e) {
     buyMatchResult = buildBuyMatchResult(parsed);   // fall back to local exact-name match
-    toast('Scryfall lookup failed — matched names locally instead.');
+    toast(tr('Scryfall lookup failed — matched names locally instead.'));
   }
   buyMatchLoading = false; renderBuyList();
 }
 function copyBuyMatchWants() {
-  if (!buyMatchResult || !buyMatchResult.wants.length) { toast('Nothing to copy — no matches.'); return; }
+  if (!buyMatchResult || !buyMatchResult.wants.length) { toast(tr('Nothing to copy — no matches.')); return; }
   const text = buyMatchResult.wants.map(w => `${Math.min(w.have, w.need)} ${w.name}${w.price ? ` — ${money(w.price)} ea` : ''}`).join('\n');
-  copyText(text).then(ok => toast(ok ? `Copied ${buyMatchResult.wants.length} card${buyMatchResult.wants.length === 1 ? '' : 's'} you want.` : 'Could not access the clipboard.'));
+  copyText(text).then(ok => toast(ok ? tr(buyMatchResult.wants.length === 1 ? 'Copied {n} card you want.' : 'Copied {n} cards you want.', { n: buyMatchResult.wants.length }) : tr('Could not access the clipboard.')));
 }
 // Quick-buy: I bought everything I wanted off the seller's list — add those
 // copies straight to collection, then re-match so the bought cards drop off.
 function quickBuyMatches() {
   const r = buyMatchResult;
-  if (!r || !r.wants.length) { toast('No matched cards to buy.'); return; }
+  if (!r || !r.wants.length) { toast(tr('No matched cards to buy.')); return; }
   const ta = $('#buyMatchInput');
-  if (ta && ta.value.trim() !== (buyMatchOf || '').trim()) { toast('The list changed — click “Match against my buy list” again first.'); return; }
+  if (ta && ta.value.trim() !== (buyMatchOf || '').trim()) { toast(tr('The list changed — click “Match against my buy list” again first.')); return; }
   const decks = buyDecksActive();
   pushUndo('quick-buy');
   let cards = 0, copies = 0;
@@ -3511,34 +3512,34 @@ function quickBuyMatches() {
   const offered = [...remOffer, ...r.skip.map(s => ({ name: s.name, qty: s.have }))].filter(o => o.qty > 0);
   buyMatchResult = buildBuyMatchResult(offered);
   save(); render();
-  toast(copies ? `Bought ${copies} cop${copies === 1 ? 'y' : 'ies'} (${cards} card${cards === 1 ? '' : 's'}) — added to collection.` : 'Nothing to buy.', { undo: !!copies });
+  toast(copies ? tr('Bought {copies} ({cards}) — added to collection.', { copies: tr(copies === 1 ? '{n} copy' : '{n} copies', { n: copies }), cards: tr(cards === 1 ? '{n} card' : '{n} cards', { n: cards }) }) : tr('Nothing to buy.'), { undo: !!copies });
 }
 function renderBuyMatchResults() {
   const r = buyMatchResult; if (!r) return '';
   const total = r.wants.length + r.skip.length;
-  if (!total) return `<div class="sm-summary">No cards found in that list — paste a Moxfield / Archidekt export (one card per line).</div>`;
+  if (!total) return `<div class="sm-summary">${tr('No cards found in that list — paste a Moxfield / Archidekt export (one card per line).')}</div>`;
   const cost = r.wants.reduce((a, w) => a + Math.min(w.have, w.need) * w.price, 0);
   const buyCopies = r.wants.reduce((a, w) => a + Math.min(w.have, w.need), 0);
-  const wantRow = w => `<div class="sm-row have"><span class="sm-name nm" data-name="${esc(w.name)}" title="${esc(w.name)}">${esc(w.name)}</span><span class="sm-qty">they have ${w.have} · <b class="sm-have">you need ${w.need}</b></span><span class="sm-price">${w.price ? money(w.price) : '—'}</span></div>`;
-  const skipRow = s => `<div class="sm-row miss"><span class="sm-name nm" data-name="${esc(s.name)}" title="${esc(s.name)}">${esc(s.name)}</span><span class="sm-qty">they have ${s.have}</span><span class="sm-x">don’t need</span></div>`;
-  return `<div class="sm-summary">You’d buy <b>${r.wants.length}</b> of the <b>${total}</b> offered · ${buyCopies} cop${buyCopies === 1 ? 'y' : 'ies'} · <b>${money(cost)}</b></div>
+  const wantRow = w => `<div class="sm-row have"><span class="sm-name nm" data-name="${esc(w.name)}" title="${esc(w.name)}">${esc(w.name)}</span><span class="sm-qty">${tr('they have {a} · {need}', { a: w.have, need: `<b class="sm-have">${tr('you need {n}', { n: w.need })}</b>` })}</span><span class="sm-price">${w.price ? money(w.price) : '—'}</span></div>`;
+  const skipRow = s => `<div class="sm-row miss"><span class="sm-name nm" data-name="${esc(s.name)}" title="${esc(s.name)}">${esc(s.name)}</span><span class="sm-qty">${tr('they have {n}', { n: s.have })}</span><span class="sm-x">${tr('don’t need')}</span></div>`;
+  return `<div class="sm-summary">${tr('You’d buy {x} of the {total} offered · {copies} · {cost}', { x: `<b>${r.wants.length}</b>`, total: `<b>${total}</b>`, copies: tr(buyCopies === 1 ? '{n} copy' : '{n} copies', { n: buyCopies }), cost: `<b>${money(cost)}</b>` })}</div>
     ${r.wants.length ? `<div class="sm-act">
-      <button class="btn" id="buyMatchBuy"><i class="ms ms-counter-shield" aria-hidden="true"></i> Quick-buy · +${buyCopies} to collection</button>
-      <button class="btn ghost" id="buyMatchCopy">⧉ Copy what you want</button>
+      <button class="btn" id="buyMatchBuy"><i class="ms ms-counter-shield" aria-hidden="true"></i> ${tr('Quick-buy · +{n} to collection', { n: buyCopies })}</button>
+      <button class="btn ghost" id="buyMatchCopy">${tr('⧉ Copy what you want')}</button>
     </div>` : ''}
-    ${r.wants.length ? `<div class="sm-sec">You want · ${r.wants.length}</div><div class="sm-list">${r.wants.map(wantRow).join('')}</div>` : `<div class="sm-empty">Nothing on that list is on your buy list.</div>`}
-    ${r.skip.length ? `<div class="sm-sec">Don’t need · ${r.skip.length}</div><div class="sm-list">${r.skip.map(skipRow).join('')}</div>` : ''}`;
+    ${r.wants.length ? `<div class="sm-sec">${tr('You want · {n}', { n: r.wants.length })}</div><div class="sm-list">${r.wants.map(wantRow).join('')}</div>` : `<div class="sm-empty">${tr('Nothing on that list is on your buy list.')}</div>`}
+    ${r.skip.length ? `<div class="sm-sec">${tr('Don’t need · {n}', { n: r.skip.length })}</div><div class="sm-list">${r.skip.map(skipRow).join('')}</div>` : ''}`;
 }
 function buyMatchPanel() {
   const results = buyMatchLoading
-    ? `<div class="sm-loading"><span class="spin"></span><span>Looking the list up on Scryfall…</span></div>`
+    ? `<div class="sm-loading"><span class="spin"></span><span>${tr('Looking the list up on Scryfall…')}</span></div>`
     : renderBuyMatchResults();
   return `<div class="sell-match">
-    <div class="sm-intro">Paste a list someone has <b>for sale</b> (Moxfield / Archidekt export, or “1 Card Name” per line) — I’ll show which of those cards you still need for your decks &amp; wishlist.</div>
-    <textarea id="buyMatchInput" class="sm-input" placeholder="Paste a seller’s list — one card per line, e.g.  1 Lightning Bolt" spellcheck="false">${esc(buyMatchText)}</textarea>
+    <div class="sm-intro">${tr('Paste a list someone has {forsale} (Moxfield / Archidekt export, or “1 Card Name” per line) — I’ll show which of those cards you still need for your decks & wishlist.', { forsale: '<b>' + tr('for sale') + '</b>' })}</div>
+    <textarea id="buyMatchInput" class="sm-input" placeholder="${tr('Paste a seller’s list — one card per line, e.g.  1 Lightning Bolt')}" spellcheck="false">${esc(buyMatchText)}</textarea>
     <div class="sm-controls">
-      <button class="btn" id="buyMatchRun" ${buyMatchLoading ? 'disabled' : ''}><i class="ms ms-ability-investigate" aria-hidden="true"></i> Match against my buy list</button>
-      <button class="btn ghost" id="buyMatchClear">Clear</button>
+      <button class="btn" id="buyMatchRun" ${buyMatchLoading ? 'disabled' : ''}><i class="ms ms-ability-investigate" aria-hidden="true"></i> ${tr('Match against my buy list')}</button>
+      <button class="btn ghost" id="buyMatchClear">${tr('Clear')}</button>
     </div>
     <div class="sm-results">${results}</div>
   </div>`;
@@ -3562,27 +3563,27 @@ function markSold(vid) {
   const hit = variantIndex().get(vid);
   if (!hit) { removeVariantFromAllSellLists(vid); save(); render(); return; }
   const qty = Math.min(sellQtyOf(vid), hit.v.qty);
-  pushUndo(`sale of ${qty}× ${hit.name}`);
+  pushUndo(tr('sale of {n}× {name}', { n: qty, name: hit.name }));
   logEvent('sold', hit.name, qty, variantPrice(hit.name, hit.v), { foil: hit.v.foil });
   hit.v.qty -= qty;
   removeVariantFromAllSellLists(vid);
   if (hit.v.qty <= 0) removeVariant(hit.name, vid); else save();
   render();
-  toast(`Sold ${qty}× ${hit.name}${hit.v.foil ? ' (foil)' : ''} — removed from collection.`, { undo: true });
+  toast(tr('Sold {n}× {name} — removed from collection.', { n: qty, name: hit.name + (hit.v.foil ? ' (foil)' : '') }), { undo: true });
 }
 function markAllSold() {
   const rows = sellRows();
   if (!rows.length) return;
   const copies = rows.reduce((a, r) => a + r.qty, 0);
-  if (!confirm(`Mark all ${copies} listed cop${copies === 1 ? 'y' : 'ies'} in “${sellListName()}” as sold? They will be removed from your collection.`)) return;
-  pushUndo(`“Sold all” of ${copies} cop${copies === 1 ? 'y' : 'ies'}`);
+  if (!confirm(tr(copies === 1 ? 'Mark all {n} listed copy in “{list}” as sold? They will be removed from your collection.' : 'Mark all {n} listed copies in “{list}” as sold? They will be removed from your collection.', { n: copies, list: sellListName() }))) return;
+  pushUndo(tr('“Sold all” of {copies}', { copies: tr(copies === 1 ? '{n} copy' : '{n} copies', { n: copies }) }));
   rows.forEach(r => {
     const v = variantById(r.name, r.vid);
     if (v) { logEvent('sold', r.name, r.qty, r.unit, { foil: v.foil }); v.qty -= r.qty; if (v.qty <= 0) removeVariant(r.name, r.vid); }
     removeVariantFromAllSellLists(r.vid);
   });
   save(); render();
-  toast(`Marked ${copies} card${copies === 1 ? '' : 's'} as sold.`, { undo: true });
+  toast(tr(copies === 1 ? 'Marked {n} card as sold.' : 'Marked {n} cards as sold.', { n: copies }), { undo: true });
 }
 
 function variantBadges(v) {
@@ -3597,7 +3598,7 @@ function renderSellList() {
   renderSellFolders();
   const matchBtn = $('#sellMatchBtn'); if (matchBtn) matchBtn.classList.toggle('on', sellMatchOpen);
   if (sellMatchOpen) {
-    if ($('#sellListSub')) $('#sellListSub').textContent = 'Paste a wants-list to see which cards you own.';
+    if ($('#sellListSub')) $('#sellListSub').textContent = tr('Paste a wants-list to see which cards you own.');
     const wrap = $('#sellSizeWrap'); if (wrap) wrap.hidden = true;
     const t = $('#sellTable'); if (t) { t.classList.remove('gallery'); t.innerHTML = sellMatchPanel(); }
     return;
@@ -3611,8 +3612,8 @@ function renderSellList() {
   const total = rows.reduce((a, r) => a + r.sub, 0);
   const sub = $('#sellListSub');
   if (sub) sub.textContent = rows.length
-    ? `“${sellListName()}” · ${copies} cop${copies === 1 ? 'y' : 'ies'} of ${rows.length} card${rows.length === 1 ? '' : 's'} · ${money(total)} at market${q ? ` · matching “${sellSearch.trim()}”` : ''}`
-    : (q ? `No cards in “${sellListName()}” match “${sellSearch.trim()}”.` : `“${sellListName()}” is empty.`);
+    ? tr('“{list}” · {copies} of {cards} · {total} at market', { list: sellListName(), copies: tr(copies === 1 ? '{n} copy' : '{n} copies', { n: copies }), cards: tr(rows.length === 1 ? '{n} card' : '{n} cards', { n: rows.length }), total: money(total) }) + (q ? ' · ' + tr('matching “{q}”', { q: sellSearch.trim() }) : '')
+    : (q ? tr('No cards in “{list}” match “{q}”.', { list: sellListName(), q: sellSearch.trim() }) : tr('“{list}” is empty.', { list: sellListName() }));
   const table = $('#sellTable');
   if (!table) return;
   table.classList.toggle('gallery', sellMode === 'art');
@@ -3621,8 +3622,8 @@ function renderSellList() {
   if (wrap) { wrap.hidden = sellMode !== 'art'; const r = $('#sellSizeRange'); if (r) r.value = sellTile; }
   if (!rows.length) {
     table.innerHTML = q
-      ? `<div class="empty-state"><span class="empty-mark"><i class="ms ms-ability-investigate" aria-hidden="true"></i></span><h2>No matches</h2><p>No cards in “${esc(sellListName())}” match “${esc(sellSearch.trim())}”.</p></div>`
-      : `<div class="empty-state"><span class="empty-mark"><i class="ms ms-counter-gold" aria-hidden="true"></i></span><h2>Nothing listed for sale</h2><p>List cards from your Collection (each card has a “Sell” button), or add everything you’re not using in a deck.</p><button class="btn" data-selladd><i class="ms ms-land btn-ico" aria-hidden="true"></i> Add all unlinked cards</button></div>`;
+      ? `<div class="empty-state"><span class="empty-mark"><i class="ms ms-ability-investigate" aria-hidden="true"></i></span><h2>${tr('No matches')}</h2><p>${tr('No cards in “{list}” match “{q}”.', { list: esc(sellListName()), q: esc(sellSearch.trim()) })}</p></div>`
+      : `<div class="empty-state"><span class="empty-mark"><i class="ms ms-counter-gold" aria-hidden="true"></i></span><h2>${tr('Nothing listed for sale')}</h2><p>${tr('List cards from your Collection (each card has a “Sell” button), or add everything you’re not using in a deck.')}</p><button class="btn" data-selladd><i class="ms ms-land btn-ico" aria-hidden="true"></i> ${tr('Add all unlinked cards')}</button></div>`;
     return;
   }
   if (sellMode === 'art') {
@@ -3632,7 +3633,7 @@ function renderSellList() {
     let last = null;
     table.innerHTML = rows.map(r => {
       let head = '';
-      if (grouping) { const g = sellSort === 'color' ? colorGroupLabel(r.name) : category(r.name); if (g !== last) { head = `<div class="buy-group-head">${esc(g)}</div>`; last = g; } }
+      if (grouping) { const g = sellSort === 'color' ? colorGroupLabel(r.name) : category(r.name); if (g !== last) { head = `<div class="buy-group-head">${esc(tr(g))}</div>`; last = g; } }
       return head + sellRow(r);
     }).join('');
   }
@@ -3640,17 +3641,17 @@ function renderSellList() {
 function sellRow(r) {
   const { vid, name, v, qty, unit, sub, used } = r;
   const meta = card(name);
-  const warn = used.length ? `<span class="sell-warn" title="Still in ${esc(used.map(d => d.name).join(', '))}"><i class="ms ms-saga" aria-hidden="true"></i> in ${esc(used.map(d => d.name).join(', '))}</span>` : '';
+  const warn = used.length ? `<span class="sell-warn" title="${tr('Still in {decks}', { decks: esc(used.map(d => d.name).join(', ')) })}"><i class="ms ms-saga" aria-hidden="true"></i> ${tr('in')} ${esc(used.map(d => d.name).join(', '))}</span>` : '';
   return `<div class="card-row owned sell-row">
     <div class="cname"><span class="row-marks">${typeIcon(name)}${rarityIcon(meta.rarity)}</span><span class="nm" data-name="${esc(name)}" data-uri="${esc(meta.uri || '')}" title="${esc(name)}">${esc(name)}</span>${manaSymbols(meta.mana_cost)}${variantBadges(v)}${warn}</div>
     <div class="own-step sell-step">
-      <button data-sellqty="-1" data-vid="${esc(vid)}" aria-label="List one fewer">−</button>
+      <button data-sellqty="-1" data-vid="${esc(vid)}" aria-label="${tr('List one fewer')}">−</button>
       <span class="n">${qty}<span class="req">/${v.qty}</span></span>
-      <button data-sellqty="1" data-vid="${esc(vid)}" ${qty >= v.qty ? 'disabled' : ''} aria-label="List one more">+</button>
+      <button data-sellqty="1" data-vid="${esc(vid)}" ${qty >= v.qty ? 'disabled' : ''} aria-label="${tr('List one more')}">+</button>
     </div>
-    <div class="price"><span class="sell-each">${money(unit)} ea</span><br><span class="sell-sub">${money(sub)}</span></div>
-    <button class="sell-sold" data-sold="${esc(vid)}" title="Mark sold &amp; remove from collection"><i class="ms ms-counter-gold" aria-hidden="true"></i> Sold</button>
-    <button class="sell-rm" data-sellrm="${esc(vid)}" title="Remove from sell list" aria-label="Remove from sell list">✕</button>
+    <div class="price"><span class="sell-each">${tr('{price} ea', { price: money(unit) })}</span><br><span class="sell-sub">${money(sub)}</span></div>
+    <button class="sell-sold" data-sold="${esc(vid)}" title="${tr('Mark sold & remove from collection')}"><i class="ms ms-counter-gold" aria-hidden="true"></i> ${tr('Sold')}</button>
+    <button class="sell-rm" data-sellrm="${esc(vid)}" title="${tr('Remove from sell list')}" aria-label="${tr('Remove from sell list')}">✕</button>
   </div>`;
 }
 function sellArtTile(r) {
@@ -3662,12 +3663,12 @@ function sellArtTile(r) {
     </button>
     <div class="sell-tile-bar">
       <div class="own-step sell-step">
-        <button data-sellqty="-1" data-vid="${esc(vid)}" aria-label="List one fewer">−</button>
+        <button data-sellqty="-1" data-vid="${esc(vid)}" aria-label="${tr('List one fewer')}">−</button>
         <span class="n">${qty}<span class="req">/${v.qty}</span></span>
-        <button data-sellqty="1" data-vid="${esc(vid)}" ${qty >= v.qty ? 'disabled' : ''} aria-label="List one more">+</button>
+        <button data-sellqty="1" data-vid="${esc(vid)}" ${qty >= v.qty ? 'disabled' : ''} aria-label="${tr('List one more')}">+</button>
       </div>
-      <button class="sell-sold" data-sold="${esc(vid)}" title="Mark sold &amp; remove from collection"><i class="ms ms-counter-gold" aria-hidden="true"></i></button>
-      <button class="sell-rm" data-sellrm="${esc(vid)}" title="Remove from sell list" aria-label="Remove">✕</button>
+      <button class="sell-sold" data-sold="${esc(vid)}" title="${tr('Mark sold & remove from collection')}"><i class="ms ms-counter-gold" aria-hidden="true"></i></button>
+      <button class="sell-rm" data-sellrm="${esc(vid)}" title="${tr('Remove from sell list')}" aria-label="${tr('Remove')}">✕</button>
     </div>
   </div>`;
 }
@@ -3682,16 +3683,16 @@ function sellListText() {
 }
 async function copySellList() {
   const text = sellListText();
-  if (!text) { toast(`“${sellListName()}” is empty.`); return; }
+  if (!text) { toast(tr('“{list}” is empty.', { list: sellListName() })); return; }
   const n = text.split('\n').length;
-  toast(await copyText(text) ? `“${sellListName()}” copied — ${n} card${n === 1 ? '' : 's'} ready to send.` : 'Could not access the clipboard.');
+  toast(await copyText(text) ? tr(n === 1 ? '“{list}” copied — {n} card ready to send.' : '“{list}” copied — {n} cards ready to send.', { list: sellListName(), n }) : tr('Could not access the clipboard.'));
 }
 async function exportSellPDF() {
   const rows = sellExportRows();
-  if (!rows.length) { toast(`“${sellListName()}” is empty.`); return; }
+  if (!rows.length) { toast(tr('“{list}” is empty.', { list: sellListName() })); return; }
   const total = rows.reduce((a, r) => a + r.sub, 0);
   const copies = rows.reduce((a, r) => a + r.qty, 0);
-  const date = new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+  const date = new Date().toLocaleDateString(I18N.locale(), { year: 'numeric', month: 'long', day: 'numeric' });
   const cell = (r) => {
     const img = displayImage(r.name);
     const tags = [r.v.foil ? 'Foil' : '', (r.v.condition && r.v.condition !== 'NM') ? r.v.condition : ''].filter(Boolean).join(' · ');
@@ -3701,14 +3702,14 @@ async function exportSellPDF() {
       <div class="pc-info">
         <div class="pc-name">${esc(r.name)}</div>
         ${setLine ? `<div class="pc-set">${setLine}</div>` : ''}
-        <div class="pc-price"><span class="pc-each">${money(r.unit)} ea</span><span class="pc-sub">${money(r.sub)}</span></div>
+        <div class="pc-price"><span class="pc-each">${tr('{price} ea', { price: money(r.unit) })}</span><span class="pc-sub">${money(r.sub)}</span></div>
       </div>
     </div>`;
   };
   const pages = [];
   for (let i = 0; i < rows.length; i += 8) pages.push(rows.slice(i, i + 8));
   const html = pages.map((pg, i) => `<section class="print-page">
-    ${i === 0 ? `<header class="print-head"><h1>Sell List — ${esc(sellListName())}</h1><div class="print-meta">${copies} card${copies === 1 ? '' : 's'} · ${money(total)} · ${esc(date)}</div></header>` : ''}
+    ${i === 0 ? `<header class="print-head"><h1>${tr('Sell List')} — ${esc(sellListName())}</h1><div class="print-meta">${tr(copies === 1 ? '{n} card' : '{n} cards', { n: copies })} · ${money(total)} · ${esc(date)}</div></header>` : ''}
     <div class="print-grid">${pg.map(cell).join('')}</div>
   </section>`).join('');
   const root = $('#printRoot');
@@ -3720,11 +3721,11 @@ async function exportSellPDF() {
 
 async function copyCollection() {
   const text = collectionText();
-  if (!text) { toast('Your collection is empty — nothing to copy.'); return; }
+  if (!text) { toast(tr('Your collection is empty — nothing to copy.')); return; }
   const lines = text.split('\n').length;
   toast(await copyText(text)
-    ? `Collection copied — ${lines} card${lines === 1 ? '' : 's'}.`
-    : 'Could not access the clipboard.');
+    ? tr(lines === 1 ? 'Collection copied — {n} card.' : 'Collection copied — {n} cards.', { n: lines })
+    : tr('Could not access the clipboard.'));
 }
 
 /* ---------- toast ---------- */
@@ -3736,7 +3737,7 @@ function toast(msg, opts = {}) {
   lastToastMsg = msg; lastToastAt = now;
   const t = $('#toast');
   if (opts.undo && undoStack.length) {
-    t.innerHTML = `<span class="toast-msg"></span><button class="toast-undo" id="toastUndo">↶ Undo</button>`;
+    t.innerHTML = `<span class="toast-msg"></span><button class="toast-undo" id="toastUndo">${tr('↶ Undo')}</button>`;
     t.querySelector('.toast-msg').textContent = msg;
   } else {
     t.textContent = msg;
@@ -3907,10 +3908,10 @@ if (storeDash) {
     if (e.target.id === 'storeShowOwner') { myStore.show_owner = e.target.checked; scheduleStoreSave(); schedulePublicProfileRefresh(); return; }
   });
   storeDash.addEventListener('click', e => {
-    if (e.target.closest('#storeCopyLink')) { copyText(storePublicUrl(myStore.slug)).then(ok => toast(ok ? 'Store link copied ✓' : 'Copy failed')); return; }
+    if (e.target.closest('#storeCopyLink')) { copyText(storePublicUrl(myStore.slug)).then(ok => toast(ok ? tr('Store link copied ✓') : tr('Copy failed'))); return; }
     if (e.target.closest('#storeAddEvent')) { openStoreEvent(null); return; }
     if (e.target.closest('#storeGenStaff')) { generateStoreStaffInvite(); return; }
-    if (e.target.closest('#staffInviteCopy')) { const i = $('#staffInviteLink'); if (i) copyText(i.value).then(ok => toast(ok ? 'Staff link copied ✓' : 'Copy failed')); return; }
+    if (e.target.closest('#staffInviteCopy')) { const i = $('#staffInviteLink'); if (i) copyText(i.value).then(ok => toast(ok ? tr('Staff link copied ✓') : tr('Copy failed'))); return; }
     if (e.target.closest('#staffInviteQr')) { const i = $('#staffInviteLink'); if (i) downloadQrPng(i.value, 'staff-invite'); return; }
     let sm; if ((sm = e.target.closest('[data-staffrm]'))) { removeStoreMember(sm.dataset.staffrm); return; }
     if (e.target.closest('#invAddCards')) { openAdd('store'); return; }
@@ -3924,9 +3925,9 @@ if (storeDash) {
     let m;
     if ((m = e.target.closest('[data-imode]'))) { storeInvMode = m.dataset.imode; $$('#storeInvMode .seg-btn').forEach(b => b.classList.toggle('is-active', b === m)); renderStoreInventory(); return; }
     if ((m = e.target.closest('[data-invbinder]'))) { storeInvBinder = m.dataset.invbinder; storeInvShown = 80; renderStoreInvBinders(); renderStoreInventory(); return; }
-    if (e.target.closest('[data-invbindernew]')) { const nm = prompt('Name this binder (e.g. Commander singles, Sealed, New arrivals):', ''); if (nm) addInvBinder(nm); return; }
-    if ((m = e.target.closest('[data-invbinderrename]'))) { const b = storeInv().binders.find(x => x.id === m.dataset.invbinderrename); const nm = prompt('Rename binder:', b ? b.name : ''); if (nm != null) renameInvBinder(m.dataset.invbinderrename, nm); return; }
-    if ((m = e.target.closest('[data-invbinderdel]'))) { if (confirm('Delete this binder? Its cards move to Unfiled (they stay in your inventory).')) deleteInvBinder(m.dataset.invbinderdel); return; }
+    if (e.target.closest('[data-invbindernew]')) { const nm = prompt(tr('Name this binder (e.g. Commander singles, Sealed, New arrivals):'), ''); if (nm) addInvBinder(nm); return; }
+    if ((m = e.target.closest('[data-invbinderrename]'))) { const b = storeInv().binders.find(x => x.id === m.dataset.invbinderrename); const nm = prompt(tr('Rename binder:'), b ? b.name : ''); if (nm != null) renameInvBinder(m.dataset.invbinderrename, nm); return; }
+    if ((m = e.target.closest('[data-invbinderdel]'))) { if (confirm(tr('Delete this binder? Its cards move to Unfiled (they stay in your inventory).'))) deleteInvBinder(m.dataset.invbinderdel); return; }
     if ((m = e.target.closest('[data-invsell]'))) { sellInvCopy(m.dataset.invsell, m.dataset.invb); return; }
     if ((m = e.target.closest('[data-invbuy]'))) { restockInvCopy(m.dataset.invbuy, m.dataset.invb); return; }
     if ((m = e.target.closest('[data-invres]'))) { toggleInvReserved(m.dataset.invres, m.dataset.invb); return; }
@@ -3939,7 +3940,7 @@ const closeStoreInviteEl = $('#closeStoreInvite'); if (closeStoreInviteEl) close
 const storeInviteModalEl = $('#storeInviteModal');
 if (storeInviteModalEl) storeInviteModalEl.addEventListener('click', e => {
   if (e.target.id === 'storeInviteModal') { closeStoreInvite(); return; }
-  if (e.target.closest('#storeInviteCopy')) { const i = $('#storeInviteLink'); if (i) copyText(i.value).then(ok => toast(ok ? 'Invite link copied ✓' : 'Copy failed')); return; }
+  if (e.target.closest('#storeInviteCopy')) { const i = $('#storeInviteLink'); if (i) copyText(i.value).then(ok => toast(ok ? tr('Invite link copied ✓') : tr('Copy failed'))); return; }
   if (e.target.closest('#storeInviteQr')) { downloadQrPng(storeInviteResult, 'store-invite'); return; }
 });
 const closeStoreCreateEl = $('#closeStoreCreate'); if (closeStoreCreateEl) closeStoreCreateEl.addEventListener('click', closeStoreCreate);
@@ -4139,10 +4140,10 @@ if (sellTableEl) {
 const sellFolders = $('#sellFolders');
 if (sellFolders) sellFolders.addEventListener('click', e => {
   const ren = e.target.closest('[data-sellfolder-rename]');
-  if (ren) { const l = state.sellLists.find(x => x.id === ren.dataset.sellfolderRename); const nm = prompt('Rename sell list:', l ? l.name : ''); if (nm != null) renameSellList(ren.dataset.sellfolderRename, nm); return; }
+  if (ren) { const l = state.sellLists.find(x => x.id === ren.dataset.sellfolderRename); const nm = prompt(tr('Rename sell list:'), l ? l.name : ''); if (nm != null) renameSellList(ren.dataset.sellfolderRename, nm); return; }
   const del = e.target.closest('[data-sellfolder-del]');
   if (del) { deleteSellList(del.dataset.sellfolderDel); return; }
-  if (e.target.closest('[data-sellfolder-new]')) { const nm = prompt('Name this sell list:', `List ${state.sellLists.length + 1}`); if (nm != null) createSellList(nm); return; }
+  if (e.target.closest('[data-sellfolder-new]')) { const nm = prompt(tr('Name this sell list:'), tr('List {n}', { n: state.sellLists.length + 1 })); if (nm != null) createSellList(nm); return; }
   const f = e.target.closest('[data-sellfolder]');
   if (f) { setActiveSellList(f.dataset.sellfolder); return; }
 });
@@ -4153,7 +4154,7 @@ if (sellPickMenu) sellPickMenu.addEventListener('click', e => {
   const item = e.target.closest('[data-sp-list]');
   if (item) { if (vid) toggleSellVariantIn(name, vid, item.dataset.spList); else toggleSellCardIn(name, item.dataset.spList); renderSellPicker(); return; }
   if (e.target.closest('[data-sp-new]')) {
-    const nm = prompt('Name this sell list:', `List ${state.sellLists.length + 1}`);
+    const nm = prompt(tr('Name this sell list:'), tr('List {n}', { n: state.sellLists.length + 1 }));
     if (nm == null) return;
     createSellList(nm);
     const newId = state.sellLists[state.sellLists.length - 1].id;
@@ -4172,10 +4173,10 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSellPic
 const buyFolders = $('#buyFolders');
 if (buyFolders) buyFolders.addEventListener('click', e => {
   const ren = e.target.closest('[data-buyfolder-rename]');
-  if (ren) { const b = binderById(ren.dataset.buyfolderRename); const nm = prompt('Rename buy binder:', b ? b.name : ''); if (nm != null) renameBuyBinder(ren.dataset.buyfolderRename, nm); return; }
+  if (ren) { const b = binderById(ren.dataset.buyfolderRename); const nm = prompt(tr('Rename buy binder:'), b ? b.name : ''); if (nm != null) renameBuyBinder(ren.dataset.buyfolderRename, nm); return; }
   const del = e.target.closest('[data-buyfolder-del]');
   if (del) { deleteBuyBinder(del.dataset.buyfolderDel); return; }
-  if (e.target.closest('[data-buyfolder-new]')) { const nm = prompt('Name this buy binder (e.g. Need now, Soon, Someday):', `Binder ${state.buyBinders.length + 1}`); if (nm != null) createBuyBinder(nm); return; }
+  if (e.target.closest('[data-buyfolder-new]')) { const nm = prompt(tr('Name this buy binder (e.g. Need now, Soon, Someday):'), tr('Binder {n}', { n: state.buyBinders.length + 1 })); if (nm != null) createBuyBinder(nm); return; }
   const f = e.target.closest('[data-buyfolder]');
   if (f) { setActiveBuyBinder(f.dataset.buyfolder === 'auto' ? null : f.dataset.buyfolder); return; }
 });
@@ -4185,7 +4186,7 @@ if (buyPickMenu) buyPickMenu.addEventListener('click', e => {
   const item = e.target.closest('[data-bp-binder]');
   if (item) { toggleCardInBinder(buyPickName, item.dataset.bpBinder); renderBuyPicker(); return; }
   if (e.target.closest('[data-bp-new]')) {
-    const nm = prompt('Name this buy binder (e.g. Need now, Soon, Someday):', `Binder ${state.buyBinders.length + 1}`);
+    const nm = prompt(tr('Name this buy binder (e.g. Need now, Soon, Someday):'), tr('Binder {n}', { n: state.buyBinders.length + 1 }));
     if (nm == null) return;
     const b = createBuyBinder(nm);
     addCardToBinder(buyPickName, b.id, 1); render();
@@ -4488,6 +4489,29 @@ $('#themeSwitch').addEventListener('click', e => {
   if (b) setTheme(b.dataset.theme);
 });
 
+/* ---------- UI language (English source + Spanish) ---------- */
+function applyLang() {
+  $$('#langSwitch .lang-opt').forEach(b => {
+    const on = b.dataset.lang === state.prefs.lang;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+}
+function setLang(lang) {
+  const l = (lang === 'es') ? 'es' : 'en';
+  if (l === state.prefs.lang) return;
+  state.prefs.lang = l;
+  save();
+  I18N.setLang(l);   // repaint static markup + <html lang>
+  applyLang();
+  render();           // re-render dynamic view bodies (all tr() calls re-run)
+}
+const langSwitchEl = $('#langSwitch');
+if (langSwitchEl) langSwitchEl.addEventListener('click', e => {
+  const b = e.target.closest('.lang-opt');
+  if (b) setLang(b.dataset.lang);
+});
+
 /* =====================================================================
    SUPABASE — accounts, profiles & multi-device sync
    Local localStorage stays the source of truth/cache; the whole `state`
@@ -4547,25 +4571,25 @@ async function doAuth() {
   const username = $('#authUsername').value.trim();
   const confirmPw = $('#authConfirm').value;
   const status = $('#authStatus');
-  if (!email || !password) { status.textContent = 'Enter your email and password.'; return; }
+  if (!email || !password) { status.textContent = tr('Enter your email and password.'); return; }
   if (signup) {
-    if (!/^[a-zA-Z0-9_.]{3,24}$/.test(username)) { status.textContent = 'Username: 3–24 letters, numbers, “_” or “.”'; return; }
-    if (password.length < 6) { status.textContent = 'Use a password of at least 6 characters.'; return; }
-    if (password !== confirmPw) { status.textContent = 'Those passwords don’t match.'; return; }
+    if (!/^[a-zA-Z0-9_.]{3,24}$/.test(username)) { status.textContent = tr('Username: 3–24 letters, numbers, “_” or “.”'); return; }
+    if (password.length < 6) { status.textContent = tr('Use a password of at least 6 characters.'); return; }
+    if (password !== confirmPw) { status.textContent = tr('Those passwords don’t match.'); return; }
   }
   $('#authSubmit').disabled = true;
-  status.innerHTML = `<span class="spin"></span>${signup ? 'Creating your account…' : 'Signing in…'}`;
+  status.innerHTML = `<span class="spin"></span>${signup ? tr('Creating your account…') : tr('Signing in…')}`;
   try {
     if (signup) {
       const { data: avail, error: chkErr } = await sb.rpc('username_available', { name: username });
-      if (!chkErr && avail === false) { status.textContent = 'That username is taken — try another.'; $('#authSubmit').disabled = false; return; }
+      if (!chkErr && avail === false) { status.textContent = tr('That username is taken — try another.'); $('#authSubmit').disabled = false; return; }
     }
     const { data, error } = signup
       ? await sb.auth.signUp({ email, password, options: { data: { username } } })
       : await sb.auth.signInWithPassword({ email, password });
     if (error) { status.textContent = error.message; $('#authSubmit').disabled = false; return; }
     if (signup && !data.session) {
-      status.textContent = 'Account created — check your email to confirm, then sign in.';
+      status.textContent = tr('Account created — check your email to confirm, then sign in.');
       $('#authSubmit').disabled = false;
       return;
     }
@@ -4575,7 +4599,7 @@ async function doAuth() {
     }
     closeAuth();   // signed in — onAuthStateChange takes over
   } catch (e) {
-    status.textContent = 'Something went wrong — try again.';
+    status.textContent = tr('Something went wrong — try again.');
     $('#authSubmit').disabled = false;
   }
 }
@@ -4589,7 +4613,7 @@ async function signOut() {
   myStore = null; myStores = []; storeEvents = []; storeTx = []; storeMembers = []; friends = []; pendingStoreInvite = null; pendingStaffInvite = null; refreshStoreMenu();
   closeProfile(); renderAccount();
   if (['view-profile', 'view-store'].some(v => $('#' + v) && $('#' + v).classList.contains('is-active'))) setView('decks');
-  toast('Signed out — this device is now local-only.');
+  toast(tr('Signed out — this device is now local-only.'));
 }
 async function loadProfile() {
   if (!sb || !authUser) return;
@@ -4612,7 +4636,7 @@ async function afterSignIn() {
     const uid = authUser && authUser.id;
     if (!uid) return;
     const { data, error } = await sb.from('collections').select('data, updated_at').eq('user_id', uid).maybeSingle();
-    if (error) { toast('Signed in, but sync failed: ' + error.message); return; }
+    if (error) { toast(tr('Signed in, but sync failed:') + ' ' + error.message); return; }
     if (!authUser || authUser.id !== uid) return;   // signed out / switched user mid-fetch — abandon
     const remote = data || { data: {}, updated_at: null };
     const meta = syncMeta();
@@ -4629,13 +4653,13 @@ async function afterSignIn() {
     } else if (remoteHas && !localHas) {
       await downloadWithOverlay(remote);                    // fresh device → big "loading your collection" overlay
     } else if (remoteHas) {
-      adoptRemote(remote.data, remote.updated_at); toast('Loaded the latest from your account.');   // routine re-sync → quiet toast
+      adoptRemote(remote.data, remote.updated_at); toast(tr('Loaded the latest from your account.'));   // routine re-sync → quiet toast
     } else if (localHas) {
       await uploadWithOverlay();                            // account is empty → seed it from this device
     } else {
       setSyncMeta({ remoteUpdatedAt: remote.updated_at, dirty: false });
     }
-  } catch (e) { toast('Signed in, but sync failed.'); }
+  } catch (e) { toast(tr('Signed in, but sync failed.')); }
   finally {
     syncResolving = false; renderAccount();
     if (justSignedUp) {   // first run after creating an account → onboarding
@@ -4706,7 +4730,7 @@ async function syncPullIfNewer() {
     if (!data || !data.updated_at) return;
     if (data.updated_at !== syncMeta().remoteUpdatedAt && collectionNonEmpty(data.data)) {
       adoptRemote(data.data, data.updated_at);
-      toast('Synced the latest from another device.');
+      toast(tr('Synced the latest from another device.'));
     }
   } catch (e) {}
 }
@@ -4770,7 +4794,7 @@ function qrSlug(s) { return (String(s || 'list').toLowerCase().replace(/[^a-z0-9
 // Rasterise straight to a canvas (no async SVG decode) and save a high-res PNG.
 function downloadQrPng(text, filename) {
   const qr = makeQr(text, 'M');
-  if (!qr) { toast('Couldn’t generate the QR code — reload the page and try again.'); return; }
+  if (!qr) { toast(tr('Couldn’t generate the QR code — reload the page and try again.')); return; }
   const n = qr.getModuleCount(), margin = 4, total = n + margin * 2;
   const scale = Math.max(6, Math.ceil(960 / total));   // ~960px+ square, integer scale → no seams
   const dim = total * scale;
@@ -4783,8 +4807,8 @@ function downloadQrPng(text, filename) {
   }
   const name = (filename || 'vault-list') + '-qr.png';
   const fire = (href, revoke) => { const a = document.createElement('a'); a.href = href; a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { a.remove(); if (revoke) URL.revokeObjectURL(href); }, 1500); };
-  if (cv.toBlob) cv.toBlob(b => { if (!b) { toast('Could not save the QR code.'); return; } fire(URL.createObjectURL(b), true); }, 'image/png');
-  else { try { fire(cv.toDataURL('image/png'), false); } catch (e) { toast('Could not save the QR code.'); } }
+  if (cv.toBlob) cv.toBlob(b => { if (!b) { toast(tr('Could not save the QR code.')); return; } fire(URL.createObjectURL(b), true); }, 'image/png');
+  else { try { fire(cv.toDataURL('image/png'), false); } catch (e) { toast(tr('Could not save the QR code.')); } }
 }
 
 let qrModalCode = null;
@@ -4795,17 +4819,17 @@ function renderQrModal() {
   const code = qrModalCode;
   const s = myShares.find(x => x.code === code);
   const url = shareUrl(code);
-  const kindLabel = s ? (s.kind === 'sell' ? 'Sell list' : 'Buy list') : '';
-  const title = (s && s.title) || kindLabel || 'List';
+  const kindLabel = s ? (s.kind === 'sell' ? tr('Sell list') : tr('Buy list')) : '';
+  const title = (s && s.title) || kindLabel || tr('List');
   const svg = qrSvg(url, { margin: 4 });
   body.innerHTML =
-    '<p class="qr-lead">Point a phone camera at this code to open <b>' + esc(title) + '</b>' + (kindLabel ? ' · ' + esc(kindLabel) : '') + '.</p>' +
-    '<div class="qr-frame">' + (svg || '<div class="qr-fail">Couldn’t render the code — check your connection and reopen.</div>') + '</div>' +
+    '<p class="qr-lead">' + tr('Point a phone camera at this code to open {title}', { title: '<b>' + esc(title) + '</b>' }) + (kindLabel ? ' · ' + esc(kindLabel) : '') + '.</p>' +
+    '<div class="qr-frame">' + (svg || '<div class="qr-fail">' + tr('Couldn’t render the code — check your connection and reopen.') + '</div>') + '</div>' +
     '<div class="qr-url"><input type="text" readonly id="qrUrlInput" value="' + esc(url) + '" /></div>' +
     '<div class="qr-actions">' +
-      '<button class="btn gold" data-qrdownload="' + esc(code) + '">Download PNG</button>' +
-      '<button class="btn" data-qrcopy="' + esc(code) + '">Copy link</button>' +
-      '<a class="btn" href="' + esc(url) + '" target="_blank" rel="noopener">Open ↗</a>' +
+      '<button class="btn gold" data-qrdownload="' + esc(code) + '">' + tr('Download PNG') + '</button>' +
+      '<button class="btn" data-qrcopy="' + esc(code) + '">' + tr('Copy link') + '</button>' +
+      '<a class="btn" href="' + esc(url) + '" target="_blank" rel="noopener">' + tr('Open ↗') + '</a>' +
     '</div>';
 }
 
@@ -4968,9 +4992,9 @@ function closeDeckShare() { const m = $('#deckShareModal'); if (m) m.hidden = tr
 function renderDeckShareModal() {
   const body = $('#deckShareBody'); if (!body) return;
   const deck = state.decks.find(d => d.id === deckShareDeckId);
-  if (!deck) { body.innerHTML = '<p class="share-note">Deck not found.</p>'; return; }
+  if (!deck) { body.innerHTML = `<p class="share-note">${tr('Deck not found.')}</p>`; return; }
   if (!sb || !authUser) {
-    body.innerHTML = `<div class="share-signin"><p>Create a free account to publish decks to the community — others can view and like them.</p><button class="btn gold" id="deckShareSignIn">Sign in / Create account</button></div>`;
+    body.innerHTML = `<div class="share-signin"><p>${tr('Create a free account to publish decks to the community — others can view and like them.')}</p><button class="btn gold" id="deckShareSignIn">${tr('Sign in / Create account')}</button></div>`;
     return;
   }
   if (deck.shareCode) {
@@ -4978,34 +5002,34 @@ function renderDeckShareModal() {
     const qrMarkup = qrSvg(url, { margin: 4 });
     body.innerHTML = `
       <div class="share-result">
-        <div class="share-result-h"><i class="ms ms-counter-gold" aria-hidden="true"></i> Published to the community</div>
-        <div class="share-link-row"><input type="text" id="deckShareLink" readonly value="${esc(url)}" /><button class="btn gold" id="deckShareCopy">Copy</button></div>
-        <p class="share-note">Anyone with this link can view <b>${esc(deck.name)}</b> and like it. It updates automatically when you change the deck. <a href="${esc(url)}" target="_blank" rel="noopener">Open ↗</a></p>
-        ${qrMarkup ? `<div class="share-qr"><div class="share-qr-code">${qrMarkup}</div><div class="share-qr-side"><div class="share-qr-cap">Scan to open on a phone.</div><button class="btn gold sm" id="deckShareQr">Download QR</button></div></div>` : ''}
+        <div class="share-result-h"><i class="ms ms-counter-gold" aria-hidden="true"></i> ${tr('Published to the community')}</div>
+        <div class="share-link-row"><input type="text" id="deckShareLink" readonly value="${esc(url)}" /><button class="btn gold" id="deckShareCopy">${tr('Copy')}</button></div>
+        <p class="share-note">${tr('Anyone with this link can view {name} and like it. It updates automatically when you change the deck.', { name: '<b>' + esc(deck.name) + '</b>' })} <a href="${esc(url)}" target="_blank" rel="noopener">${tr('Open ↗')}</a></p>
+        ${qrMarkup ? `<div class="share-qr"><div class="share-qr-code">${qrMarkup}</div><div class="share-qr-side"><div class="share-qr-cap">${tr('Scan to open on a phone.')}</div><button class="btn gold sm" id="deckShareQr">${tr('Download QR')}</button></div></div>` : ''}
       </div>
-      <button class="btn share-create" id="deckUnpublishBtn"><i class="ms ms-counter-skull" aria-hidden="true"></i> Unpublish this deck</button>`;
+      <button class="btn share-create" id="deckUnpublishBtn"><i class="ms ms-counter-skull" aria-hidden="true"></i> ${tr('Unpublish this deck')}</button>`;
   } else {
     const n = deck.cards.reduce((a, c) => a + c.qty, 0);
     body.innerHTML = `
-      <p class="share-lead">Publish <b>${esc(deck.name)}</b> — ${n} card${n === 1 ? '' : 's'} — so other players can view and like it. Your collection and prices stay private.</p>
-      <button class="btn gold share-create" id="deckPublishBtn" ${deck.cards.length ? '' : 'disabled'}><i class="ms ms-commander" aria-hidden="true"></i> Publish to community</button>`;
+      <p class="share-lead">${tr(n === 1 ? 'Publish {name} — {n} card — so other players can view and like it. Your collection and prices stay private.' : 'Publish {name} — {n} cards — so other players can view and like it. Your collection and prices stay private.', { name: '<b>' + esc(deck.name) + '</b>', n })}</p>
+      <button class="btn gold share-create" id="deckPublishBtn" ${deck.cards.length ? '' : 'disabled'}><i class="ms ms-commander" aria-hidden="true"></i> ${tr('Publish to community')}</button>`;
   }
 }
 async function doPublishDeck() {
   const deck = state.decks.find(d => d.id === deckShareDeckId); if (!deck) return;
-  const btn = $('#deckPublishBtn'); if (btn) { btn.disabled = true; btn.textContent = 'Publishing…'; }
+  const btn = $('#deckPublishBtn'); if (btn) { btn.disabled = true; btn.textContent = tr('Publishing…'); }
   const r = await publishDeck(deck);
-  if (r.error) { toast(r.error === 'empty' ? 'This deck is empty — add cards first.' : 'Could not publish: ' + r.error); renderDeckShareModal(); return; }
+  if (r.error) { toast(r.error === 'empty' ? tr('This deck is empty — add cards first.') : tr('Could not publish:') + ' ' + r.error); renderDeckShareModal(); return; }
   renderDeckShareModal(); renderDeckDetail();
   const ok = await copyText(r.url);
-  toast(ok ? 'Deck published & link copied ✓' : 'Deck published ✓');
+  toast(ok ? tr('Deck published & link copied ✓') : tr('Deck published ✓'));
 }
 async function doUnpublishDeck() {
   const deck = state.decks.find(d => d.id === deckShareDeckId); if (!deck) return;
-  if (!confirm(`Unpublish “${deck.name}”? Its public link and any likes will be removed.`)) return;
+  if (!confirm(tr('Unpublish “{name}”? Its public link and any likes will be removed.', { name: deck.name }))) return;
   await unpublishDeck(deck);
   renderDeckShareModal(); renderDeckDetail();
-  toast('Deck unpublished.');
+  toast(tr('Deck unpublished.'));
 }
 let liveShareBusy = false;
 async function refreshLiveShares() {
@@ -5040,7 +5064,7 @@ function closeShare() { const m = $('#shareModal'); if (m) m.hidden = true; }
 function renderShareModal() {
   const body = $('#shareBody'); if (!body) return;
   if (!sb || !authUser) {
-    body.innerHTML = `<div class="share-signin"><p>Create a free account to make shareable links — your lists sync across your devices too.</p><button class="btn gold" id="shareSignIn">Sign in / Create account</button></div>`;
+    body.innerHTML = `<div class="share-signin"><p>${tr('Create a free account to make shareable links — your lists sync across your devices too.')}</p><button class="btn gold" id="shareSignIn">${tr('Sign in / Create account')}</button></div>`;
     return;
   }
   const { kind, folderId, live } = shareCtx;
@@ -5048,52 +5072,52 @@ function renderShareModal() {
   const shareData = shareDataFor(kind, folderId);   // buy share now folds in your binders as categories
   const items = shareData.items;
   const count = items.reduce((a, i) => a + i.qty, 0);
-  const secNote = (shareData.sections && shareData.sections.length > 1) ? ` · <b>${shareData.sections.length} categories</b>` : '';
+  const secNote = (shareData.sections && shareData.sections.length > 1) ? ` · <b>${tr('{n} categories', { n: shareData.sections.length })}</b>` : '';
   const existing = myShares.filter(s => s.kind === kind && (kind === 'buy' || s.source === folderId));
   const qrMarkup = shareLastResult ? qrSvg(shareLastResult.url, { margin: 4 }) : '';   // '' if the QR lib didn't load — then we omit the whole block (no dead button)
   const result = shareLastResult ? `
     <div class="share-result">
-      <div class="share-result-h"><i class="ms ms-counter-gold" aria-hidden="true"></i> Link ready${shareLastResult.live ? ' · <b>live</b>' : ''}</div>
-      <div class="share-link-row"><input type="text" id="shareLinkInput" readonly value="${esc(shareLastResult.url)}" /><button class="btn gold" id="shareCopyBtn">Copy</button></div>
-      <p class="share-note">${shareLastResult.live ? 'This link always shows your current list.' : `A snapshot of your list right now — it won’t change. Expires in ${SHARE_TTL_DAYS} days.`} <a href="${esc(shareLastResult.url)}" target="_blank" rel="noopener">Open preview ↗</a></p>
+      <div class="share-result-h"><i class="ms ms-counter-gold" aria-hidden="true"></i> ${tr('Link ready')}${shareLastResult.live ? ' · <b>' + tr('live') + '</b>' : ''}</div>
+      <div class="share-link-row"><input type="text" id="shareLinkInput" readonly value="${esc(shareLastResult.url)}" /><button class="btn gold" id="shareCopyBtn">${tr('Copy')}</button></div>
+      <p class="share-note">${shareLastResult.live ? tr('This link always shows your current list.') : tr('A snapshot of your list right now — it won’t change. Expires in {n} days.', { n: SHARE_TTL_DAYS })} <a href="${esc(shareLastResult.url)}" target="_blank" rel="noopener">${tr('Open preview ↗')}</a></p>
       ${qrMarkup ? `<div class="share-qr">
         <div class="share-qr-code">${qrMarkup}</div>
         <div class="share-qr-side">
-          <div class="share-qr-cap">Scan to open on a phone — great for trade posts &amp; in person.</div>
-          <button class="btn gold sm" id="shareQrDownload">Download QR</button>
+          <div class="share-qr-cap">${tr('Scan to open on a phone — great for trade posts & in person.')}</div>
+          <button class="btn gold sm" id="shareQrDownload">${tr('Download QR')}</button>
         </div>
       </div>` : ''}
     </div>` : '';
   body.innerHTML = `
     ${result}
-    <p class="share-lead">Sharing <b>${esc(title)}</b> — ${count} card${count === 1 ? '' : 's'}${secNote}${items.length ? '' : ' · <span class="share-empty">this list is empty</span>'}.</p>
+    <p class="share-lead">${tr(count === 1 ? 'Sharing {title} — {n} card' : 'Sharing {title} — {n} cards', { title: '<b>' + esc(title) + '</b>', n: count })}${secNote}${items.length ? '' : ' · <span class="share-empty">' + tr('this list is empty') + '</span>'}.</p>
     <div class="share-kindwrap">
-      <button class="share-opt ${!live ? 'on' : ''}" data-sharelive="0"><div class="share-opt-t">Snapshot</div><div class="share-opt-d">Freezes the list as it is now. Best for a single trade.</div></button>
-      <button class="share-opt ${live ? 'on' : ''}" data-sharelive="1"><div class="share-opt-t">Live link</div><div class="share-opt-d">Always shows your current list — updates when you change it.</div></button>
+      <button class="share-opt ${!live ? 'on' : ''}" data-sharelive="0"><div class="share-opt-t">${tr('Snapshot')}</div><div class="share-opt-d">${tr('Freezes the list as it is now. Best for a single trade.')}</div></button>
+      <button class="share-opt ${live ? 'on' : ''}" data-sharelive="1"><div class="share-opt-t">${tr('Live link')}</div><div class="share-opt-d">${tr('Always shows your current list — updates when you change it.')}</div></button>
     </div>
-    <button class="btn gold share-create" id="shareCreateBtn" ${items.length ? '' : 'disabled'}>Create ${live ? 'live ' : ''}link</button>
-    ${existing.length ? `<div class="share-existing"><div class="share-existing-h">Existing links for this list</div>${existing.map(shareRowHtml).join('')}</div>` : ''}`;
+    <button class="btn gold share-create" id="shareCreateBtn" ${items.length ? '' : 'disabled'}>${live ? tr('Create live link') : tr('Create link')}</button>
+    ${existing.length ? `<div class="share-existing"><div class="share-existing-h">${tr('Existing links for this list')}</div>${existing.map(shareRowHtml).join('')}</div>` : ''}`;
 }
 function shareRowHtml(s) {
-  const exp = s.expires_at ? `expires ${new Date(s.expires_at).toLocaleDateString()}` : 'no expiry';
+  const exp = s.expires_at ? tr('expires {date}', { date: new Date(s.expires_at).toLocaleDateString(I18N.locale()) }) : tr('no expiry');
   return `<div class="share-ex-row">
-    <span class="share-ex-tag ${s.live ? 'live' : ''}">${s.live ? 'LIVE' : 'SNAP'}</span>
+    <span class="share-ex-tag ${s.live ? 'live' : ''}">${s.live ? tr('LIVE') : tr('SNAP')}</span>
     <code class="share-ex-code">${esc(s.code)}</code>
     <span class="share-ex-meta">${esc(s.title || '')} · ${exp}</span>
-    <button class="link-btn" data-shareqr="${esc(s.code)}">QR</button>
-    <button class="link-btn" data-sharecopy="${esc(s.code)}">Copy</button>
-    <button class="link-btn danger" data-sharerevoke="${esc(s.code)}">Revoke</button>
+    <button class="link-btn" data-shareqr="${esc(s.code)}">${tr('QR')}</button>
+    <button class="link-btn" data-sharecopy="${esc(s.code)}">${tr('Copy')}</button>
+    <button class="link-btn danger" data-sharerevoke="${esc(s.code)}">${tr('Revoke')}</button>
   </div>`;
 }
 async function doCreateShare() {
-  const btn = $('#shareCreateBtn'); if (btn) { btn.disabled = true; btn.textContent = 'Creating…'; }
+  const btn = $('#shareCreateBtn'); if (btn) { btn.disabled = true; btn.textContent = tr('Creating…'); }
   const r = await createShare(shareCtx.kind, shareCtx.folderId, shareCtx.live);
-  if (r.error) { toast(r.error === 'empty' ? 'That list is empty — nothing to share.' : r.error === 'not signed in' ? 'Sign in to create a link.' : 'Could not create the link: ' + r.error); if (btn) { btn.disabled = false; btn.textContent = 'Create ' + (shareCtx.live ? 'live ' : '') + 'link'; } return; }
+  if (r.error) { toast(r.error === 'empty' ? tr('That list is empty — nothing to share.') : r.error === 'not signed in' ? tr('Sign in to create a link.') : tr('Could not create the link:') + ' ' + r.error); if (btn) { btn.disabled = false; btn.textContent = shareCtx.live ? tr('Create live link') : tr('Create link'); } return; }
   shareLastResult = { url: r.url, live: shareCtx.live };
   renderShareModal();
   renderProfileView();   // keep the profile's "Shared links" card in sync (no-ops when that view is hidden)
   const ok = await copyText(r.url);
-  toast(ok ? 'Share link created & copied ✓' : 'Share link created ✓');
+  toast(ok ? tr('Share link created & copied ✓') : tr('Share link created ✓'));
 }
 // share.html "Match with my lists" hands a list off via localStorage; consume it on boot.
 // A SELL link (their haves) → match against MY Buy List; a BUY link (their wants) → match against MY Sell List.
@@ -5104,13 +5128,13 @@ function consumeIncomingMatch() {
   try { localStorage.removeItem(INCOMING_KEY); } catch (e) {}
   let inc; try { inc = JSON.parse(raw); } catch (e) { return; }
   if (!inc || !inc.text) return;
-  const who = (typeof inc.from === 'string' && inc.from.trim()) ? inc.from.trim() + '’s' : 'their';
+  const who = (typeof inc.from === 'string' && inc.from.trim()) ? tr('{name}’s', { name: inc.from.trim() }) : tr('their');
   if (inc.kind === 'buy') {
     sellMatchText = inc.text; sellMatchOpen = true; setView('selllist'); renderSellList(); runSellMatch();
-    toast(`Matched ${who} wants against your Sell List.`);
+    toast(tr('Matched {who} wants against your Sell List.', { who }));
   } else {
     buyMatchText = inc.text; buyMatchOpen = true; setView('buylist'); renderBuyList(); runBuyMatch();
-    toast(`Matched ${who} list against your Buy List.`);
+    toast(tr('Matched {who} list against your Buy List.', { who }));
   }
 }
 // d.html "Import this deck" hands the deck off via localStorage; import it into the user's decks on boot.
@@ -5122,17 +5146,17 @@ async function consumeIncomingDeck() {
   let inc; try { inc = JSON.parse(raw); } catch (e) { return; }
   if (!inc || !Array.isArray(inc.cards) || !inc.cards.length) return;
   const name = (typeof inc.name === 'string' && inc.name.trim()) ? inc.name.trim().slice(0, 80) : 'Imported Deck';
-  toast(`Importing “${name}”…`);
+  toast(tr('Importing “{name}”…', { name }));
   try {
     const want = inc.cards.map(c => ({ name: String(c.name || ''), qty: Math.max(1, parseInt(c.qty, 10) || 1) })).filter(c => c.name);
     const { resolved, missing } = await resolveCards(want);
-    if (!resolved.length) { toast('Could not import that deck — no cards resolved.'); return; }
+    if (!resolved.length) { toast(tr('Could not import that deck — no cards resolved.')); return; }
     const cards = resolved.map(c => ({ name: c.name, qty: c.qty }));
     const deck = { id: uid(), name, cards, original: cards.map(c => ({ ...c })), commander: (typeof inc.commander === 'string' ? inc.commander : '') };
     state.decks.push(deck);
     save(); render(); openDeck(deck.id);
-    toast(`Imported “${name}”${missing ? ` · ${missing} card${missing > 1 ? 's' : ''} not found` : ''}.`);
-  } catch (e) { toast('Scryfall lookup failed — try again.'); }
+    toast(tr('Imported “{name}”', { name }) + (missing ? ' · ' + tr(missing === 1 ? '{n} card not found' : '{n} cards not found', { n: missing }) : '') + '.');
+  } catch (e) { toast(tr('Scryfall lookup failed — try again.')); }
 }
 
 /* =====================================================================
@@ -5177,40 +5201,40 @@ async function loadStoreMembers() {
   try { const { data } = await sb.rpc('get_store_members', { p_slug: myStore.slug }); storeMembers = Array.isArray(data) ? data : []; renderStoreStaff(); } catch (e) {}
 }
 async function generateStoreStaffInvite() {
-  if (!sb || !myStore || !isStoreOwner()) { toast('Only the store owner can invite staff.'); return; }
+  if (!sb || !myStore || !isStoreOwner()) { toast(tr('Only the store owner can invite staff.')); return; }
   const code = shareCode();
   try {
     const { error } = await sb.rpc('create_store_staff_invite', { p_slug: myStore.slug, p_code: code });
-    if (error) { toast('Could not create staff invite: ' + error.message); return; }
+    if (error) { toast(tr('Could not create staff invite:') + ' ' + error.message); return; }
     const url = storeStaffInviteUrl(code), box = $('#storeStaffInvite');
     if (box) {
       const qr = qrSvg(url, { margin: 4 });
-      box.innerHTML = `<div class="share-result"><div class="share-result-h"><i class="ms ms-counter-lore" aria-hidden="true"></i> Staff invite link</div>
-        <div class="share-link-row"><input type="text" id="staffInviteLink" readonly value="${esc(url)}" /><button class="btn gold" id="staffInviteCopy">Copy</button></div>
-        <p class="share-note">Send this to a co-manager. When they open it while signed in, they join as a <b>manager</b>. Works once.</p>
-        ${qr ? `<div class="share-qr"><div class="share-qr-code">${qr}</div><div class="share-qr-side"><div class="share-qr-cap">Or have them scan this.</div><button class="btn gold sm" id="staffInviteQr">Download QR</button></div></div>` : ''}</div>`;
+      box.innerHTML = `<div class="share-result"><div class="share-result-h"><i class="ms ms-counter-lore" aria-hidden="true"></i> ${tr('Staff invite link')}</div>
+        <div class="share-link-row"><input type="text" id="staffInviteLink" readonly value="${esc(url)}" /><button class="btn gold" id="staffInviteCopy">${tr('Copy')}</button></div>
+        <p class="share-note">${tr('Send this to a co-manager. When they open it while signed in, they join as a {manager}. Works once.', { manager: '<b>' + tr('manager') + '</b>' })}</p>
+        ${qr ? `<div class="share-qr"><div class="share-qr-code">${qr}</div><div class="share-qr-side"><div class="share-qr-cap">${tr('Or have them scan this.')}</div><button class="btn gold sm" id="staffInviteQr">${tr('Download QR')}</button></div></div>` : ''}</div>`;
     }
     copyText(url);
-    toast('Staff invite created & copied ✓');
-  } catch (e) { toast('Could not create staff invite.'); }
+    toast(tr('Staff invite created & copied ✓'));
+  } catch (e) { toast(tr('Could not create staff invite.')); }
 }
 async function removeStoreMember(uid) {
   if (!sb || !myStore || !isStoreOwner()) return;
   const m = storeMembers.find(x => x.user_id === uid);
-  if (!confirm(`Remove ${m && m.username ? '@' + m.username : 'this manager'} from the store?`)) return;
+  if (!confirm(tr('Remove {who} from the store?', { who: m && m.username ? '@' + m.username : tr('this manager') }))) return;
   try {
     const { error } = await sb.rpc('remove_store_member', { p_slug: myStore.slug, p_user: uid });
-    if (error) { toast('Could not remove: ' + error.message); return; }
-    await loadStoreMembers(); toast('Manager removed.');
-  } catch (e) { toast('Could not remove the manager.'); }
+    if (error) { toast(tr('Could not remove:') + ' ' + error.message); return; }
+    await loadStoreMembers(); toast(tr('Manager removed.'));
+  } catch (e) { toast(tr('Could not remove the manager.')); }
 }
 function renderStoreStaff() {
   const list = $('#storeStaffList'); if (!list) return;
-  if (!storeMembers.length) { list.innerHTML = `<p class="bd-note">Loading…</p>`; return; }
+  if (!storeMembers.length) { list.innerHTML = `<p class="bd-note">${tr('Loading…')}</p>`; return; }
   list.innerHTML = storeMembers.map(m => {
     const owner = m.role === 'owner';
-    const who = m.username ? '@' + esc(m.username) : (m.display_name ? esc(m.display_name) : 'Member');
-    return `<div class="store-staff-row"><span class="ss-role${owner ? ' owner' : ''}">${owner ? 'Owner' : 'Manager'}</span><span class="ss-who">${who}</span>${(isStoreOwner() && !owner) ? `<button class="link-btn danger" data-staffrm="${esc(m.user_id)}">Remove</button>` : ''}</div>`;
+    const who = m.username ? '@' + esc(m.username) : (m.display_name ? esc(m.display_name) : tr('Member'));
+    return `<div class="store-staff-row"><span class="ss-role${owner ? ' owner' : ''}">${owner ? tr('Owner') : tr('Manager')}</span><span class="ss-who">${who}</span>${(isStoreOwner() && !owner) ? `<button class="link-btn danger" data-staffrm="${esc(m.user_id)}">${tr('Remove')}</button>` : ''}</div>`;
   }).join('');
 }
 
@@ -5222,18 +5246,18 @@ function consumeStaffInvite() {
   try { const url = new URL(location.href); url.searchParams.delete('store-staff'); history.replaceState(null, '', url.toString()); } catch (e) {}
   pendingStaffInvite = code;
   if (authUser) redeemStaffInvite();
-  else setTimeout(() => { if (pendingStaffInvite && !authUser) { toast('Sign in to join this store as staff.'); openAuth('signup'); } }, 1800);
+  else setTimeout(() => { if (pendingStaffInvite && !authUser) { toast(tr('Sign in to join this store as staff.')); openAuth('signup'); } }, 1800);
 }
 async function redeemStaffInvite() {
   if (!sb || !authUser || !pendingStaffInvite) return;
   const code = pendingStaffInvite; pendingStaffInvite = null;
   try {
     const { error } = await sb.rpc('redeem_store_staff_invite', { p_code: code });
-    if (error) { toast('Staff invite: ' + error.message); return; }
+    if (error) { toast(tr('Staff invite:') + ' ' + error.message); return; }
     await loadMyStore(); refreshStoreMenu();
     setView('store'); render();
-    toast('You’re now a manager of this store.');
-  } catch (e) { toast('Could not join the store.'); }
+    toast(tr('You’re now a manager of this store.'));
+  } catch (e) { toast(tr('Could not join the store.')); }
 }
 async function loadStoreEvents() {
   if (!sb || !myStore) { storeEvents = []; return; }
@@ -5262,26 +5286,26 @@ function refreshStoreMenu() {
 
 /* ---- admin: mint a one-time store invite ---- */
 async function generateStoreInvite() {
-  if (!sb || !authUser || !isStoreAdmin()) { toast('Admins only.'); return; }
-  const note = prompt('Store invite — a note for you (e.g. the store this is for):', '');
+  if (!sb || !authUser || !isStoreAdmin()) { toast(tr('Admins only.')); return; }
+  const note = prompt(tr('Store invite — a note for you (e.g. the store this is for):'), '');
   if (note === null) return;
   const code = shareCode();
   try {
     const { error } = await sb.rpc('create_store_invite', { p_code: code, p_note: note || null });
-    if (error) { toast('Could not create invite: ' + error.message); return; }
+    if (error) { toast(tr('Could not create invite:') + ' ' + error.message); return; }
     storeInviteResult = storeInviteUrl(code);
     const m = $('#storeInviteModal'); if (m) m.hidden = false;
     renderStoreInviteModal();
     copyText(storeInviteResult);
-  } catch (e) { toast('Could not create invite.'); }
+  } catch (e) { toast(tr('Could not create invite.')); }
 }
 function closeStoreInvite() { const m = $('#storeInviteModal'); if (m) m.hidden = true; }
 function renderStoreInviteModal() {
   const body = $('#storeInviteBody'); if (!body) return;
   const url = storeInviteResult, qr = qrSvg(url, { margin: 4 });
-  body.innerHTML = `<p class="share-note">Send this one-time link to a store owner. When they open it while signed in, they can create their store. It works once.</p>
-    <div class="share-link-row"><input type="text" id="storeInviteLink" readonly value="${esc(url)}" /><button class="btn gold" id="storeInviteCopy">Copy</button></div>
-    ${qr ? `<div class="share-qr"><div class="share-qr-code">${qr}</div><div class="share-qr-side"><div class="share-qr-cap">Or have them scan this.</div><button class="btn gold sm" id="storeInviteQr">Download QR</button></div></div>` : ''}`;
+  body.innerHTML = `<p class="share-note">${tr('Send this one-time link to a store owner. When they open it while signed in, they can create their store. It works once.')}</p>
+    <div class="share-link-row"><input type="text" id="storeInviteLink" readonly value="${esc(url)}" /><button class="btn gold" id="storeInviteCopy">${tr('Copy')}</button></div>
+    ${qr ? `<div class="share-qr"><div class="share-qr-code">${qr}</div><div class="share-qr-side"><div class="share-qr-cap">${tr('Or have them scan this.')}</div><button class="btn gold sm" id="storeInviteQr">${tr('Download QR')}</button></div></div>` : ''}`;
 }
 
 /* ---- redeem an invite + create the store ---- */
@@ -5294,101 +5318,101 @@ function consumeStoreInvite() {
   // the auth session restores async after boot — if already signed in, prompt now; otherwise afterSignIn() will,
   // and if no session restores at all, fall back to asking them to sign in.
   if (authUser) maybePromptStoreCreate();
-  else setTimeout(() => { if (pendingStoreInvite && !authUser) { toast('Sign in or create an account to set up your store.'); openAuth('signup'); } }, 1800);
+  else setTimeout(() => { if (pendingStoreInvite && !authUser) { toast(tr('Sign in or create an account to set up your store.')); openAuth('signup'); } }, 1800);
 }
 function maybePromptStoreCreate() {
   if (!pendingStoreInvite) return;
-  if (!authUser) { toast('Sign in (or make an account) to set up your store.'); openAuth('signup'); return; }
-  if (myStore) { toast('This account already runs a store.'); pendingStoreInvite = null; setView('store'); render(); return; }
+  if (!authUser) { toast(tr('Sign in (or make an account) to set up your store.')); openAuth('signup'); return; }
+  if (myStore) { toast(tr('This account already runs a store.')); pendingStoreInvite = null; setView('store'); render(); return; }
   closeAuth();   // dismiss any auth modal a slow session-restore may have popped, so it can't stack behind the create modal
   const m = $('#storeCreateModal'); if (m) m.hidden = false; renderStoreCreate();
 }
 function closeStoreCreate() { const m = $('#storeCreateModal'); if (m) m.hidden = true; pendingStoreInvite = null; }
 function renderStoreCreate() {
   const body = $('#storeCreateBody'); if (!body) return;
-  body.innerHTML = `<p class="share-note">You've been invited to open a store on The Vault. Pick a name and a web address.</p>
-    <label class="ve-field"><span>Store name</span><input type="text" id="scName" class="text-input" maxlength="60" placeholder="Wonderland TCG" /></label>
-    <label class="ve-field"><span>Store address <em>(letters, numbers, dashes)</em></span><div class="slug-row"><span class="slug-pre">…/s.html?s=</span><input type="text" id="scSlug" class="text-input" maxlength="40" placeholder="wonderland" /></div></label>
+  body.innerHTML = `<p class="share-note">${tr("You've been invited to open a store on The Vault. Pick a name and a web address.")}</p>
+    <label class="ve-field"><span>${tr('Store name')}</span><input type="text" id="scName" class="text-input" maxlength="60" placeholder="${esc(tr('Wonderland TCG'))}" /></label>
+    <label class="ve-field"><span>${tr('Store address')} <em>${tr('(letters, numbers, dashes)')}</em></span><div class="slug-row"><span class="slug-pre">…/s.html?s=</span><input type="text" id="scSlug" class="text-input" maxlength="40" placeholder="wonderland" /></div></label>
     <div class="modal-status" id="scStatus"></div>
-    <button class="btn gold" id="scCreate">Create my store</button>`;
+    <button class="btn gold" id="scCreate">${tr('Create my store')}</button>`;
 }
 async function doRedeemStore() {
   const name = ($('#scName') ? $('#scName').value : '').trim();
   const slug = ($('#scSlug') ? $('#scSlug').value : '').trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '');
   const st = $('#scStatus');
-  if (!name) { if (st) st.textContent = 'Enter a store name.'; return; }
-  if (slug.length < 3) { if (st) st.textContent = 'The address needs at least 3 letters or numbers.'; return; }
-  if (!pendingStoreInvite) { if (st) st.textContent = 'Your invite link is missing — reopen it.'; return; }
-  const btn = $('#scCreate'); if (btn) { btn.disabled = true; btn.textContent = 'Creating…'; }
+  if (!name) { if (st) st.textContent = tr('Enter a store name.'); return; }
+  if (slug.length < 3) { if (st) st.textContent = tr('The address needs at least 3 letters or numbers.'); return; }
+  if (!pendingStoreInvite) { if (st) st.textContent = tr('Your invite link is missing — reopen it.'); return; }
+  const btn = $('#scCreate'); if (btn) { btn.disabled = true; btn.textContent = tr('Creating…'); }
   try {
     const { error } = await sb.rpc('redeem_store_invite', { p_code: pendingStoreInvite, p_slug: slug, p_name: name });
-    if (error) { if (st) st.textContent = error.message; if (btn) { btn.disabled = false; btn.textContent = 'Create my store'; } return; }
+    if (error) { if (st) st.textContent = error.message; if (btn) { btn.disabled = false; btn.textContent = tr('Create my store'); } return; }
     pendingStoreInvite = null;
     await loadMyStore(); refreshStoreMenu();
     closeStoreCreate(); setView('store'); render();
-    toast('Your store is live! Add your hours, events and library.');
-  } catch (e) { if (st) st.textContent = 'Something went wrong.'; if (btn) { btn.disabled = false; btn.textContent = 'Create my store'; } }
+    toast(tr('Your store is live! Add your hours, events and library.'));
+  } catch (e) { if (st) st.textContent = tr('Something went wrong.'); if (btn) { btn.disabled = false; btn.textContent = tr('Create my store'); } }
 }
 
 /* ---- store dashboard (owner editor) ---- */
 const STORE_DAYS = [['mon', 'Mon'], ['tue', 'Tue'], ['wed', 'Wed'], ['thu', 'Thu'], ['fri', 'Fri'], ['sat', 'Sat'], ['sun', 'Sun']];
 function renderStoreDashboard() {
   const el = $('#storeDashboard'); if (!el) return;
-  if (!authUser) { el.innerHTML = `<div class="empty-state" style="padding:60px 20px"><span class="empty-mark"><i class="ms ms-counter-lore"></i></span><h2>Sign in</h2><p>Store management needs your account.</p></div>`; return; }
-  if (!myStore) { el.innerHTML = `<div class="empty-state" style="padding:60px 20px"><span class="empty-mark"><i class="ms ms-counter-lore"></i></span><h2>No store on this account</h2><p>Store profiles are invite-only. If you run a game store and want one, ask for an invite link.</p></div>`; return; }
+  if (!authUser) { el.innerHTML = `<div class="empty-state" style="padding:60px 20px"><span class="empty-mark"><i class="ms ms-counter-lore"></i></span><h2>${tr('Sign in')}</h2><p>${tr('Store management needs your account.')}</p></div>`; return; }
+  if (!myStore) { el.innerHTML = `<div class="empty-state" style="padding:60px 20px"><span class="empty-mark"><i class="ms ms-counter-lore"></i></span><h2>${tr('No store on this account')}</h2><p>${tr('Store profiles are invite-only. If you run a game store and want one, ask for an invite link.')}</p></div>`; return; }
   const s = myStore, soc = s.socials || {}, hours = s.hours || {};
   const fld = (key, label, ph, val, type) => `<label class="ve-field"><span>${label}</span><input type="${type || 'text'}" class="text-input" data-storefield="${key}" value="${esc(val || '')}" placeholder="${esc(ph || '')}" /></label>`;
   const socFld = (key, label, ph) => `<label class="ve-field"><span>${label}</span><input type="text" class="text-input" data-social="${key}" value="${esc(soc[key] || '')}" placeholder="${esc(ph)}" /></label>`;
   const dayRow = (k, lbl) => { const h = hours[k] || {}; return `<div class="hr-row"><span class="hr-day">${lbl}</span><input type="time" class="hr-time" data-hours="${k}" data-bound="open" value="${esc(h.open || '')}" /><span class="hr-dash">–</span><input type="time" class="hr-time" data-hours="${k}" data-bound="close" value="${esc(h.close || '')}" /></div>`; };
   el.innerHTML = `
     <div class="store-head">
-      <div><h2 class="view-title">${esc(s.name)} <span class="verified-chip"><i class="ms ms-counter-shield"></i> Verified</span></h2>
-      <p class="view-sub"><a href="${esc(storePublicUrl(s.slug))}" target="_blank" rel="noopener">View public page ↗</a> · <span id="storeSaveState" class="store-savestate"></span></p></div>
+      <div><h2 class="view-title">${esc(s.name)} <span class="verified-chip"><i class="ms ms-counter-shield"></i> ${tr('Verified')}</span></h2>
+      <p class="view-sub"><a href="${esc(storePublicUrl(s.slug))}" target="_blank" rel="noopener">${tr('View public page ↗')}</a> · <span id="storeSaveState" class="store-savestate"></span></p></div>
       <div class="store-head-actions">
-        <button class="btn" id="storeCopyLink"><i class="ms ms-counter-lore btn-ico"></i> Copy link</button>
+        <button class="btn" id="storeCopyLink"><i class="ms ms-counter-lore btn-ico"></i> ${tr('Copy link')}</button>
       </div>
     </div>
     <div class="store-grid">
-      <section class="store-card"><h3>Details</h3>
-        ${fld('name', 'Store name', '', s.name)}
-        <label class="ve-field"><span>Bio</span><textarea class="text-input store-bio" data-storefield="bio" maxlength="400" placeholder="What's your store about?">${esc(s.bio || '')}</textarea></label>
-        <div class="store-2col">${fld('city', 'City', 'Lima', s.city)}${fld('country', 'Country', 'Peru', s.country)}</div>
-        ${fld('address', 'Address', 'Av. Larco 345, Miraflores', s.address)}
-        <div class="store-2col">${fld('phone', 'Phone', '', s.phone)}${fld('whatsapp', 'WhatsApp', '+51…', s.whatsapp)}</div>
-        ${fld('website', 'Website', 'https://…', s.website)}
-        ${fld('logo', 'Logo image URL', 'https://…', s.logo)}
-        <label class="pv-toggle" style="margin-top:8px"><input type="checkbox" id="storeShowOwner" ${s.show_owner ? 'checked' : ''}/> Link my store &amp; player profile to each other (shows “Run by @${esc((authProfile && authProfile.username) || 'me')}” here and “Runs ${esc(s.name)}” on my profile)</label>
+      <section class="store-card"><h3>${tr('Details')}</h3>
+        ${fld('name', tr('Store name'), '', s.name)}
+        <label class="ve-field"><span>${tr('Bio')}</span><textarea class="text-input store-bio" data-storefield="bio" maxlength="400" placeholder="${tr("What's your store about?")}">${esc(s.bio || '')}</textarea></label>
+        <div class="store-2col">${fld('city', tr('City'), 'Lima', s.city)}${fld('country', tr('Country'), 'Peru', s.country)}</div>
+        ${fld('address', tr('Address'), 'Av. Larco 345, Miraflores', s.address)}
+        <div class="store-2col">${fld('phone', tr('Phone'), '', s.phone)}${fld('whatsapp', tr('WhatsApp'), '+51…', s.whatsapp)}</div>
+        ${fld('website', tr('Website'), 'https://…', s.website)}
+        ${fld('logo', tr('Logo image URL'), 'https://…', s.logo)}
+        <label class="pv-toggle" style="margin-top:8px"><input type="checkbox" id="storeShowOwner" ${s.show_owner ? 'checked' : ''}/> ${tr('Link my store & player profile to each other (shows “Run by @{user}” here and “Runs {store}” on my profile)', { user: esc((authProfile && authProfile.username) || 'me'), store: esc(s.name) })}</label>
       </section>
       <section class="store-card">
-        <h3>Socials</h3>
+        <h3>${tr('Socials')}</h3>
         ${socFld('instagram', 'Instagram', 'https://instagram.com/…')}
         ${socFld('facebook', 'Facebook', 'https://facebook.com/…')}
         ${socFld('x', 'X / Twitter', 'https://x.com/…')}
         ${socFld('discord', 'Discord', 'https://discord.gg/…')}
-        <h3 style="margin-top:20px">Open hours</h3>
-        <div class="hours-editor">${STORE_DAYS.map(([k, l]) => dayRow(k, l)).join('')}</div>
+        <h3 style="margin-top:20px">${tr('Open hours')}</h3>
+        <div class="hours-editor">${STORE_DAYS.map(([k, l]) => dayRow(k, tr(l))).join('')}</div>
       </section>
     </div>
     <section class="store-card store-inv">
-      <div class="store-card-h"><h3>Inventory <span class="store-savestate" id="invCount"></span></h3>
-        <div class="seg" id="storeInvMode"><button class="seg-btn ${storeInvMode === 'art' ? 'is-active' : ''}" data-imode="art"><i class="ms ms-token"></i> Art</button><button class="seg-btn ${storeInvMode === 'list' ? 'is-active' : ''}" data-imode="list"><i class="ms ms-multiple"></i> List</button></div>
+      <div class="store-card-h"><h3>${tr('Inventory')} <span class="store-savestate" id="invCount"></span></h3>
+        <div class="seg" id="storeInvMode"><button class="seg-btn ${storeInvMode === 'art' ? 'is-active' : ''}" data-imode="art"><i class="ms ms-token"></i> ${tr('Art')}</button><button class="seg-btn ${storeInvMode === 'list' ? 'is-active' : ''}" data-imode="list"><i class="ms ms-multiple"></i> ${tr('List')}</button></div>
       </div>
-      <p class="bd-note" style="margin:0 0 12px">Every card here is automatically for sale (at Card Kingdom price) — unless you mark it <b>Reserved</b>. Search a card and hit <b>Sell</b> when one leaves the shelf.</p>
+      <p class="bd-note" style="margin:0 0 12px">${tr('Every card here is automatically for sale (at Card Kingdom price) — unless you mark it {reserved}. Search a card and hit {sell} when one leaves the shelf.', { reserved: '<b>' + tr('Reserved') + '</b>', sell: '<b>' + tr('Sell') + '</b>' })}</p>
       <div class="inv-actions">
-        <button class="btn gold sm" id="invAddCards"><i class="ms ms-multiple btn-ico" aria-hidden="true"></i> Add cards</button>
-        <button class="btn sm" id="invRefreshPrices" title="Pull the latest Card Kingdom prices"><i class="ms ms-counter-gold btn-ico" aria-hidden="true"></i> Refresh prices</button>
+        <button class="btn gold sm" id="invAddCards"><i class="ms ms-multiple btn-ico" aria-hidden="true"></i> ${tr('Add cards')}</button>
+        <button class="btn sm" id="invRefreshPrices" title="${tr('Pull the latest Card Kingdom prices')}"><i class="ms ms-counter-gold btn-ico" aria-hidden="true"></i> ${tr('Refresh prices')}</button>
       </div>
       <div class="inv-binders" id="storeInvBinders"></div>
-      <input type="search" id="invSearchInput" class="lib-search" placeholder="Search your inventory…" value="${esc(storeInvQuery)}" autocomplete="off" />
+      <input type="search" id="invSearchInput" class="lib-search" placeholder="${tr('Search your inventory…')}" value="${esc(storeInvQuery)}" autocomplete="off" />
       <div class="inv-bulk" id="invBulk" hidden></div>
       <div id="storeInvBody"></div>
     </section>
-    <section class="store-card"><div class="store-card-h"><h3>Events</h3><button class="btn gold sm" id="storeAddEvent">+ Add event</button></div>
+    <section class="store-card"><div class="store-card-h"><h3>${tr('Events')}</h3><button class="btn gold sm" id="storeAddEvent">${tr('+ Add event')}</button></div>
       <div id="storeEventList"></div></section>
-    <section class="store-card"><div class="store-card-h"><h3>Sales &amp; history</h3><span class="store-savestate" id="storeHistSummary"></span></div>
+    <section class="store-card"><div class="store-card-h"><h3>${tr('Sales & history')}</h3><span class="store-savestate" id="storeHistSummary"></span></div>
       <div id="storeHistList"></div></section>
-    <section class="store-card"><div class="store-card-h"><h3>Staff</h3>${isStoreOwner() ? '<button class="btn gold sm" id="storeGenStaff"><i class="ms ms-counter-lore btn-ico" aria-hidden="true"></i> Invite staff</button>' : ''}</div>
-      <p class="bd-note" style="margin:0 0 12px">${isStoreOwner() ? 'Invite other Vault accounts to co-manage this store. They get their own login — no shared password.' : 'You manage this store as staff.'}</p>
+    <section class="store-card"><div class="store-card-h"><h3>${tr('Staff')}</h3>${isStoreOwner() ? `<button class="btn gold sm" id="storeGenStaff"><i class="ms ms-counter-lore btn-ico" aria-hidden="true"></i> ${tr('Invite staff')}</button>` : ''}</div>
+      <p class="bd-note" style="margin:0 0 12px">${isStoreOwner() ? tr('Invite other Vault accounts to co-manage this store. They get their own login — no shared password.') : tr('You manage this store as staff.')}</p>
       <div id="storeStaffInvite"></div>
       <div id="storeStaffList"></div></section>`;
   renderStoreEventList();
@@ -5400,32 +5424,32 @@ function renderStoreDashboard() {
 function renderStoreHistory() {
   const el = $('#storeHistList'); if (!el) return;
   const sum = $('#storeHistSummary');
-  if (!storeTx.length) { el.innerHTML = `<p class="bd-note">No sales yet. The green <b>Sell</b> button on a card logs each sale here — your running record of what's moved.</p>`; if (sum) sum.textContent = ''; return; }
+  if (!storeTx.length) { el.innerHTML = `<p class="bd-note">${tr("No sales yet. The green {sell} button on a card logs each sale here — your running record of what's moved.", { sell: '<b>' + tr('Sell') + '</b>' })}</p>`; if (sum) sum.textContent = ''; return; }
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const sold = storeTx.filter(t => t.kind === 'sold');
   const soldToday = sold.filter(t => t.created_at && new Date(t.created_at) >= today);
   const todayQty = soldToday.reduce((a, t) => a + (Number(t.qty) || 0), 0), todayVal = soldToday.reduce((a, t) => a + (Number(t.value) || 0), 0);
   const shownVal = sold.reduce((a, t) => a + (Number(t.value) || 0), 0);
-  if (sum) sum.textContent = `${todayQty} sold today · ${money(todayVal)} · ${money(shownVal)} recent`;
+  if (sum) sum.textContent = tr('{qty} sold today · {todayVal} · {recentVal} recent', { qty: todayQty, todayVal: money(todayVal), recentVal: money(shownVal) });
   el.innerHTML = storeTx.slice(0, 80).map(t => {
-    const when = t.created_at ? new Date(t.created_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
+    const when = t.created_at ? new Date(t.created_at).toLocaleString(I18N.locale(), { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
     const isSold = t.kind === 'sold';
-    return `<div class="store-tx-row"><span class="tx-badge ${isSold ? 'sold' : 'stock'}">${isSold ? 'Sold' : 'Stocked'}</span><span class="tx-name">${esc(t.name)}</span><span class="tx-qty">${Number(t.qty) || 1}×</span><span class="tx-val${isSold ? ' sold' : ''}">${money(t.value)}</span><span class="tx-when">${esc(when)}</span></div>`;
+    return `<div class="store-tx-row"><span class="tx-badge ${isSold ? 'sold' : 'stock'}">${isSold ? tr('Sold') : tr('Stocked')}</span><span class="tx-name">${esc(t.name)}</span><span class="tx-qty">${Number(t.qty) || 1}×</span><span class="tx-val${isSold ? ' sold' : ''}">${money(t.value)}</span><span class="tx-when">${esc(when)}</span></div>`;
   }).join('');
 }
 function renderStoreEventList() {
   const el = $('#storeEventList'); if (!el) return;
-  if (!storeEvents.length) { el.innerHTML = `<p class="bd-note">No events yet. Add your first — a Commander night, FNM, a tournament…</p>`; return; }
+  if (!storeEvents.length) { el.innerHTML = `<p class="bd-note">${tr('No events yet. Add your first — a Commander night, FNM, a tournament…')}</p>`; return; }
   el.innerHTML = storeEvents.map(ev => {
-    const when = ev.starts_at ? new Date(ev.starts_at).toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'No date set';
-    const bits = [ev.format, ev.recurring ? '↻ ' + ev.recurring : '', ev.prize_pool ? 'Prize ' + ev.prize_pool : ''].filter(Boolean).join(' · ');
+    const when = ev.starts_at ? new Date(ev.starts_at).toLocaleString(I18N.locale(), { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : tr('No date set');
+    const bits = [ev.format, ev.recurring ? '↻ ' + ev.recurring : '', ev.prize_pool ? tr('Prize') + ' ' + ev.prize_pool : ''].filter(Boolean).join(' · ');
     return `<div class="store-ev-row"><div class="sev-main"><div class="sev-title">${esc(ev.title)}</div><div class="sev-when">${esc(when)}${bits ? ' · ' + esc(bits) : ''}</div></div>
-      <button class="link-btn" data-evedit="${esc(ev.id)}">Edit</button><button class="link-btn danger" data-evdel="${esc(ev.id)}">Delete</button></div>`;
+      <button class="link-btn" data-evedit="${esc(ev.id)}">${tr('Edit')}</button><button class="link-btn danger" data-evdel="${esc(ev.id)}">${tr('Delete')}</button></div>`;
   }).join('');
 }
 // debounced field save
 function scheduleStoreSave() {
-  const ss = $('#storeSaveState'); if (ss) ss.textContent = 'Saving…';
+  const ss = $('#storeSaveState'); if (ss) ss.textContent = tr('Saving…');
   clearTimeout(storeSaveTimer); storeSaveTimer = setTimeout(saveStoreNow, 800);
 }
 async function saveStoreNow() {
@@ -5440,8 +5464,8 @@ async function saveStoreNow() {
   };
   try {
     const { error } = await sb.from('store_profiles').update(row).eq('slug', myStore.slug);
-    const ss = $('#storeSaveState'); if (ss) ss.textContent = error ? 'Save failed' : 'Saved ✓';
-  } catch (e) { const ss = $('#storeSaveState'); if (ss) ss.textContent = 'Save failed'; }
+    const ss = $('#storeSaveState'); if (ss) ss.textContent = error ? tr('Save failed') : tr('Saved ✓');
+  } catch (e) { const ss = $('#storeSaveState'); if (ss) ss.textContent = tr('Save failed'); }
 }
 /* ---- store inventory (the store's OWN cards; every one is for sale unless reserved) ---- */
 function storeInv() {
@@ -5475,28 +5499,28 @@ function refreshStorePrices() {
   if (!myStore) return;
   storeInv().cards.forEach(c => { c.price = +(storePriceOf(c.name) || 0).toFixed(2); });
   scheduleStoreSave(); renderStoreInventory();
-  toast('Inventory prices refreshed from Card Kingdom.');
+  toast(tr('Inventory prices refreshed from Card Kingdom.'));
 }
 // sell / restock a single copy — the core "keep a tight ship" action
 function sellInvCopy(name, binder) {
   const c = invCardAt(name, binder); if (!c) return;
   recordStoreTx('sold', name, 1, c.price);   // log the sale to the ledger
   const left = c.qty - 1;
-  if (left <= 0) { removeInvCard(name, binder); toast(`Sold the last ${name} — out of stock.`); }
-  else { c.qty = left; scheduleStoreSave(); renderStoreInvBinders(); renderStoreInventory(); toast(`Sold 1 ${name} · ${left} left in stock.`); }
+  if (left <= 0) { removeInvCard(name, binder); toast(tr('Sold the last {name} — out of stock.', { name })); }
+  else { c.qty = left; scheduleStoreSave(); renderStoreInvBinders(); renderStoreInventory(); toast(tr('Sold 1 {name} · {n} left in stock.', { name, n: left })); }
 }
 function restockInvCopy(name, binder) {
   const c = invCardAt(name, binder); if (!c) return;
   c.qty += 1; recordStoreTx('stocked', name, 1, c.price); scheduleStoreSave(); renderStoreInvBinders(); renderStoreInventory();
-  toast(`Restocked ${name} · ${c.qty} in stock.`);
+  toast(tr('Restocked {name} · {n} in stock.', { name, n: c.qty }));
 }
 async function addInventoryCard(name) {
   name = (name || '').trim(); if (!name || !myStore) return;
   let meta = card(name);
   if (!meta || meta.notFound) {
-    const st = $('#invAddStatus'); if (st) st.textContent = 'Looking up…';
-    try { const idx = await fetchCardData([{ name }]); const c = idx[key(name)] || idx[key(frontFace(name))]; if (c) { state.cards[key(c.name)] = distill(c); name = c.name; } else { if (st) st.textContent = `Couldn’t find “${name}”.`; return; } }
-    catch (e) { const st2 = $('#invAddStatus'); if (st2) st2.textContent = 'Lookup failed — check your connection.'; return; }
+    const st = $('#invAddStatus'); if (st) st.textContent = tr('Looking up…');
+    try { const idx = await fetchCardData([{ name }]); const c = idx[key(name)] || idx[key(frontFace(name))]; if (c) { state.cards[key(c.name)] = distill(c); name = c.name; } else { if (st) st.textContent = tr('Couldn’t find “{name}”.', { name }); return; } }
+    catch (e) { const st2 = $('#invAddStatus'); if (st2) st2.textContent = tr('Lookup failed — check your connection.'); return; }
   }
   const inv = storeInv();
   const ex = inv.cards.find(c => key(c.name) === key(name) && (c.binder || '') === (storeInvBinder || ''));
@@ -5505,7 +5529,7 @@ async function addInventoryCard(name) {
   scheduleStoreSave();
   const inp = $('#invAddInput'); if (inp) { inp.value = ''; inp.focus(); }
   renderStoreInvBinders(); renderStoreInventory();
-  toast(`Added ${name} to your inventory.`);
+  toast(tr('Added {name} to your inventory.', { name }));
 }
 function setInvQty(name, binder, q) { const c = invCardAt(name, binder); if (!c) return; if (q <= 0) storeInv().cards = storeInv().cards.filter(x => x !== c); else c.qty = q; scheduleStoreSave(); renderStoreInvBinders(); renderStoreInventory(); }
 function setInvPrice(name, binder, p) { const c = invCardAt(name, binder); if (!c) return; c.price = Math.max(0, +(parseFloat(p) || 0).toFixed(2)); scheduleStoreSave(); }
@@ -5540,31 +5564,31 @@ function bulkMoveToBinder(toBinder) {
   cards.forEach(c => { c.binder = toBinder || ''; });
   mergeInventoryDupes(); selectedInv.clear();
   scheduleStoreSave(); renderStoreInvBinders(); renderStoreInventory();
-  const label = toBinder ? ((storeInv().binders.find(b => b.id === toBinder) || {}).name || 'a binder') : 'Unfiled';
-  toast(`Moved ${cards.length} card${cards.length === 1 ? '' : 's'} into “${label}”.`);
+  const label = toBinder ? ((storeInv().binders.find(b => b.id === toBinder) || {}).name || tr('a binder')) : tr('Unfiled');
+  toast(tr(cards.length === 1 ? 'Moved {n} card into “{label}”.' : 'Moved {n} cards into “{label}”.', { n: cards.length, label }));
 }
 function bulkSetReserved(val) {
   const cards = selectedInvCards(); if (!cards.length) return;
   cards.forEach(c => { c.reserved = val; });
   scheduleStoreSave(); renderStoreInventory();
-  toast(`${cards.length} card${cards.length === 1 ? '' : 's'} marked ${val ? 'reserved' : 'for sale'}.`);
+  toast(tr(cards.length === 1 ? '{n} card marked {state}.' : '{n} cards marked {state}.', { n: cards.length, state: val ? tr('reserved') : tr('for sale') }));
 }
 function bulkSell() {
   const cards = selectedInvCards(); if (!cards.length) return;
-  if (!confirm(`Sell one copy of each of the ${cards.length} selected card${cards.length === 1 ? '' : 's'}?`)) return;
+  if (!confirm(tr(cards.length === 1 ? 'Sell one copy of each of the {n} selected card?' : 'Sell one copy of each of the {n} selected cards?', { n: cards.length }))) return;
   cards.forEach(c => { recordStoreTx('sold', c.name, 1, c.price); c.qty -= 1; });
   storeInv().cards = storeInv().cards.filter(c => c.qty > 0);   // drop sold-out
   selectedInv.clear();
   scheduleStoreSave(); renderStoreInvBinders(); renderStoreInventory();
-  toast(`Sold 1 each — ${cards.length} card${cards.length === 1 ? '' : 's'}.`);
+  toast(tr(cards.length === 1 ? 'Sold 1 each — {n} card.' : 'Sold 1 each — {n} cards.', { n: cards.length }));
 }
 function bulkRemoveInv() {
   const cards = selectedInvCards(); if (!cards.length) return;
-  if (!confirm(`Remove ${cards.length} selected card${cards.length === 1 ? '' : 's'} from inventory entirely?`)) return;
+  if (!confirm(tr(cards.length === 1 ? 'Remove {n} selected card from inventory entirely?' : 'Remove {n} selected cards from inventory entirely?', { n: cards.length }))) return;
   storeInv().cards = storeInv().cards.filter(c => !selectedInv.has(invSelKey(c)));
   selectedInv.clear();
   scheduleStoreSave(); renderStoreInvBinders(); renderStoreInventory();
-  toast(`Removed ${cards.length} card${cards.length === 1 ? '' : 's'}.`);
+  toast(tr(cards.length === 1 ? 'Removed {n} card.' : 'Removed {n} cards.', { n: cards.length }));
 }
 function refreshInvSelAll() {
   const cb = $('#invSelAll'); if (!cb) return;
@@ -5575,15 +5599,15 @@ function renderInvBulkBar() {
   const bar = $('#invBulk'); if (!bar) return;
   const n = selectedInv.size;
   if (!n) { bar.hidden = true; bar.innerHTML = ''; return; }
-  const opts = `<option value="">Unfiled</option>` + storeInv().binders.map(b => `<option value="${b.id}">${esc(b.name)}</option>`).join('');
+  const opts = `<option value="">${tr('Unfiled')}</option>` + storeInv().binders.map(b => `<option value="${b.id}">${esc(b.name)}</option>`).join('');
   bar.hidden = false;
-  bar.innerHTML = `<span class="inv-bulk-label">${n} selected</span>
-    <span class="inv-bulk-move"><select id="invBulkBinder" class="siv-binder">${opts}</select><button class="btn sm" id="invBulkMove">Move here</button></span>
-    <button class="btn sm" id="invBulkReserve">Reserve</button>
-    <button class="btn sm" id="invBulkForsale">For sale</button>
-    <button class="btn sm" id="invBulkSell"><i class="ms ms-counter-gold" aria-hidden="true"></i> Sell 1 each</button>
-    <button class="btn sm danger" id="invBulkRemove">Remove</button>
-    <button class="link-btn" id="invBulkClear">Clear</button>`;
+  bar.innerHTML = `<span class="inv-bulk-label">${tr('{n} selected', { n })}</span>
+    <span class="inv-bulk-move"><select id="invBulkBinder" class="siv-binder">${opts}</select><button class="btn sm" id="invBulkMove">${tr('Move here')}</button></span>
+    <button class="btn sm" id="invBulkReserve">${tr('Reserve')}</button>
+    <button class="btn sm" id="invBulkForsale">${tr('For sale')}</button>
+    <button class="btn sm" id="invBulkSell"><i class="ms ms-counter-gold" aria-hidden="true"></i> ${tr('Sell 1 each')}</button>
+    <button class="btn sm danger" id="invBulkRemove">${tr('Remove')}</button>
+    <button class="link-btn" id="invBulkClear">${tr('Clear')}</button>`;
 }
 function addInvBinder(nm) { nm = (nm || '').trim(); if (!nm || !myStore) return; storeInv().binders.push({ id: uid(), name: nm.slice(0, 40) }); scheduleStoreSave(); renderStoreInvBinders(); renderStoreInventory(); }
 function renameInvBinder(id, nm) { const b = storeInv().binders.find(x => x.id === id); if (b && (nm || '').trim()) { b.name = nm.trim().slice(0, 40); scheduleStoreSave(); renderStoreInvBinders(); } }
@@ -5596,45 +5620,45 @@ function renderStoreInvBinders() {
   const el = $('#storeInvBinders'); if (!el || !myStore) return;
   const inv = storeInv();
   const total = inv.cards.reduce((a, c) => a + c.qty, 0), forsale = inv.cards.filter(c => !c.reserved).reduce((a, c) => a + c.qty, 0);
-  const cnt = $('#invCount'); if (cnt) cnt.textContent = total ? `${total} cards · ${forsale} for sale` : '';
-  let html = `<button class="sell-folder${storeInvBinder === '' ? ' on' : ''}" data-invbinder="">All</button>`;
+  const cnt = $('#invCount'); if (cnt) cnt.textContent = total ? tr('{total} cards · {forsale} for sale', { total, forsale }) : '';
+  let html = `<button class="sell-folder${storeInvBinder === '' ? ' on' : ''}" data-invbinder="">${tr('All')}</button>`;
   html += inv.binders.map(b => {
     const on = storeInvBinder === b.id, n = inv.cards.filter(c => (c.binder || '') === b.id).length;
-    return `<span class="sell-folder-wrap${on ? ' on' : ''}"><button class="sell-folder${on ? ' on' : ''}" data-invbinder="${b.id}"><i class="ms ms-token"></i> ${esc(b.name)}${n ? ` <span class="sf-count">${n}</span>` : ''}</button>${on ? `<button class="sf-icon" data-invbinderrename="${b.id}" title="Rename"><i class="ms ms-artist-nib"></i></button><button class="sf-icon" data-invbinderdel="${b.id}" title="Delete">✕</button>` : ''}</span>`;
+    return `<span class="sell-folder-wrap${on ? ' on' : ''}"><button class="sell-folder${on ? ' on' : ''}" data-invbinder="${b.id}"><i class="ms ms-token"></i> ${esc(b.name)}${n ? ` <span class="sf-count">${n}</span>` : ''}</button>${on ? `<button class="sf-icon" data-invbinderrename="${b.id}" title="${tr('Rename')}"><i class="ms ms-artist-nib"></i></button><button class="sf-icon" data-invbinderdel="${b.id}" title="${tr('Delete')}">✕</button>` : ''}</span>`;
   }).join('');
-  html += `<button class="sell-folder add" data-invbindernew>+ New binder</button>`;
+  html += `<button class="sell-folder add" data-invbindernew>${tr('+ New binder')}</button>`;
   el.innerHTML = html;
 }
 function renderStoreInventory() {
   const wrap = $('#storeInvBody'); if (!wrap || !myStore) return;
   const rows = invFiltered(), shown = rows.slice(0, storeInvShown);
-  if (!rows.length) { wrap.innerHTML = `<p class="bd-note">${storeInvQuery ? 'No cards match your search.' : 'No cards here yet — add some above.'}</p>`; renderInvBulkBar(); return; }
-  const binderOpts = (cur) => `<option value=""${!cur ? ' selected' : ''}>Unfiled</option>` + storeInv().binders.map(b => `<option value="${b.id}"${cur === b.id ? ' selected' : ''}>${esc(b.name)}</option>`).join('');
-  const more = rows.length > storeInvShown ? `<button class="more-btn" id="invMore">Show ${rows.length - storeInvShown} more</button>` : '';
+  if (!rows.length) { wrap.innerHTML = `<p class="bd-note">${storeInvQuery ? tr('No cards match your search.') : tr('No cards here yet — add some above.')}</p>`; renderInvBulkBar(); return; }
+  const binderOpts = (cur) => `<option value=""${!cur ? ' selected' : ''}>${tr('Unfiled')}</option>` + storeInv().binders.map(b => `<option value="${b.id}"${cur === b.id ? ' selected' : ''}>${esc(b.name)}</option>`).join('');
+  const more = rows.length > storeInvShown ? `<button class="more-btn" id="invMore">${tr('Show {n} more', { n: rows.length - storeInvShown })}</button>` : '';
   const sel = (c) => selectedInv.has(invSelKey(c));
   const allSel = shown.length > 0 && shown.every(sel);
-  const selAll = `<label class="inv-selall"><input type="checkbox" id="invSelAll" ${allSel ? 'checked' : ''}/> Select all shown</label>`;
+  const selAll = `<label class="inv-selall"><input type="checkbox" id="invSelAll" ${allSel ? 'checked' : ''}/> ${tr('Select all shown')}</label>`;
   if (storeInvMode === 'art') {
     wrap.innerHTML = selAll + `<div class="binder-gallery">${shown.map(c => `
       <div class="art-tile buy store-inv-tile${c.reserved ? ' reserved' : ''}${sel(c) ? ' selected' : ''}">
-        <input type="checkbox" class="inv-sel art-pick" data-invselect="${esc(invSelKey(c))}" ${sel(c) ? 'checked' : ''} title="Select" />
-        <button class="bd-x tile" data-invrm="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="Remove entirely">✕</button>
-        <button class="siv-res-tile" data-invres="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="${c.reserved ? 'Reserved (not for sale)' : 'For sale — click to reserve'}"><i class="ms ms-counter-${c.reserved ? 'skull' : 'gold'}"></i></button>
-        <button class="art-open" data-name="${esc(c.name)}">${artTile(c.name, c.qty + ' in stock', `<span class="art-val">${money(c.price)}</span>`)}</button>
-        <div class="siv-tile-sell"><button data-invsell="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="Sell one">Sell</button><button class="siv-tile-buy" data-invbuy="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="Restock one">+1</button></div>
+        <input type="checkbox" class="inv-sel art-pick" data-invselect="${esc(invSelKey(c))}" ${sel(c) ? 'checked' : ''} title="${tr('Select')}" />
+        <button class="bd-x tile" data-invrm="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="${tr('Remove entirely')}">✕</button>
+        <button class="siv-res-tile" data-invres="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="${c.reserved ? tr('Reserved (not for sale)') : tr('For sale — click to reserve')}"><i class="ms ms-counter-${c.reserved ? 'skull' : 'gold'}"></i></button>
+        <button class="art-open" data-name="${esc(c.name)}">${artTile(c.name, tr('{n} in stock', { n: c.qty }), `<span class="art-val">${money(c.price)}</span>`)}</button>
+        <div class="siv-tile-sell"><button data-invsell="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="${tr('Sell one')}">${tr('Sell')}</button><button class="siv-tile-buy" data-invbuy="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="${tr('Restock one')}">+1</button></div>
       </div>`).join('')}</div>${more}`;
   } else {
     wrap.innerHTML = selAll + `<div class="inv-rows">${shown.map(c => `
       <div class="store-inv-row${c.reserved ? ' reserved' : ''}${sel(c) ? ' selected' : ''}">
-        <input type="checkbox" class="inv-sel" data-invselect="${esc(invSelKey(c))}" ${sel(c) ? 'checked' : ''} title="Select" />
+        <input type="checkbox" class="inv-sel" data-invselect="${esc(invSelKey(c))}" ${sel(c) ? 'checked' : ''} title="${tr('Select')}" />
         <span class="siv-name nm" data-name="${esc(c.name)}">${esc(c.name)}</span>
-        <span class="siv-stock">${c.qty} in stock</span>
+        <span class="siv-stock">${tr('{n} in stock', { n: c.qty })}</span>
         <span class="siv-price">${money(c.price)}</span>
-        <button class="siv-sell" data-invsell="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="Sell one copy"><i class="ms ms-counter-gold" aria-hidden="true"></i> Sell</button>
-        <button class="siv-buy" data-invbuy="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="Add one copy (restock)">+1</button>
+        <button class="siv-sell" data-invsell="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="${tr('Sell one copy')}"><i class="ms ms-counter-gold" aria-hidden="true"></i> ${tr('Sell')}</button>
+        <button class="siv-buy" data-invbuy="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="${tr('Add one copy (restock)')}">+1</button>
         ${storeInv().binders.length ? `<select class="siv-binder" data-invmove="${esc(c.name)}" data-invb="${esc(c.binder || '')}">${binderOpts(c.binder || '')}</select>` : ''}
-        <button class="siv-res link-btn${c.reserved ? ' danger' : ''}" data-invres="${esc(c.name)}" data-invb="${esc(c.binder || '')}">${c.reserved ? 'Reserved' : 'For sale'}</button>
-        <button class="bd-x" data-invrm="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="Remove entirely">✕</button>
+        <button class="siv-res link-btn${c.reserved ? ' danger' : ''}" data-invres="${esc(c.name)}" data-invb="${esc(c.binder || '')}">${c.reserved ? tr('Reserved') : tr('For sale')}</button>
+        <button class="bd-x" data-invrm="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="${tr('Remove entirely')}">✕</button>
       </div>`).join('')}</div>${more}`;
   }
   const moreBtn = $('#invMore'); if (moreBtn) moreBtn.addEventListener('click', () => { storeInvShown += 120; renderStoreInventory(); });
@@ -5653,29 +5677,29 @@ function renderStoreEventModal() {
   const ev = editingEventId ? (storeEvents.find(e => e.id === editingEventId) || {}) : {};
   const localDT = (iso) => { if (!iso) return ''; const d = new Date(iso); const p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; };
   body.innerHTML = `
-    <label class="ve-field"><span>Title</span><input type="text" id="evTitle" class="text-input" maxlength="80" value="${esc(ev.title || '')}" placeholder="Commander Bracket Night" /></label>
+    <label class="ve-field"><span>${tr('Title')}</span><input type="text" id="evTitle" class="text-input" maxlength="80" value="${esc(ev.title || '')}" placeholder="${esc(tr('Commander Bracket Night'))}" /></label>
     <div class="store-2col">
-      <label class="ve-field"><span>Format</span><input type="text" id="evFormat" class="text-input" maxlength="40" value="${esc(ev.format || '')}" placeholder="Commander" /></label>
-      <label class="ve-field"><span>Repeats</span><select id="evRecurring" class="text-input"><option value="">One-off</option><option value="weekly"${ev.recurring === 'weekly' ? ' selected' : ''}>Weekly</option><option value="biweekly"${ev.recurring === 'biweekly' ? ' selected' : ''}>Every 2 weeks</option><option value="monthly"${ev.recurring === 'monthly' ? ' selected' : ''}>Monthly</option></select></label>
+      <label class="ve-field"><span>${tr('Format')}</span><input type="text" id="evFormat" class="text-input" maxlength="40" value="${esc(ev.format || '')}" placeholder="Commander" /></label>
+      <label class="ve-field"><span>${tr('Repeats')}</span><select id="evRecurring" class="text-input"><option value="">${tr('One-off')}</option><option value="weekly"${ev.recurring === 'weekly' ? ' selected' : ''}>${tr('Weekly')}</option><option value="biweekly"${ev.recurring === 'biweekly' ? ' selected' : ''}>${tr('Every 2 weeks')}</option><option value="monthly"${ev.recurring === 'monthly' ? ' selected' : ''}>${tr('Monthly')}</option></select></label>
     </div>
     <div class="store-2col">
-      <label class="ve-field"><span>Starts</span><input type="datetime-local" id="evStart" class="text-input" value="${esc(localDT(ev.starts_at))}" /></label>
-      <label class="ve-field"><span>Ends <em>(optional)</em></span><input type="datetime-local" id="evEnd" class="text-input" value="${esc(localDT(ev.ends_at))}" /></label>
+      <label class="ve-field"><span>${tr('Starts')}</span><input type="datetime-local" id="evStart" class="text-input" value="${esc(localDT(ev.starts_at))}" /></label>
+      <label class="ve-field"><span>${tr('Ends')} <em>${tr('(optional)')}</em></span><input type="datetime-local" id="evEnd" class="text-input" value="${esc(localDT(ev.ends_at))}" /></label>
     </div>
     <div class="store-2col">
-      <label class="ve-field"><span>Prize pool</span><input type="text" id="evPrize" class="text-input" maxlength="60" value="${esc(ev.prize_pool || '')}" placeholder="S/300 store credit" /></label>
-      <label class="ve-field"><span>Entry fee</span><input type="text" id="evEntry" class="text-input" maxlength="40" value="${esc(ev.entry_fee || '')}" placeholder="S/20" /></label>
+      <label class="ve-field"><span>${tr('Prize pool')}</span><input type="text" id="evPrize" class="text-input" maxlength="60" value="${esc(ev.prize_pool || '')}" placeholder="S/300 store credit" /></label>
+      <label class="ve-field"><span>${tr('Entry fee')}</span><input type="text" id="evEntry" class="text-input" maxlength="40" value="${esc(ev.entry_fee || '')}" placeholder="S/20" /></label>
     </div>
-    <label class="ve-field"><span>Capacity <em>(optional)</em></span><input type="number" id="evCap" class="text-input" min="0" value="${ev.capacity != null ? Number(ev.capacity) : ''}" placeholder="32" /></label>
-    <label class="ve-field"><span>Description</span><textarea id="evDesc" class="text-input store-bio" maxlength="400" placeholder="Details, structure, what to bring…">${esc(ev.description || '')}</textarea></label>
+    <label class="ve-field"><span>${tr('Capacity')} <em>${tr('(optional)')}</em></span><input type="number" id="evCap" class="text-input" min="0" value="${ev.capacity != null ? Number(ev.capacity) : ''}" placeholder="32" /></label>
+    <label class="ve-field"><span>${tr('Description')}</span><textarea id="evDesc" class="text-input store-bio" maxlength="400" placeholder="${tr('Details, structure, what to bring…')}">${esc(ev.description || '')}</textarea></label>
     <div class="modal-status" id="evStatus"></div>
-    <button class="btn gold" id="evSave">${editingEventId ? 'Save event' : 'Add event'}</button>`;
+    <button class="btn gold" id="evSave">${editingEventId ? tr('Save event') : tr('Add event')}</button>`;
 }
 async function saveStoreEventFromModal() {
   if (!sb || !myStore) return;
   const title = ($('#evTitle') ? $('#evTitle').value : '').trim();
   const st = $('#evStatus');
-  if (!title) { if (st) st.textContent = 'Give the event a title.'; return; }
+  if (!title) { if (st) st.textContent = tr('Give the event a title.'); return; }
   const toISO = (v) => { v = (v || '').trim(); if (!v) return null; const d = new Date(v); return isNaN(d) ? null : d.toISOString(); };
   const capRaw = ($('#evCap') ? $('#evCap').value : '').trim();
   const row = {
@@ -5684,23 +5708,23 @@ async function saveStoreEventFromModal() {
     prize_pool: ($('#evPrize').value || '').trim() || null, entry_fee: ($('#evEntry').value || '').trim() || null,
     capacity: capRaw ? parseInt(capRaw, 10) : null, description: ($('#evDesc').value || '').trim() || null
   };
-  const btn = $('#evSave'); if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+  const btn = $('#evSave'); if (btn) { btn.disabled = true; btn.textContent = tr('Saving…'); }
   try {
     let error;
     if (editingEventId) ({ error } = await sb.from('store_events').update(row).eq('id', editingEventId).eq('store_slug', myStore.slug));
     else ({ error } = await sb.from('store_events').insert(row));
-    if (error) { if (st) st.textContent = error.message; if (btn) { btn.disabled = false; btn.textContent = editingEventId ? 'Save event' : 'Add event'; } return; }
+    if (error) { if (st) st.textContent = error.message; if (btn) { btn.disabled = false; btn.textContent = editingEventId ? tr('Save event') : tr('Add event'); } return; }
     await loadStoreEvents(); closeStoreEvent(); renderStoreDashboard();
-    toast(editingEventId ? 'Event updated.' : 'Event added.');
-  } catch (e) { if (st) st.textContent = 'Something went wrong.'; if (btn) { btn.disabled = false; btn.textContent = editingEventId ? 'Save event' : 'Add event'; } }
+    toast(editingEventId ? tr('Event updated.') : tr('Event added.'));
+  } catch (e) { if (st) st.textContent = tr('Something went wrong.'); if (btn) { btn.disabled = false; btn.textContent = editingEventId ? tr('Save event') : tr('Add event'); } }
 }
 async function deleteStoreEvent(id) {
   if (!sb || !myStore) return;
   const ev = storeEvents.find(e => e.id === id);
-  if (!confirm(`Delete “${ev ? ev.title : 'this event'}”?`)) return;
+  if (!confirm(tr('Delete “{title}”?', { title: ev ? ev.title : tr('this event') }))) return;
   try { await sb.from('store_events').delete().eq('id', id).eq('store_slug', myStore.slug); } catch (e) {}
   await loadStoreEvents(); renderStoreDashboard();
-  toast('Event deleted.');
+  toast(tr('Event deleted.'));
 }
 
 /* ============ public profile link (a curated, anonymous-readable snapshot) ============ */
@@ -5765,11 +5789,11 @@ function schedulePublicProfileRefresh() {
 }
 function maybeRepublishProfile() { if (publicProfileOn()) publishPublicProfile(true); }
 async function togglePublicProfile(on) {
-  if (!(authProfile && authProfile.username)) { toast('Add a username in Edit profile first.'); renderProfileView(); return; }
+  if (!(authProfile && authProfile.username)) { toast(tr('Add a username in Edit profile first.')); renderProfileView(); return; }
   await setPublicPref('profilePublic', on);
   const r = await publishPublicProfile(on);
-  if (r.error) toast('Could not update public profile: ' + r.error);
-  else { toast(on ? 'Your profile is public ✓' : 'Your profile is now private.'); if (on) copyText(r.url); }
+  if (r.error) toast(tr('Could not update public profile:') + ' ' + r.error);
+  else { toast(on ? tr('Your profile is public ✓') : tr('Your profile is now private.')); if (on) copyText(r.url); }
   renderProfileView();
 }
 
@@ -5790,7 +5814,7 @@ async function runProfileSearch() {
     <span class="pf-avatar pvs-av" style="--ah:${Number(r.avatar_hue) || 40}">${esc(profileInitials(r.display_name || r.username))}</span>
     <span class="pvs-id"><span class="pvs-name">${esc(r.display_name || r.username)}</span><span class="pvs-handle">@${esc(r.username)}</span></span>
     <span class="pvs-go">↗</span></button>`).join('');
-  box.innerHTML = items + `<button class="pvs-item pvs-direct" data-pvprofile="${esc(q)}"><i class="ms ms-ability-investigate" aria-hidden="true"></i> Open @${esc(q.replace(/^@/, ''))} directly →</button>`;
+  box.innerHTML = items + `<button class="pvs-item pvs-direct" data-pvprofile="${esc(q)}"><i class="ms ms-ability-investigate" aria-hidden="true"></i> ${tr('Open @{user} directly →', { user: esc(q.replace(/^@/, '')) })}</button>`;
   box.hidden = false;
 }
 
@@ -5830,33 +5854,33 @@ async function sendFriendRequest(username) {
   try {
     const { data, error } = await sb.rpc('send_friend_request', { p_username: username });
     if (error) { toast(error.message); return; }
-    toast(data && data.status === 'accepted' ? `You and @${username} are now friends.` : `Friend request sent to @${username}.`);
+    toast(data && data.status === 'accepted' ? tr('You and @{user} are now friends.', { user: username }) : tr('Friend request sent to @{user}.', { user: username }));
     const inp = $('#friendAddInput'); if (inp) inp.value = '';
     await loadFriends();
-  } catch (e) { toast('Could not send the request.'); }
+  } catch (e) { toast(tr('Could not send the request.')); }
 }
 async function respondFriend(id, accept) {
   if (!sb) return;
-  try { await sb.rpc('respond_friend_request', { p_id: id, p_accept: accept }); await loadFriends(); toast(accept ? 'Friend added.' : 'Request declined.'); } catch (e) {}
+  try { await sb.rpc('respond_friend_request', { p_id: id, p_accept: accept }); await loadFriends(); toast(accept ? tr('Friend added.') : tr('Request declined.')); } catch (e) {}
 }
 async function removeFriend(otherId) {
   if (!sb) return;
-  if (!confirm('Remove this friend?')) return;
-  try { await sb.rpc('remove_friend', { p_other: otherId }); await loadFriends(); toast('Friend removed.'); } catch (e) {}
+  if (!confirm(tr('Remove this friend?'))) return;
+  try { await sb.rpc('remove_friend', { p_other: otherId }); await loadFriends(); toast(tr('Friend removed.')); } catch (e) {}
 }
 async function matchWithFriend(friendId, friendName) {
   if (!sb) return;
-  toast(`Matching with @${friendName}…`);
+  toast(tr('Matching with @{user}…', { user: friendName }));
   await publishMyTrades();   // ensure my side is fresh too
   try {
     const { data, error } = await sb.rpc('get_friend_trades', { p_friend: friendId });
-    if (error || !data) { toast('Could not load their lists — are you still friends?'); return; }
+    if (error || !data) { toast(tr('Could not load their lists — are you still friends?')); return; }
     const theirWantSet = new Set((data.wants || []).map(c => key(c.name)));
     const theirHaveMap = new Map((data.haves || []).map(c => [key(c.name), c]));
     const canSell = myHaves().filter(c => theirWantSet.has(key(c.name)));                                  // my haves they want
     const canBuy = myWants().filter(c => theirHaveMap.has(key(c.name))).map(c => ({ ...c, price: theirHaveMap.get(key(c.name)).price || 0 }));   // my wants they have
     showFriendMatch(friendName, canSell, canBuy);
-  } catch (e) { toast('Match failed.'); }
+  } catch (e) { toast(tr('Match failed.')); }
 }
 function showFriendMatch(name, canSell, canBuy) {
   const m = $('#friendMatchModal'); if (!m) return;
@@ -5867,9 +5891,9 @@ function showFriendMatch(name, canSell, canBuy) {
     ? `<div class="fm-list">${arr.map(c => `<div class="fm-row"><span class="fm-qty">${Number(c.qty) || 1}×</span><span class="nm fm-name" data-name="${esc(c.name)}">${esc(c.name)}</span><span class="fm-price">${c.price ? money(c.price) : ''}</span></div>`).join('')}</div>`
     : `<p class="fm-empty">${empty}</p>`;
   body.innerHTML = `
-    <p class="share-note">What you and <b>@${esc(name)}</b> can trade right now, based on your buy &amp; sell lists.</p>
-    <div class="fm-sec sell"><div class="fm-h"><span><i class="ms ms-loyalty-up" aria-hidden="true"></i> You can sell to them</span><span class="fm-tot">${canSell.length} · ${money(total(canSell))}</span></div>${list(canSell, 'Nothing of yours is on their buy list.')}</div>
-    <div class="fm-sec buy"><div class="fm-h"><span><i class="ms ms-counter-gold" aria-hidden="true"></i> You can buy from them</span><span class="fm-tot">${canBuy.length} · ${money(total(canBuy))}</span></div>${list(canBuy, 'They have nothing on your buy list.')}</div>`;
+    <p class="share-note">${tr('What you and {who} can trade right now, based on your buy & sell lists.', { who: '<b>@' + esc(name) + '</b>' })}</p>
+    <div class="fm-sec sell"><div class="fm-h"><span><i class="ms ms-loyalty-up" aria-hidden="true"></i> ${tr('You can sell to them')}</span><span class="fm-tot">${canSell.length} · ${money(total(canSell))}</span></div>${list(canSell, tr('Nothing of yours is on their buy list.'))}</div>
+    <div class="fm-sec buy"><div class="fm-h"><span><i class="ms ms-counter-gold" aria-hidden="true"></i> ${tr('You can buy from them')}</span><span class="fm-tot">${canBuy.length} · ${money(total(canBuy))}</span></div>${list(canBuy, tr('They have nothing on your buy list.'))}</div>`;
 }
 function closeFriendMatch() { const m = $('#friendMatchModal'); if (m) m.hidden = true; }
 function renderFriends() {
@@ -5879,10 +5903,10 @@ function renderFriends() {
   const outgoing = friends.filter(f => f.direction === 'outgoing');
   const cnt = $('#pvFriendCount'); if (cnt) cnt.textContent = accepted.length || '';
   let html = '';
-  if (incoming.length) html += `<div class="pv-fr-sub">Requests</div>` + incoming.map(f => `<div class="pv-friend-row"><span class="pv-fr-who">@${esc(f.username || '')}</span><span class="pv-fr-act"><button class="btn gold sm" data-fraccept="${esc(f.req_id)}">Accept</button><button class="link-btn" data-frdecline="${esc(f.req_id)}">Decline</button></span></div>`).join('');
-  if (accepted.length) html += (incoming.length ? `<div class="pv-fr-sub">Friends</div>` : '') + accepted.map(f => `<div class="pv-friend-row"><span class="pv-fr-who" data-frprofile="${esc(f.username || '')}">@${esc(f.username || '')}</span><span class="pv-fr-act"><button class="btn sm" data-frmatch="${esc(f.friend_id)}" data-frname="${esc(f.username || '')}"><i class="ms ms-ability-investigate" aria-hidden="true"></i> Match</button><button class="link-btn danger" data-frremove="${esc(f.friend_id)}">Remove</button></span></div>`).join('');
-  if (outgoing.length) html += `<div class="pv-fr-sub">Pending</div>` + outgoing.map(f => `<div class="pv-friend-row"><span class="pv-fr-who">@${esc(f.username || '')}</span><span class="pv-fr-pending">requested</span></div>`).join('');
-  el.innerHTML = html || `<p class="pv-empty">No friends yet. Add one by @username to match trade lists.</p>`;
+  if (incoming.length) html += `<div class="pv-fr-sub">${tr('Requests')}</div>` + incoming.map(f => `<div class="pv-friend-row"><span class="pv-fr-who">@${esc(f.username || '')}</span><span class="pv-fr-act"><button class="btn gold sm" data-fraccept="${esc(f.req_id)}">${tr('Accept')}</button><button class="link-btn" data-frdecline="${esc(f.req_id)}">${tr('Decline')}</button></span></div>`).join('');
+  if (accepted.length) html += (incoming.length ? `<div class="pv-fr-sub">${tr('Friends')}</div>` : '') + accepted.map(f => `<div class="pv-friend-row"><span class="pv-fr-who" data-frprofile="${esc(f.username || '')}">@${esc(f.username || '')}</span><span class="pv-fr-act"><button class="btn sm" data-frmatch="${esc(f.friend_id)}" data-frname="${esc(f.username || '')}"><i class="ms ms-ability-investigate" aria-hidden="true"></i> ${tr('Match')}</button><button class="link-btn danger" data-frremove="${esc(f.friend_id)}">${tr('Remove')}</button></span></div>`).join('');
+  if (outgoing.length) html += `<div class="pv-fr-sub">${tr('Pending')}</div>` + outgoing.map(f => `<div class="pv-friend-row"><span class="pv-fr-who">@${esc(f.username || '')}</span><span class="pv-fr-pending">${tr('requested')}</span></div>`).join('');
+  el.innerHTML = html || `<p class="pv-empty">${tr('No friends yet. Add one by @username to match trade lists.')}</p>`;
 }
 
 // ---------- account / profile UI ----------
@@ -5894,18 +5918,18 @@ function renderAccount() {
     const name = (authProfile && (authProfile.display_name || authProfile.username)) || (authUser.email || '').split('@')[0];
     const busy = syncBusy || syncPushTimer || syncResolving;
     b.innerHTML = `<span class="sync-dot ${busy ? 'saving' : 'ok'}"></span> ${esc(name)}`;
-    b.title = `Signed in as ${authUser.email}${busy ? ' · syncing…' : ' · synced'} — click for profile`;
+    b.title = tr('Signed in as {email}', { email: authUser.email }) + (busy ? ' · ' + tr('syncing…') : ' · ' + tr('synced')) + ' — ' + tr('click for profile');
   } else {
-    b.innerHTML = 'Sign in';
-    b.title = 'Sign in to sync your collection across devices';
+    b.innerHTML = tr('Sign in');
+    b.title = tr('Sign in to sync your collection across devices');
   }
 }
 function renderAuthMode() {
   const signup = authMode === 'signup';
-  $('#authTitle').textContent = signup ? 'Create account' : 'Sign in';
-  $('#authHint').textContent = signup ? 'Create your account — your collection syncs across all your devices.' : 'Sign in to sync your collection across devices.';
-  $('#authSubmit').textContent = signup ? 'Create account' : 'Sign in';
-  $('#authSwitch').textContent = signup ? 'Already have an account? Sign in' : 'Need an account? Create one';
+  $('#authTitle').textContent = signup ? tr('Create account') : tr('Sign in');
+  $('#authHint').textContent = signup ? tr('Create your account — your collection syncs across all your devices.') : tr('Sign in to sync your collection across devices.');
+  $('#authSubmit').textContent = signup ? tr('Create account') : tr('Sign in');
+  $('#authSwitch').textContent = signup ? tr('Already have an account? Sign in') : tr('Need an account? Create one');
   $('#authUsername').hidden = !signup;
   $('#authConfirm').hidden = !signup;
   $('#authPassword').autocomplete = signup ? 'new-password' : 'current-password';
@@ -5928,7 +5952,7 @@ function profileInitials(name) {
 function avatarHue(s) { let h = 0; for (const c of String(s || '')) h = (h * 31 + c.charCodeAt(0)) % 360; return h; }
 function renderProfile() {
   const body = $('#profileBody'); if (!body) return;
-  if (!authUser) { body.innerHTML = '<p class="modal-hint">Not signed in.</p>'; return; }
+  if (!authUser) { body.innerHTML = `<p class="modal-hint">${tr('Not signed in.')}</p>`; return; }
   const g = globalStats();
   const p = (authProfile && authProfile.prefs) || {};
   const dn = (authProfile && authProfile.display_name) || '';
@@ -5937,39 +5961,39 @@ function renderProfile() {
   body.innerHTML = `
     <div class="pf-avatar-row">
       <div class="pf-avatar" style="--ah:${avatarHue(un || dn || authUser.email)}">${esc(initials)}</div>
-      <div class="pf-id"><div class="pf-name">${esc(dn || un || 'Planeswalker')}</div><div class="pf-handle">@${esc(un || '—')}</div></div>
+      <div class="pf-id"><div class="pf-name">${esc(dn || un || tr('Planeswalker'))}</div><div class="pf-handle">@${esc(un || '—')}</div></div>
     </div>
     <div class="profile-fields">
-      <label class="ve-field"><span>Display name</span><input type="text" id="pfDisplay" class="text-input" value="${esc(dn)}" maxlength="40" /></label>
-      <label class="ve-field"><span>Username</span><input type="text" id="pfUsername" class="text-input" value="${esc(un)}" maxlength="24" placeholder="a unique handle" /></label>
-      <label class="ve-field"><span>Full name <em>(optional)</em></span><input type="text" id="pfFullName" class="text-input" value="${esc(p.full_name || '')}" maxlength="60" placeholder="optional" /></label>
+      <label class="ve-field"><span>${tr('Display name')}</span><input type="text" id="pfDisplay" class="text-input" value="${esc(dn)}" maxlength="40" /></label>
+      <label class="ve-field"><span>${tr('Username')}</span><input type="text" id="pfUsername" class="text-input" value="${esc(un)}" maxlength="24" placeholder="${tr('a unique handle')}" /></label>
+      <label class="ve-field"><span>${tr('Full name')} <em>${tr('(optional)')}</em></span><input type="text" id="pfFullName" class="text-input" value="${esc(p.full_name || '')}" maxlength="60" placeholder="${tr('optional')}" /></label>
       <div class="pf-row2">
-        <label class="ve-field"><span>Country</span><input type="text" id="pfCountry" class="text-input" value="${esc(p.country || 'Peru')}" maxlength="40" /></label>
-        <label class="ve-field"><span>City</span><input type="text" id="pfCity" class="text-input" value="${esc(p.city || 'Lima')}" maxlength="40" /></label>
+        <label class="ve-field"><span>${tr('Country')}</span><input type="text" id="pfCountry" class="text-input" value="${esc(p.country || 'Peru')}" maxlength="40" /></label>
+        <label class="ve-field"><span>${tr('City')}</span><input type="text" id="pfCity" class="text-input" value="${esc(p.city || 'Lima')}" maxlength="40" /></label>
       </div>
-      <label class="ve-field"><span>Bio <em>(optional)</em></span><textarea id="pfBio" class="text-input pf-bio" maxlength="280" placeholder="A short bio for your profile…">${esc(p.bio || '')}</textarea></label>
-      <label class="ve-field"><span>Email</span><div class="pf-static">${esc(authUser.email || '')}</div></label>
+      <label class="ve-field"><span>${tr('Bio')} <em>${tr('(optional)')}</em></span><textarea id="pfBio" class="text-input pf-bio" maxlength="280" placeholder="${tr('A short bio for your profile…')}">${esc(p.bio || '')}</textarea></label>
+      <label class="ve-field"><span>${tr('Email')}</span><div class="pf-static">${esc(authUser.email || '')}</div></label>
     </div>
     <div class="profile-stats">
-      <div><b>${g.unique}</b><span>cards</span></div>
-      <div><b>${money(g.ownedValue)}</b><span>value</span></div>
-      <div><b>${g.decks}</b><span>decks</span></div>
+      <div><b>${g.unique}</b><span>${tr('cards')}</span></div>
+      <div><b>${money(g.ownedValue)}</b><span>${tr('value')}</span></div>
+      <div><b>${g.decks}</b><span>${tr('decks')}</span></div>
     </div>
     <div class="modal-status" id="pfStatus"></div>
     <div class="modal-foot">
-      <button class="btn ghost" id="pfSignOut"><i class="ms ms-loyalty-down" aria-hidden="true"></i> Sign out</button>
-      <button class="btn gold" id="pfSave">Save profile</button>
+      <button class="btn ghost" id="pfSignOut"><i class="ms ms-loyalty-down" aria-hidden="true"></i> ${tr('Sign out')}</button>
+      <button class="btn gold" id="pfSave">${tr('Save profile')}</button>
     </div>
     <div class="profile-syncbox">
-      <div class="psb-title">Sync</div>
-      <p class="psb-hint">Changes sync automatically. If a device looks out of date, force it here.</p>
+      <div class="psb-title">${tr('Sync')}</div>
+      <p class="psb-hint">${tr('Changes sync automatically. If a device looks out of date, force it here.')}</p>
       <div class="profile-sync">
-        <button class="btn ghost" id="pfPush"><i class="ms ms-loyalty-up" aria-hidden="true"></i> Sync this device → account</button>
-        <button class="btn ghost" id="pfPull"><i class="ms ms-loyalty-down" aria-hidden="true"></i> Load account → this device</button>
+        <button class="btn ghost" id="pfPush"><i class="ms ms-loyalty-up" aria-hidden="true"></i> ${tr('Sync this device → account')}</button>
+        <button class="btn ghost" id="pfPull"><i class="ms ms-loyalty-down" aria-hidden="true"></i> ${tr('Load account → this device')}</button>
       </div>
       <div class="modal-status" id="pfSyncStatus"></div>
     </div>
-    <button class="onb-rerun" id="pfRerun">↻ Re-run the welcome setup</button>`;
+    <button class="onb-rerun" id="pfRerun">${tr('↻ Re-run the welcome setup')}</button>`;
 }
 function openProfile() { renderProfile(); $('#profileModal').hidden = false; }
 function closeProfile() { $('#profileModal').hidden = true; }
@@ -5982,13 +6006,13 @@ async function saveProfileEdits() {
     bio: $('#pfBio') ? $('#pfBio').value.trim() : ((authProfile && authProfile.prefs && authProfile.prefs.bio) || ''),
     country: $('#pfCountry').value.trim(),
     city: $('#pfCity').value.trim() };
-  const st = $('#pfStatus'); st.innerHTML = '<span class="spin"></span>Saving…';
+  const st = $('#pfStatus'); st.innerHTML = `<span class="spin"></span>${tr('Saving…')}`;
   try {
     const { error } = await sb.from('profiles').update({ display_name, username, prefs, updated_at: new Date().toISOString() }).eq('id', authUser.id);
-    if (error) { st.textContent = /duplicate|unique/i.test(error.message) ? 'That username is already taken.' : error.message; return; }
+    if (error) { st.textContent = /duplicate|unique/i.test(error.message) ? tr('That username is already taken.') : error.message; return; }
     authProfile = { ...(authProfile || {}), display_name, username, prefs };
-    st.textContent = 'Saved ✓'; renderAccount(); renderProfileView();
-  } catch (e) { st.textContent = 'Could not save — try again.'; }
+    st.textContent = tr('Saved ✓'); renderAccount(); renderProfileView();
+  } catch (e) { st.textContent = tr('Could not save — try again.'); }
 }
 // Sync progress overlay — shown on the first upload / first download at sign-in.
 let syncOverlayTimer = null;
@@ -6010,7 +6034,7 @@ function finishSyncOverlay(ok, message) {
   const fill = $('#syncFill');
   fill.style.transition = 'width .35s ease'; fill.style.width = '100%';
   fill.classList.add(ok ? 'done' : 'error');
-  $('#syncTitle').textContent = ok ? 'All synced ✓' : 'Sync failed';
+  $('#syncTitle').textContent = ok ? tr('All synced ✓') : tr('Sync failed');
   $('#syncStatus').textContent = message;
   $('#syncDone').hidden = false;
   clearTimeout(syncOverlayTimer);
@@ -6019,41 +6043,41 @@ function finishSyncOverlay(ok, message) {
 function closeSyncOverlay() { clearTimeout(syncOverlayTimer); const m = $('#syncModal'); if (m) m.hidden = true; if (pendingOnboardAfterSync) { pendingOnboardAfterSync = false; startOnboarding(); } }
 const minDelay = ms => new Promise(res => setTimeout(res, ms));   // keeps the bar visible long enough to read
 async function uploadWithOverlay() {
-  showSyncOverlay('Uploading your collection…');
+  showSyncOverlay(tr('Uploading your collection…'));
   const [r] = await Promise.all([pushNow(), minDelay(900)]);
   const g = globalStats();
-  if (r.ok) finishSyncOverlay(true, `${g.unique} card${g.unique === 1 ? '' : 's'} · ${g.decks} deck${g.decks === 1 ? '' : 's'} · ${money(g.ownedValue)} now backed up to your account.`);
-  else { finishSyncOverlay(false, (r.error || 'Upload failed') + ' — you can retry from Profile → Sync.'); toast('Sync failed — open Profile to retry.'); }
+  if (r.ok) finishSyncOverlay(true, tr('{cards} · {decks} · {value} now backed up to your account.', { cards: tr(g.unique === 1 ? '{n} card' : '{n} cards', { n: g.unique }), decks: tr(g.decks === 1 ? '{n} deck' : '{n} decks', { n: g.decks }), value: money(g.ownedValue) }));
+  else { finishSyncOverlay(false, (r.error || tr('Upload failed')) + ' — ' + tr('you can retry from Profile → Sync.')); toast(tr('Sync failed — open Profile to retry.')); }
 }
 async function downloadWithOverlay(remote) {
-  showSyncOverlay('Loading your collection…');
+  showSyncOverlay(tr('Loading your collection…'));
   await minDelay(700);
   adoptRemote(remote.data, remote.updated_at);
   const g = globalStats();
-  finishSyncOverlay(true, `${g.unique} card${g.unique === 1 ? '' : 's'} · ${g.decks} deck${g.decks === 1 ? '' : 's'} loaded from your account.`);
+  finishSyncOverlay(true, tr('{cards} · {decks} loaded from your account.', { cards: tr(g.unique === 1 ? '{n} card' : '{n} cards', { n: g.unique }), decks: tr(g.decks === 1 ? '{n} deck' : '{n} decks', { n: g.decks }) }));
 }
 
 // Manual sync controls (recovery + clear feedback when auto-sync looks off).
 async function forceSyncPush() {
   const st = $('#pfSyncStatus');
-  if (!sb || !authUser) { if (st) st.textContent = 'Not signed in.'; return; }
-  if (st) st.innerHTML = '<span class="spin"></span>Uploading this device’s collection…';
+  if (!sb || !authUser) { if (st) st.textContent = tr('Not signed in.'); return; }
+  if (st) st.innerHTML = `<span class="spin"></span>${tr('Uploading this device’s collection…')}`;
   const r = await pushNow();
-  if (st) st.textContent = r.ok ? 'Synced to your account ✓' : ('Sync failed: ' + (r.error || 'unknown') + ' — try again.');
+  if (st) st.textContent = r.ok ? tr('Synced to your account ✓') : (tr('Sync failed:') + ' ' + (r.error || 'unknown') + ' — ' + tr('try again.'));
 }
 async function forceSyncPull() {
   const st = $('#pfSyncStatus');
-  if (!sb || !authUser) { if (st) st.textContent = 'Not signed in.'; return; }
-  if (st) st.innerHTML = '<span class="spin"></span>Loading from your account…';
+  if (!sb || !authUser) { if (st) st.textContent = tr('Not signed in.'); return; }
+  if (st) st.innerHTML = `<span class="spin"></span>${tr('Loading from your account…')}`;
   try {
     const { data, error } = await sb.from('collections').select('data, updated_at').eq('user_id', authUser.id).maybeSingle();
-    if (error) { if (st) st.textContent = 'Failed: ' + error.message; return; }
-    if (!data || !collectionNonEmpty(data.data)) { if (st) st.textContent = 'Your account has no saved collection yet. On the device that has your cards, tap “Sync this device → account”.'; return; }
-    if (collectionNonEmpty(state) && !confirm('Replace this device’s collection with the one saved in your account?')) { if (st) st.textContent = 'Cancelled.'; return; }
+    if (error) { if (st) st.textContent = tr('Failed:') + ' ' + error.message; return; }
+    if (!data || !collectionNonEmpty(data.data)) { if (st) st.textContent = tr('Your account has no saved collection yet. On the device that has your cards, tap “Sync this device → account”.'); return; }
+    if (collectionNonEmpty(state) && !confirm(tr('Replace this device’s collection with the one saved in your account?'))) { if (st) st.textContent = tr('Cancelled.'); return; }
     adoptRemote(data.data, data.updated_at);
     const g = globalStats();
-    if (st) st.textContent = `Loaded ${g.unique} card${g.unique === 1 ? '' : 's'} from your account ✓`;
-  } catch (e) { if (st) st.textContent = 'Failed — check your connection and retry.'; }
+    if (st) st.textContent = tr(g.unique === 1 ? 'Loaded {n} card from your account ✓' : 'Loaded {n} cards from your account ✓', { n: g.unique });
+  } catch (e) { if (st) st.textContent = tr('Failed — check your connection and retry.'); }
 }
 
 /* ---------- onboarding wizard (full-page, after signup) ---------- */
@@ -6100,6 +6124,7 @@ const ONB_GOALS = [
   { v: 'trade', label: 'Buy & sell cards' },
   { v: 'missing', label: 'See what I’m missing' },
 ];
+// ONB_EXP/BUCKETS/GOALS labels & ONB_FORMATS entries are translated at their display sites via tr().
 const ONB_STEPS = ['welcome', 'experience', 'location', 'formats', 'size', 'goals', 'price', 'theme', 'import', 'done'];
 let onboardStep = 0;
 let onboardData = {};
@@ -6130,68 +6155,68 @@ function onbStepHtml(key) {
   const d = onboardData;
   switch (key) {
     case 'welcome': return `<div class="onb-hero"><div class="onb-mark"><i class="ms ms-counter-lore" aria-hidden="true"></i></div>
-      <h2>Welcome, ${esc(onboardName())} 👋</h2><p>A few quick questions to set up The Vault for you. Skip anything you like.</p></div>`;
-    case 'experience': return `<h2 class="onb-q">How long have you played Magic?</h2>
-      <div class="onb-grid">${ONB_EXP.map(e => onbCard(e.label, e.sub, d.experience === e.v, `data-onb-exp="${e.v}"`)).join('')}</div>`;
-    case 'location': return `<h2 class="onb-q">Where do you play?</h2>
-      <div class="pf-row2"><label class="ve-field"><span>Country</span><input type="text" id="onbCountry" class="text-input" value="${esc(d.country)}" maxlength="40" /></label>
-      <label class="ve-field"><span>City</span><input type="text" id="onbCity" class="text-input" value="${esc(d.city)}" maxlength="40" /></label></div>
-      <p class="onb-sub">Your favorite local stores</p>
+      <h2>${tr('Welcome, {name} 👋', { name: esc(onboardName()) })}</h2><p>${tr('A few quick questions to set up The Vault for you. Skip anything you like.')}</p></div>`;
+    case 'experience': return `<h2 class="onb-q">${tr('How long have you played Magic?')}</h2>
+      <div class="onb-grid">${ONB_EXP.map(e => onbCard(tr(e.label), tr(e.sub), d.experience === e.v, `data-onb-exp="${e.v}"`)).join('')}</div>`;
+    case 'location': return `<h2 class="onb-q">${tr('Where do you play?')}</h2>
+      <div class="pf-row2"><label class="ve-field"><span>${tr('Country')}</span><input type="text" id="onbCountry" class="text-input" value="${esc(d.country)}" maxlength="40" /></label>
+      <label class="ve-field"><span>${tr('City')}</span><input type="text" id="onbCity" class="text-input" value="${esc(d.city)}" maxlength="40" /></label></div>
+      <p class="onb-sub">${tr('Your favorite local stores')}</p>
       <div class="onb-chips">${(() => {
         const all = [...storeList, ...d.stores.filter(s => !storeList.some(x => x.toLowerCase() === s.toLowerCase()))];
         all.sort((a, b) => (storeCounts[b] || 0) - (storeCounts[a] || 0) || a.localeCompare(b));   // most-played first
         return all.map(s => {
           const on = d.stores.some(x => x.toLowerCase() === s.toLowerCase());
           const n = storeCounts[s] || 0;
-          return `<button class="onb-chip ${on ? 'on' : ''}" data-onb-store="${esc(s)}" title="${n ? n + ' player' + (n === 1 ? '' : 's') + ' play here' : ''}">${esc(s)}${n > 0 ? ` <span class="onb-chip-n">${n}</span>` : ''}</button>`;
+          return `<button class="onb-chip ${on ? 'on' : ''}" data-onb-store="${esc(s)}" title="${n ? tr(n === 1 ? '{n} player plays here' : '{n} players play here', { n }) : ''}">${esc(s)}${n > 0 ? ` <span class="onb-chip-n">${n}</span>` : ''}</button>`;
         }).join('');
       })()}</div>
-      <div class="onb-addrow"><input type="text" id="onbStoreAdd" class="text-input" placeholder="Add another store…" maxlength="40" /><button class="btn ghost" id="onbStoreAddBtn">Add</button></div>`;
-    case 'formats': return `<h2 class="onb-q">What do you play?</h2>
-      <div class="onb-chips">${ONB_FORMATS.map(f => onbChip(f, d.formats.includes(f), `data-onb-fmt="${esc(f)}"`)).join('')}</div>`;
-    case 'size': return `<h2 class="onb-q">Roughly how big is your collection?</h2>
-      <div class="onb-grid">${ONB_BUCKETS.map(b => onbCard(b.label, b.sub, d.collection === b.v, `data-onb-size="${b.v}"`)).join('')}</div>`;
-    case 'goals': return `<h2 class="onb-q">What do you want to use The Vault for?</h2><p class="onb-sub">Pick any.</p>
-      <div class="onb-grid">${ONB_GOALS.map(g => onbCard(g.label, '', d.goals.includes(g.v), `data-onb-goal="${g.v}"`)).join('')}</div>`;
-    case 'price': return `<h2 class="onb-q">Which prices should we show?</h2>
-      <div class="onb-grid">${onbCard('Card Kingdom', 'What Lima uses', d.priceSource === 'ck', `data-onb-price="ck"`)}${onbCard('TCGplayer', 'US market price', d.priceSource === 'tcg', `data-onb-price="tcg"`)}</div>`;
-    case 'theme': return `<h2 class="onb-q">Pick your look</h2>
-      <div class="onb-themes">${THEMES.map(t => `<button class="onb-theme ${d.theme === t ? 'on' : ''}" data-onb-theme="${t}"><span class="onb-theme-sw" style="background:${ONB_THEME_SW[t]}"></span>${esc(t[0].toUpperCase() + t.slice(1))}</button>`).join('')}</div>`;
+      <div class="onb-addrow"><input type="text" id="onbStoreAdd" class="text-input" placeholder="${tr('Add another store…')}" maxlength="40" /><button class="btn ghost" id="onbStoreAddBtn">${tr('Add')}</button></div>`;
+    case 'formats': return `<h2 class="onb-q">${tr('What do you play?')}</h2>
+      <div class="onb-chips">${ONB_FORMATS.map(f => onbChip(tr(f), d.formats.includes(f), `data-onb-fmt="${esc(f)}"`)).join('')}</div>`;
+    case 'size': return `<h2 class="onb-q">${tr('Roughly how big is your collection?')}</h2>
+      <div class="onb-grid">${ONB_BUCKETS.map(b => onbCard(tr(b.label), tr(b.sub), d.collection === b.v, `data-onb-size="${b.v}"`)).join('')}</div>`;
+    case 'goals': return `<h2 class="onb-q">${tr('What do you want to use The Vault for?')}</h2><p class="onb-sub">${tr('Pick any.')}</p>
+      <div class="onb-grid">${ONB_GOALS.map(g => onbCard(tr(g.label), '', d.goals.includes(g.v), `data-onb-goal="${g.v}"`)).join('')}</div>`;
+    case 'price': return `<h2 class="onb-q">${tr('Which prices should we show?')}</h2>
+      <div class="onb-grid">${onbCard('Card Kingdom', tr('What Lima uses'), d.priceSource === 'ck', `data-onb-price="ck"`)}${onbCard('TCGplayer', tr('US market price'), d.priceSource === 'tcg', `data-onb-price="tcg"`)}</div>`;
+    case 'theme': return `<h2 class="onb-q">${tr('Pick your look')}</h2>
+      <div class="onb-themes">${THEMES.map(t => `<button class="onb-theme ${d.theme === t ? 'on' : ''}" data-onb-theme="${t}"><span class="onb-theme-sw" style="background:${ONB_THEME_SW[t]}"></span>${esc(tr(t[0].toUpperCase() + t.slice(1)))}</button>`).join('')}</div>`;
     case 'import':
-      if (onboardImportView === 'csv') return `<h2 class="onb-q">Import from ManaBox</h2>
+      if (onboardImportView === 'csv') return `<h2 class="onb-q">${tr('Import from ManaBox')}</h2>
         <ol class="onb-steps">
-          <li>In <b>ManaBox</b>, go to your <b>Collection</b>.</li>
-          <li>Tap the <b>⋯ (three dots)</b> at the top right.</li>
-          <li>Tap <b>Export</b> — the CSV downloads to your device.</li>
-          <li>Tap <b>Choose CSV file</b> below and pick it — it goes into your <b>collection</b>.</li>
+          <li>${tr('In {b}, go to your {collection}.', { b: '<b>ManaBox</b>', collection: '<b>' + tr('Collection') + '</b>' })}</li>
+          <li>${tr('Tap the {dots} at the top right.', { dots: '<b>' + tr('⋯ (three dots)') + '</b>' })}</li>
+          <li>${tr('Tap {export} — the CSV downloads to your device.', { export: '<b>' + tr('Export') + '</b>' })}</li>
+          <li>${tr('Tap {choose} below and pick it — it goes into your {collection}.', { choose: '<b>' + tr('Choose CSV file') + '</b>', collection: '<b>' + tr('collection') + '</b>' })}</li>
         </ol>
-        <div class="onb-importrow"><button class="btn gold" id="onbCsvBtn"><i class="ms ms-loyalty-up btn-ico" aria-hidden="true"></i> Choose CSV file…</button><input type="file" id="onbCsvInput" accept=".csv,text/csv" hidden /></div>
+        <div class="onb-importrow"><button class="btn gold" id="onbCsvBtn"><i class="ms ms-loyalty-up btn-ico" aria-hidden="true"></i> ${tr('Choose CSV file…')}</button><input type="file" id="onbCsvInput" accept=".csv,text/csv" hidden /></div>
         <div class="modal-status" id="onbImportStatus"></div>
-        <button class="onb-rerun" id="onbImportBack">← back to import options</button>`;
-      if (onboardImportView === 'paste') return `<h2 class="onb-q">Paste a list</h2>
+        <button class="onb-rerun" id="onbImportBack">${tr('← back to import options')}</button>`;
+      if (onboardImportView === 'paste') return `<h2 class="onb-q">${tr('Paste a list')}</h2>
         <ol class="onb-steps">
-          <li>In <b>Moxfield</b> (or Archidekt), open your deck or collection.</li>
-          <li>Click <b>More → Export</b>, then <b>Copy</b> the list.</li>
-          <li>Paste it below and import — every card is added to your <b>collection</b> as owned.</li>
+          <li>${tr('In {b} (or Archidekt), open your deck or collection.', { b: '<b>Moxfield</b>' })}</li>
+          <li>${tr('Click {more}, then {copy} the list.', { more: '<b>More → Export</b>', copy: '<b>' + tr('Copy') + '</b>' })}</li>
+          <li>${tr('Paste it below and import — every card is added to your {collection} as owned.', { collection: '<b>' + tr('collection') + '</b>' })}</li>
         </ol>
         <textarea id="onbPasteInput" class="sm-input" placeholder="1 Sol Ring&#10;1 Lightning Bolt&#10;1 Counterspell&#10;…" spellcheck="false"></textarea>
-        <div class="onb-importrow"><button class="btn gold" id="onbPasteBtn"><i class="ms ms-multiple btn-ico" aria-hidden="true"></i> Add to my collection</button></div>
+        <div class="onb-importrow"><button class="btn gold" id="onbPasteBtn"><i class="ms ms-multiple btn-ico" aria-hidden="true"></i> ${tr('Add to my collection')}</button></div>
         <div class="modal-status" id="onbImportStatus"></div>
-        <button class="onb-rerun" id="onbImportBack">← back to import options</button>`;
-      return `<h2 class="onb-q">Get your collection in</h2><p class="onb-sub">Add it now, or skip and add cards anytime later. Imports go straight into your <b>collection</b> — decks come later.</p>
-        <div class="onb-grid">${onbCard('Scan with ManaBox', 'Import a ManaBox CSV export', false, `data-onb-import="csv"`)}${onbCard('Paste a list', 'From Moxfield, Archidekt, etc.', false, `data-onb-import="paste"`)}${onbCard('I’ll add cards later', 'Jump straight into the app', false, `data-onb-import="later"`)}</div>`;
+        <button class="onb-rerun" id="onbImportBack">${tr('← back to import options')}</button>`;
+      return `<h2 class="onb-q">${tr('Get your collection in')}</h2><p class="onb-sub">${tr('Add it now, or skip and add cards anytime later. Imports go straight into your {collection} — decks come later.', { collection: '<b>' + tr('collection') + '</b>' })}</p>
+        <div class="onb-grid">${onbCard(tr('Scan with ManaBox'), tr('Import a ManaBox CSV export'), false, `data-onb-import="csv"`)}${onbCard(tr('Paste a list'), tr('From Moxfield, Archidekt, etc.'), false, `data-onb-import="paste"`)}${onbCard(tr('I’ll add cards later'), tr('Jump straight into the app'), false, `data-onb-import="later"`)}</div>`;
     case 'done': return `<div class="onb-hero"><div class="onb-mark done"><i class="ms ms-counter-shield" aria-hidden="true"></i></div>
-      <h2>You’re all set! 🎉</h2><p>Your collection syncs to your account automatically. Welcome to The Vault.</p></div>`;
+      <h2>${tr('You’re all set! 🎉')}</h2><p>${tr('Your collection syncs to your account automatically. Welcome to The Vault.')}</p></div>`;
   }
   return '';
 }
 function onbNavHtml(key) {
   const last = onboardStep === ONB_STEPS.length - 1;
-  const back = (onboardStep > 0 && !last) ? `<button class="btn ghost" id="onbBack">Back</button>` : `<span></span>`;
-  if (key === 'welcome') return `<div class="onb-nav"><span></span><button class="btn gold" id="onbNext">Get started</button></div>`;
+  const back = (onboardStep > 0 && !last) ? `<button class="btn ghost" id="onbBack">${tr('Back')}</button>` : `<span></span>`;
+  if (key === 'welcome') return `<div class="onb-nav"><span></span><button class="btn gold" id="onbNext">${tr('Get started')}</button></div>`;
   if (key === 'import') return `<div class="onb-nav">${back}<span></span></div>`;   // choosing a card advances/finishes
-  if (last) return `<div class="onb-nav"><span></span><button class="btn gold" id="onbNext">Enter the Vault</button></div>`;
-  return `<div class="onb-nav">${back}<div class="onb-nav-r"><button class="btn ghost" id="onbSkip">Skip</button><button class="btn gold" id="onbNext">Next</button></div></div>`;
+  if (last) return `<div class="onb-nav"><span></span><button class="btn gold" id="onbNext">${tr('Enter the Vault')}</button></div>`;
+  return `<div class="onb-nav">${back}<div class="onb-nav-r"><button class="btn ghost" id="onbSkip">${tr('Skip')}</button><button class="btn gold" id="onbNext">${tr('Next')}</button></div></div>`;
 }
 function renderOnboard() {
   const body = $('#onboardBody'); if (!body) return;
@@ -6215,31 +6240,31 @@ function onboardImport(kind) {
 async function onbImportCSV(file) {
   const st = $('#onbImportStatus'); if (!file) return;
   let parsed;
-  try { parsed = parseCardCSV(await file.text()); } catch (e) { if (st) st.textContent = 'Could not read that file.'; return; }
-  if (!parsed.length) { if (st) st.textContent = 'No cards found — is this a ManaBox CSV export?'; return; }
-  if (st) st.innerHTML = `<span class="spin"></span>Importing ${parsed.length} cards…`;
+  try { parsed = parseCardCSV(await file.text()); } catch (e) { if (st) st.textContent = tr('Could not read that file.'); return; }
+  if (!parsed.length) { if (st) st.textContent = tr('No cards found — is this a ManaBox CSV export?'); return; }
+  if (st) st.innerHTML = `<span class="spin"></span>${tr('Importing {n} cards…', { n: parsed.length })}`;
   try {
     const { resolved, missing } = await resolveCards(parsed);
     resolved.forEach(c => addVariant(c.name, { qty: c.qty, foil: c.foil, condition: c.condition, set: c.set, collector: c.collector, scryfallId: c.scryfallId }));
-    logAcquired(resolved, 'ManaBox CSV import'); save();
+    logAcquired(resolved, tr('ManaBox CSV import')); save();
     onbImportDone(resolved.reduce((a, c) => a + c.qty, 0), missing);
-  } catch (e) { if (st) st.textContent = 'Lookup failed — check your connection and retry.'; }
+  } catch (e) { if (st) st.textContent = tr('Lookup failed — check your connection and retry.'); }
 }
 async function onbImportPaste() {
   const st = $('#onbImportStatus');
   const ta = $('#onbPasteInput'); const parsed = parseDecklist(ta ? ta.value : '');
-  if (!parsed.length) { if (st) st.textContent = 'Paste a list first — one card per line.'; return; }
-  if (st) st.innerHTML = `<span class="spin"></span>Importing ${parsed.length} cards…`;
+  if (!parsed.length) { if (st) st.textContent = tr('Paste a list first — one card per line.'); return; }
+  if (st) st.innerHTML = `<span class="spin"></span>${tr('Importing {n} cards…', { n: parsed.length })}`;
   try {
     const { resolved, missing } = await resolveCards(parsed.map(p => ({ name: p.name, qty: p.qty })));
     resolved.forEach(c => addVariant(c.name, { qty: c.qty }));
-    logAcquired(resolved, 'Pasted list import'); save();
+    logAcquired(resolved, tr('Pasted list import')); save();
     onbImportDone(resolved.reduce((a, c) => a + c.qty, 0), missing);
-  } catch (e) { if (st) st.textContent = 'Lookup failed — check your connection and retry.'; }
+  } catch (e) { if (st) st.textContent = tr('Lookup failed — check your connection and retry.'); }
 }
 function onbImportDone(copies, missing) {
   const st = $('#onbImportStatus');
-  if (st) st.textContent = `Added ${copies} card${copies === 1 ? '' : 's'} to your collection${missing ? ` · ${missing} not found` : ''} ✓`;
+  if (st) st.textContent = tr(copies === 1 ? 'Added {n} card to your collection' : 'Added {n} cards to your collection', { n: copies }) + (missing ? ' · ' + tr('{n} not found', { n: missing }) : '') + ' ✓';
   setTimeout(() => { onboardImportView = 'choose'; onboardStep = ONB_STEPS.length - 1; renderOnboard(); }, 1100);
 }
 async function finishOnboarding() {
@@ -6256,7 +6281,7 @@ async function finishOnboarding() {
     authProfile = { ...(authProfile || {}), prefs };
     try { await sb.from('profiles').update({ prefs, updated_at: new Date().toISOString() }).eq('id', authUser.id); } catch (e) {}
   }
-  toast('Welcome to The Vault! 🎉');
+  toast(tr('Welcome to The Vault! 🎉'));
 }
 const onbBodyEl = $('#onboardBody');
 if (onbBodyEl) onbBodyEl.addEventListener('click', e => {
@@ -6299,15 +6324,15 @@ function renderProfileView() {
   const view = $('#view-profile');
   if (view && !view.classList.contains('is-active')) return;   // only build when the page is showing
   if (!sb || !authUser) {
-    el.innerHTML = `<div class="empty-state"><span class="empty-mark"><i class="ms ms-counter-lore" aria-hidden="true"></i></span><h2>Sign in to see your profile</h2><p>Create an account for a profile, cross-device sync and shareable lists.</p><button class="btn gold" id="pvSignIn">Sign in</button></div>`;
+    el.innerHTML = `<div class="empty-state"><span class="empty-mark"><i class="ms ms-counter-lore" aria-hidden="true"></i></span><h2>${tr('Sign in to see your profile')}</h2><p>${tr('Create an account for a profile, cross-device sync and shareable lists.')}</p><button class="btn gold" id="pvSignIn">${tr('Sign in')}</button></div>`;
     return;
   }
   const p = (authProfile && authProfile.prefs) || {};
   const dn = (authProfile && authProfile.display_name) || (authUser.email || '').split('@')[0];
   const un = (authProfile && authProfile.username) || '';
   const g = globalStats();
-  const since = authUser.created_at ? new Date(authUser.created_at).toLocaleDateString(undefined, { month: 'long', year: 'numeric' }) : '';
-  const expLabel = { new: 'New to Magic', intermediate: 'Intermediate', veteran: 'Veteran' }[p.experience] || '';
+  const since = authUser.created_at ? new Date(authUser.created_at).toLocaleDateString(I18N.locale(), { month: 'long', year: 'numeric' }) : '';
+  const expLabel = { new: tr('New to Magic'), intermediate: tr('Intermediate'), veteran: tr('Veteran') }[p.experience] || '';
   const fmts = Array.isArray(p.formats) ? p.formats : [];
   const decks = [...state.decks].sort((a, b) => (b.playing ? 1 : 0) - (a.playing ? 1 : 0) || a.name.localeCompare(b.name));
   const stores = Array.isArray(p.favorite_stores) ? p.favorite_stores : [];
@@ -6321,74 +6346,74 @@ function renderProfileView() {
       <div class="pv-id">
         <h2 class="pv-name">${esc(p.full_name || dn)}</h2>
         <div class="pv-handle">@${esc(un || '—')}${loc ? ` · <i class="ms ms-land" aria-hidden="true"></i> ${esc(loc)}` : ''}</div>
-        <div class="pv-badges">${expLabel ? `<span class="pv-badge">${esc(expLabel)}</span>` : ''}${fmts.slice(0, 4).map(f => `<span class="pv-badge soft">${esc(f)}</span>`).join('')}${since ? `<span class="pv-badge soft">Member since ${esc(since)}</span>` : ''}</div>
+        <div class="pv-badges">${expLabel ? `<span class="pv-badge">${esc(expLabel)}</span>` : ''}${fmts.slice(0, 4).map(f => `<span class="pv-badge soft">${esc(f)}</span>`).join('')}${since ? `<span class="pv-badge soft">${tr('Member since {date}', { date: esc(since) })}</span>` : ''}</div>
       </div>
-      <button class="btn ghost" id="pvEdit"><i class="ms ms-artist-nib btn-ico" aria-hidden="true"></i> Edit profile</button>
+      <button class="btn ghost" id="pvEdit"><i class="ms ms-artist-nib btn-ico" aria-hidden="true"></i> ${tr('Edit profile')}</button>
     </div>
     ${bio ? `<p class="pv-bio">${esc(bio)}</p>` : ''}
     <div class="pv-stats">
-      <div><b>${g.ownedCount}</b><span>cards</span></div>
-      <div><b>${money(g.ownedValue)}</b><span>value</span></div>
-      <div><b>${g.decks}</b><span>decks</span></div>
+      <div><b>${g.ownedCount}</b><span>${tr('cards')}</span></div>
+      <div><b>${money(g.ownedValue)}</b><span>${tr('value')}</span></div>
+      <div><b>${g.decks}</b><span>${tr('decks')}</span></div>
     </div>
     <div class="pv-grid">
       <div class="pv-col">
         <div class="pv-card">
-          <div class="pv-card-h"><h3>My decks</h3><span class="pv-count">${decks.length}</span></div>
-          ${decks.length ? `<div class="pv-decks">${decks.map(d => `
+          <div class="pv-card-h"><h3>${tr('My decks')}</h3><span class="pv-count">${decks.length}</span></div>
+          ${decks.length ? `<div class="pv-decks">${decks.map(d => { const n = (d.cards || []).reduce((a, c) => a + c.qty, 0); return `
             <div class="pv-deck ${d.playing ? 'playing' : ''}">
-              <button class="pv-star ${d.playing ? 'on' : ''}" data-pvstar="${d.id}" title="${d.playing ? 'Currently playing — click to unmark' : 'Mark as currently playing'}">★</button>
-              <button class="pv-deck-open" data-pvdeck="${d.id}"><span class="pv-deck-name">${esc(d.name)}</span><span class="pv-deck-sub">${(d.cards || []).reduce((a, c) => a + c.qty, 0)} cards${d.commander ? ' · ' + esc(d.commander) : ''}</span></button>
-            </div>`).join('')}</div>` : `<p class="pv-empty">No decks yet — <button class="link-btn" id="pvImportDeck">import one</button>.</p>`}
+              <button class="pv-star ${d.playing ? 'on' : ''}" data-pvstar="${d.id}" title="${d.playing ? tr('Currently playing — click to unmark') : tr('Mark as currently playing')}">★</button>
+              <button class="pv-deck-open" data-pvdeck="${d.id}"><span class="pv-deck-name">${esc(d.name)}</span><span class="pv-deck-sub">${tr('{n} cards', { n })}${d.commander ? ' · ' + esc(d.commander) : ''}</span></button>
+            </div>`; }).join('')}</div>` : `<p class="pv-empty">${tr('No decks yet — {link}.', { link: `<button class="link-btn" id="pvImportDeck">${tr('import one')}</button>` })}</p>`}
         </div>
         <div class="pv-card">
-          <div class="pv-card-h"><h3>Recent activity</h3></div>
-          ${recent.length ? `<div class="pv-activity">${recent.map(e => { const meta = HIST_META[e.type] || HIST_META.added; return `<div class="pv-act"><span class="hr-badge ${e.type}">${meta.label}</span><span class="pv-act-name">${esc(e.name)}</span><span class="pv-act-qty">×${e.qty}</span></div>`; }).join('')}</div>` : `<p class="pv-empty">No activity yet.</p>`}
+          <div class="pv-card-h"><h3>${tr('Recent activity')}</h3></div>
+          ${recent.length ? `<div class="pv-activity">${recent.map(e => { const meta = HIST_META[e.type] || HIST_META.added; return `<div class="pv-act"><span class="hr-badge ${e.type}">${tr(meta.label)}</span><span class="pv-act-name">${esc(e.name)}</span><span class="pv-act-qty">×${e.qty}</span></div>`; }).join('')}</div>` : `<p class="pv-empty">${tr('No activity yet.')}</p>`}
         </div>
       </div>
       <div class="pv-col">
         <div class="pv-card">
-          <div class="pv-card-h"><h3>Find players</h3></div>
+          <div class="pv-card-h"><h3>${tr('Find players')}</h3></div>
           <div class="pv-search">
             <i class="ms ms-ability-investigate pv-search-ic" aria-hidden="true"></i>
-            <input type="search" id="pvSearchInput" class="pv-search-input" placeholder="Search players by name or @username…" autocomplete="off" value="${esc(profileSearchQuery)}" />
+            <input type="search" id="pvSearchInput" class="pv-search-input" placeholder="${tr('Search players by name or @username…')}" autocomplete="off" value="${esc(profileSearchQuery)}" />
             <div class="pv-search-results" id="pvSearchResults" hidden></div>
           </div>
         </div>
         <div class="pv-card">
-          <div class="pv-card-h"><h3>Friends</h3><span class="pv-count" id="pvFriendCount"></span></div>
-          <div class="pv-friend-add"><input type="text" id="friendAddInput" class="pv-search-input" placeholder="Add a friend by @username…" autocomplete="off" /><button class="btn gold sm" id="friendAddBtn">Add</button></div>
-          <p class="pv-hint">Add friends, then <b>Match</b> to see what you can buy from or sell to each other.</p>
+          <div class="pv-card-h"><h3>${tr('Friends')}</h3><span class="pv-count" id="pvFriendCount"></span></div>
+          <div class="pv-friend-add"><input type="text" id="friendAddInput" class="pv-search-input" placeholder="${tr('Add a friend by @username…')}" autocomplete="off" /><button class="btn gold sm" id="friendAddBtn">${tr('Add')}</button></div>
+          <p class="pv-hint">${tr('Add friends, then {match} to see what you can buy from or sell to each other.', { match: '<b>' + tr('Match') + '</b>' })}</p>
           <div id="pvFriendsList"></div>
         </div>
         <div class="pv-card">
-          <div class="pv-card-h"><h3>My lists</h3></div>
-          <div class="pv-links"><button class="btn ghost" data-pvgo="buylist"><i class="ms ms-counter-gold btn-ico" aria-hidden="true"></i> Buy List</button><button class="btn ghost" data-pvgo="selllist"><i class="ms ms-loyalty-up btn-ico" aria-hidden="true"></i> Sell List</button></div>
-          <div class="pv-links" style="margin-top:8px"><button class="btn" data-pvshare="buy"><i class="ms ms-counter-lore btn-ico" aria-hidden="true"></i> Share Buy List</button><button class="btn" data-pvshare="sell"><i class="ms ms-counter-lore btn-ico" aria-hidden="true"></i> Share Sell List</button></div>
+          <div class="pv-card-h"><h3>${tr('My lists')}</h3></div>
+          <div class="pv-links"><button class="btn ghost" data-pvgo="buylist"><i class="ms ms-counter-gold btn-ico" aria-hidden="true"></i> ${tr('Buy List')}</button><button class="btn ghost" data-pvgo="selllist"><i class="ms ms-loyalty-up btn-ico" aria-hidden="true"></i> ${tr('Sell List')}</button></div>
+          <div class="pv-links" style="margin-top:8px"><button class="btn" data-pvshare="buy"><i class="ms ms-counter-lore btn-ico" aria-hidden="true"></i> ${tr('Share Buy List')}</button><button class="btn" data-pvshare="sell"><i class="ms ms-counter-lore btn-ico" aria-hidden="true"></i> ${tr('Share Sell List')}</button></div>
         </div>
         <div class="pv-card">
-          <div class="pv-card-h"><h3>Shared links</h3><span class="pv-count">${myShares.length}</span></div>
-          ${myShares.length ? `<div class="pv-shares">${myShares.map(shareRowHtml).join('')}</div>` : `<p class="pv-empty">No links yet. Use “Share” on a list to make one.</p>`}
+          <div class="pv-card-h"><h3>${tr('Shared links')}</h3><span class="pv-count">${myShares.length}</span></div>
+          ${myShares.length ? `<div class="pv-shares">${myShares.map(shareRowHtml).join('')}</div>` : `<p class="pv-empty">${tr('No links yet. Use “Share” on a list to make one.')}</p>`}
         </div>
         <div class="pv-card">
-          <div class="pv-card-h"><h3>My stores</h3></div>
-          ${stores.length ? `<div class="pv-stores">${stores.map(s => `<span class="onb-chip on">${esc(s)}${storeCounts[s] ? ` <span class="onb-chip-n">${storeCounts[s]}</span>` : ''}</span>`).join('')}</div>` : `<p class="pv-empty">None set — <button class="link-btn" id="pvSetStores">add some</button>.</p>`}
+          <div class="pv-card-h"><h3>${tr('My stores')}</h3></div>
+          ${stores.length ? `<div class="pv-stores">${stores.map(s => `<span class="onb-chip on">${esc(s)}${storeCounts[s] ? ` <span class="onb-chip-n">${storeCounts[s]}</span>` : ''}</span>`).join('')}</div>` : `<p class="pv-empty">${tr('None set — {link}.', { link: `<button class="link-btn" id="pvSetStores">${tr('add some')}</button>` })}</p>`}
         </div>
         <div class="pv-card">
-          <div class="pv-card-h"><h3>Top cards</h3></div>
-          ${top.length ? `<div class="pv-top">${top.map((c, i) => `<div class="pv-toprow"><span class="pv-toprank">${i + 1}</span><span class="pv-topname nm" data-name="${esc(c.name)}">${esc(c.name)}</span><span class="pv-topval">${money(c.value)}</span></div>`).join('')}</div>` : `<p class="pv-empty">No owned cards yet.</p>`}
+          <div class="pv-card-h"><h3>${tr('Top cards')}</h3></div>
+          ${top.length ? `<div class="pv-top">${top.map((c, i) => `<div class="pv-toprow"><span class="pv-toprank">${i + 1}</span><span class="pv-topname nm" data-name="${esc(c.name)}">${esc(c.name)}</span><span class="pv-topval">${money(c.value)}</span></div>`).join('')}</div>` : `<p class="pv-empty">${tr('No owned cards yet.')}</p>`}
         </div>
         <div class="pv-card">
-          <div class="pv-card-h"><h3>Public profile</h3>${p.profilePublic ? '<span class="pv-pub-on">● public</span>' : ''}</div>
-          <p class="pv-hint">A shareable page with your decks, stores &amp; trades. Your total collection value always stays private.</p>
-          <label class="pv-toggle"><input type="checkbox" id="pvPublic" ${p.profilePublic ? 'checked' : ''}/> <b>Make my profile public</b></label>
-          ${p.profilePublic ? `<div class="pv-publiclink"><input type="text" id="pvProfileLink" readonly value="${esc(profilePublicUrl())}"/><button class="btn" data-pvcopyprofile>Copy</button><a class="btn" href="${esc(profilePublicUrl())}" target="_blank" rel="noopener">Open ↗</a></div>` : ''}
+          <div class="pv-card-h"><h3>${tr('Public profile')}</h3>${p.profilePublic ? `<span class="pv-pub-on">${tr('● public')}</span>` : ''}</div>
+          <p class="pv-hint">${tr('A shareable page with your decks, stores & trades. Your total collection value always stays private.')}</p>
+          <label class="pv-toggle"><input type="checkbox" id="pvPublic" ${p.profilePublic ? 'checked' : ''}/> <b>${tr('Make my profile public')}</b></label>
+          ${p.profilePublic ? `<div class="pv-publiclink"><input type="text" id="pvProfileLink" readonly value="${esc(profilePublicUrl())}"/><button class="btn" data-pvcopyprofile>${tr('Copy')}</button><a class="btn" href="${esc(profilePublicUrl())}" target="_blank" rel="noopener">${tr('Open ↗')}</a></div>` : ''}
           <div class="pv-pub-subs">
-            <p class="pv-hint">What the page shows (always: your display name &amp; @handle):</p>
-            <label class="pv-toggle"><input type="checkbox" id="pvPubIdentity" ${p.publicIdentity ? 'checked' : ''}/> My real name &amp; city</label>
-            <label class="pv-toggle"><input type="checkbox" id="pvPubDecks" ${p.publicDecks !== false ? 'checked' : ''}/> My decks</label>
-            <label class="pv-toggle"><input type="checkbox" id="pvPubStores" ${p.publicStores !== false ? 'checked' : ''}/> My stores</label>
-            <label class="pv-toggle"><input type="checkbox" id="pvPubTop" ${p.publicTopCards ? 'checked' : ''}/> My top 5 cards</label>
+            <p class="pv-hint">${tr('What the page shows (always: your display name & @handle):')}</p>
+            <label class="pv-toggle"><input type="checkbox" id="pvPubIdentity" ${p.publicIdentity ? 'checked' : ''}/> ${tr('My real name & city')}</label>
+            <label class="pv-toggle"><input type="checkbox" id="pvPubDecks" ${p.publicDecks !== false ? 'checked' : ''}/> ${tr('My decks')}</label>
+            <label class="pv-toggle"><input type="checkbox" id="pvPubStores" ${p.publicStores !== false ? 'checked' : ''}/> ${tr('My stores')}</label>
+            <label class="pv-toggle"><input type="checkbox" id="pvPubTop" ${p.publicTopCards ? 'checked' : ''}/> ${tr('My top 5 cards')}</label>
           </div>
         </div>
       </div>
@@ -6406,11 +6431,11 @@ if (profileViewEl) {
     if ((m = e.target.closest('[data-pvgo]'))) { setView(m.dataset.pvgo); return; }
     if ((m = e.target.closest('[data-pvshare]'))) { openShare(m.dataset.pvshare); return; }
     if ((m = e.target.closest('[data-shareqr]'))) { openQrModal(m.dataset.shareqr); return; }
-    if ((m = e.target.closest('[data-sharecopy]'))) { copyText(shareUrl(m.dataset.sharecopy)).then(ok => toast(ok ? 'Link copied ✓' : 'Copy failed')); return; }
-    if ((m = e.target.closest('[data-sharerevoke]'))) { const code = m.dataset.sharerevoke; if (confirm('Revoke this link? Anyone holding it will no longer be able to open the list.')) revokeShare(code).then(() => renderProfileView()); return; }
+    if ((m = e.target.closest('[data-sharecopy]'))) { copyText(shareUrl(m.dataset.sharecopy)).then(ok => toast(ok ? tr('Link copied ✓') : tr('Copy failed'))); return; }
+    if ((m = e.target.closest('[data-sharerevoke]'))) { const code = m.dataset.sharerevoke; if (confirm(tr('Revoke this link? Anyone holding it will no longer be able to open the list.'))) revokeShare(code).then(() => renderProfileView()); return; }
     if (e.target.closest('#pvImportDeck')) { openImport(); return; }
     if (e.target.closest('#pvSetStores')) { startOnboarding(); return; }
-    if (e.target.closest('[data-pvcopyprofile]')) { copyText(profilePublicUrl()).then(ok => toast(ok ? 'Profile link copied ✓' : 'Copy failed')); return; }
+    if (e.target.closest('[data-pvcopyprofile]')) { copyText(profilePublicUrl()).then(ok => toast(ok ? tr('Profile link copied ✓') : tr('Copy failed'))); return; }
     if ((m = e.target.closest('[data-pvprofile]'))) { openPublicProfile(m.dataset.pvprofile); return; }
     if (e.target.closest('#friendAddBtn')) { const i = $('#friendAddInput'); if (i) sendFriendRequest(i.value); return; }
     if ((m = e.target.closest('[data-fraccept]'))) { respondFriend(m.dataset.fraccept, true); return; }
@@ -6466,11 +6491,11 @@ if (shareModalEl) shareModalEl.addEventListener('click', e => {
   if (e.target.closest('#shareSignIn')) { closeShare(); openAuth('signin'); return; }
   if ((m = e.target.closest('[data-sharelive]'))) { shareCtx.live = m.dataset.sharelive === '1'; shareLastResult = null; renderShareModal(); return; }
   if (e.target.closest('#shareCreateBtn')) { doCreateShare(); return; }
-  if (e.target.closest('#shareCopyBtn')) { const inp = $('#shareLinkInput'); if (inp) copyText(inp.value).then(ok => toast(ok ? 'Link copied ✓' : 'Copy failed')); return; }
+  if (e.target.closest('#shareCopyBtn')) { const inp = $('#shareLinkInput'); if (inp) copyText(inp.value).then(ok => toast(ok ? tr('Link copied ✓') : tr('Copy failed'))); return; }
   if (e.target.closest('#shareQrDownload')) { if (shareLastResult) downloadQrPng(shareLastResult.url, qrSlug(shareTitleFor(shareCtx.kind, shareCtx.folderId))); return; }
   if ((m = e.target.closest('[data-shareqr]'))) { openQrModal(m.dataset.shareqr); return; }
-  if ((m = e.target.closest('[data-sharecopy]'))) { copyText(shareUrl(m.dataset.sharecopy)).then(ok => toast(ok ? 'Link copied ✓' : 'Copy failed')); return; }
-  if ((m = e.target.closest('[data-sharerevoke]'))) { const code = m.dataset.sharerevoke; if (confirm('Revoke this link? Anyone holding it will no longer be able to open the list.')) revokeShare(code).then(() => { renderShareModal(); renderProfileView(); }); return; }
+  if ((m = e.target.closest('[data-sharecopy]'))) { copyText(shareUrl(m.dataset.sharecopy)).then(ok => toast(ok ? tr('Link copied ✓') : tr('Copy failed'))); return; }
+  if ((m = e.target.closest('[data-sharerevoke]'))) { const code = m.dataset.sharerevoke; if (confirm(tr('Revoke this link? Anyone holding it will no longer be able to open the list.'))) revokeShare(code).then(() => { renderShareModal(); renderProfileView(); }); return; }
 });
 
 // QR modal (opens over the share modal or the profile view)
@@ -6480,7 +6505,7 @@ if (qrModalEl) qrModalEl.addEventListener('click', e => {
   if (e.target.id === 'qrModal') { closeQr(); return; }
   let m;
   if ((m = e.target.closest('[data-qrdownload]'))) { const s = myShares.find(x => x.code === m.dataset.qrdownload); downloadQrPng(shareUrl(m.dataset.qrdownload), qrSlug(s && s.title ? s.title : (s && s.kind === 'sell' ? 'sell-list' : 'buy-list'))); return; }
-  if ((m = e.target.closest('[data-qrcopy]'))) { copyText(shareUrl(m.dataset.qrcopy)).then(ok => toast(ok ? 'Link copied ✓' : 'Copy failed')); return; }
+  if ((m = e.target.closest('[data-qrcopy]'))) { copyText(shareUrl(m.dataset.qrcopy)).then(ok => toast(ok ? tr('Link copied ✓') : tr('Copy failed'))); return; }
 });
 
 // deck publish / community-share modal
@@ -6491,7 +6516,7 @@ if (deckShareModalEl) deckShareModalEl.addEventListener('click', e => {
   if (e.target.closest('#deckShareSignIn')) { closeDeckShare(); openAuth('signin'); return; }
   if (e.target.closest('#deckPublishBtn')) { doPublishDeck(); return; }
   if (e.target.closest('#deckUnpublishBtn')) { doUnpublishDeck(); return; }
-  if (e.target.closest('#deckShareCopy')) { const inp = $('#deckShareLink'); if (inp) copyText(inp.value).then(ok => toast(ok ? 'Link copied ✓' : 'Copy failed')); return; }
+  if (e.target.closest('#deckShareCopy')) { const inp = $('#deckShareLink'); if (inp) copyText(inp.value).then(ok => toast(ok ? tr('Link copied ✓') : tr('Copy failed'))); return; }
   if (e.target.closest('#deckShareQr')) { const inp = $('#deckShareLink'); if (inp) downloadQrPng(inp.value, 'vault-deck'); return; }
 });
 
@@ -6516,6 +6541,10 @@ if (homeViewEl) homeViewEl.addEventListener('click', e => {
 });
 
 /* ---------- boot ---------- */
+I18N.lang = state.prefs.lang;
+document.documentElement.lang = state.prefs.lang;
+I18N.apply();        // translate the static index.html chrome
+applyLang();         // light the active EN/ES button
 applyTheme(state.prefs.theme);
 pickAppBg();
 if ($('#view-home') && $('#view-home').classList.contains('is-active')) document.documentElement.classList.add('home-active');   // home is the default landing

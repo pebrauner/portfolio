@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@500;700&family=Spline+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/mana-font@1.15.7/css/mana.min.css" rel="stylesheet" />
+  <script src="i18n.js?v=12"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -98,19 +99,23 @@
   <div class="wrap">
     <div class="brand"><span class="seal"><i class="ms ms-counter-lore" aria-hidden="true"></i></span><span class="word">The Vault</span></div>
     <div class="card" id="card">
-      <div class="state"><span class="big"><i class="ms ms-ability-investigate"></i></span>Loading profile…</div>
+      <div class="state"><span class="big"><i class="ms ms-ability-investigate"></i></span><span data-i18n="Loading profile…">Loading profile…</span></div>
     </div>
-    <div class="foot">A <a href="./" target="_blank" rel="noopener">Vault</a> player profile — Magic: The Gathering collection tracker.</div>
+    <div class="foot" data-i18n-html="A &lt;a href=&quot;./&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Vault&lt;/a&gt; player profile — Magic: The Gathering collection tracker.">A <a href="./" target="_blank" rel="noopener">Vault</a> player profile — Magic: The Gathering collection tracker.</div>
   </div>
 
   <script>
+    I18N.lang = I18N.detect();
+    document.documentElement.lang = I18N.lang;
+    I18N.apply(document);
+
     const SUPA_URL = 'https://yaxczuttvpvqfomhyfbg.supabase.co';
     const SUPA_KEY = 'sb_publishable_le56dg5VAp5Bmfg3BZ4XCQ_c2sSPuOu';
     const cardEl = document.getElementById('card');
     const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     const money = (n) => '$' + (Number(n) || 0).toFixed(2);
     const safeUrl = (u) => { u = String(u || ''); return /^https?:\/\//i.test(u) ? u : ''; };
-    const EXP = { new: 'New to Magic', intermediate: 'Intermediate', veteran: 'Veteran' };
+    const EXP = { new: 'New to Magic', intermediate: 'Intermediate', veteran: 'Veteran' };   // keys are stored values; labels translated at display via tr()
 
     const BG = ['grimoire','abstract','arcane','tome','tome2','ember','space1','space2','space3','space4','space5',
       'manamist1','manamist2','manamist3','manamist4','manamist5','mountain1','mountain2','mountain3','mountain4','archway1','archway2','archway3'];
@@ -124,14 +129,14 @@
     function showState(icon, msg) { cardEl.innerHTML = `<div class="state"><span class="big"><i class="ms ${icon}"></i></span>${esc(msg)}</div>`; }
 
     function render(d) {
-      const name = d.full_name || d.display_name || d.username || 'A player';
+      const name = d.full_name || d.display_name || d.username || tr('A player');
       const loc = [d.city, d.country].filter(Boolean).join(', ');
-      const since = d.since ? new Date(d.since).toLocaleDateString(undefined, { month: 'long', year: 'numeric' }) : '';
+      const since = d.since ? new Date(d.since).toLocaleDateString(I18N.locale(), { month: 'long', year: 'numeric' }) : '';
       const hue = Number(d.avatarHue) || 40;
       const fmts = Array.isArray(d.formats) ? d.formats : [];
-      const badges = [EXP[d.experience] ? `<span class="badge">${esc(EXP[d.experience])}</span>` : '']
-        .concat(fmts.slice(0, 5).map(f => `<span class="badge soft">${esc(f)}</span>`))
-        .concat(since ? [`<span class="badge soft">Member since ${esc(since)}</span>`] : []).join('');
+      const badges = [EXP[d.experience] ? `<span class="badge">${esc(tr(EXP[d.experience]))}</span>` : '']
+        .concat(fmts.slice(0, 5).map(f => `<span class="badge soft">${esc(tr(f))}</span>`))
+        .concat(since ? [`<span class="badge soft">${esc(tr('Member since {date}', { date: since }))}</span>`] : []).join('');
 
       let html = `<div class="hero">
         <div class="avatar" style="background:linear-gradient(160deg, hsl(${hue} 45% 26%), hsl(${hue} 45% 15%))">${esc(initials(name))}</div>
@@ -139,31 +144,33 @@
           <div class="handle">@${esc(d.username || '')}${loc ? ` · <i class="ms ms-land"></i> ${esc(loc)}` : ''}</div>
           <div class="badges">${badges}</div></div></div>`;
       if (d.bio) html += `<p class="bio">${esc(d.bio)}</p>`;
-      if (d.store && /^[a-z0-9-]{3,40}$/.test(String(d.store.slug || ''))) html += `<p class="runs-store"><i class="ms ms-counter-lore"></i> Runs <a href="s.html?s=${encodeURIComponent(d.store.slug)}">${esc(d.store.name || 'a store')}</a></p>`;
+      if (d.store && /^[a-z0-9-]{3,40}$/.test(String(d.store.slug || ''))) html += `<p class="runs-store"><i class="ms ms-counter-lore"></i> ${tr('Runs {store}', { store: `<a href="s.html?s=${encodeURIComponent(d.store.slug)}">${esc(d.store.name || tr('a store'))}</a>` })}</p>`;
 
       if (Array.isArray(d.lists) && d.lists.length) {
-        html += `<div class="sec"><div class="sec-h">Trade lists</div><div class="listlinks">${d.lists.map(l => {
+        html += `<div class="sec"><div class="sec-h">${esc(tr('Trade lists'))}</div><div class="listlinks">${d.lists.map(l => {
           const url = safeUrl(l.url); if (!url) return '';
           const buy = l.kind !== 'sell';
           return `<a class="ll ${buy ? 'buy' : 'sell'}" href="${esc(url)}" target="_blank" rel="noopener">
-            <span class="lk">${buy ? 'Buying' : 'Selling'}</span><span class="lt">${esc(l.title || (buy ? 'Buy List' : 'Sell List'))}</span><span class="lgo">↗</span></a>`;
+            <span class="lk">${esc(buy ? tr('Buying') : tr('Selling'))}</span><span class="lt">${esc(l.title || (buy ? tr('Buy List') : tr('Sell List')))}</span><span class="lgo">↗</span></a>`;
         }).join('')}</div></div>`;
       }
       if (Array.isArray(d.decks) && d.decks.length) {
-        html += `<div class="sec"><div class="sec-h">Playing</div><div class="decks">${d.decks.map(dk => {
+        html += `<div class="sec"><div class="sec-h">${esc(tr('Playing'))}</div><div class="decks">${d.decks.map(dk => {
           const code = /^[A-Za-z0-9]{4,16}$/.test(String(dk.code || '')) ? dk.code : '';
-          const inner = `<span class="star">★</span><div class="dn"><div class="dname">${esc(dk.name)}</div><div class="dsub">${Number(dk.count) || 0} cards${dk.commander ? ' · ' + esc(dk.commander) : ''}</div></div>${code ? '<span class="dgo">View ↗</span>' : ''}`;
+          const cnt = Number(dk.count) || 0;
+          const cntLabel = cnt === 1 ? tr('{n} card', { n: cnt }) : tr('{n} cards', { n: cnt });
+          const inner = `<span class="star">★</span><div class="dn"><div class="dname">${esc(dk.name)}</div><div class="dsub">${esc(cntLabel)}${dk.commander ? ' · ' + esc(dk.commander) : ''}</div></div>${code ? `<span class="dgo">${esc(tr('View ↗'))}</span>` : ''}`;
           return code
             ? `<a class="deck linked ${dk.playing ? 'playing' : ''}" href="d.html?id=${encodeURIComponent(code)}">${inner}</a>`
             : `<div class="deck ${dk.playing ? 'playing' : ''}">${inner}</div>`;
         }).join('')}</div></div>`;
       }
       if (Array.isArray(d.stores) && d.stores.length) {
-        html += `<div class="sec"><div class="sec-h">Plays at</div><div class="chips">${d.stores.map(s =>
+        html += `<div class="sec"><div class="sec-h">${esc(tr('Plays at'))}</div><div class="chips">${d.stores.map(s =>
           `<span class="chip">${esc(s.name)}${s.count ? `<span class="n">${Number(s.count) || 0}</span>` : ''}</span>`).join('')}</div></div>`;
       }
       if (Array.isArray(d.topCards) && d.topCards.length) {
-        html += `<div class="sec"><div class="sec-h">Top cards</div><div class="tops">${d.topCards.map(c => {
+        html += `<div class="sec"><div class="sec-h">${esc(tr('Top cards'))}</div><div class="tops">${d.topCards.map(c => {
           const img = safeUrl(c.img), uri = safeUrl(c.uri);
           const art = img ? `<img src="${esc(img)}" alt="${esc(c.name)}" loading="lazy" />` : `<div class="topc-fb">${esc(c.name)}</div>`;
           const tag = uri ? 'a' : 'div';
@@ -176,16 +183,16 @@
 
     (async () => {
       const u = new URLSearchParams(location.search).get('u');
-      if (!u) { showState('ms-counter-shield', 'No profile named in this link.'); return; }
-      if (!window.supabase) { showState('ms-counter-shield', 'Could not load — please check your connection.'); return; }
+      if (!u) { showState('ms-counter-shield', tr('No profile named in this link.')); return; }
+      if (!window.supabase) { showState('ms-counter-shield', tr('Could not load — please check your connection.')); return; }
       const sb = window.supabase.createClient(SUPA_URL, SUPA_KEY);
       try {
         const { data, error } = await sb.rpc('get_public_profile', { p_username: u });
-        if (error) { showState('ms-counter-shield', 'Could not load this profile.'); return; }
-        if (!data) { showState('ms-graveyard', 'This profile is private or doesn’t exist.'); return; }
-        document.title = ((data.display_name || data.username || 'Player') + ' · The Vault');
+        if (error) { showState('ms-counter-shield', tr('Could not load this profile.')); return; }
+        if (!data) { showState('ms-graveyard', tr('This profile is private or doesn’t exist.')); return; }
+        document.title = ((data.display_name || data.username || tr('Player')) + ' · The Vault');
         render(data);
-      } catch (e) { showState('ms-counter-shield', 'Something went wrong loading this profile.'); }
+      } catch (e) { showState('ms-counter-shield', tr('Something went wrong loading this profile.')); }
     })();
   </script>
 </body>

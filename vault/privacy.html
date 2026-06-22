@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@500;700&family=Spline+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/mana-font@1.15.7/css/mana.min.css" rel="stylesheet" />
+  <script src="i18n.js?v=12"></script>
   <style>
     :root {
       --ink:#0b0a07; --ink-2:#120e08; --panel:#181107; --panel-2:#1f1709; --edge:#342a17; --edge-soft:#28200f;
@@ -39,17 +40,33 @@
     .doc-foot a { color:var(--brass); }
     .doc-foot .links { margin-bottom:12px; font-family:var(--label); font-size:12px; }
     .doc-foot .links a { color:var(--parch-dim); }
+    .lang-toggle { display:inline-flex; border:1px solid var(--edge); border-radius:9px; overflow:hidden; }
+    .lang-toggle button { font-family:var(--label); font-size:12px; letter-spacing:.04em; cursor:pointer; border:none; background:transparent; color:var(--parch-dim); padding:8px 14px; transition:.15s; }
+    .lang-toggle button:hover { color:var(--gold-soft); }
+    .lang-toggle button.on { color:var(--ink); background:linear-gradient(180deg,var(--gold-soft),var(--gold)); }
+    .prevail-note { font-size:13.5px; color:var(--muted); font-style:italic; margin:0 0 22px; }
+    .doc-lang { display:none; }
+    .doc-lang.show { display:block; }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="doc-top">
       <a class="brand" href="./"><span class="seal"><i class="ms ms-counter-lore" aria-hidden="true"></i></span><span class="word">The Vault</span></a>
-      <a class="back" href="./">← Back to The Vault</a>
+      <span style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span class="lang-toggle" role="group" aria-label="Language">
+          <button type="button" id="langEn" data-lang="en">EN</button>
+          <button type="button" id="langEs" data-lang="es">ES</button>
+        </span>
+        <a class="back" href="./" data-i18n="← Back to The Vault">← Back to The Vault</a>
+      </span>
     </div>
 
+    <!-- ===== ENGLISH ===== -->
+    <div class="doc-lang" lang="en" id="docEn">
     <h1>Privacy Policy</h1>
     <div class="updated">Last updated: 21 June 2026</div>
+    <p class="prevail-note">The English version of this document governs.</p>
     <p class="lede">The Vault is a personal tool for tracking your Magic: The Gathering collection and decks. This policy explains what information it handles, why, and the choices you have. We keep it minimal and we don't sell your data or run ads.</p>
 
     <h2>1. Who we are</h2>
@@ -123,6 +140,106 @@
       The Vault is unofficial Fan Content permitted under the <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Wizards of the Coast Fan Content Policy</a>. Not approved or endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC. Card data and images courtesy of <a href="https://scryfall.com" target="_blank" rel="noopener">Scryfall</a>.<br>
       © 2026 Pedro Brauner · The Vault.
     </div>
+    </div><!-- /docEn -->
+
+    <!-- ===== ESPAÑOL ===== -->
+    <div class="doc-lang" lang="es" id="docEs">
+    <h1>Política de privacidad</h1>
+    <div class="updated">Última actualización: 21 de junio de 2026</div>
+    <p class="prevail-note">La versión en inglés de este documento es la que prevalece legalmente.</p>
+    <p class="lede">The Vault es una herramienta personal para hacer seguimiento de tu colección y mazos de Magic: The Gathering. Esta política explica qué información maneja, por qué, y las opciones que tienes. La mantenemos mínima y no vendemos tus datos ni mostramos anuncios.</p>
+
+    <h2>1. Quiénes somos</h2>
+    <p>The Vault (“nosotros”, “la aplicación”) es operada por <b>Pedro Brauner</b>. Si tienes alguna pregunta sobre privacidad o tus datos, contáctanos en <a href="mailto:hello@pedrobrauner.com">hello@pedrobrauner.com</a>.</p>
+
+    <h2>2. Qué recopilamos</h2>
+    <p>Puedes usar la mayor parte de The Vault completamente en tu navegador sin una cuenta. Solo recopilamos lo necesario para que la aplicación funcione:</p>
+    <h3>Si creas una cuenta</h3>
+    <ul>
+      <li><b>Correo y nombre de usuario</b> — para iniciar tu sesión y sincronizar tus datos entre dispositivos.</li>
+      <li><b>Contraseña</b> — gestionada por nuestro proveedor de autenticación y almacenada solo como un hash seguro. Nunca vemos ni almacenamos tu contraseña real.</li>
+    </ul>
+    <h3>El contenido que pones en la aplicación</h3>
+    <ul>
+      <li>Tu <b>colección, mazos, lista de deseos, listas de compra/venta</b> y tu <b>historial de actividad</b>.</li>
+      <li><b>Detalles de perfil</b> opcionales que decidas añadir — nombre visible y, opcionalmente, tu nombre real, país, ciudad y las tiendas donde juegas.</li>
+    </ul>
+    <h3>En tu dispositivo</h3>
+    <ul>
+      <li>La aplicación guarda tus datos en el <b>almacenamiento local</b> de tu navegador para que cargue rápido y funcione sin conexión. Si has iniciado sesión, un token de sesión te mantiene conectado.</li>
+    </ul>
+    <p><b>No</b> usamos publicidad ni rastreadores de analítica de terceros, y no construimos perfiles publicitarios sobre ti.</p>
+
+    <h2>3. Cómo usamos tu información</h2>
+    <ul>
+      <li>Para almacenar y mostrar tu colección y mazos.</li>
+      <li>Para sincronizar tus datos entre tus dispositivos cuando inicias sesión.</li>
+      <li>Para mostrar información de cartas, imágenes y estimaciones de precios.</li>
+      <li>Para habilitar las funciones de compartir que decidas usar (listas compartidas, perfil público).</li>
+    </ul>
+
+    <h2>4. Dónde viven tus datos y los servicios de los que dependemos</h2>
+    <ul>
+      <li><b>Supabase</b> — provee nuestra base de datos y la autenticación de cuentas. Tu cuenta y tu colección sincronizada se almacenan aquí. Consulta la <a href="https://supabase.com/privacy" target="_blank" rel="noopener">política de privacidad de Supabase</a>.</li>
+      <li><b>Scryfall</b> — cuando exploras, buscas o ves cartas, tu navegador solicita los datos e imágenes de las cartas directamente a Scryfall. Consulta la <a href="https://scryfall.com/privacy" target="_blank" rel="noopener">política de privacidad de Scryfall</a>.</li>
+      <li><b>TCGplayer y Card Kingdom</b> — usados como fuente de las estimaciones de precios mostradas como referencia.</li>
+      <li><b>Google Fonts y jsDelivr</b> — las fuentes y librerías de software se cargan desde estas CDN, que pueden recibir tu dirección IP como parte de la entrega de esos archivos.</li>
+    </ul>
+
+    <h2>5. Compartir y funciones públicas</h2>
+    <p>Algunas funciones publican información <b>solo cuando tú lo decides</b>:</p>
+    <ul>
+      <li>Las <b>listas de compra/venta compartidas</b> y un <b>perfil público</b> son visibles para cualquiera que tenga el enlace. Tú decides qué muestra un perfil público, y puedes revocar un enlace compartido o hacer privado tu perfil en cualquier momento.</li>
+      <li>El <b>valor total de tu colección nunca se hace público</b> — se mantiene privado para ti.</li>
+    </ul>
+
+    <h2>6. Cookies y almacenamiento local</h2>
+    <p>Usamos el almacenamiento local de tu navegador para guardar tu colección y un token de sesión para mantenerte conectado. Estos son esenciales para el funcionamiento de la aplicación. No usamos cookies de publicidad ni de rastreo entre sitios, por lo que no hay un banner de consentimiento de anuncios que aceptar.</p>
+
+    <h2>7. Tus opciones y derechos</h2>
+    <ul>
+      <li><b>Acceso y edición</b> — consulta y cambia tus datos en cualquier momento dentro de la aplicación.</li>
+      <li><b>Exportar</b> — descarga toda tu colección como un archivo desde Ajustes → Exportar.</li>
+      <li><b>Eliminar</b> — cierra sesión para quitar los datos de un dispositivo. Para eliminar tu cuenta y los datos sincronizados a ella, escribe a <a href="mailto:hello@pedrobrauner.com">hello@pedrobrauner.com</a> y los eliminaremos.</li>
+    </ul>
+
+    <h2>8. Conservación y seguridad de los datos</h2>
+    <p>Conservamos tus datos mientras exista tu cuenta o hasta que nos pidas eliminarlos. Las contraseñas son cifradas (hash) por nuestro proveedor de autenticación y los datos se transmiten por HTTPS. Ningún servicio en línea puede ser 100% seguro, así que por favor mantén una copia de seguridad usando Exportar.</p>
+
+    <h2>9. Menores</h2>
+    <p>The Vault no está dirigido a menores de 13 años (o la edad mínima exigida en tu país). Si eres menor de esa edad, por favor no crees una cuenta.</p>
+
+    <h2>10. Cambios en esta política</h2>
+    <p>Podemos actualizar esta política de vez en cuando. Cuando lo hagamos, cambiaremos la fecha de “Última actualización” de arriba. El uso continuado de la aplicación significa que aceptas la versión actual.</p>
+
+    <h2>11. Contacto</h2>
+    <p>Preguntas, solicitudes o inquietudes sobre tus datos: <a href="mailto:hello@pedrobrauner.com">hello@pedrobrauner.com</a>.</p>
+
+    <div class="doc-foot">
+      <div class="links"><a href="./">Inicio</a> · <a href="terms.html">Términos del servicio</a> · <a href="privacy.html">Política de privacidad</a> · <a href="mailto:hello@pedrobrauner.com">Contacto</a></div>
+      The Vault es Contenido de Fans no oficial permitido bajo la <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Política de Contenido de Fans de Wizards of the Coast</a>. No está aprobado ni respaldado por Wizards. Parte del material utilizado es propiedad de Wizards of the Coast. ©Wizards of the Coast LLC. Datos e imágenes de cartas cortesía de <a href="https://scryfall.com" target="_blank" rel="noopener">Scryfall</a>.<br>
+      © 2026 Pedro Brauner · The Vault.
+    </div>
+    </div><!-- /docEs -->
   </div>
+
+  <script>
+    (function () {
+      var en = document.getElementById('docEn'), es = document.getElementById('docEs');
+      var bEn = document.getElementById('langEn'), bEs = document.getElementById('langEs');
+      function setLang(lang) {
+        var isEs = (lang === 'es');
+        es.classList.toggle('show', isEs); en.classList.toggle('show', !isEs);
+        bEs.classList.toggle('on', isEs); bEn.classList.toggle('on', !isEs);
+        document.documentElement.lang = isEs ? 'es' : 'en';
+        try { I18N.lang = isEs ? 'es' : 'en'; I18N.apply(document); } catch (e) {}
+      }
+      bEn.addEventListener('click', function () { setLang('en'); });
+      bEs.addEventListener('click', function () { setLang('es'); });
+      var initial = 'en';
+      try { initial = I18N.detect(); } catch (e) {}
+      setLang(initial);
+    })();
+  </script>
 </body>
 </html>

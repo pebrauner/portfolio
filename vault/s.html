@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@500;700&family=Spline+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/mana-font@1.15.7/css/mana.min.css" rel="stylesheet" />
+  <script src="i18n.js?v=12"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -141,17 +142,21 @@
   <div class="wrap">
     <div class="brand"><span class="seal"><i class="ms ms-counter-lore" aria-hidden="true"></i></span><span class="word">The Vault</span></div>
     <div class="card" id="card">
-      <div class="state"><span class="big"><i class="ms ms-ability-investigate"></i></span>Loading store…</div>
+      <div class="state"><span class="big"><i class="ms ms-ability-investigate"></i></span><span data-i18n="Loading store…">Loading store…</span></div>
     </div>
-    <div class="foot">A store on <a href="./" target="_blank" rel="noopener">The Vault</a> — a Magic: The Gathering collection &amp; deck tracker.</div>
+    <div class="foot" data-i18n-html="A store on &lt;a href=&quot;./&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;The Vault&lt;/a&gt; — a Magic: The Gathering collection &amp; deck tracker.">A store on <a href="./" target="_blank" rel="noopener">The Vault</a> — a Magic: The Gathering collection &amp; deck tracker.</div>
   </div>
 
   <div class="lb" id="lb" aria-hidden="true">
-    <button class="lb-close" id="lbClose" aria-label="Close">✕</button>
+    <button class="lb-close" id="lbClose" aria-label="Close" data-i18n-aria="Close">✕</button>
     <div class="lb-card" id="lbCard"></div>
   </div>
 
   <script>
+    I18N.lang = I18N.detect();
+    document.documentElement.lang = I18N.lang;
+    I18N.apply(document);
+
     const SUPA_URL = 'https://yaxczuttvpvqfomhyfbg.supabase.co';
     const SUPA_KEY = 'sb_publishable_le56dg5VAp5Bmfg3BZ4XCQ_c2sSPuOu';
     const card = document.getElementById('card');
@@ -178,7 +183,7 @@
     function openState(hours) {
       if (!hours || typeof hours !== 'object') return null;
       const k = todayKey(), h = hours[k];
-      if (!h || !h.open || !h.close) return { open: false, label: 'Closed today' };
+      if (!h || !h.open || !h.close) return { open: false, label: tr('Closed today') };
       const now = new Date(), cur = now.getHours() * 60 + now.getMinutes();
       const toMin = (s) => { const m = /^(\d{1,2}):(\d{2})/.exec(String(s)); return m ? (+m[1]) * 60 + (+m[2]) : null; };
       const o = toMin(h.open), c = toMin(h.close);
@@ -191,10 +196,10 @@
       const tk = todayKey();
       const rows = DAYS.map(([k, lbl]) => {
         const h = hours[k];
-        const val = (h && h.open && h.close) ? `${esc(fmtTime(h.open))} – ${esc(fmtTime(h.close))}` : 'Closed';
-        return `<div class="d${k === tk ? ' today' : ''}">${lbl}</div><div class="h${k === tk ? ' today' : ''}">${val}</div>`;
+        const val = (h && h.open && h.close) ? `${esc(fmtTime(h.open))} – ${esc(fmtTime(h.close))}` : esc(tr('Closed'));
+        return `<div class="d${k === tk ? ' today' : ''}">${esc(tr(lbl))}</div><div class="h${k === tk ? ' today' : ''}">${val}</div>`;
       }).join('');
-      return `<div class="sec"><div class="sec-h"><i class="ms ms-counter-lore"></i> Hours</div><div class="hours">${rows}</div></div>`;
+      return `<div class="sec"><div class="sec-h"><i class="ms ms-counter-lore"></i> ${esc(tr('Hours'))}</div><div class="hours">${rows}</div></div>`;
     }
 
     function mapHref() {
@@ -204,9 +209,9 @@
     }
     function actionsHtml() {
       const out = [];
-      const map = mapHref(); if (map) out.push(`<a class="btn gold" href="${esc(map)}" target="_blank" rel="noopener"><i class="ms ms-counter-lore"></i> Directions</a>`);
-      const site = safeUrl(STORE.website); if (site) out.push(`<a class="btn" href="${esc(site)}" target="_blank" rel="noopener"><i class="ms ms-counter-lore"></i> Website</a>`);
-      if (STORE.whatsapp) out.push(`<a class="btn" href="https://wa.me/${encodeURIComponent(String(STORE.whatsapp).replace(/[^\d]/g, ''))}" target="_blank" rel="noopener"><i class="ms ms-counter-lore"></i> WhatsApp</a>`);
+      const map = mapHref(); if (map) out.push(`<a class="btn gold" href="${esc(map)}" target="_blank" rel="noopener"><i class="ms ms-counter-lore"></i> ${esc(tr('Directions'))}</a>`);
+      const site = safeUrl(STORE.website); if (site) out.push(`<a class="btn" href="${esc(site)}" target="_blank" rel="noopener"><i class="ms ms-counter-lore"></i> ${esc(tr('Website'))}</a>`);
+      if (STORE.whatsapp) out.push(`<a class="btn" href="https://wa.me/${encodeURIComponent(String(STORE.whatsapp).replace(/[^\d]/g, ''))}" target="_blank" rel="noopener"><i class="ms ms-counter-lore"></i> ${esc(tr('WhatsApp'))}</a>`);
       else if (STORE.phone) out.push(`<a class="btn" href="tel:${encodeURIComponent(STORE.phone)}"><i class="ms ms-counter-lore"></i> ${esc(STORE.phone)}</a>`);
       const soc = STORE.socials || {};
       Object.keys(soc).forEach(k => { const u = safeUrl(soc[k]); const meta = SOCIALS[k.toLowerCase()]; if (u && meta) out.push(`<a class="btn" href="${esc(u)}" target="_blank" rel="noopener"><i class="ms ${meta[1]}"></i> ${esc(meta[0])}</a>`); });
@@ -216,10 +221,10 @@
     function whenStr(ev) {
       if (!ev.starts_at) return '';
       const d = new Date(ev.starts_at);
-      const date = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-      const t = d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+      const date = d.toLocaleDateString(I18N.locale(), { weekday: 'short', month: 'short', day: 'numeric' });
+      const t = d.toLocaleTimeString(I18N.locale(), { hour: 'numeric', minute: '2-digit' });
       let s = `${date} · ${t}`;
-      if (ev.ends_at) { const e = new Date(ev.ends_at); s += `–${e.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`; }
+      if (ev.ends_at) { const e = new Date(ev.ends_at); s += `–${e.toLocaleTimeString(I18N.locale(), { hour: 'numeric', minute: '2-digit' })}`; }
       return s;
     }
     function eventsHtml(events) {
@@ -229,9 +234,9 @@
       if (!up.length) return '';
       const cards = up.map(ev => {
         const meta = [];
-        if (ev.prize_pool) meta.push(`<span>Prize <b>${esc(ev.prize_pool)}</b></span>`);
-        if (ev.entry_fee) meta.push(`<span>Entry <b>${esc(ev.entry_fee)}</b></span>`);
-        if (ev.capacity) meta.push(`<span>Seats <b>${Number(ev.capacity)}</b></span>`);
+        if (ev.prize_pool) meta.push(`<span>${esc(tr('Prize'))} <b>${esc(ev.prize_pool)}</b></span>`);
+        if (ev.entry_fee) meta.push(`<span>${esc(tr('Entry'))} <b>${esc(ev.entry_fee)}</b></span>`);
+        if (ev.capacity) meta.push(`<span>${esc(tr('Seats'))} <b>${Number(ev.capacity)}</b></span>`);
         return `<div class="ev">
           <div class="ev-top"><span class="ev-title">${esc(ev.title)}</span>${ev.format ? `<span class="ev-fmt">${esc(ev.format)}</span>` : ''}${ev.recurring ? `<span class="ev-rec">↻ ${esc(ev.recurring)}</span>` : ''}</div>
           ${ev.starts_at ? `<div class="ev-when">${esc(whenStr(ev))}</div>` : ''}
@@ -239,7 +244,7 @@
           ${ev.description ? `<div class="ev-desc">${esc(ev.description)}</div>` : ''}
         </div>`;
       }).join('');
-      return `<div class="sec"><div class="sec-h"><i class="ms ms-counter-lore"></i> Upcoming events <span class="n">${up.length}</span></div><div class="events">${cards}</div></div>`;
+      return `<div class="sec"><div class="sec-h"><i class="ms ms-counter-lore"></i> ${esc(tr('Upcoming events'))} <span class="n">${up.length}</span></div><div class="events">${cards}</div></div>`;
     }
 
     // store inventory — every non-reserved card is for sale; art/list + search + binder filter
@@ -258,14 +263,14 @@
       const rows = invFiltered();
       lbItems = rows;   // lightbox indexes into the filtered list
       const shown = rows.slice(0, invShown);
-      const more = rows.length > invShown ? `<button class="more" id="invMore">Show ${rows.length - invShown} more</button>` : '';
-      if (!shown.length) { wrap.innerHTML = `<div class="empty">No cards match “${esc(invQuery)}”.</div>`; return; }
+      const more = rows.length > invShown ? `<button class="more" id="invMore">${esc(tr('Show {n} more', { n: rows.length - invShown }))}</button>` : '';
+      if (!shown.length) { wrap.innerHTML = `<div class="empty">${esc(tr('No cards match “{q}”.', { q: invQuery }))}</div>`; return; }
       if (invMode === 'list') {
-        wrap.innerHTML = `<table><thead><tr><th>Qty</th><th>Card</th><th class="r">Price</th></tr></thead><tbody>${shown.map((c, i) =>
-          `<tr data-i="${i}"><td class="qty">${Number(c.qty) || 1}×</td><td><span class="nm">${esc(c.name)}</span>${c.foil ? '<span class="foil">✦ foil</span>' : ''}</td><td class="r price">${c.price ? money(c.price) : ''}</td></tr>`).join('')}</tbody></table>${more}`;
+        wrap.innerHTML = `<table><thead><tr><th>${esc(tr('Qty'))}</th><th>${esc(tr('Card'))}</th><th class="r">${esc(tr('Price'))}</th></tr></thead><tbody>${shown.map((c, i) =>
+          `<tr data-i="${i}"><td class="qty">${Number(c.qty) || 1}×</td><td><span class="nm">${esc(c.name)}</span>${c.foil ? `<span class="foil">✦ ${esc(tr('foil'))}</span>` : ''}</td><td class="r price">${c.price ? money(c.price) : ''}</td></tr>`).join('')}</tbody></table>${more}`;
       } else {
         wrap.innerHTML = `<div class="gallery">${shown.map((c, i) => {
-          const foil = c.foil ? `<span class="tile-foil" title="Foil">✦</span>` : '';
+          const foil = c.foil ? `<span class="tile-foil" title="${esc(tr('Foil'))}">✦</span>` : '';
           return `<button class="tile" data-i="${i}"><div class="tile-art"><span class="tile-qty">${Number(c.qty) || 1}×</span>${foil}<img src="${esc(artUrl(c.name))}" alt="${esc(c.name)}" loading="lazy" onerror="this.style.display='none'" /></div><div class="tile-cap"><span class="tn">${esc(c.name)}</span>${c.price ? `<span class="tp">${money(c.price)}</span>` : ''}</div></button>`;
         }).join('')}</div>${more}`;
       }
@@ -275,23 +280,24 @@
       if (!forSale.length) return '';
       const total = forSale.reduce((a, c) => a + (Number(c.qty) || 0), 0);
       const binderFilter = invBinders.length
-        ? `<div class="inv-binder-filter" id="invBinderFilter"><button class="ibf${invBinder === '' ? ' on' : ''}" data-binder="">All</button>${invBinders.map(b => `<button class="ibf${invBinder === b.id ? ' on' : ''}" data-binder="${esc(b.id)}">${esc(b.name)}</button>`).join('')}</div>`
+        ? `<div class="inv-binder-filter" id="invBinderFilter"><button class="ibf${invBinder === '' ? ' on' : ''}" data-binder="">${esc(tr('All'))}</button>${invBinders.map(b => `<button class="ibf${invBinder === b.id ? ' on' : ''}" data-binder="${esc(b.id)}">${esc(b.name)}</button>`).join('')}</div>`
         : '';
-      return `<div class="sec"><div class="sec-h"><i class="ms ms-counter-gold"></i> For sale <span class="n">${total} cards</span>
-          <span class="seg inv-seg"><button data-imode="art" class="${invMode === 'art' ? 'on' : ''}"><i class="ms ms-token"></i> Art</button><button data-imode="list" class="${invMode === 'list' ? 'on' : ''}"><i class="ms ms-multiple"></i> List</button></span></div>
+      const totalLabel = total === 1 ? tr('{n} card', { n: total }) : tr('{n} cards', { n: total });
+      return `<div class="sec"><div class="sec-h"><i class="ms ms-counter-gold"></i> ${esc(tr('For sale'))} <span class="n">${esc(totalLabel)}</span>
+          <span class="seg inv-seg"><button data-imode="art" class="${invMode === 'art' ? 'on' : ''}"><i class="ms ms-token"></i> ${esc(tr('Art'))}</button><button data-imode="list" class="${invMode === 'list' ? 'on' : ''}"><i class="ms ms-multiple"></i> ${esc(tr('List'))}</button></span></div>
         ${binderFilter}
-        <input type="search" class="lib-search" id="invSearch" placeholder="Search the store's cards…" autocomplete="off" value="${esc(invQuery)}" />
+        <input type="search" class="lib-search" id="invSearch" placeholder="${esc(tr('Search the store’s cards…'))}" autocomplete="off" value="${esc(invQuery)}" />
         <div id="invBody"></div></div>`;
     }
 
     function openLightbox(i) {
       const it = lbItems[i]; if (!it) return;
       const img = safeUrl(it.img) || artUrl(it.name), uri = safeUrl(it.uri);
-      const bits = [it.set ? esc(it.set) : '', it.foil ? 'Foil' : '', it.price ? money(it.price) : ''].filter(Boolean).join(' · ');
+      const bits = [it.set ? esc(it.set) : '', it.foil ? esc(tr('Foil')) : '', it.price ? money(it.price) : ''].filter(Boolean).join(' · ');
       document.getElementById('lbCard').innerHTML =
         `<img class="lb-img" src="${esc(img)}" alt="${esc(it.name)}" onerror="this.style.display='none'" />` +
         `<div><div class="lb-name">${esc(it.name)}</div><div class="lb-info">${Number(it.qty) || 1}× · ${bits}</div></div>` +
-        (uri ? `<a class="lb-link" href="${esc(uri)}" target="_blank" rel="noopener">View on Scryfall ↗</a>` : '');
+        (uri ? `<a class="lb-link" href="${esc(uri)}" target="_blank" rel="noopener">${esc(tr('View on Scryfall ↗'))}</a>` : '');
       const lb = document.getElementById('lb'); lb.classList.add('on'); lb.setAttribute('aria-hidden', 'false');
     }
     function closeLightbox() { const lb = document.getElementById('lb'); lb.classList.remove('on'); lb.setAttribute('aria-hidden', 'true'); }
@@ -307,18 +313,18 @@
         <div class="s-head">
           <div class="s-logo">${logo}</div>
           <div class="s-h-main">
-            <div class="s-title"><h1>${esc(s.name || 'Store')}</h1>${s.verified ? '<span class="verified"><i class="ms ms-counter-shield"></i> Verified</span>' : ''}</div>
-            <div class="s-where"><i class="ms ms-counter-lore" aria-hidden="true"></i> Local game store${where ? ' · ' + esc(where) : ''}${s.address ? ' · ' + esc(s.address) : ''}</div>
-            ${owner ? `<div class="s-where">Run by <a href="u.html?u=${encodeURIComponent(owner)}">@${esc(owner)}</a></div>` : ''}
+            <div class="s-title"><h1>${esc(s.name || tr('Store|fallback'))}</h1>${s.verified ? `<span class="verified"><i class="ms ms-counter-shield"></i> ${esc(tr('Verified|store'))}</span>` : ''}</div>
+            <div class="s-where"><i class="ms ms-counter-lore" aria-hidden="true"></i> ${esc(tr('Local game store'))}${where ? ' · ' + esc(where) : ''}${s.address ? ' · ' + esc(s.address) : ''}</div>
+            ${owner ? `<div class="s-where">${tr('Run by {who}', { who: `<a href="u.html?u=${encodeURIComponent(owner)}">@${esc(owner)}</a>` })}</div>` : ''}
             ${s.bio ? `<div class="s-bio">${esc(s.bio)}</div>` : ''}
-            ${os ? `<div class="openbadge ${os.open ? 'open' : ''}"><span class="dot"></span>${os.open ? 'Open now' : 'Closed'}${os.label ? ` <span class="todays">· today ${esc(os.label)}</span>` : ''}</div>` : ''}
+            ${os ? `<div class="openbadge ${os.open ? 'open' : ''}"><span class="dot"></span>${esc(os.open ? tr('Open now') : tr('Closed'))}${os.label ? ` <span class="todays">· ${esc(tr('today {hours}', { hours: os.label }))}</span>` : ''}</div>` : ''}
           </div>
         </div>
         ${actionsHtml()}
         ${eventsHtml(s.events)}
         ${inventoryHtml()}
         ${hoursHtml(s.hours)}
-        <div class="actions" style="margin-top:24px"><a class="btn" href="./" target="_blank" rel="noopener"><i class="ms ms-token"></i> Track your own collection</a></div>`;
+        <div class="actions" style="margin-top:24px"><a class="btn" href="./" target="_blank" rel="noopener"><i class="ms ms-token"></i> ${esc(tr('Track your own collection'))}</a></div>`;
       wire();
       renderInv();
     }
@@ -341,17 +347,17 @@
 
     (async () => {
       const slug = new URLSearchParams(location.search).get('s');
-      if (!slug) { showState('ms-counter-shield', 'No store in this link.'); return; }
-      if (!window.supabase) { showState('ms-counter-shield', 'Could not load — please check your connection.'); return; }
+      if (!slug) { showState('ms-counter-shield', tr('No store in this link.')); return; }
+      if (!window.supabase) { showState('ms-counter-shield', tr('Could not load — please check your connection.')); return; }
       const sb = window.supabase.createClient(SUPA_URL, SUPA_KEY);
       try {
         const { data, error } = await sb.rpc('get_store_profile', { p_slug: slug });
-        if (error) { showState('ms-counter-shield', 'Could not load this store. It may have been removed.'); return; }
-        if (!data) { showState('ms-graveyard', 'This store page no longer exists or was made private.'); return; }
+        if (error) { showState('ms-counter-shield', tr('Could not load this store. It may have been removed.')); return; }
+        if (!data) { showState('ms-graveyard', tr('This store page no longer exists or was made private.')); return; }
         STORE = data;
-        document.title = (STORE.name || 'A store') + ' · The Vault';
+        document.title = (STORE.name || tr('A store')) + ' · The Vault';
         render();
-      } catch (e) { showState('ms-counter-shield', 'Something went wrong loading this store.'); }
+      } catch (e) { showState('ms-counter-shield', tr('Something went wrong loading this store.')); }
     })();
   </script>
 </body>
