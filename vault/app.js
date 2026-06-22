@@ -3727,13 +3727,16 @@ async function matchBuyAgainstStore(slug) {
     const merged = new Map();
     cards.forEach(c => {
       const name = c && c.name; const qty = Number(c && c.qty) || 0;
-      if (!name || c.reserved || qty <= 0) return;
+      if (!name || c.reserved || c.display || qty <= 0) return;   // skip reserved + Cabinet (display) cards — not for sale
       const k = key(name);
       if (merged.has(k)) merged.get(k).qty += qty; else merged.set(k, { name, qty });
     });
     const haveList = [...merged.values()];
+    if (!haveList.length) { buyMatchStoreLoading = false; buyMatchResult = { wants: [], skip: [] }; renderBuyList(); return; }
+    // resolve the store's cards via Scryfall so the gallery (art) view shows real images, not broken/blank tiles
+    try { const { resolved } = await resolveCards(haveList); buyMatchResult = buildBuyMatchResult(resolved); }
+    catch (e) { buyMatchResult = buildBuyMatchResult(haveList); }
     buyMatchStoreLoading = false;
-    buyMatchResult = haveList.length ? buildBuyMatchResult(haveList) : { wants: [], skip: [] };
     renderBuyList();
   } catch (e) {
     buyMatchStoreLoading = false; buyMatchStoreName = ''; buyMatchResult = null;
