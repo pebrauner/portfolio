@@ -785,6 +785,7 @@ I18N.dicts.es = {
   'Search players by name or @username…': 'Busca jugadores por nombre o @usuario…',
   'Search your inventory…': 'Busca en tu inventario…',
   'Searching the multiverse…': 'Buscando en el multiverso…',
+  'In the multiverse': 'En el multiverso',
   'Select': 'Seleccionar',
   'Select all shown': 'Seleccionar todo lo mostrado',
   'Sell': 'Vender',

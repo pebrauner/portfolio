@@ -65,6 +65,7 @@ let deckCardFilter = 'all';                      // deck-detail card filter: 'al
 let deckAcItems = [], deckAcSeq = 0;             // add-card autocomplete state
 // --- Browse (Scryfall search) — transient, in-memory only ---
 let browseQuery = '';                            // last raw user text
+let browseAcItems = [], browseAcActive = -1, browseAcSeq = 0;   // Browse search autocomplete (Scryfall card-name suggestions)
 let browseResults = [];                          // RAW Scryfall card objects for the current query (accumulates across pages)
 let browseIds = [];                              // colour-identity filter pips, e.g. ['R','G']; 'C' = colourless
 let browseCmdrOnly = true;                        // Commander-first default
@@ -944,6 +945,7 @@ function applyFacet(facet) {
    ===================================================================== */
 /* ---------- home ---------- */
 let homeQuery = '';
+let homeMvItems = [], homeMvSeq = 0, homeMvQuery = '';   // homepage "In the multiverse" — unowned Scryfall name suggestions
 function renderHome() {
   const view = $('#view-home');
   if (!view || !view.classList.contains('is-active')) return;   // only build when the home view is showing
@@ -1037,13 +1039,42 @@ function renderHomeResults() {
   let html = '';
   if (r.decks.length) html += `<div class="hr-group"><div class="hr-h">${tr('Decks')}</div>${r.decks.map(d => { const n = (d.cards || []).reduce((a, c) => a + c.qty, 0); return `<button class="hr-item" data-homedeck="${d.id}"><i class="ms ms-saga" aria-hidden="true"></i><span class="hr-name">${esc(d.name)}</span><span class="hr-sub">${n} ${tr(n === 1 ? 'card' : 'cards')}</span></button>`; }).join('')}</div>`;
   if (r.cards.length) html += `<div class="hr-group"><div class="hr-h">${tr('Your cards')}</div>${r.cards.map(n => `<button class="hr-item" data-homecard="${esc(n)}"><i class="ms ms-token" aria-hidden="true"></i><span class="hr-name">${esc(n)}</span><span class="hr-sub">${ownedOf(n)}×</span></button>`).join('')}</div>`;
+  // Cards you DON'T own that match — surfaced from all of Magic via Scryfall (fetched async by fetchHomeMultiverse)
+  const mv = (homeMvQuery === homeQuery.trim().toLowerCase()) ? homeMvItems : [];
+  if (mv.length) html += `<div class="hr-group"><div class="hr-h">${tr('In the multiverse')}</div>${mv.map(n => `<button class="hr-item mv" data-homemv="${esc(n)}"><span class="hr-art" style="background-image:url('${addArtUrl(n)}')" aria-hidden="true"></span><span class="hr-name">${esc(n)}</span><span class="hr-go">→</span></button>`).join('')}</div>`;
   html += `<button class="hr-item hr-all" data-homebrowse><i class="ms ms-ability-investigate" aria-hidden="true"></i><span class="hr-name">${tr('Search all cards for “{q}”', { q: esc(homeQuery.trim()) })}</span><span class="hr-go">→</span></button>`;
   box.innerHTML = html; box.hidden = false;
 }
+// Pull card-name suggestions from Scryfall, keep only the ones the player doesn't own, and show them
+// in the home dropdown's "In the multiverse" group. Debounced + seq-guarded against stale keystrokes.
+async function fetchHomeMultiverse(q) {
+  q = (q || '').trim();
+  if (q.length < 2) { homeMvItems = []; homeMvQuery = ''; renderHomeResults(); return; }
+  const seq = ++homeMvSeq;
+  try {
+    const res = await fetch('https://api.scryfall.com/cards/autocomplete?q=' + encodeURIComponent(q));
+    if (!res.ok) return;
+    const data = await res.json();
+    if (seq !== homeMvSeq) return;                 // a newer keystroke already fired
+    homeMvItems = (data.data || []).filter(n => ownedOf(n) === 0).slice(0, 6);
+    homeMvQuery = q.toLowerCase();
+    renderHomeResults();
+  } catch (e) { /* offline — silently no-op */ }
+}
+const homeMvDebounced = (() => { let t; return (q) => { clearTimeout(t); t = setTimeout(() => fetchHomeMultiverse(q), 200); }; })();
 function homeGoBrowse() {
   const q = homeQuery.trim();
   setView('browse');
   if (q) { const inp = $('#browseSearch'); if (inp) inp.value = q; browseQuery = q; browseSearch(q, { fresh: true }); }
+}
+// Open a specific (usually unowned) card in Browse, pre-searched to its exact name — so the player
+// lands on its tile with the "add to collection / buy list" actions. Used by the home "multiverse" group.
+function homeGoBrowseCard(name) {
+  name = (name || '').trim(); if (!name) return;
+  setView('browse');
+  const inp = $('#browseSearch'); if (inp) inp.value = name;
+  browseQuery = name;
+  browseSearch(name, { fresh: true });
 }
 
 function render() {
@@ -2653,6 +2684,49 @@ async function browseSearch(raw, { fresh = true } = {}) {
   }
 }
 
+/* ---------- Browse search autocomplete — Scryfall card-name suggestions ----------
+   Only fires for plain-name queries (skipped when the text uses Scryfall syntax like t:, o:, mv<=, "…", or).
+   Picking a suggestion fills the box and runs the full search; the live debounced search still runs underneath. */
+const browseLooksAdvanced = (raw) => /[:<>=]|\bor\b|[()"]/i.test(raw || '');
+async function fetchBrowseAc(q) {
+  const seq = ++browseAcSeq;
+  try {
+    const res = await fetch('https://api.scryfall.com/cards/autocomplete?q=' + encodeURIComponent(q));
+    if (!res.ok) return;
+    const data = await res.json();
+    if (seq !== browseAcSeq) return;            // a newer keystroke already fired
+    showBrowseAc(data.data || []);
+  } catch (e) { /* offline — silently no-op */ }
+}
+const browseAcDebounced = (() => { let t; return (q) => { clearTimeout(t); t = setTimeout(() => fetchBrowseAc(q), 170); }; })();
+function showBrowseAc(names) {
+  const menu = $('#browseAcMenu'), input = $('#browseSearch');
+  if (!menu) return;
+  if (input && document.activeElement !== input) return;   // focus left the box before the fetch returned — don't pop a stale menu
+  browseAcItems = names.slice(0, 10); browseAcActive = -1;
+  if (!browseAcItems.length) { hideBrowseAc(); return; }
+  menu.innerHTML = browseAcItems.map((n, i) => `<button type="button" class="ac-item" role="option" data-bacidx="${i}"><span class="ac-art" style="background-image:url('${addArtUrl(n)}')" aria-hidden="true"></span><span class="ac-name">${esc(n)}</span></button>`).join('');
+  menu.hidden = false; if (input) input.setAttribute('aria-expanded', 'true');
+}
+function hideBrowseAc() {
+  const menu = $('#browseAcMenu'), input = $('#browseSearch');
+  if (menu) { menu.hidden = true; menu.innerHTML = ''; }
+  if (input) input.setAttribute('aria-expanded', 'false');
+  browseAcItems = []; browseAcActive = -1;
+}
+function setBrowseAcActive(i) {
+  const btns = $$('#browseAcMenu .ac-item');
+  if (!btns.length) return;
+  browseAcActive = (i + btns.length) % btns.length;
+  btns.forEach((b, bi) => b.classList.toggle('active', bi === browseAcActive));
+  btns[browseAcActive].scrollIntoView({ block: 'nearest' });
+}
+function pickBrowseAc(name) {
+  if (!name) return;
+  const input = $('#browseSearch'); if (input) input.value = name;
+  browseQuery = name; hideBrowseAc();
+  browseSearch(name, { fresh: true });
+}
 // A browse result tile — reuses the inventory artTile() (cards are committed to state.cards on fetch).
 function browseResultTile(c, i) {
   const name = c.name;
@@ -4572,10 +4646,26 @@ if (buyTableEl) buyTableEl.addEventListener('keydown', e => {
 const browseDebounced = (() => { let t; return q => { clearTimeout(t); t = setTimeout(() => browseSearch(q, { fresh: true }), 350); }; })();
 $('#browseSearch').addEventListener('input', e => {
   browseQuery = e.target.value.trim();
-  if (browseQuery.length < 2 && !browseIds.length) { browseResults = []; browseNextPage = null; browseTotal = 0; renderBrowse(); setBrowseStatus(''); return; }
+  if (browseQuery.length < 2 && !browseIds.length) { browseResults = []; browseNextPage = null; browseTotal = 0; renderBrowse(); setBrowseStatus(''); hideBrowseAc(); return; }
+  if (browseQuery.length >= 2 && !browseLooksAdvanced(browseQuery)) browseAcDebounced(browseQuery); else hideBrowseAc();
   browseDebounced(browseQuery);
 });
-$('#browseSearch').addEventListener('keydown', e => { if (e.key === 'Enter') { browseQuery = e.target.value.trim(); browseSearch(browseQuery, { fresh: true }); } });
+$('#browseSearch').addEventListener('keydown', e => {
+  if (browseAcItems.length) {
+    if (e.key === 'ArrowDown') { e.preventDefault(); setBrowseAcActive(browseAcActive + 1); return; }
+    if (e.key === 'ArrowUp') { e.preventDefault(); setBrowseAcActive(browseAcActive - 1); return; }
+    if (e.key === 'Escape') { hideBrowseAc(); return; }
+    if (e.key === 'Enter' && browseAcActive >= 0) { e.preventDefault(); pickBrowseAc(browseAcItems[browseAcActive]); return; }
+  }
+  if (e.key === 'Enter') { browseQuery = e.target.value.trim(); hideBrowseAc(); browseSearch(browseQuery, { fresh: true }); }
+});
+$('#browseSearch').addEventListener('blur', () => setTimeout(hideBrowseAc, 120));
+// mousedown (not click) so the pick beats the input's blur
+const browseAcMenuEl = $('#browseAcMenu');
+if (browseAcMenuEl) browseAcMenuEl.addEventListener('mousedown', e => {
+  const it = e.target.closest('.ac-item');
+  if (it) { e.preventDefault(); pickBrowseAc(browseAcItems[+it.dataset.bacidx]); }
+});
 $('#browseCmdrOnly').addEventListener('change', e => { browseCmdrOnly = e.target.checked; browseSearch(browseQuery, { fresh: true }); });
 $('#browseIdFilter').addEventListener('click', e => {
   const p = e.target.closest('.cpip');
@@ -7127,7 +7217,7 @@ if (deckShareModalEl) deckShareModalEl.addEventListener('click', e => {
 const brandHomeEl = $('#brandHome'); if (brandHomeEl) brandHomeEl.addEventListener('click', () => { setView('home'); renderHome(); $('#homeSearch') && $('#homeSearch').focus(); });
 const homeSearchEl = $('#homeSearch');
 if (homeSearchEl) {
-  homeSearchEl.addEventListener('input', e => { homeQuery = e.target.value; renderHomeResults(); });
+  homeSearchEl.addEventListener('input', e => { homeQuery = e.target.value; renderHomeResults(); homeMvDebounced(homeQuery); });
   homeSearchEl.addEventListener('keydown', e => { if (e.key === 'Enter') { homeQuery = e.target.value; homeGoBrowse(); } });
 }
 const siteFooterEl = $('#siteFooter');
@@ -7140,6 +7230,7 @@ if (homeViewEl) homeViewEl.addEventListener('click', e => {
   if ((m = e.target.closest('[data-homego]'))) { setView(m.dataset.homego); return; }
   if ((m = e.target.closest('[data-homedeck]'))) { openDeck(m.dataset.homedeck); return; }
   if ((m = e.target.closest('[data-homecard]'))) { openCardView(m.dataset.homecard); return; }
+  if ((m = e.target.closest('[data-homemv]'))) { homeGoBrowseCard(m.dataset.homemv); return; }
   if (e.target.closest('[data-homebrowse]')) { homeGoBrowse(); return; }
 });
 

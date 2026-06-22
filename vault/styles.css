@@ -557,6 +557,8 @@ html[data-theme="ember"] .topbar { background: linear-gradient(180deg, rgba(31,1
 /* ============ Browse (Scryfall search) ============ */
 .browse-toolbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
 .browse-search { width: min(440px, 100%); }
+.browse-ac-wrap { position: relative; width: min(440px, 100%); }
+.browse-ac-wrap .browse-search { width: 100%; }
 #browseCmdrWrap { white-space: nowrap; }
 .browse-status { font-family: var(--mono); font-size: 13px; color: var(--gold-soft); min-height: 18px; margin: 0 0 14px; }
 .browse-more { text-align: center; padding: 24px 0 8px; }
@@ -1673,6 +1675,7 @@ html.home-active .app-bg { display: none; }   /* the card wall replaces the them
 .hr-item { width: 100%; display: flex; align-items: center; gap: 10px; text-align: left; background: none; border: none; cursor: pointer; padding: 9px 10px; border-radius: 9px; color: var(--parch); font-size: 14px; }
 .hr-item:hover { background: rgba(201,162,39,.08); }
 .hr-item .ms { color: var(--brass); font-size: 14px; flex-shrink: 0; }
+.hr-art { width: 38px; height: 27px; border-radius: 4px; background: var(--ink) center/cover no-repeat; flex-shrink: 0; border: 1px solid var(--edge-soft); }
 .hr-name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hr-sub, .hr-go { font-family: var(--mono); font-size: 12px; color: var(--muted); }
 .hr-all { border-top: 1px solid var(--edge-soft); margin-top: 4px; color: var(--gold-soft); }
