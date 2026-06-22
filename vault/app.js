@@ -16,6 +16,8 @@ function clampTile(n) { n = Number(n); if (!Number.isFinite(n)) return TILE_DEF;
 let state = load();
 let currentDeckId = null;
 let invSearch = '';
+let invAcItems = [];          // current Collection-search autocomplete suggestion names (owned cards, local)
+let invAcActive = -1;         // keyboard-highlighted index in the Collection-search autocomplete
 let buySearch = '';           // Buy List name filter (view-only; export/copy stay full)
 let sellSearch = '';          // Sell List name filter (view-only)
 let invFilter = 'all';
@@ -47,6 +49,9 @@ let buyMatchOf = '';          // exact textarea text the current buyMatchResult 
 let sellMatchOf = '';         // exact textarea text the current sellMatchResult was built from (drift guard)
 let buyMatchMode = 'art';     // match-result display: 'art' gallery | 'text' list
 let sellMatchMode = 'art';    // match-result display: 'art' gallery | 'text' list
+let buyMatchStoreName = '';   // name of the store whose for-sale list the buy-match is running against ('' = pasted text)
+let buyMatchStoreLoading = false;  // loading a store's public inventory for the buy-match
+let myStoresCache = null;     // cached `my_stores` rows for the "From a store" chips (null = not fetched)
 let ckById = null, ckBySku = null, ckLoading = false;   // Card Kingdom price index (in-memory, per session): by scryfall id & by "SET-COLLECTOR"
 let invTile = clampTile(state.prefs.invTile);   // inventory gallery tile min-width (px)
 let buyTile = clampTile(state.prefs.buyTile);   // buy list gallery tile min-width (px)
@@ -1976,7 +1981,9 @@ function renderBuyList() {
   renderBuyDeckFilter();
   const matchBtn = $('#buyMatchBtn'); if (matchBtn) matchBtn.classList.toggle('on', buyMatchOpen);
   if (buyMatchOpen) {
-    if ($('#buyListSub')) $('#buyListSub').textContent = tr('Paste a seller’s list to see what you’d buy.');
+    if ($('#buyListSub')) $('#buyListSub').textContent = buyMatchStoreName
+      ? tr('Matching your buy list against {store}.', { store: buyMatchStoreName })
+      : tr('Paste a seller’s list to see what you’d buy.');
     const wrap = $('#buySizeWrap'); if (wrap) wrap.hidden = true;
     const t = $('#buyTable'); if (t) { t.classList.remove('gallery'); t.innerHTML = buyMatchPanel(); }
     return;
@@ -2984,6 +2991,46 @@ function setACActive(i) {
   btns.forEach((b, bi) => b.classList.toggle('active', bi === acActive));
   btns[acActive].scrollIntoView({ block: 'nearest' });
 }
+// ── Collection (inventory) search autocomplete — LOCAL (no network); suggests owned card names.
+function showInvAc(q) {
+  const menu = $('#invAcMenu'), input = $('#invSearch');
+  if (!menu) return;
+  const ql = (q || '').toLowerCase();
+  const owned = allCardNames().filter(n => ownedOf(n) > 0);
+  const sorted = owned
+    .filter(n => n.toLowerCase().includes(ql))
+    .sort((a, b) => {                                // prefix matches first, then alphabetical
+      const pa = a.toLowerCase().startsWith(ql) ? 0 : 1, pb = b.toLowerCase().startsWith(ql) ? 0 : 1;
+      return pa - pb || a.localeCompare(b);
+    });
+  invAcItems = sorted.slice(0, 10);
+  invAcActive = -1;
+  if (!invAcItems.length) { hideInvAc(); return; }
+  menu.innerHTML = invAcItems.map((n, i) => `<button type="button" class="ac-item" role="option" data-invacidx="${i}"><span class="ac-art" style="background-image:url('${addArtUrl(n)}')" aria-hidden="true"></span><span class="ac-name">${esc(n)}</span></button>`).join('');
+  menu.hidden = false;
+  if (input) input.setAttribute('aria-expanded', 'true');
+}
+function hideInvAc() {
+  const menu = $('#invAcMenu'), input = $('#invSearch');
+  if (menu) { menu.hidden = true; menu.innerHTML = ''; }
+  if (input) input.setAttribute('aria-expanded', 'false');
+  invAcItems = []; invAcActive = -1;
+}
+function setInvAcActive(i) {
+  const btns = $$('#invAcMenu .ac-item');
+  if (!btns.length) return;
+  invAcActive = (i + btns.length) % btns.length;
+  btns.forEach((b, bi) => b.classList.toggle('active', bi === invAcActive));
+  btns[invAcActive].scrollIntoView({ block: 'nearest' });
+}
+// Selecting a suggestion filters the Collection to that exact card name.
+function pickInvAc(name) {
+  if (!name) return;
+  invSearch = name;
+  const input = $('#invSearch'); if (input) input.value = name;
+  hideInvAc();
+  renderInventory();
+}
 function addTagByName(name) {
   if (!name || addTags.some(t => key(t.name) === key(name))) return;
   addTags.push({ name, qty: 1, foil: false });
@@ -3651,6 +3698,7 @@ function buildBuyMatchResult(haveList) {
 async function runBuyMatch() {
   const ta = $('#buyMatchInput'); if (ta) buyMatchText = ta.value;
   buyMatchOf = buyMatchText;                     // snapshot for the quick-buy drift guard
+  buyMatchStoreName = '';                        // a pasted-text match is no longer tied to a store
   const parsed = parseDecklist(buyMatchText || '');
   if (!parsed.length) { buyMatchResult = { wants: [], skip: [] }; renderBuyList(); return; }
   buyMatchLoading = true; renderBuyList();
@@ -3662,6 +3710,36 @@ async function runBuyMatch() {
     toast(tr('Scryfall lookup failed — matched names locally instead.'));
   }
   buyMatchLoading = false; renderBuyList();
+}
+// Match the buy list against a store's public for-sale inventory (their sell list).
+// Pulls get_store_profile(slug) → inventory.cards, keeps for-sale (!reserved && qty>0),
+// merges dupes by name, and runs buildBuyMatchResult against it.
+async function matchBuyAgainstStore(slug) {
+  if (!sb || !slug) return;
+  buyMatchOpen = true; buyMatchText = ''; buyMatchOf = '';
+  buyMatchStoreName = ''; buyMatchStoreLoading = true; buyMatchResult = null;
+  setView('buylist'); renderBuyList();
+  try {
+    const { data, error } = await sb.rpc('get_store_profile', { p_slug: slug });
+    if (error || !data) throw error || new Error('no data');
+    buyMatchStoreName = data.name || data.store_name || slug;
+    const cards = (data.inventory && Array.isArray(data.inventory.cards)) ? data.inventory.cards : [];
+    const merged = new Map();
+    cards.forEach(c => {
+      const name = c && c.name; const qty = Number(c && c.qty) || 0;
+      if (!name || c.reserved || qty <= 0) return;
+      const k = key(name);
+      if (merged.has(k)) merged.get(k).qty += qty; else merged.set(k, { name, qty });
+    });
+    const haveList = [...merged.values()];
+    buyMatchStoreLoading = false;
+    buyMatchResult = haveList.length ? buildBuyMatchResult(haveList) : { wants: [], skip: [] };
+    renderBuyList();
+  } catch (e) {
+    buyMatchStoreLoading = false; buyMatchStoreName = ''; buyMatchResult = null;
+    renderBuyList();
+    toast(tr('Could not load that store.'));
+  }
 }
 function copyBuyMatchWants() {
   if (!buyMatchResult || !buyMatchResult.wants.length) { toast(tr('Nothing to copy — no matches.')); return; }
@@ -3713,17 +3791,43 @@ function renderBuyMatchResults() {
     ${r.wants.length ? `<div class="sm-sec">${tr('You want · {n}', { n: r.wants.length })}</div>${secList(r.wants, wantRow, wantTileFn)}` : `<div class="sm-empty">${tr('Nothing on that list is on your buy list.')}</div>`}
     ${r.skip.length ? `<div class="sm-sec">${tr('Don’t need · {n}', { n: r.skip.length })}</div>${secList(r.skip, skipRow, skipTileFn)}` : ''}`;
 }
+// "From a store" chips — the stores the user follows; clicking matches the buy
+// list against that store's public for-sale inventory. Fetched once and cached.
+function buyMatchStoreChips() {
+  const list = myStoresCache;
+  if (!Array.isArray(list) || !list.length) return '';
+  const chips = list.filter(s => s && s.slug).map(s =>
+    `<button type="button" class="buy-store-chip" data-buystorematch="${esc(s.slug)}">${esc(s.name || s.slug)}</button>`
+  ).join('');
+  if (!chips) return '';
+  return `<div class="buy-store-row"><span class="buy-store-label"><i class="ms ms-counter-lore" aria-hidden="true"></i> ${tr('From a store')}</span>${chips}</div>`;
+}
 function buyMatchPanel() {
-  const results = buyMatchLoading
-    ? `<div class="sm-loading"><span class="spin"></span><span>${tr('Looking the list up on Scryfall…')}</span></div>`
-    : renderBuyMatchResults();
+  // Lazily fetch the user's stores once, then re-render so the chips appear.
+  if (sb && myStoresCache === null) {
+    myStoresCache = [];   // mark as in-flight so we don't refetch on every render
+    sb.rpc('my_stores').then(({ data, error }) => {
+      myStoresCache = (!error && Array.isArray(data)) ? data : [];
+      if (buyMatchOpen) renderBuyList();
+    }).catch(() => { myStoresCache = []; });
+  }
+  const header = buyMatchStoreName ? `<div class="sm-store-head"><i class="ms ms-counter-lore" aria-hidden="true"></i> ${tr('Matching against {store}', { store: '<b>' + esc(buyMatchStoreName) + '</b>' })}</div>` : '';
+  const results = buyMatchStoreLoading
+    ? `<div class="sm-loading"><span class="spin"></span><span>${tr('Loading that store’s for-sale cards…')}</span></div>`
+    : buyMatchLoading
+      ? `<div class="sm-loading"><span class="spin"></span><span>${tr('Looking the list up on Scryfall…')}</span></div>`
+      : (buyMatchStoreName && buyMatchResult && !buyMatchResult.wants.length && !buyMatchResult.skip.length)
+        ? `<div class="sm-summary">${tr('{store} has no cards for sale right now.', { store: esc(buyMatchStoreName) })}</div>`
+        : renderBuyMatchResults();
   return `<div class="sell-match">
     <div class="sm-intro">${tr('Paste a list someone has {forsale} (Moxfield / Archidekt export, or “1 Card Name” per line) — I’ll show which of those cards you still need for your decks & wishlist.', { forsale: '<b>' + tr('for sale') + '</b>' })}</div>
+    ${buyMatchStoreChips()}
     <textarea id="buyMatchInput" class="sm-input" placeholder="${tr('Paste a seller’s list — one card per line, e.g.  1 Lightning Bolt')}" spellcheck="false">${esc(buyMatchText)}</textarea>
     <div class="sm-controls">
       <button class="btn" id="buyMatchRun" ${buyMatchLoading ? 'disabled' : ''}><i class="ms ms-ability-investigate" aria-hidden="true"></i> ${tr('Match against my buy list')}</button>
       <button class="btn ghost" id="buyMatchClear">${tr('Clear')}</button>
     </div>
+    ${header}
     <div class="sm-results">${results}</div>
   </div>`;
 }
@@ -4079,12 +4183,25 @@ if (storeDash) {
     if (f) { myStore[f.dataset.storefield] = f.value; scheduleStoreSave(); return; }
     const s = e.target.closest('[data-social]');
     if (s) { myStore.socials = myStore.socials || {}; myStore.socials[s.dataset.social] = s.value.trim(); scheduleStoreSave(); return; }
-    const h = e.target.closest('[data-hours]');
-    if (h) { myStore.hours = myStore.hours || {}; const d = h.dataset.hours; myStore.hours[d] = myStore.hours[d] || {}; myStore.hours[d][h.dataset.bound] = h.value; scheduleStoreSave(); return; }
     if (e.target.id === 'invSearchInput') { storeInvQuery = e.target.value; storeInvShown = 80; renderStoreInventory(); return; }
   });
   storeDash.addEventListener('change', e => {
     if (!myStore) return;
+    const hr = e.target.closest('[data-hours]');
+    if (hr) {
+      myStore.hours = myStore.hours || {};
+      const d = hr.dataset.hours, bound = hr.dataset.bound;
+      myStore.hours[d] = myStore.hours[d] || {};
+      if (bound === 'closed') {
+        if (e.target.checked) { myStore.hours[d].open = ''; myStore.hours[d].close = ''; }
+        else if (!myStore.hours[d].open && !myStore.hours[d].close) { myStore.hours[d].open = '12:00'; myStore.hours[d].close = '20:00'; }   // opening a day → sensible default so it's never left half-set
+        renderStoreDashboard();   // re-render to enable/disable the selects for this day
+      } else {
+        myStore.hours[d][bound] = e.target.value;
+      }
+      scheduleStoreSave();
+      return;
+    }
     const selBox = e.target.closest('[data-invselect]'); if (selBox) { toggleInvSel(selBox.dataset.invselect, selBox); return; }
     if (e.target.id === 'invSelAll') { selectAllShown(e.target.checked); return; }
     const mv = e.target.closest('[data-invmove]'); if (mv) { moveInvCard(mv.dataset.invmove, mv.dataset.invb, e.target.value); return; }
@@ -4092,6 +4209,14 @@ if (storeDash) {
   });
   storeDash.addEventListener('click', e => {
     if (e.target.closest('#storeCopyLink')) { copyText(storePublicUrl(myStore.slug)).then(ok => toast(ok ? tr('Store link copied ✓') : tr('Copy failed'))); return; }
+    if (e.target.closest('#storeCopyMon')) {
+      myStore.hours = myStore.hours || {};
+      const mon = myStore.hours.mon || {};
+      STORE_DAYS.forEach(([k]) => { if (k !== 'mon') myStore.hours[k] = { open: mon.open || '', close: mon.close || '' }; });
+      scheduleStoreSave(); renderStoreDashboard();
+      toast(tr('Copied Monday’s hours to every day.'));
+      return;
+    }
     if (e.target.closest('#storeAddEvent')) { openStoreEvent(null); return; }
     if (e.target.closest('#storeGenStaff')) { generateStoreStaffInvite(); return; }
     if (e.target.closest('#staffInviteCopy')) { const i = $('#staffInviteLink'); if (i) copyText(i.value).then(ok => toast(ok ? tr('Staff link copied ✓') : tr('Copy failed'))); return; }
@@ -4101,7 +4226,8 @@ if (storeDash) {
     if (e.target.closest('#invRefreshPrices')) { refreshStorePrices(); return; }
     if (e.target.closest('#invBulkMove')) { const s2 = $('#invBulkBinder'); bulkMoveToBinder(s2 ? s2.value : ''); return; }
     if (e.target.closest('#invBulkReserve')) { bulkSetReserved(true); return; }
-    if (e.target.closest('#invBulkForsale')) { bulkSetReserved(false); return; }
+    if (e.target.closest('#invBulkDisplay')) { bulkSetDisplay(true); return; }
+    if (e.target.closest('#invBulkForsale')) { bulkSetReserved(false); bulkSetDisplay(false); return; }
     if (e.target.closest('#invBulkSell')) { bulkSell(); return; }
     if (e.target.closest('#invBulkRemove')) { bulkRemoveInv(); return; }
     if (e.target.closest('#invBulkClear')) { clearInvSelection(); return; }
@@ -4114,6 +4240,7 @@ if (storeDash) {
     if ((m = e.target.closest('[data-invsell]'))) { sellInvCopy(m.dataset.invsell, m.dataset.invb); return; }
     if ((m = e.target.closest('[data-invbuy]'))) { restockInvCopy(m.dataset.invbuy, m.dataset.invb); return; }
     if ((m = e.target.closest('[data-invres]'))) { toggleInvReserved(m.dataset.invres, m.dataset.invb); return; }
+    if ((m = e.target.closest('[data-invdisplay]'))) { toggleInvDisplay(m.dataset.invdisplay, m.dataset.invb); return; }
     if ((m = e.target.closest('[data-invrm]'))) { removeInvCard(m.dataset.invrm, m.dataset.invb); return; }
     if ((m = e.target.closest('[data-evedit]'))) { openStoreEvent(m.dataset.evedit); return; }
     if ((m = e.target.closest('[data-evdel]'))) { deleteStoreEvent(m.dataset.evdel); return; }
@@ -4255,7 +4382,26 @@ $('#inventoryTable').addEventListener('pointermove', e => {
   img.style.setProperty('--hue', ((x - .5) * 180).toFixed(0) + 'deg');
 });
 
-$('#invSearch').addEventListener('input', e => { invSearch = e.target.value; renderInventory(); });
+$('#invSearch').addEventListener('input', e => {
+  invSearch = e.target.value; renderInventory();
+  const q = e.target.value.trim();
+  if (q.length >= 2) showInvAc(q); else hideInvAc();
+});
+$('#invSearch').addEventListener('keydown', e => {
+  if (e.key === 'ArrowDown') { e.preventDefault(); setInvAcActive(invAcActive + 1); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); setInvAcActive(invAcActive - 1); }
+  else if (e.key === 'Enter') {
+    const pick = invAcActive >= 0 ? invAcItems[invAcActive] : invAcItems[0];
+    if (pick) { e.preventDefault(); pickInvAc(pick); }
+  } else if (e.key === 'Escape') { hideInvAc(); }
+});
+$('#invSearch').addEventListener('blur', () => setTimeout(hideInvAc, 120));
+// mousedown (not click) so selection beats the input's blur
+const invAcMenuEl = $('#invAcMenu');
+if (invAcMenuEl) invAcMenuEl.addEventListener('mousedown', e => {
+  const it = e.target.closest('.ac-item');
+  if (it) { e.preventDefault(); pickInvAc(invAcItems[+it.dataset.invacidx]); }
+});
 $('#invFilter').addEventListener('click', e => {
   const b = e.target.closest('.seg-btn');
   if (!b) return;
@@ -4520,8 +4666,9 @@ $('#buyTable').addEventListener('click', e => {
   const got = e.target.closest('[data-bought]');
   if (got) { e.stopPropagation(); markBought(got.dataset.bought); return; }
   const mm = e.target.closest('[data-matchmode]'); if (mm) { buyMatchMode = mm.dataset.matchmode; renderBuyList(); return; }
+  const storeChip = e.target.closest('[data-buystorematch]'); if (storeChip) { matchBuyAgainstStore(storeChip.dataset.buystorematch); return; }
   if (e.target.closest('#buyMatchRun')) { runBuyMatch(); return; }
-  if (e.target.closest('#buyMatchClear')) { buyMatchText = ''; buyMatchResult = null; renderBuyList(); return; }
+  if (e.target.closest('#buyMatchClear')) { buyMatchText = ''; buyMatchResult = null; buyMatchStoreName = ''; renderBuyList(); return; }
   if (e.target.closest('#buyMatchBuy')) { quickBuyMatches(); return; }
   if (e.target.closest('#buyMatchCopy')) { copyBuyMatchWants(); return; }
 });
@@ -5357,6 +5504,15 @@ function consumeIncomingMatch() {
     toast(tr('Matched {who} list against your Buy List.', { who }));
   }
 }
+// s.html "Match my buy list" hands a store slug off via localStorage; on boot we match
+// the user's buy list against that store's public for-sale inventory.
+const INCOMING_BUY_STORE_KEY = 'vault:matchBuyStore';
+function consumeIncomingBuyStore() {
+  let slug; try { slug = localStorage.getItem(INCOMING_BUY_STORE_KEY); } catch (e) {}
+  if (!slug) return;
+  try { localStorage.removeItem(INCOMING_BUY_STORE_KEY); } catch (e) {}
+  matchBuyAgainstStore(slug);
+}
 // d.html "Import this deck" hands the deck off via localStorage; import it into the user's decks on boot.
 const INCOMING_DECK_KEY = 'vault:incomingDeck';
 async function consumeIncomingDeck() {
@@ -5582,6 +5738,19 @@ async function doRedeemStore() {
 
 /* ---- store dashboard (owner editor) ---- */
 const STORE_DAYS = [['mon', 'Mon'], ['tue', 'Tue'], ['wed', 'Wed'], ['thu', 'Thu'], ['fri', 'Fri'], ['sat', 'Sat'], ['sun', 'Sun']];
+// 30-min time slots 00:00–23:30. value is always 'HH:MM' 24h (what s.html parses); label is a friendly 12h time.
+const TIME_SLOTS = (() => { const out = []; for (let m = 0; m < 24 * 60; m += 30) { const h = Math.floor(m / 60), mm = m % 60; out.push(String(h).padStart(2, '0') + ':' + String(mm).padStart(2, '0')); } return out; })();
+function timeLabel12(hhmm) {
+  const [h, m] = hhmm.split(':').map(Number);
+  // localized label (e.g. en → "6:00 PM", es → "18:00"); the stored VALUE stays 'HH:MM' 24h
+  try { return new Date(2000, 0, 1, h, m).toLocaleTimeString(I18N.locale(), { hour: 'numeric', minute: '2-digit' }); }
+  catch (e) { const ap = h < 12 ? 'AM' : 'PM', h12 = (h % 12) || 12; return `${h12}:${String(m).padStart(2, '0')} ${ap}`; }
+}
+// <option> list for a time <select>; `sel` = currently-selected 'HH:MM' ('' = the placeholder).
+function timeSelectOptions(sel, placeholder) {
+  return `<option value="">${esc(placeholder || '—')}</option>` +
+    TIME_SLOTS.map(t => `<option value="${t}"${t === sel ? ' selected' : ''}>${timeLabel12(t)}</option>`).join('');
+}
 function renderStoreDashboard() {
   const el = $('#storeDashboard'); if (!el) return;
   if (!authUser) { el.innerHTML = `<div class="empty-state" style="padding:60px 20px"><span class="empty-mark"><i class="ms ms-counter-lore"></i></span><h2>${tr('Sign in')}</h2><p>${tr('Store management needs your account.')}</p></div>`; return; }
@@ -5589,7 +5758,18 @@ function renderStoreDashboard() {
   const s = myStore, soc = s.socials || {}, hours = s.hours || {};
   const fld = (key, label, ph, val, type) => `<label class="ve-field"><span>${label}</span><input type="${type || 'text'}" class="text-input" data-storefield="${key}" value="${esc(val || '')}" placeholder="${esc(ph || '')}" /></label>`;
   const socFld = (key, label, ph) => `<label class="ve-field"><span>${label}</span><input type="text" class="text-input" data-social="${key}" value="${esc(soc[key] || '')}" placeholder="${esc(ph)}" /></label>`;
-  const dayRow = (k, lbl) => { const h = hours[k] || {}; return `<div class="hr-row"><span class="hr-day">${lbl}</span><input type="time" class="hr-time" data-hours="${k}" data-bound="open" value="${esc(h.open || '')}" /><span class="hr-dash">–</span><input type="time" class="hr-time" data-hours="${k}" data-bound="close" value="${esc(h.close || '')}" /></div>`; };
+  const dayRow = (k, lbl) => {
+    const h = hours[k] || {};
+    const closed = !(h.open || h.close);
+    const dis = closed ? ' disabled' : '';
+    return `<div class="hr-row${closed ? ' is-closed' : ''}" data-hrday="${k}">
+      <span class="hr-day">${lbl}</span>
+      <label class="hr-closed"><input type="checkbox" class="hr-closedbox" data-hours="${k}" data-bound="closed"${closed ? ' checked' : ''} /> ${tr('Closed')}</label>
+      <select class="hr-time hr-select" data-hours="${k}" data-bound="open"${dis}>${timeSelectOptions(h.open || '', tr('Open'))}</select>
+      <span class="hr-dash">–</span>
+      <select class="hr-time hr-select" data-hours="${k}" data-bound="close"${dis}>${timeSelectOptions(h.close || '', tr('Close'))}</select>
+    </div>`;
+  };
   el.innerHTML = `
     <div class="store-head">
       <div><h2 class="view-title">${esc(s.name)} <span class="verified-chip"><i class="ms ms-counter-shield"></i> ${tr('Verified')}</span></h2>
@@ -5618,13 +5798,14 @@ function renderStoreDashboard() {
         ${socFld('discord', 'Discord', 'https://discord.gg/…')}
         <h3 style="margin-top:20px">${tr('Open hours')}</h3>
         <div class="hours-editor">${STORE_DAYS.map(([k, l]) => dayRow(k, tr(l))).join('')}</div>
+        <button class="btn ghost sm" id="storeCopyMon" style="margin-top:10px"><i class="ms ms-counter-lore btn-ico" aria-hidden="true"></i> ${tr('Copy Monday to all days')}</button>
       </section>
     </div>
     <section class="store-card store-inv">
       <div class="store-card-h"><h3>${tr('Inventory')} <span class="store-savestate" id="invCount"></span></h3>
         <div class="seg" id="storeInvMode"><button class="seg-btn ${storeInvMode === 'art' ? 'is-active' : ''}" data-imode="art"><i class="ms ms-token"></i> ${tr('Art')}</button><button class="seg-btn ${storeInvMode === 'list' ? 'is-active' : ''}" data-imode="list"><i class="ms ms-multiple"></i> ${tr('List')}</button></div>
       </div>
-      <p class="bd-note" style="margin:0 0 12px">${tr('Every card here is automatically for sale (at Card Kingdom price) — unless you mark it {reserved}. Search a card and hit {sell} when one leaves the shelf.', { reserved: '<b>' + tr('Reserved') + '</b>', sell: '<b>' + tr('Sell') + '</b>' })}</p>
+      <p class="bd-note" style="margin:0 0 12px">${tr('Every card here is automatically for sale (at Card Kingdom price) — unless you mark it {reserved}. Search a card and hit {sell} when one leaves the shelf.', { reserved: '<b>' + tr('Reserved') + '</b>', sell: '<b>' + tr('Sell') + '</b>' })} ${tr('Mark a card {display} to feature it in The Cabinet (shown but not for sale).', { display: '<b>' + tr('On display') + '</b>' })}</p>
       <div class="inv-actions">
         <button class="btn gold sm" id="invAddCards"><i class="ms ms-multiple btn-ico" aria-hidden="true"></i> ${tr('Add cards')}</button>
         <button class="btn sm" id="invRefreshPrices" title="${tr('Pull the latest Card Kingdom prices')}"><i class="ms ms-counter-gold btn-ico" aria-hidden="true"></i> ${tr('Refresh prices')}</button>
@@ -5810,7 +5991,7 @@ function addResolvedToStore(resolved) {
     const q = c.qty || 1, up = +(storePriceOf(c.name) || 0).toFixed(2);
     const ex = inv.cards.find(x => key(x.name) === key(c.name) && (x.binder || '') === (storeInvBinder || '') && !!x.foil === !!c.foil);
     if (ex) ex.qty += q;
-    else inv.cards.push({ name: c.name, qty: q, price: up, set: c.set || (card(c.name).set || ''), foil: !!c.foil, binder: storeInvBinder || '', reserved: false });
+    else inv.cards.push({ name: c.name, qty: q, price: up, set: c.set || (card(c.name).set || ''), foil: !!c.foil, binder: storeInvBinder || '', reserved: false, display: false });
     added += q;
     txRows.push({ store_slug: myStore.slug, kind: 'stocked', name: c.name, qty: q, unit_price: up, value: +(up * q).toFixed(2) });
   });
@@ -5849,7 +6030,7 @@ async function addInventoryCard(name) {
   const inv = storeInv();
   const ex = inv.cards.find(c => key(c.name) === key(name) && (c.binder || '') === (storeInvBinder || ''));
   if (ex) ex.qty += 1;
-  else inv.cards.push({ name, qty: 1, price: +(priceOf(name) || 0).toFixed(2), set: (card(name).set || ''), foil: false, binder: storeInvBinder || '', reserved: false });
+  else inv.cards.push({ name, qty: 1, price: +(priceOf(name) || 0).toFixed(2), set: (card(name).set || ''), foil: false, binder: storeInvBinder || '', reserved: false, display: false });
   scheduleStoreSave();
   const inp = $('#invAddInput'); if (inp) { inp.value = ''; inp.focus(); }
   renderStoreInvBinders(); renderStoreInventory();
@@ -5858,6 +6039,7 @@ async function addInventoryCard(name) {
 function setInvQty(name, binder, q) { const c = invCardAt(name, binder); if (!c) return; if (q <= 0) storeInv().cards = storeInv().cards.filter(x => x !== c); else c.qty = q; scheduleStoreSave(); renderStoreInvBinders(); renderStoreInventory(); }
 function setInvPrice(name, binder, p) { const c = invCardAt(name, binder); if (!c) return; c.price = Math.max(0, +(parseFloat(p) || 0).toFixed(2)); scheduleStoreSave(); }
 function toggleInvReserved(name, binder) { const c = invCardAt(name, binder); if (!c) return; c.reserved = !c.reserved; scheduleStoreSave(); renderStoreInventory(); }
+function toggleInvDisplay(name, binder) { const c = invCardAt(name, binder); if (!c) return; c.display = !c.display; scheduleStoreSave(); renderStoreInventory(); }
 function removeInvCard(name, binder) { storeInv().cards = storeInv().cards.filter(c => !(key(c.name) === key(name) && (c.binder || '') === (binder || ''))); scheduleStoreSave(); renderStoreInvBinders(); renderStoreInventory(); }
 function moveInvCard(name, binder, toBinder) { const c = invCardAt(name, binder); if (!c) return; c.binder = toBinder || ''; scheduleStoreSave(); renderStoreInvBinders(); renderStoreInventory(); }
 // merge inventory entries that share name + binder + foil (sum their qty) — keeps the list tidy after bulk moves
@@ -5897,6 +6079,12 @@ function bulkSetReserved(val) {
   scheduleStoreSave(); renderStoreInventory();
   toast(tr(cards.length === 1 ? '{n} card marked {state}.' : '{n} cards marked {state}.', { n: cards.length, state: val ? tr('reserved') : tr('for sale') }));
 }
+function bulkSetDisplay(val) {
+  const cards = selectedInvCards(); if (!cards.length) return;
+  cards.forEach(c => { c.display = val; });
+  scheduleStoreSave(); renderStoreInventory();
+  toast(tr(cards.length === 1 ? '{n} card marked {state}.' : '{n} cards marked {state}.', { n: cards.length, state: val ? tr('on display') : tr('for sale') }));
+}
 function bulkSell() {
   const cards = selectedInvCards(); if (!cards.length) return;
   if (!confirm(tr(cards.length === 1 ? 'Sell one copy of each of the {n} selected card?' : 'Sell one copy of each of the {n} selected cards?', { n: cards.length }))) return;
@@ -5928,6 +6116,7 @@ function renderInvBulkBar() {
   bar.innerHTML = `<span class="inv-bulk-label">${tr('{n} selected', { n })}</span>
     <span class="inv-bulk-move"><select id="invBulkBinder" class="siv-binder">${opts}</select><button class="btn sm" id="invBulkMove">${tr('Move here')}</button></span>
     <button class="btn sm" id="invBulkReserve">${tr('Reserve')}</button>
+    <button class="btn sm" id="invBulkDisplay"><i class="ms ms-counter-lore" aria-hidden="true"></i> ${tr('Display')}</button>
     <button class="btn sm" id="invBulkForsale">${tr('For sale')}</button>
     <button class="btn sm" id="invBulkSell"><i class="ms ms-counter-gold" aria-hidden="true"></i> ${tr('Sell 1 each')}</button>
     <button class="btn sm danger" id="invBulkRemove">${tr('Remove')}</button>
@@ -5943,8 +6132,8 @@ function invFiltered() {
 function renderStoreInvBinders() {
   const el = $('#storeInvBinders'); if (!el || !myStore) return;
   const inv = storeInv();
-  const total = inv.cards.reduce((a, c) => a + c.qty, 0), forsale = inv.cards.filter(c => !c.reserved).reduce((a, c) => a + c.qty, 0);
-  const cnt = $('#invCount'); if (cnt) cnt.textContent = total ? tr('{total} cards · {forsale} for sale', { total, forsale }) : '';
+  const total = inv.cards.reduce((a, c) => a + c.qty, 0), forsale = inv.cards.filter(c => !c.reserved && !c.display).reduce((a, c) => a + c.qty, 0), onDisplay = inv.cards.filter(c => c.display).reduce((a, c) => a + c.qty, 0);
+  const cnt = $('#invCount'); if (cnt) cnt.textContent = total ? (tr('{total} cards · {forsale} for sale', { total, forsale }) + (onDisplay ? ' · ' + tr('{n} on display', { n: onDisplay }) : '')) : '';
   let html = `<button class="sell-folder${storeInvBinder === '' ? ' on' : ''}" data-invbinder="">${tr('All')}</button>`;
   html += inv.binders.map(b => {
     const on = storeInvBinder === b.id, n = inv.cards.filter(c => (c.binder || '') === b.id).length;
@@ -5964,16 +6153,17 @@ function renderStoreInventory() {
   const selAll = `<label class="inv-selall"><input type="checkbox" id="invSelAll" ${allSel ? 'checked' : ''}/> ${tr('Select all shown')}</label>`;
   if (storeInvMode === 'art') {
     wrap.innerHTML = selAll + `<div class="binder-gallery">${shown.map(c => `
-      <div class="art-tile buy store-inv-tile${c.reserved ? ' reserved' : ''}${sel(c) ? ' selected' : ''}">
+      <div class="art-tile buy store-inv-tile${c.reserved ? ' reserved' : ''}${c.display ? ' on-display' : ''}${sel(c) ? ' selected' : ''}">
         <input type="checkbox" class="inv-sel art-pick" data-invselect="${esc(invSelKey(c))}" ${sel(c) ? 'checked' : ''} title="${tr('Select')}" />
         <button class="bd-x tile" data-invrm="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="${tr('Remove entirely')}">✕</button>
         <button class="siv-res-tile" data-invres="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="${c.reserved ? tr('Reserved (not for sale)') : tr('For sale — click to reserve')}"><i class="ms ms-counter-${c.reserved ? 'skull' : 'gold'}"></i></button>
+        <button class="siv-disp-tile" data-invdisplay="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="${c.display ? tr('In The Cabinet (on display, not for sale)') : tr('Put on display in The Cabinet')}"><i class="ms ms-counter-${c.display ? 'lore' : 'shield'}"></i></button>
         <button class="art-open" data-name="${esc(c.name)}">${artTile(c.name, tr('{n} in stock', { n: c.qty }), `<span class="art-val">${money(c.price)}</span>`)}</button>
         <div class="siv-tile-sell"><button data-invsell="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="${tr('Sell one')}">${tr('Sell')}</button><button class="siv-tile-buy" data-invbuy="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="${tr('Restock one')}">+1</button></div>
       </div>`).join('')}</div>${more}`;
   } else {
     wrap.innerHTML = selAll + `<div class="inv-rows">${shown.map(c => `
-      <div class="store-inv-row${c.reserved ? ' reserved' : ''}${sel(c) ? ' selected' : ''}">
+      <div class="store-inv-row${c.reserved ? ' reserved' : ''}${c.display ? ' on-display' : ''}${sel(c) ? ' selected' : ''}">
         <input type="checkbox" class="inv-sel" data-invselect="${esc(invSelKey(c))}" ${sel(c) ? 'checked' : ''} title="${tr('Select')}" />
         <span class="siv-name nm" data-name="${esc(c.name)}">${esc(c.name)}</span>
         <span class="siv-stock">${tr('{n} in stock', { n: c.qty })}</span>
@@ -5982,6 +6172,7 @@ function renderStoreInventory() {
         <button class="siv-buy" data-invbuy="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="${tr('Add one copy (restock)')}">+1</button>
         ${storeInv().binders.length ? `<select class="siv-binder" data-invmove="${esc(c.name)}" data-invb="${esc(c.binder || '')}">${binderOpts(c.binder || '')}</select>` : ''}
         <button class="siv-res link-btn${c.reserved ? ' danger' : ''}" data-invres="${esc(c.name)}" data-invb="${esc(c.binder || '')}">${c.reserved ? tr('Reserved') : tr('For sale')}</button>
+        <button class="siv-disp link-btn${c.display ? ' on' : ''}" data-invdisplay="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="${c.display ? tr('In The Cabinet (on display, not for sale)') : tr('Put on display in The Cabinet')}"><i class="ms ms-counter-${c.display ? 'lore' : 'shield'}" aria-hidden="true"></i> ${c.display ? tr('On display') : tr('Display')}</button>
         <button class="bd-x" data-invrm="${esc(c.name)}" data-invb="${esc(c.binder || '')}" title="${tr('Remove entirely')}">✕</button>
       </div>`).join('')}</div>${more}`;
   }
@@ -5999,7 +6190,18 @@ function closeStoreEvent() { const m = $('#storeEventModal'); if (m) m.hidden = 
 function renderStoreEventModal() {
   const body = $('#storeEventBody'); if (!body) return;
   const ev = editingEventId ? (storeEvents.find(e => e.id === editingEventId) || {}) : {};
-  const localDT = (iso) => { if (!iso) return ''; const d = new Date(iso); const p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; };
+  const p2 = n => String(n).padStart(2, '0');
+  // Split an ISO timestamp into a 'YYYY-MM-DD' date and the nearest 30-min 'HH:MM' slot.
+  const splitDT = (iso) => {
+    if (!iso) return { date: '', time: '' };
+    const d = new Date(iso); if (isNaN(d)) return { date: '', time: '' };
+    const date = `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
+    const slot = Math.round((d.getHours() * 60 + d.getMinutes()) / 30) * 30;   // snap to nearest 30 min
+    const clamped = Math.min(slot, 23 * 60 + 30);
+    const time = `${p2(Math.floor(clamped / 60))}:${p2(clamped % 60)}`;
+    return { date, time };
+  };
+  const startDT = splitDT(ev.starts_at), endDT = splitDT(ev.ends_at);
   body.innerHTML = `
     <label class="ve-field"><span>${tr('Title')}</span><input type="text" id="evTitle" class="text-input" maxlength="80" value="${esc(ev.title || '')}" placeholder="${esc(tr('Commander Bracket Night'))}" /></label>
     <div class="store-2col">
@@ -6007,8 +6209,8 @@ function renderStoreEventModal() {
       <label class="ve-field"><span>${tr('Repeats')}</span><select id="evRecurring" class="text-input"><option value="">${tr('One-off')}</option><option value="weekly"${ev.recurring === 'weekly' ? ' selected' : ''}>${tr('Weekly')}</option><option value="biweekly"${ev.recurring === 'biweekly' ? ' selected' : ''}>${tr('Every 2 weeks')}</option><option value="monthly"${ev.recurring === 'monthly' ? ' selected' : ''}>${tr('Monthly')}</option></select></label>
     </div>
     <div class="store-2col">
-      <label class="ve-field"><span>${tr('Starts')}</span><input type="datetime-local" id="evStart" class="text-input" value="${esc(localDT(ev.starts_at))}" /></label>
-      <label class="ve-field"><span>${tr('Ends')} <em>${tr('(optional)')}</em></span><input type="datetime-local" id="evEnd" class="text-input" value="${esc(localDT(ev.ends_at))}" /></label>
+      <label class="ve-field"><span>${tr('Starts')}</span><div class="ev-dt"><input type="date" id="evStartDate" class="text-input ev-date" value="${esc(startDT.date)}" /><select id="evStartTime" class="text-input ev-time">${timeSelectOptions(startDT.time, tr('Time'))}</select></div></label>
+      <label class="ve-field"><span>${tr('Ends')} <em>${tr('(optional)')}</em></span><div class="ev-dt"><input type="date" id="evEndDate" class="text-input ev-date" value="${esc(endDT.date)}" /><select id="evEndTime" class="text-input ev-time">${timeSelectOptions(endDT.time, tr('Time'))}</select></div></label>
     </div>
     <div class="store-2col">
       <label class="ve-field"><span>${tr('Prize pool')}</span><input type="text" id="evPrize" class="text-input" maxlength="60" value="${esc(ev.prize_pool || '')}" placeholder="S/300 store credit" /></label>
@@ -6024,11 +6226,18 @@ async function saveStoreEventFromModal() {
   const title = ($('#evTitle') ? $('#evTitle').value : '').trim();
   const st = $('#evStatus');
   if (!title) { if (st) st.textContent = tr('Give the event a title.'); return; }
-  const toISO = (v) => { v = (v || '').trim(); if (!v) return null; const d = new Date(v); return isNaN(d) ? null : d.toISOString(); };
+  // Combine a date input + a 'HH:MM' time select into an ISO timestamp. No date → null (no time → midnight).
+  const combineISO = (dateId, timeId) => {
+    const date = ($(dateId) ? $(dateId).value : '').trim();
+    if (!date) return null;
+    const time = ($(timeId) ? $(timeId).value : '').trim() || '00:00';
+    const d = new Date(`${date}T${time}`);
+    return isNaN(d) ? null : d.toISOString();
+  };
   const capRaw = ($('#evCap') ? $('#evCap').value : '').trim();
   const row = {
     store_slug: myStore.slug, title, format: ($('#evFormat').value || '').trim() || null,
-    recurring: $('#evRecurring').value || null, starts_at: toISO($('#evStart').value), ends_at: toISO($('#evEnd').value),
+    recurring: $('#evRecurring').value || null, starts_at: combineISO('#evStartDate', '#evStartTime'), ends_at: combineISO('#evEndDate', '#evEndTime'),
     prize_pool: ($('#evPrize').value || '').trim() || null, entry_fee: ($('#evEntry').value || '').trim() || null,
     capacity: capRaw ? parseInt(capRaw, 10) : null, description: ($('#evDesc').value || '').trim() || null
   };
@@ -6926,5 +7135,6 @@ render();
 initSync();
 consumeIncomingMatch();   // a shared list opened via "Match with my lists" lands here
 consumeIncomingDeck();    // a shared deck opened via "Import this deck" lands here
+if (sb) consumeIncomingBuyStore();   // a store's "match my buy list" hand-off lands here
 consumeStoreInvite();     // a store invite link (?store-invite=) lands here
 consumeStaffInvite();     // a staff invite link (?store-staff=) lands here

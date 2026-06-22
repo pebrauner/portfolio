@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@500;700&family=Spline+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/mana-font@1.15.7/css/mana.min.css" rel="stylesheet" />
-  <script src="i18n.js?v=13"></script>
+  <script src="i18n.js?v=15"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -112,6 +112,21 @@
     .tile-cap { display: flex; justify-content: space-between; gap: 6px; margin-top: 6px; font-size: 12px; }
     .tile-cap .tn { color: var(--parch-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .tile-cap .tp { font-family: var(--mono); color: var(--gold-soft); white-space: nowrap; }
+    /* The Cabinet (showcase-only cards) */
+    .cab-tile { cursor: default; }
+    .cab-tag { position: absolute; top: 7px; left: 7px; font-family: var(--label); font-size: 9px; letter-spacing: .05em; text-transform: uppercase;
+      color: var(--gold-soft); background: rgba(0,0,0,.6); border: 1px solid var(--edge-soft); border-radius: 6px; padding: 2px 6px; }
+    .cab-cap .tn { color: var(--parch); }
+    .cab-val { font-family: var(--mono); color: var(--brass); white-space: nowrap; opacity: .8; }
+    .cab-set { display: block; margin-top: 2px; font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    /* Past events */
+    .ev.pe { opacity: .92; }
+    .pe-winners { display: flex; flex-direction: column; gap: 5px; margin-top: 9px; }
+    .pe-win { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--parch-dim); }
+    .pe-medal { font-size: 15px; }
+    .pe-name { color: var(--parch); }
+    .pe-champ { font-family: var(--label); font-size: 9px; letter-spacing: .05em; text-transform: uppercase; color: var(--gold-soft);
+      border: 1px solid var(--edge-soft); border-radius: 6px; padding: 1px 6px; }
     /* library (searchable list) */
     .lib-search { width: 100%; background: var(--ink); border: 1px solid var(--edge); border-radius: 9px; color: var(--parch);
       padding: 10px 13px; font-family: var(--body); font-size: 14px; margin-bottom: 12px; }
@@ -189,6 +204,7 @@
     let STORE = null, lbItems = [];
     let sb = null, ME = null, SOCIAL = null, SLUG = '';   // SOCIAL = { followers, rank, followed } once loaded (null = hide badge + button)
     let EVSOCIAL = {};   // eventId → { going, waitlist, my_status } once loaded (empty = no RSVP UI)
+    let RESULTS = {};    // eventId → [{ placement, name }] once loaded (empty = no past-winners; event still "past" if old)
     const initials = (s) => String(s || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || '?';
 
     function showState(icon, msg) { card.innerHTML = `<div class="state"><span class="big"><i class="ms ${icon}"></i></span>${esc(msg)}</div>`; }
@@ -226,6 +242,7 @@
     function actionsHtml(extra) {
       const out = [];
       if (extra) out.push(extra);
+      out.push(`<button class="btn" id="matchBuyBtn" title="${esc(tr('⚖ Match my Buy List'))}"><i class="ms ms-counter-lore"></i> ${esc(tr('⚖ Match my Buy List'))}</button>`);
       const map = mapHref(); if (map) out.push(`<a class="btn gold" href="${esc(map)}" target="_blank" rel="noopener"><i class="ms ms-counter-lore"></i> ${esc(tr('Directions'))}</a>`);
       const site = safeUrl(STORE.website); if (site) out.push(`<a class="btn" href="${esc(site)}" target="_blank" rel="noopener"><i class="ms ms-counter-lore"></i> ${esc(tr('Website'))}</a>`);
       if (STORE.whatsapp) out.push(`<a class="btn" href="https://wa.me/${encodeURIComponent(String(STORE.whatsapp).replace(/[^\d]/g, ''))}" target="_blank" rel="noopener"><i class="ms ms-counter-lore"></i> ${esc(tr('WhatsApp'))}</a>`);
@@ -265,10 +282,16 @@
       else { label = tr('RSVP'); }
       return `<div class="ev-rsvp-row"><span class="ev-seats">${seats}</span><button class="${cls}" data-rsvp="${esc(ev.id)}">${esc(label)}</button></div>`;
     }
+    const hasResults = (ev) => !!(ev && ev.id && Array.isArray(RESULTS[ev.id]) && RESULTS[ev.id].length);
+    // an event is "past" if it has recorded results OR it started > 6h ago; no starts_at + no results stays upcoming
+    function isPastEvent(ev) {
+      if (hasResults(ev)) return true;
+      if (!ev.starts_at) return false;
+      return new Date(ev.starts_at).getTime() <= Date.now() - 6 * 3600e3;
+    }
     function eventsHtml(events) {
       if (!Array.isArray(events) || !events.length) return '';
-      const now = Date.now();
-      const up = events.filter(e => !e.starts_at || new Date(e.starts_at).getTime() > now - 6 * 3600e3);   // upcoming (+ in-progress)
+      const up = events.filter(e => !isPastEvent(e));   // upcoming (+ in-progress), minus anything with results
       if (!up.length) return '';
       const cards = up.map(ev => {
         const meta = [];
@@ -284,6 +307,36 @@
         </div>`;
       }).join('');
       return `<div class="sec"><div class="sec-h"><i class="ms ms-counter-lore"></i> ${esc(tr('Upcoming events'))} <span class="n">${up.length}</span></div><div class="events">${cards}</div></div>`;
+    }
+
+    // concluded events: started > 6h ago OR have recorded results. Shows winners (no RSVP, no seat line).
+    const MEDALS = { 1: '🏆', 2: '🥈', 3: '🥉' };
+    function winnersHtml(ev) {
+      const rows = ev.id ? RESULTS[ev.id] : null;
+      if (!Array.isArray(rows) || !rows.length) return '';
+      const sorted = rows.slice().sort((a, b) => (Number(a.placement) || 99) - (Number(b.placement) || 99));
+      const items = sorted.map(r => {
+        const p = Number(r.placement) || 0;
+        const medal = MEDALS[p] || '';
+        const champ = p === 1 ? ` <span class="pe-champ">${esc(tr('Champion'))}</span>` : '';
+        return `<div class="pe-win"><span class="pe-medal">${medal}</span><span class="pe-name">${esc(r.name)}</span>${champ}</div>`;
+      }).join('');
+      return `<div class="pe-winners">${items}</div>`;
+    }
+    function pastEventsHtml(events) {
+      if (!Array.isArray(events) || !events.length) return '';
+      const past = events.filter(isPastEvent);
+      if (!past.length) return '';
+      // most-recently-started first (events with no starts_at sink to the bottom)
+      past.sort((a, b) => (b.starts_at ? new Date(b.starts_at).getTime() : 0) - (a.starts_at ? new Date(a.starts_at).getTime() : 0));
+      const cards = past.map(ev => {
+        return `<div class="ev pe">
+          <div class="ev-top"><span class="ev-title">${esc(ev.title)}</span>${ev.format ? `<span class="ev-fmt">${esc(ev.format)}</span>` : ''}</div>
+          ${ev.starts_at ? `<div class="ev-when">${esc(whenStr(ev))}</div>` : ''}
+          ${winnersHtml(ev)}
+        </div>`;
+      }).join('');
+      return `<div class="sec"><div class="sec-h"><i class="ms ms-counter-gold"></i> ${esc(tr('Past events'))} <span class="n">${past.length}</span></div><div class="events">${cards}</div></div>`;
     }
 
     // social: follower count/rank badge + "My Stores" follow toggle (hidden entirely if SOCIAL never loaded)
@@ -306,6 +359,10 @@
       const btn = document.getElementById('followBtn');
       if (btn) { btn.outerHTML = followBtnHtml(); const nb = document.getElementById('followBtn'); if (nb) nb.addEventListener('click', toggleFollow); }
     }
+    function matchBuyList() {   // hand the slug to the app; the app reads this key and runs the buy-list match for this store
+      try { localStorage.setItem('vault:matchBuyStore', SLUG); } catch (e) {}
+      location.href = './';
+    }
     async function toggleFollow() {
       const btn = document.getElementById('followBtn'); if (!btn || !SOCIAL) return;
       if (!ME) { location.href = './'; return; }   // not signed in → send them to the app to sign in (same as d.html likes)
@@ -323,11 +380,12 @@
     }
 
     // store inventory — every non-reserved card is for sale; art/list + search + binder filter
-    let invMode = 'art', invQuery = '', invBinder = '', invShown = 60, forSale = [], invBinders = [];
+    let invMode = 'art', invQuery = '', invBinder = '', invShown = 60, forSale = [], invBinders = [], cabinet = [];
     function setupInventory() {
       const inv = (STORE.inventory && typeof STORE.inventory === 'object') ? STORE.inventory : {};
       invBinders = Array.isArray(inv.binders) ? inv.binders : [];
-      forSale = (Array.isArray(inv.cards) ? inv.cards : []).filter(c => !c.reserved && (Number(c.qty) || 0) > 0);
+      forSale = (Array.isArray(inv.cards) ? inv.cards : []).filter(c => !c.reserved && !c.display && (Number(c.qty) || 0) > 0);
+      cabinet = (Array.isArray(inv.cards) ? inv.cards : []).filter(c => c.display && (Number(c.qty) || 0) > 0);
     }
     function invFiltered() {
       const q = invQuery.trim().toLowerCase();
@@ -365,6 +423,18 @@
         <div id="invBody"></div></div>`;
     }
 
+    // "The Cabinet": showcase-only cards (display=true) — never for sale, value shown subtly, no buy framing
+    function cabinetHtml() {
+      if (!cabinet.length) return '';
+      const tiles = cabinet.map(c => {
+        const foil = c.foil ? `<span class="tile-foil" title="${esc(tr('Foil'))}">✦</span>` : '';
+        const sub = c.set ? `<span class="cab-set">${esc(c.set)}</span>` : '';
+        const val = c.price ? `<span class="cab-val" title="${esc(tr('Estimated value'))}">${money(c.price)}</span>` : '';
+        return `<div class="tile cab-tile"><div class="tile-art"><span class="cab-tag">${esc(tr('Not for sale'))}</span>${foil}<img src="${esc(artUrl(c.name))}" alt="${esc(c.name)}" loading="lazy" onerror="this.style.display='none'" /></div><div class="tile-cap cab-cap"><span class="tn">${esc(c.name)}</span>${val}</div>${sub}</div>`;
+      }).join('');
+      return `<div class="sec"><div class="sec-h"><i class="ms ms-counter-shield"></i> ${esc(tr('The Cabinet'))} <span class="n">${cabinet.length}</span></div><div class="gallery cab-gallery">${tiles}</div></div>`;
+    }
+
     function openLightbox(i) {
       const it = lbItems[i]; if (!it) return;
       const img = safeUrl(it.img) || artUrl(it.name), uri = safeUrl(it.uri);
@@ -398,6 +468,8 @@
         </div>
         ${actionsHtml(followBtnHtml())}
         ${eventsHtml(s.events)}
+        ${pastEventsHtml(s.events)}
+        ${cabinetHtml()}
         ${inventoryHtml()}
         ${hoursHtml(s.hours)}
         <div class="actions" style="margin-top:24px"><a class="btn" href="./" target="_blank" rel="noopener"><i class="ms ms-token"></i> ${esc(tr('Track your own collection'))}</a></div>`;
@@ -418,6 +490,7 @@
       const is = document.getElementById('invSearch');
       if (is) is.addEventListener('input', e => { invQuery = e.target.value; invShown = 60; renderInv(); });
       const fb = document.getElementById('followBtn'); if (fb) fb.addEventListener('click', toggleFollow);
+      const mb = document.getElementById('matchBuyBtn'); if (mb) mb.addEventListener('click', matchBuyList);
     }
     document.getElementById('lbClose').addEventListener('click', closeLightbox);
     document.getElementById('lb').addEventListener('click', e => { if (e.target.id === 'lb') closeLightbox(); });
@@ -444,6 +517,22 @@
         EVSOCIAL = map;
         render();   // re-render so seat lines + RSVP buttons appear (absent on first paint)
       } catch (e) { EVSOCIAL = {}; /* RPC missing or failed → stay hidden, no UI */ }
+    }
+
+    async function loadResults() {   // tournament finishers → past-events winners; degrade gracefully if RPC isn't deployed
+      if (!sb || !SLUG) return;
+      try {
+        const { data, error } = await sb.rpc('get_store_results', { p_store_slug: SLUG });
+        if (error || !Array.isArray(data)) return;   // not deployed / nothing → leave RESULTS empty (no winners, events fall back to date partition)
+        const map = {};
+        data.forEach(r => {
+          if (!r || !r.event_id) return;
+          const name = r.display_name || (r.username ? '@' + r.username : '') || tr('a player');
+          (map[r.event_id] = map[r.event_id] || []).push({ placement: Number(r.placement) || 0, name: name });
+        });
+        RESULTS = map;
+        render();   // re-render so concluded events move to "Past events" with their winners
+      } catch (e) { RESULTS = {}; /* RPC missing or failed → stay empty, no winners shown */ }
     }
 
     async function toggleRsvp(id, btn) {
@@ -481,6 +570,7 @@
         render();
         loadSocial();   // after render; populates badge + button if RPC is available (fire-and-forget)
         loadEventsSocial();   // after render; populates per-event RSVP UI if RPC is available (fire-and-forget)
+        loadResults();   // after render; moves concluded events to "Past events" with winners if RPC is available (fire-and-forget)
       } catch (e) { showState('ms-counter-shield', tr('Something went wrong loading this store.')); }
     })();
   </script>

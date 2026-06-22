@@ -1264,4 +1264,34 @@ I18N.dicts.es = {
   'Silver': 'Plata',
   'Gold': 'Oro',
 
+  /* ---------- buy-list ↔ store match ---------- */
+  '⚖ Match my Buy List': '⚖ Cruzar con mi lista de compra',
+  'Could not load that store.': 'No se pudo cargar esa tienda.',
+  'Matching your buy list against {store}.': 'Cruzando tu lista de compra con {store}.',
+  'From a store': 'Desde una tienda',
+  'Matching against {store}': 'Cruzando con {store}',
+  'Loading that store’s for-sale cards…': 'Cargando las cartas en venta de esa tienda…',
+  '{store} has no cards for sale right now.': '{store} no tiene cartas en venta ahora mismo.',
+
+  /* ---------- store hours + event date/time pickers ---------- */
+  'Open': 'Abrir',
+  'Copy Monday to all days': 'Copiar el lunes a todos los días',
+  'Copied Monday’s hours to every day.': 'Se copió el horario del lunes a todos los días.',
+  'Time': 'Hora',
+
+  /* ---------- The Cabinet (display cards) + Past events ---------- */
+  'The Cabinet': 'La Vitrina',
+  'Not for sale': 'No está en venta',
+  'Estimated value': 'Valor estimado',
+  'Display': 'Exhibir',
+  'On display': 'En exhibición',
+  'on display': 'en exhibición',
+  '{n} on display': '{n} en exhibición',
+  'In The Cabinet (on display, not for sale)': 'En La Vitrina (en exhibición, no está en venta)',
+  'Put on display in The Cabinet': 'Poner en exhibición en La Vitrina',
+  'Mark a card {display} to feature it in The Cabinet (shown but not for sale).': 'Marca una carta como {display} para destacarla en La Vitrina (se muestra pero no está en venta).',
+  'Past events': 'Eventos pasados',
+  'Champion': 'Campeón',
+  'a player': 'un jugador',
+
 };
