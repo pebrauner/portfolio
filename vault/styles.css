@@ -642,6 +642,41 @@ html[data-theme="ember"] .topbar { background: linear-gradient(180deg, rgba(31,1
 .sev-main { flex: 1; min-width: 0; }
 .sev-title { font-size: 15px; color: var(--parch); }
 .sev-when { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.link-btn.is-active { color: var(--gold); }
+/* event registrations + results panel (owner dashboard) */
+.ev-manage { padding: 12px 0 16px; border-bottom: 1px solid var(--edge-soft); }
+.ev-manage-note { margin: 0 0 12px; }
+.ev-results-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+.ev-results-title { font-family: var(--label); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--brass); }
+.ev-reg-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+.ev-reg-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
+.ev-reg-who { flex: 1; min-width: 0; font-size: 14px; color: var(--parch); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ev-reg-medal { font-size: 16px; min-width: 18px; text-align: center; }
+.ev-reg-edit { flex: 0 0 auto; }
+.ev-chip { font-family: var(--label); font-size: 10px; letter-spacing: .04em; text-transform: uppercase; padding: 2px 7px; border-radius: 999px; border: 1px solid var(--edge); color: var(--muted); }
+.ev-chip.going { color: #8fc99a; border-color: color-mix(in srgb, #8fc99a 40%, var(--edge)); }
+.ev-chip.waitlist { color: var(--brass); border-color: var(--gold-soft); }
+.ev-chip.walkin { color: var(--muted); }
+.ev-place-sel { background: var(--ink); border: 1px solid var(--edge); border-radius: 8px; color: var(--parch); padding: 5px 8px; font-family: var(--body); font-size: 13px; }
+.ev-place-sel:focus { outline: none; border-color: var(--brass); }
+.ev-win-toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--parch); cursor: pointer; }
+.ev-win-toggle input { accent-color: var(--gold); cursor: pointer; }
+.ev-walkin { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.ev-walkin .pv-search-input { flex: 1; min-width: 160px; }
+.ev-walkin-msg { font-size: 12px; color: #d98c6a; }
+.ev-results-actions { display: flex; }
+/* tournament wins card (in-app profile) */
+.pv-win-tier { font-family: var(--label); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--edge); color: var(--muted); }
+.pv-win-tier.bronze { color: #c08552; border-color: color-mix(in srgb, #c08552 45%, var(--edge)); }
+.pv-win-tier.silver { color: #c9ccd4; border-color: color-mix(in srgb, #c9ccd4 40%, var(--edge)); }
+.pv-win-tier.gold { color: var(--gold); border-color: var(--gold-soft); }
+.pv-win-tier.mythic { color: #d98c6a; border-color: color-mix(in srgb, #d98c6a 45%, var(--edge)); }
+.pv-win-headline { font-size: 15px; color: var(--parch); margin: 4px 0 10px; }
+.pv-wins { display: flex; flex-direction: column; gap: 4px; }
+.pv-win-row { display: flex; align-items: baseline; gap: 8px; font-size: 13.5px; }
+.pv-win-medal { font-size: 15px; }
+.pv-win-link { text-align: left; padding: 0; }
+.pv-win-at { color: var(--muted); }
 .slug-row { display: flex; align-items: center; gap: 0; border: 1px solid var(--edge); border-radius: 8px; overflow: hidden; background: var(--ink); }
 .slug-pre { font-family: var(--mono); font-size: 12px; color: var(--muted); padding: 0 4px 0 10px; white-space: nowrap; }
 .slug-row .text-input { border: none; border-radius: 0; background: transparent; }

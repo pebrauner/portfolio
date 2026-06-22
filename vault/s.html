@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@500;700&family=Spline+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/mana-font@1.15.7/css/mana.min.css" rel="stylesheet" />
-  <script src="i18n.js?v=12"></script>
+  <script src="i18n.js?v=13"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -91,6 +91,13 @@
     .ev-meta { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 7px; font-size: 12.5px; }
     .ev-meta b { color: var(--gold-soft); font-family: var(--mono); }
     .ev-desc { font-size: 13px; color: var(--muted); margin-top: 7px; line-height: 1.45; }
+    .ev-rsvp-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
+    .ev-seats { font-family: var(--mono); font-size: 12.5px; color: var(--parch-dim); }
+    .ev-seats .wl { color: var(--brass); }
+    .btn.rsvpbtn { padding: 7px 13px; }
+    .btn.rsvpbtn.going { color: var(--ink); background: linear-gradient(180deg, var(--gold-soft), var(--gold)); border-color: var(--gold-soft); }
+    .btn.rsvpbtn[disabled] { cursor: default; opacity: .7; }
+    .ev-rsvp-err { font-size: 12px; color: var(--brass); }
     /* for-sale gallery */
     .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 13px; }
     .tile { cursor: pointer; border: none; background: none; padding: 0; text-align: left; }
@@ -181,6 +188,7 @@
 
     let STORE = null, lbItems = [];
     let sb = null, ME = null, SOCIAL = null, SLUG = '';   // SOCIAL = { followers, rank, followed } once loaded (null = hide badge + button)
+    let EVSOCIAL = {};   // eventId → { going, waitlist, my_status } once loaded (empty = no RSVP UI)
     const initials = (s) => String(s || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || '?';
 
     function showState(icon, msg) { card.innerHTML = `<div class="state"><span class="big"><i class="ms ${icon}"></i></span>${esc(msg)}</div>`; }
@@ -236,6 +244,27 @@
       if (ev.ends_at) { const e = new Date(ev.ends_at); s += `–${e.toLocaleTimeString(I18N.locale(), { hour: 'numeric', minute: '2-digit' })}`; }
       return s;
     }
+    // RSVP: seat line + button, only when get_events_social loaded data for this event
+    function rsvpHtml(ev) {
+      const so = ev.id ? EVSOCIAL[ev.id] : null;
+      if (!so) return '';   // RPC not deployed / no data → no RSVP UI at all
+      const going = Number(so.going) || 0, waitlist = Number(so.waitlist) || 0;
+      const cap = Number(ev.capacity) || 0, status = so.my_status || null;
+      let seats;
+      if (cap > 0) {
+        seats = esc(tr('{going}/{cap} going', { going: going, cap: cap }));
+        if (waitlist > 0) seats += ` <span class="wl">${esc(tr('{n} on waitlist', { n: waitlist }))}</span>`;
+      } else {
+        seats = esc(tr('{n} going', { n: going }));
+      }
+      let label, cls = 'btn rsvpbtn';
+      if (!ME) { label = tr('Sign in to RSVP'); }
+      else if (status === 'going') { label = tr('✓ Going'); cls += ' going'; }
+      else if (status === 'waitlist') { label = tr('✓ On waitlist'); cls += ' going'; }
+      else if (cap > 0 && going >= cap) { label = tr('Join waitlist'); }
+      else { label = tr('RSVP'); }
+      return `<div class="ev-rsvp-row"><span class="ev-seats">${seats}</span><button class="${cls}" data-rsvp="${esc(ev.id)}">${esc(label)}</button></div>`;
+    }
     function eventsHtml(events) {
       if (!Array.isArray(events) || !events.length) return '';
       const now = Date.now();
@@ -251,6 +280,7 @@
           ${ev.starts_at ? `<div class="ev-when">${esc(whenStr(ev))}</div>` : ''}
           ${meta.length ? `<div class="ev-meta">${meta.join('')}</div>` : ''}
           ${ev.description ? `<div class="ev-desc">${esc(ev.description)}</div>` : ''}
+          ${rsvpHtml(ev)}
         </div>`;
       }).join('');
       return `<div class="sec"><div class="sec-h"><i class="ms ms-counter-lore"></i> ${esc(tr('Upcoming events'))} <span class="n">${up.length}</span></div><div class="events">${cards}</div></div>`;
@@ -379,6 +409,7 @@
       if (!invWired) {   // delegate inventory clicks on the persistent card element ONCE (survives re-renders)
         invWired = true;
         card.addEventListener('click', e => {
+          const rs = e.target.closest('[data-rsvp]'); if (rs) { toggleRsvp(rs.dataset.rsvp, rs); return; }
           const t = e.target.closest('#invBody [data-i]'); if (t) { openLightbox(+t.dataset.i); return; }
           const md = e.target.closest('.inv-seg [data-imode]'); if (md) { invMode = md.dataset.imode; render(); return; }
           const bf = e.target.closest('#invBinderFilter [data-binder]'); if (bf) { invBinder = bf.dataset.binder; invShown = 60; render(); return; }
@@ -402,6 +433,38 @@
       } catch (e) { /* RPC missing or failed → stay hidden, no UI */ }
     }
 
+    async function loadEventsSocial() {   // per-event going/waitlist/my_status — degrade gracefully if RPC isn't deployed
+      if (!sb || !SLUG) return;
+      EVSOCIAL = {};
+      try {
+        const { data, error } = await sb.rpc('get_events_social', { p_store_slug: SLUG });
+        if (error || !Array.isArray(data)) return;   // not deployed / nothing → leave EVSOCIAL empty (no RSVP UI)
+        const map = {};
+        data.forEach(r => { if (r && r.event_id) map[r.event_id] = { going: Number(r.going) || 0, waitlist: Number(r.waitlist) || 0, my_status: r.my_status || null }; });
+        EVSOCIAL = map;
+        render();   // re-render so seat lines + RSVP buttons appear (absent on first paint)
+      } catch (e) { EVSOCIAL = {}; /* RPC missing or failed → stay hidden, no UI */ }
+    }
+
+    async function toggleRsvp(id, btn) {
+      if (!id) return;
+      if (!ME) { location.href = './'; return; }   // not signed in → send to the app to sign in
+      if (btn) { if (btn.dataset.busy) return; btn.dataset.busy = '1'; btn.disabled = true; }
+      try {
+        const { data, error } = await sb.rpc('rsvp_event', { p_event_id: id });
+        if (!error && data) {
+          EVSOCIAL[id] = { going: Number(data.going) || 0, waitlist: Number(data.waitlist) || 0, my_status: data.status || null };
+          render();   // re-render the whole card so seat line + button reflect the new state
+        } else if (btn) {
+          btn.disabled = false; delete btn.dataset.busy;
+          const row = btn.closest('.ev-rsvp-row');
+          if (row && !row.querySelector('.ev-rsvp-err')) { const m = document.createElement('span'); m.className = 'ev-rsvp-err'; m.textContent = tr('Could not RSVP — try again.'); row.appendChild(m); }
+        }
+      } catch (e) {
+        if (btn) { btn.disabled = false; delete btn.dataset.busy; }   // leave state unchanged, never crash
+      }
+    }
+
     (async () => {
       const slug = new URLSearchParams(location.search).get('s');
       if (!slug) { showState('ms-counter-shield', tr('No store in this link.')); return; }
@@ -417,6 +480,7 @@
         document.title = (STORE.name || tr('A store')) + ' · The Vault';
         render();
         loadSocial();   // after render; populates badge + button if RPC is available (fire-and-forget)
+        loadEventsSocial();   // after render; populates per-event RSVP UI if RPC is available (fire-and-forget)
       } catch (e) { showState('ms-counter-shield', tr('Something went wrong loading this store.')); }
     })();
   </script>

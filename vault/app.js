@@ -4117,6 +4117,18 @@ if (storeDash) {
     if ((m = e.target.closest('[data-invrm]'))) { removeInvCard(m.dataset.invrm, m.dataset.invb); return; }
     if ((m = e.target.closest('[data-evedit]'))) { openStoreEvent(m.dataset.evedit); return; }
     if ((m = e.target.closest('[data-evdel]'))) { deleteStoreEvent(m.dataset.evdel); return; }
+    if ((m = e.target.closest('[data-evmanage]'))) { const id = m.dataset.evmanage; if (manageEventId === id) { manageEventId = null; renderStoreEventList(); } else { manageEventId = id; loadEventRegs(id); } return; }
+    if ((m = e.target.closest('[data-evmode]'))) { eventResultsMode = m.dataset.evmode; renderStoreEventList(); return; }
+    if (e.target.closest('#evWalkinAdd')) { addEventWalkin(); return; }
+    if ((m = e.target.closest('[data-evsaveresults]'))) { saveEventResults(m.dataset.evsaveresults); return; }
+  });
+  storeDash.addEventListener('change', e => {
+    let m;
+    if ((m = e.target.closest('[data-evplace]'))) { eventResultEdits[m.dataset.evplace] = Number(e.target.value) || 0; const row = e.target.closest('.ev-reg-row'); const medal = row && row.querySelector('.ev-reg-medal'); if (medal) medal.textContent = placementMedal(eventResultEdits[m.dataset.evplace]); return; }
+    if ((m = e.target.closest('[data-evwin]'))) { eventResultEdits[m.dataset.evwin] = e.target.checked ? 1 : 0; const row = e.target.closest('.ev-reg-row'); const medal = row && row.querySelector('.ev-reg-medal'); if (medal) medal.textContent = placementMedal(eventResultEdits[m.dataset.evwin]); return; }
+  });
+  storeDash.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && e.target.id === 'evWalkinInput') { e.preventDefault(); addEventWalkin(); }
   });
 }
 const closeStoreInviteEl = $('#closeStoreInvite'); if (closeStoreInviteEl) closeStoreInviteEl.addEventListener('click', closeStoreInvite);
@@ -4818,7 +4830,7 @@ async function signOut() {
   clearTimeout(publicProfileTimer); publicProfileTimer = null;
   try { await sb.auth.signOut(); } catch (e) {}
   authUser = null; authProfile = null; setSyncMeta({});
-  myStore = null; myStores = []; storeEvents = []; storeTx = []; storeMembers = []; friends = []; pendingStoreInvite = null; pendingStaffInvite = null; refreshStoreMenu();
+  myStore = null; myStores = []; storeEvents = []; storeTx = []; storeMembers = []; friends = []; myWins = null; manageEventId = null; eventRegs = []; pendingStoreInvite = null; pendingStaffInvite = null; refreshStoreMenu();
   closeProfile(); renderAccount();
   if (['view-profile', 'view-store'].some(v => $('#' + v) && $('#' + v).classList.contains('is-active'))) setView('decks');
   toast(tr('Signed out — this device is now local-only.'));
@@ -5380,6 +5392,12 @@ let pendingStaffInvite = null;  // ?store-staff=CODE captured at boot until sign
 let storeInviteResult = '';     // last-minted invite link (admin modal)
 let storeSaveTimer = null;
 let editingEventId = null;      // event being edited in the modal, or null = new
+// --- event registrations + results (owner-only inline panel under an event row) ---
+let manageEventId = null;       // the event whose registrations/results panel is open, or null
+let eventRegs = [];             // get_event_registrations() rows for manageEventId
+let eventResultsMode = 'podium';// 'podium' (1st/2nd/3rd) | 'winners' (multiple) — English tokens, never translated
+let eventResultEdits = {};      // working editor state: { [user_id]: placement (0=none, 1/2/3) }
+let eventWalkins = [];          // walk-in players added via find_player: { user_id, username, display_name }
 // store inventory UI state (the store's OWN inventory — every card is for sale unless reserved)
 let storeInvMode = 'list', storeInvQuery = '', storeInvBinder = '', storeInvShown = 80;
 let selectedInv = new Set();    // inventory cards selected for bulk actions (keys = name|binder|foil)
@@ -5662,15 +5680,96 @@ function renderStoreHistory() {
     return `<div class="store-tx-row"><span class="tx-badge ${isSold ? 'sold' : 'stock'}">${isSold ? tr('Sold') : tr('Stocked')}</span><span class="tx-name">${esc(t.name)}</span><span class="tx-qty">${Number(t.qty) || 1}×</span><span class="tx-val${isSold ? ' sold' : ''}">${money(t.value)}</span><span class="tx-when">${esc(when)}</span></div>`;
   }).join('');
 }
+// 1→🏆 / 2→🥈 / 3→🥉 ; anything else → '' (medals are universal symbols, not translatable text)
+function placementMedal(p) { return ({ 1: '🏆', 2: '🥈', 3: '🥉' })[Number(p)] || ''; }
 function renderStoreEventList() {
   const el = $('#storeEventList'); if (!el) return;
   if (!storeEvents.length) { el.innerHTML = `<p class="bd-note">${tr('No events yet. Add your first — a Commander night, FNM, a tournament…')}</p>`; return; }
+  const owner = isStoreOwner();
   el.innerHTML = storeEvents.map(ev => {
     const when = ev.starts_at ? new Date(ev.starts_at).toLocaleString(I18N.locale(), { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : tr('No date set');
     const bits = [ev.format, ev.recurring ? '↻ ' + ev.recurring : '', ev.prize_pool ? tr('Prize') + ' ' + ev.prize_pool : ''].filter(Boolean).join(' · ');
+    const open = manageEventId === ev.id;
     return `<div class="store-ev-row"><div class="sev-main"><div class="sev-title">${esc(ev.title)}</div><div class="sev-when">${esc(when)}${bits ? ' · ' + esc(bits) : ''}</div></div>
-      <button class="link-btn" data-evedit="${esc(ev.id)}">${tr('Edit')}</button><button class="link-btn danger" data-evdel="${esc(ev.id)}">${tr('Delete')}</button></div>`;
+      ${owner ? `<button class="link-btn${open ? ' is-active' : ''}" data-evmanage="${esc(ev.id)}">${tr('Registrations & results')}</button>` : ''}<button class="link-btn" data-evedit="${esc(ev.id)}">${tr('Edit')}</button><button class="link-btn danger" data-evdel="${esc(ev.id)}">${tr('Delete')}</button></div>
+      ${open ? `<div class="ev-manage" id="evManage-${esc(ev.id)}">${renderEventManagePanel()}</div>` : ''}`;
   }).join('');
+}
+// load registrations for an event, then re-render the list (panel rebuilds from eventRegs)
+async function loadEventRegs(id) {
+  eventRegs = []; eventResultEdits = {}; eventWalkins = []; eventResultsMode = 'podium';
+  if (sb && isStoreOwner() && id) {
+    try {
+      const { data, error } = await sb.rpc('get_event_registrations', { p_event_id: id });
+      if (!error && Array.isArray(data)) {
+        eventRegs = data;
+        // seed editor state from any existing placements
+        eventRegs.forEach(r => { if (r.placement) eventResultEdits[r.user_id] = Number(r.placement); });
+      }
+    } catch (e) { /* graceful: empty panel */ }
+  }
+  renderStoreEventList();
+}
+// build the inline panel HTML for the currently-open event (manageEventId)
+function renderEventManagePanel() {
+  if (!isStoreOwner()) return '';
+  // combine registrants + any walk-ins added in this editor session (walk-ins not already registered)
+  const regIds = new Set(eventRegs.map(r => r.user_id));
+  const people = eventRegs.concat(eventWalkins.filter(w => !regIds.has(w.user_id)).map(w => ({ ...w, status: null, walkin: true })));
+  if (!people.length && !eventWalkins.length) {
+    return `<p class="bd-note ev-manage-note">${tr('No registrations yet.')}</p>` + walkinAdderHtml();
+  }
+  const rows = people.map(r => {
+    const who = esc(r.display_name || ('@' + (r.username || '')));
+    const cur = Number(eventResultEdits[r.user_id]) || 0;
+    const statusChip = r.walkin ? `<span class="ev-chip walkin">${tr('Walk-in')}</span>`
+      : `<span class="ev-chip ${r.status === 'waitlist' ? 'waitlist' : 'going'}">${r.status === 'waitlist' ? tr('Waitlist') : tr('Going')}</span>`;
+    let editor;
+    if (eventResultsMode === 'winners') {
+      editor = `<label class="ev-win-toggle"><input type="checkbox" data-evwin="${esc(r.user_id)}" ${cur === 1 ? 'checked' : ''}/> ${tr('Winner')}</label>`;
+    } else {
+      const opt = (v, lbl) => `<option value="${v}" ${cur === v ? 'selected' : ''}>${lbl}</option>`;
+      editor = `<select class="ev-place-sel" data-evplace="${esc(r.user_id)}">${opt(0, tr('None'))}${opt(1, '🏆 ' + tr('1st'))}${opt(2, '🥈 ' + tr('2nd'))}${opt(3, '🥉 ' + tr('3rd'))}</select>`;
+    }
+    return `<div class="ev-reg-row"><span class="ev-reg-who">${who} ${statusChip}</span><span class="ev-reg-medal">${placementMedal(cur)}</span><span class="ev-reg-edit">${editor}</span></div>`;
+  }).join('');
+  return `<div class="ev-results-head">
+      <span class="ev-results-title">${tr('Results')}</span>
+      <div class="seg ev-mode-seg"><button class="seg-btn ${eventResultsMode === 'podium' ? 'is-active' : ''}" data-evmode="podium">${tr('Podium')}</button><button class="seg-btn ${eventResultsMode === 'winners' ? 'is-active' : ''}" data-evmode="winners">${tr('Winners')}</button></div>
+    </div>
+    <div class="ev-reg-list">${rows}</div>
+    ${walkinAdderHtml()}
+    <div class="ev-results-actions"><button class="btn gold sm" data-evsaveresults="${esc(manageEventId)}">${tr('Save results')}</button></div>`;
+}
+function walkinAdderHtml() {
+  return `<div class="ev-walkin"><input type="text" class="pv-search-input" id="evWalkinInput" placeholder="${tr('Add player by @username')}" autocomplete="off" /><button class="btn sm" id="evWalkinAdd">${tr('Add')}</button><span class="ev-walkin-msg" id="evWalkinMsg"></span></div>`;
+}
+// resolve a @username via find_player and add to the working walk-in list
+async function addEventWalkin() {
+  const inp = $('#evWalkinInput'), msg = $('#evWalkinMsg');
+  const u = ((inp && inp.value) || '').trim().replace(/^@/, '');
+  if (!u) return;
+  if (!sb) { if (msg) msg.textContent = tr('No player with that username.'); return; }
+  try {
+    const { data, error } = await sb.rpc('find_player', { p_username: u });
+    const hit = (!error && Array.isArray(data) && data[0]) ? data[0] : null;
+    if (!hit) { if (msg) msg.textContent = tr('No player with that username.'); return; }
+    if (!eventWalkins.some(w => w.user_id === hit.user_id) && !eventRegs.some(r => r.user_id === hit.user_id)) eventWalkins.push(hit);
+    renderStoreEventList();
+  } catch (e) { if (msg) msg.textContent = tr('No player with that username.'); }
+}
+// build p_results from the editor and persist via set_event_results
+async function saveEventResults(id) {
+  if (!sb || !isStoreOwner() || !id) return;
+  const results = Object.keys(eventResultEdits)
+    .map(uid => ({ user_id: uid, placement: Number(eventResultEdits[uid]) || 0 }))
+    .filter(r => r.placement >= 1 && r.placement <= 3);
+  try {
+    const { error } = await sb.rpc('set_event_results', { p_event_id: id, p_mode: eventResultsMode, p_results: results });
+    if (error) { toast(tr('Could not save results.')); return; }
+    await loadEventRegs(id);
+    toast(tr('Results saved.'));
+  } catch (e) { toast(tr('Could not save results.')); }
 }
 // debounced field save
 function scheduleStoreSave() {
@@ -6025,6 +6124,7 @@ async function togglePublicProfile(on) {
 /* ---------- find other players' public profiles ---------- */
 let profileSearchQuery = '';
 let profileSearchTimer = null;
+let myWins = null;   // get_user_wins() result: { wins, podiums, recent:[...] } | null until loaded
 function openPublicProfile(username) {
   const u = String(username || '').trim().replace(/^@/, '');
   if (u) window.open(vaultPageUrl('u.html') + '?u=' + encodeURIComponent(u), '_blank', 'noopener');
@@ -6628,6 +6728,7 @@ function renderProfileView() {
           <div class="pv-card-h"><h3>${tr('Top cards')}</h3></div>
           ${top.length ? `<div class="pv-top">${top.map((c, i) => `<div class="pv-toprow"><span class="pv-toprank">${i + 1}</span><span class="pv-topname nm" data-name="${esc(c.name)}">${esc(c.name)}</span><span class="pv-topval">${money(c.value)}</span></div>`).join('')}</div>` : `<p class="pv-empty">${tr('No owned cards yet.')}</p>`}
         </div>
+        <div class="pv-card" id="pvWinsCard" hidden></div>
         <div class="pv-card">
           <div class="pv-card-h"><h3>${tr('Public profile')}</h3>${p.profilePublic ? `<span class="pv-pub-on">${tr('● public')}</span>` : ''}</div>
           <p class="pv-hint">${tr('A shareable page with your decks, stores & trades. Your total collection value always stays private.')}</p>
@@ -6644,7 +6745,54 @@ function renderProfileView() {
       </div>
     </div>`;
   renderFriends();
+  renderWinsCard();   // paint cached wins immediately (if any), then refresh from the server
+  if (un) loadMyWins();
 }
+// milestone tier from total wins: 1–4 Bronze, 5–9 Silver, 10–24 Gold, 25+ Mythic
+function winsTier(n) {
+  if (n >= 25) return tr('Mythic');
+  if (n >= 10) return tr('Gold');
+  if (n >= 5) return tr('Silver');
+  if (n >= 1) return tr('Bronze');
+  return '';
+}
+async function loadMyWins() {
+  if (!sb || !authProfile || !authProfile.username) return;
+  try {
+    const { data, error } = await sb.rpc('get_user_wins', { p_username: authProfile.username });
+    if (error || !data) return;
+    myWins = data;
+    renderWinsCard();
+  } catch (e) { /* graceful: leave the card hidden */ }
+}
+function renderWinsCard() {
+  const el = $('#pvWinsCard'); if (!el) return;
+  const w = myWins || {};
+  const wins = Number(w.wins) || 0;
+  const recent = Array.isArray(w.recent) ? w.recent : [];
+  if (!wins && !recent.length) {
+    if (myWins === null) { el.hidden = true; return; }   // not loaded yet — keep hidden, no flash
+    el.hidden = false;
+    el.innerHTML = `<div class="pv-card-h"><h3>${tr('Tournament wins')}</h3></div><p class="pv-empty">${tr('No tournament wins yet.')}</p>`;
+    return;
+  }
+  el.hidden = false;
+  const tier = winsTier(wins);
+  const headline = wins === 1 ? tr('Winner of 1 tournament') : tr('Winner of {n} tournaments', { n: wins });
+  const recentHtml = recent.slice(0, 5).map(r => {
+    const medal = placementMedal(r.placement);
+    const store = r.store_name || r.store_slug || '';
+    const sub = store ? ' <span class="pv-win-at">' + tr('at {store}', { store: esc(store) }) + '</span>' : '';
+    const slug = r.store_slug || '';
+    const title = `<span class="pv-win-title">${esc(r.event_title || '')}</span>`;
+    return `<div class="pv-win-row">${medal ? `<span class="pv-win-medal">${medal}</span>` : ''}${slug ? `<button class="link-btn pv-win-link" data-pvstore="${esc(slug)}">${title}${sub}</button>` : `<span>${title}${sub}</span>`}</div>`;
+  }).join('');
+  el.innerHTML = `<div class="pv-card-h"><h3>${tr('Tournament wins')}</h3>${tier ? `<span class="pv-win-tier ${esc(winsTierToken(wins))}">${esc(tier)}</span>` : ''}</div>
+    <div class="pv-win-headline">${esc(headline)}</div>
+    ${recentHtml ? `<div class="pv-wins">${recentHtml}</div>` : ''}`;
+}
+// internal CSS token for the tier badge color (not user-visible — never translated)
+function winsTierToken(n) { return n >= 25 ? 'mythic' : n >= 10 ? 'gold' : n >= 5 ? 'silver' : 'bronze'; }
 const profileViewEl = $('#profileView');
 if (profileViewEl) {
   profileViewEl.addEventListener('click', e => {
@@ -6668,6 +6816,7 @@ if (profileViewEl) {
     if ((m = e.target.closest('[data-frmatch]'))) { matchWithFriend(m.dataset.frmatch, m.dataset.frname); return; }
     if ((m = e.target.closest('[data-frremove]'))) { removeFriend(m.dataset.frremove); return; }
     if ((m = e.target.closest('[data-frprofile]'))) { openPublicProfile(m.dataset.frprofile); return; }
+    if ((m = e.target.closest('[data-pvstore]'))) { window.open(storePublicUrl(m.dataset.pvstore), '_blank', 'noopener'); return; }
   });
   profileViewEl.addEventListener('input', e => {
     if (e.target.id === 'pvSearchInput') { profileSearchQuery = e.target.value; clearTimeout(profileSearchTimer); profileSearchTimer = setTimeout(runProfileSearch, 280); }

@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@500;700&family=Spline+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/mana-font@1.15.7/css/mana.min.css" rel="stylesheet" />
-  <script src="i18n.js?v=12"></script>
+  <script src="i18n.js?v=13"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -48,6 +48,12 @@
     .badge { font-family: var(--label); font-size: 10px; letter-spacing: .05em; text-transform: uppercase; padding: 4px 9px; border-radius: 999px;
       color: var(--ink); background: linear-gradient(180deg, var(--gold-soft), var(--gold)); }
     .badge.soft { color: var(--parch-dim); background: rgba(255,255,255,.03); border: 1px solid var(--edge); }
+    .badge.tier { color: var(--ink); border: none; }
+    .badge.tier-bronze { background: linear-gradient(180deg, #d9a066, #a4682f); }
+    .badge.tier-silver { background: linear-gradient(180deg, #e4e4ea, #a7adba); }
+    .badge.tier-gold { background: linear-gradient(180deg, #f4dd7a, #d4a72c); }
+    .badge.tier-mythic { color: var(--parch); background: linear-gradient(180deg, #b06ad9, #7a3fb0); }
+    .medal { font-size: 16px; flex-shrink: 0; }
     .bio { color: var(--parch-dim); font-size: 15px; line-height: 1.6; max-width: 640px; margin: 16px 0 0; white-space: pre-wrap; }
     .runs-store { margin: 12px 0 0; font-size: 14px; color: var(--brass); display: inline-flex; align-items: center; gap: 6px; }
     .runs-store a { color: var(--gold-soft); text-decoration: none; font-weight: 600; }
@@ -116,6 +122,71 @@
     const money = (n) => '$' + (Number(n) || 0).toFixed(2);
     const safeUrl = (u) => { u = String(u || ''); return /^https?:\/\//i.test(u) ? u : ''; };
     const EXP = { new: 'New to Magic', intermediate: 'Intermediate', veteran: 'Veteran' };   // keys are stored values; labels translated at display via tr()
+    let WINS = null;
+
+    function tierFor(wins) {
+      if (wins >= 25) return { cls: 'tier-mythic', label: tr('Mythic') };
+      if (wins >= 10) return { cls: 'tier-gold', label: tr('Gold') };
+      if (wins >= 5) return { cls: 'tier-silver', label: tr('Silver') };
+      if (wins >= 1) return { cls: 'tier-bronze', label: tr('Bronze') };
+      return null;
+    }
+
+    async function loadWins(username) {
+      if (!username) return;
+      try {
+        const sb = window.__sb;
+        if (!sb) return;
+        const { data, error } = await sb.rpc('get_user_wins', { p_username: username });
+        if (error || !data) return;
+        const wins = Number(data.wins) || 0;
+        const recent = Array.isArray(data.recent) ? data.recent : [];
+        if (wins <= 0 && !recent.length) return;   // nothing to show — leave page as-is
+        WINS = { wins, podiums: Number(data.podiums) || 0, recent };
+        injectWins(WINS);
+      } catch (e) { /* degrade gracefully — never crash */ }
+    }
+
+    function injectWins(w) {
+      // Badge in the .badges row
+      if (w.wins > 0) {
+        const badgesEl = cardEl.querySelector('.badges');
+        if (badgesEl) {
+          const winLabel = w.wins === 1
+            ? tr('🏆 Winner of 1 tournament')
+            : tr('🏆 Winner of {n} tournaments', { n: w.wins });
+          let extra = `<span class="badge">${esc(winLabel)}</span>`;
+          const tier = tierFor(w.wins);
+          if (tier) extra += `<span class="badge tier ${tier.cls}">${esc(tier.label)}</span>`;
+          badgesEl.insertAdjacentHTML('beforeend', extra);
+        }
+      }
+      // Recent wins section
+      if (w.recent.length) {
+        const medals = { 1: '🏆', 2: '🥈', 3: '🥉' };
+        const rows = w.recent.map(r => {
+          const medal = medals[Number(r.placement)] || '🏅';
+          const title = esc(r.event_title || tr('Tournament'));
+          const subParts = [];
+          if (r.store_name) {
+            const slugOk = /^[a-z0-9-]{3,40}$/.test(String(r.store_slug || ''));
+            const storeLink = slugOk
+              ? `<a href="s.html?s=${encodeURIComponent(r.store_slug)}">${esc(r.store_name)}</a>`
+              : esc(r.store_name);
+            subParts.push(tr('at {store}', { store: storeLink }));
+          }
+          if (r.starts_at) {
+            const dt = new Date(r.starts_at);
+            if (!isNaN(dt)) subParts.push(esc(dt.toLocaleDateString(I18N.locale(), { year: 'numeric', month: 'short', day: 'numeric' })));
+          }
+          return `<div class="deck"><span class="medal">${medal}</span><div class="dn"><div class="dname">${title}</div><div class="dsub">${subParts.join(' · ')}</div></div></div>`;
+        }).join('');
+        const sec = document.createElement('div');
+        sec.className = 'sec';
+        sec.innerHTML = `<div class="sec-h">${esc(tr('Tournament results'))}</div><div class="decks">${rows}</div>`;
+        cardEl.appendChild(sec);
+      }
+    }
 
     const BG = ['grimoire','abstract','arcane','tome','tome2','ember','space1','space2','space3','space4','space5',
       'manamist1','manamist2','manamist3','manamist4','manamist5','mountain1','mountain2','mountain3','mountain4','archway1','archway2','archway3'];
@@ -186,12 +257,14 @@
       if (!u) { showState('ms-counter-shield', tr('No profile named in this link.')); return; }
       if (!window.supabase) { showState('ms-counter-shield', tr('Could not load — please check your connection.')); return; }
       const sb = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+      window.__sb = sb;
       try {
         const { data, error } = await sb.rpc('get_public_profile', { p_username: u });
         if (error) { showState('ms-counter-shield', tr('Could not load this profile.')); return; }
         if (!data) { showState('ms-graveyard', tr('This profile is private or doesn’t exist.')); return; }
         document.title = ((data.display_name || data.username || tr('Player')) + ' · The Vault');
         render(data);
+        loadWins(data.username);   // fire-and-forget; degrades gracefully
       } catch (e) { showState('ms-counter-shield', tr('Something went wrong loading this profile.')); }
     })();
   </script>
