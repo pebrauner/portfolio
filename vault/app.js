@@ -3649,11 +3649,10 @@ function renderMatchResults() {
   const missRow = m => `<div class="sm-row miss"><span class="sm-name nm" data-name="${esc(m.name)}" title="${esc(m.name)}">${esc(m.name)}</span><span class="sm-qty">${tr('want {n}', { n: m.want })}</span><span class="sm-x">${tr('not owned')}</span></div>`;
   const matchTileFn = m => matchTile(m.name, m.have + '×', m.price);
   const missTileFn = m => matchTile(m.name, '', m.price, true);
-  const secList = (arr, rowFn, tileFn) => sellMatchMode === 'art'
+  const secList = (arr, rowFn, tileFn) => sellMode === 'art'   // driven by the main Art/List toggle (#sellViewMode)
     ? `<div class="card-table gallery sm-gallery" style="--tile:150px">${arr.map(tileFn).join('')}</div>`
     : `<div class="sm-list">${arr.map(rowFn).join('')}</div>`;
   return `<div class="sm-summary">${tr('You have {x} of the {total} requested · {copies} · {value} at market', { x: `<b>${r.matches.length}</b>`, total: `<b>${total}</b>`, copies: tr(haveCopies === 1 ? '{n} copy' : '{n} copies', { n: haveCopies }), value: `<b>${money(fulfill)}</b>` })}</div>
-    <div class="sm-modebar">${matchModeToggle('sellMatchMode', sellMatchMode)}</div>
     ${r.matches.length ? `<div class="sm-act">
       <button class="btn" id="sellMatchSell"><i class="ms ms-counter-gold" aria-hidden="true"></i> ${tr('Quick-sell · −{n} from collection', { n: haveCopies })}</button>
       <button class="btn ghost" id="sellMatchAdd">${tr('＋ Add to “{list}”', { list: esc(sellListName()) })}</button>
@@ -3711,6 +3710,25 @@ async function runBuyMatch() {
   }
   buyMatchLoading = false; renderBuyList();
 }
+// Resolve a store's for-sale cards to the printing the store actually stocks (its `set`),
+// so the gallery shows clean, store-accurate art rather than Scryfall's newest default
+// (which can be an odd crossover/promo printing — e.g. a Marvel Arcane Signet). Owned cards
+// already have their own art, so we skip them. Returns the list with canonical names.
+async function resolveStoreCards(items) {
+  const out = [];
+  for (const it of items) {
+    const k = key(it.name);
+    if (ownedOf(it.name) > 0 && state.cards[k] && !state.cards[k].notFound) { out.push(it); continue; }
+    const base = 'https://api.scryfall.com/cards/named?exact=' + encodeURIComponent(frontFace(it.name));
+    let cd = null;
+    try { const r = await fetch(base + (it.set ? '&set=' + encodeURIComponent(String(it.set).toLowerCase()) : '')); if (r.ok) cd = await r.json(); } catch (e) {}
+    if ((!cd || cd.object !== 'card') && it.set) { try { const r2 = await fetch(base); if (r2.ok) cd = await r2.json(); } catch (e) {} }   // set miss → default printing
+    if (cd && cd.object === 'card') { const d = distill(cd); state.cards[key(d.name)] = d; out.push({ ...it, name: d.name }); }
+    else out.push(it);
+    await sleep(55);   // gentle on Scryfall
+  }
+  return out;
+}
 // Match the buy list against a store's public for-sale inventory (their sell list).
 // Pulls get_store_profile(slug) → inventory.cards, keeps for-sale (!reserved && qty>0),
 // merges dupes by name, and runs buildBuyMatchResult against it.
@@ -3729,13 +3747,13 @@ async function matchBuyAgainstStore(slug) {
       const name = c && c.name; const qty = Number(c && c.qty) || 0;
       if (!name || c.reserved || c.display || qty <= 0) return;   // skip reserved + Cabinet (display) cards — not for sale
       const k = key(name);
-      if (merged.has(k)) merged.get(k).qty += qty; else merged.set(k, { name, qty });
+      if (merged.has(k)) merged.get(k).qty += qty; else merged.set(k, { name, qty, set: c.set || '' });
     });
     const haveList = [...merged.values()];
     if (!haveList.length) { buyMatchStoreLoading = false; buyMatchResult = { wants: [], skip: [] }; renderBuyList(); return; }
-    // resolve the store's cards via Scryfall so the gallery (art) view shows real images, not broken/blank tiles
-    try { const { resolved } = await resolveCards(haveList); buyMatchResult = buildBuyMatchResult(resolved); }
-    catch (e) { buyMatchResult = buildBuyMatchResult(haveList); }
+    // resolve to the store's actual printing (their set) so the gallery shows clean, store-accurate art
+    let resolved; try { resolved = await resolveStoreCards(haveList); } catch (e) { resolved = haveList; }
+    buyMatchResult = buildBuyMatchResult(resolved);
     buyMatchStoreLoading = false;
     renderBuyList();
   } catch (e) {
@@ -3782,11 +3800,10 @@ function renderBuyMatchResults() {
   const skipRow = s => `<div class="sm-row miss"><span class="sm-name nm" data-name="${esc(s.name)}" title="${esc(s.name)}">${esc(s.name)}</span><span class="sm-qty">${tr('they have {n}', { n: s.have })}</span><span class="sm-x">${tr('don’t need')}</span></div>`;
   const wantTileFn = w => matchTile(w.name, w.need + '×', w.price);
   const skipTileFn = s => matchTile(s.name, '', s.price, true);
-  const secList = (arr, rowFn, tileFn) => buyMatchMode === 'art'
+  const secList = (arr, rowFn, tileFn) => buyMode === 'art'   // driven by the main Art/List toggle (#buyViewMode)
     ? `<div class="card-table gallery sm-gallery" style="--tile:150px">${arr.map(tileFn).join('')}</div>`
     : `<div class="sm-list">${arr.map(rowFn).join('')}</div>`;
   return `<div class="sm-summary">${tr('You’d buy {x} of the {total} offered · {copies} · {cost}', { x: `<b>${r.wants.length}</b>`, total: `<b>${total}</b>`, copies: tr(buyCopies === 1 ? '{n} copy' : '{n} copies', { n: buyCopies }), cost: `<b>${money(cost)}</b>` })}</div>
-    <div class="sm-modebar">${matchModeToggle('buyMatchMode', buyMatchMode)}</div>
     ${r.wants.length ? `<div class="sm-act">
       <button class="btn" id="buyMatchBuy"><i class="ms ms-counter-shield" aria-hidden="true"></i> ${tr('Quick-buy · +{n} to collection', { n: buyCopies })}</button>
       <button class="btn ghost" id="buyMatchCopy">${tr('⧉ Copy what you want')}</button>
