@@ -62,7 +62,7 @@ let deckEdit = false;                            // deck-detail recipe-editing m
 let deckShowOriginal = false;                    // deck-detail "original list" diff panel (transient)
 let deckPendingDelete = null;                    // deck id awaiting delete confirmation (transient)
 let deckCardFilter = 'all';                      // deck-detail card filter: 'all' | 'owned' | 'missing' (transient)
-let deckAcItems = [], deckAcSeq = 0;             // add-card autocomplete state
+let deckAcItems = [], deckAcActive = -1, deckAcSeq = 0;   // add-card autocomplete state (deckAcActive = keyboard-highlighted index)
 // --- Browse (Scryfall search) — transient, in-memory only ---
 let browseQuery = '';                            // last raw user text
 let browseAcItems = [], browseAcActive = -1, browseAcSeq = 0;   // Browse search autocomplete (Scryfall card-name suggestions)
@@ -946,6 +946,7 @@ function applyFacet(facet) {
 /* ---------- home ---------- */
 let homeQuery = '';
 let homeMvItems = [], homeMvSeq = 0, homeMvQuery = '';   // homepage "In the multiverse" — unowned Scryfall name suggestions
+let homeAcActive = -1;                                   // keyboard-highlighted index in the home search dropdown (.hr-item list)
 function renderHome() {
   const view = $('#view-home');
   if (!view || !view.classList.contains('is-active')) return;   // only build when the home view is showing
@@ -1035,15 +1036,23 @@ function renderHomeResults() {
   const box = $('#homeResults'); if (!box) return;
   const inp = $('#homeSearch'); if (inp && inp.value !== homeQuery) inp.value = homeQuery;
   const r = homeResults(homeQuery);
-  if (!r) { box.hidden = true; box.innerHTML = ''; return; }
+  if (!r) { box.hidden = true; box.innerHTML = ''; if (inp) inp.setAttribute('aria-expanded', 'false'); homeAcActive = -1; return; }
   let html = '';
-  if (r.decks.length) html += `<div class="hr-group"><div class="hr-h">${tr('Decks')}</div>${r.decks.map(d => { const n = (d.cards || []).reduce((a, c) => a + c.qty, 0); return `<button class="hr-item" data-homedeck="${d.id}"><i class="ms ms-saga" aria-hidden="true"></i><span class="hr-name">${esc(d.name)}</span><span class="hr-sub">${n} ${tr(n === 1 ? 'card' : 'cards')}</span></button>`; }).join('')}</div>`;
-  if (r.cards.length) html += `<div class="hr-group"><div class="hr-h">${tr('Your cards')}</div>${r.cards.map(n => `<button class="hr-item" data-homecard="${esc(n)}"><i class="ms ms-token" aria-hidden="true"></i><span class="hr-name">${esc(n)}</span><span class="hr-sub">${ownedOf(n)}×</span></button>`).join('')}</div>`;
+  if (r.decks.length) html += `<div class="hr-group"><div class="hr-h">${tr('Decks')}</div>${r.decks.map(d => { const n = (d.cards || []).reduce((a, c) => a + c.qty, 0); return `<button class="hr-item" role="option" data-homedeck="${d.id}"><i class="ms ms-saga" aria-hidden="true"></i><span class="hr-name">${esc(d.name)}</span><span class="hr-sub">${n} ${tr(n === 1 ? 'card' : 'cards')}</span></button>`; }).join('')}</div>`;
+  if (r.cards.length) html += `<div class="hr-group"><div class="hr-h">${tr('Your cards')}</div>${r.cards.map(n => `<button class="hr-item" role="option" data-homecard="${esc(n)}"><i class="ms ms-token" aria-hidden="true"></i><span class="hr-name">${esc(n)}</span><span class="hr-sub">${ownedOf(n)}×</span></button>`).join('')}</div>`;
   // Cards you DON'T own that match — surfaced from all of Magic via Scryfall (fetched async by fetchHomeMultiverse)
   const mv = (homeMvQuery === homeQuery.trim().toLowerCase()) ? homeMvItems : [];
-  if (mv.length) html += `<div class="hr-group"><div class="hr-h">${tr('In the multiverse')}</div>${mv.map(n => `<button class="hr-item mv" data-homemv="${esc(n)}"><span class="hr-art" style="background-image:url('${addArtUrl(n)}')" aria-hidden="true"></span><span class="hr-name">${esc(n)}</span><span class="hr-go">→</span></button>`).join('')}</div>`;
-  html += `<button class="hr-item hr-all" data-homebrowse><i class="ms ms-ability-investigate" aria-hidden="true"></i><span class="hr-name">${tr('Search all cards for “{q}”', { q: esc(homeQuery.trim()) })}</span><span class="hr-go">→</span></button>`;
-  box.innerHTML = html; box.hidden = false;
+  if (mv.length) html += `<div class="hr-group"><div class="hr-h">${tr('In the multiverse')}</div>${mv.map(n => `<button class="hr-item mv" role="option" data-homemv="${esc(n)}"><span class="hr-art" style="background-image:url('${addArtUrl(n)}')" aria-hidden="true"></span><span class="hr-name">${esc(n)}</span><span class="hr-go" aria-hidden="true">→</span></button>`).join('')}</div>`;
+  html += `<button class="hr-item hr-all" role="option" data-homebrowse><i class="ms ms-ability-investigate" aria-hidden="true"></i><span class="hr-name">${tr('Search all cards for “{q}”', { q: esc(homeQuery.trim()) })}</span><span class="hr-go" aria-hidden="true">→</span></button>`;
+  box.innerHTML = html; box.hidden = false; if (inp) inp.setAttribute('aria-expanded', 'true'); homeAcActive = -1;
+}
+// Move the keyboard highlight within the home dropdown (mirrors setBrowseAcActive/setInvAcActive). Visual .active only — focus stays in the input.
+function setHomeAcActive(i) {
+  const btns = $$('#homeResults .hr-item');
+  if (!btns.length) { homeAcActive = -1; return; }
+  homeAcActive = (i + btns.length) % btns.length;
+  btns.forEach((b, bi) => b.classList.toggle('active', bi === homeAcActive));
+  btns[homeAcActive].scrollIntoView({ block: 'nearest' });
 }
 // Pull card-name suggestions from Scryfall, keep only the ones the player doesn't own, and show them
 // in the home dropdown's "In the multiverse" group. Debounced + seq-guarded against stale keystrokes.
@@ -1620,7 +1629,15 @@ function deckAddBar() {
     <span class="deck-add-hint">${tr('Pick a suggestion or press Enter to add.')}</span>
   </div>`;
 }
-function deckHideAc() { const m = $('#deckAddMenu'); if (m) { m.hidden = true; m.innerHTML = ''; } deckAcItems = []; }
+function deckHideAc() { const m = $('#deckAddMenu'); if (m) { m.hidden = true; m.innerHTML = ''; } const i = $('#deckAddInput'); if (i) i.setAttribute('aria-expanded', 'false'); deckAcItems = []; deckAcActive = -1; }
+// Move the keyboard highlight within the deck add-card dropdown (mirrors setInvAcActive). Visual .active only — focus stays in the input.
+function setDeckAcActive(i) {
+  const btns = $$('#deckAddMenu .ac-item');
+  if (!btns.length) { deckAcActive = -1; return; }
+  deckAcActive = (i + btns.length) % btns.length;
+  btns.forEach((b, bi) => b.classList.toggle('active', bi === deckAcActive));
+  btns[deckAcActive].scrollIntoView({ block: 'nearest' });
+}
 async function deckFetchAc(q) {
   const seq = ++deckAcSeq;
   try {
@@ -1629,10 +1646,11 @@ async function deckFetchAc(q) {
     const data = await res.json();
     if (seq !== deckAcSeq) return;
     const menu = $('#deckAddMenu'); if (!menu) return;
-    deckAcItems = (data.data || []).slice(0, 10);
+    deckAcItems = (data.data || []).slice(0, 10); deckAcActive = -1;
     if (!deckAcItems.length) { deckHideAc(); return; }
     menu.innerHTML = deckAcItems.map((n, i) => `<button type="button" class="ac-item" role="option" data-deckac="${i}">${esc(n)}</button>`).join('');
     menu.hidden = false;
+    const inp = $('#deckAddInput'); if (inp) inp.setAttribute('aria-expanded', 'true');
   } catch (e) { /* offline — silently no-op */ }
 }
 const deckAcDebounced = (() => { let t; return (q) => { clearTimeout(t); t = setTimeout(() => deckFetchAc(q), 170); }; })();
@@ -4444,7 +4462,9 @@ $('#deckDetail').addEventListener('input', e => {
 });
 $('#deckDetail').addEventListener('keydown', e => {
   if (!e.target.closest('#deckAddInput')) return;
-  if (e.key === 'Enter') { e.preventDefault(); const pick = deckAcItems[0] || e.target.value.trim(); if (pick) addCardToDeck(pick); }
+  if (e.key === 'ArrowDown') { e.preventDefault(); setDeckAcActive(deckAcActive + 1); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); setDeckAcActive(deckAcActive - 1); }
+  else if (e.key === 'Enter') { e.preventDefault(); const pick = (deckAcActive >= 0 ? deckAcItems[deckAcActive] : deckAcItems[0]) || e.target.value.trim(); if (pick) addCardToDeck(pick); }
   else if (e.key === 'Escape') { deckHideAc(); }
 });
 $('#deckDetail').addEventListener('focusout', e => { if (e.target.closest('#deckAddInput')) setTimeout(deckHideAc, 150); });
@@ -7218,7 +7238,16 @@ const brandHomeEl = $('#brandHome'); if (brandHomeEl) brandHomeEl.addEventListen
 const homeSearchEl = $('#homeSearch');
 if (homeSearchEl) {
   homeSearchEl.addEventListener('input', e => { homeQuery = e.target.value; renderHomeResults(); homeMvDebounced(homeQuery); });
-  homeSearchEl.addEventListener('keydown', e => { if (e.key === 'Enter') { homeQuery = e.target.value; homeGoBrowse(); } });
+  homeSearchEl.addEventListener('keydown', e => {
+    const box = $('#homeResults'), open = box && !box.hidden;
+    if (open) {
+      if (e.key === 'ArrowDown') { e.preventDefault(); setHomeAcActive(homeAcActive + 1); return; }
+      if (e.key === 'ArrowUp') { e.preventDefault(); setHomeAcActive(homeAcActive - 1); return; }
+      if (e.key === 'Escape') { e.preventDefault(); box.hidden = true; e.target.setAttribute('aria-expanded', 'false'); homeAcActive = -1; return; }
+      if (e.key === 'Enter' && homeAcActive >= 0) { e.preventDefault(); const btns = $$('#homeResults .hr-item'); if (btns[homeAcActive]) { btns[homeAcActive].click(); return; } }
+    }
+    if (e.key === 'Enter') { homeQuery = e.target.value; homeGoBrowse(); }
+  });
 }
 const siteFooterEl = $('#siteFooter');
 if (siteFooterEl) siteFooterEl.addEventListener('click', e => { const b = e.target.closest('[data-foot-view]'); if (b) { setView(b.dataset.footView); window.scrollTo(0, 0); } });

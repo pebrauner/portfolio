@@ -783,6 +783,7 @@ I18N.dicts.es = {
   'Search all cards for “{q}”': 'Buscar “{q}” en todas las cartas',
   'Search any card by name, or use Scryfall syntax like {a}, {b}, {c}.': 'Busca cualquier carta por nombre, o usa la sintaxis de Scryfall como {a}, {b}, {c}.',
   'Search players by name or @username…': 'Busca jugadores por nombre o @usuario…',
+  'Search results': 'Resultados de búsqueda',
   'Search your inventory…': 'Busca en tu inventario…',
   'Searching the multiverse…': 'Buscando en el multiverso…',
   'In the multiverse': 'En el multiverso',

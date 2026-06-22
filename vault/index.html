@@ -90,8 +90,8 @@
         <p class="home-tag" data-i18n="Your Magic: The Gathering collection &amp; deck ledger.">Your Magic: The Gathering collection &amp; deck ledger.</p>
         <div class="home-searchwrap">
           <i class="ms ms-ability-investigate home-search-ic" aria-hidden="true"></i>
-          <input type="search" id="homeSearch" class="home-search" placeholder="Search your decks, your cards, or all of Magic…" data-i18n-ph="Search your decks, your cards, or all of Magic…" spellcheck="false" autocomplete="off" />
-          <div class="home-results" id="homeResults" hidden></div>
+          <input type="search" id="homeSearch" class="home-search" placeholder="Search your decks, your cards, or all of Magic…" data-i18n-ph="Search your decks, your cards, or all of Magic…" spellcheck="false" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="homeResults" aria-autocomplete="list" />
+          <div class="home-results" id="homeResults" role="listbox" aria-label="Search results" data-i18n-aria="Search results" hidden></div>
         </div>
         <div class="home-stats" id="homeStats"></div>
         <div class="home-quick">
