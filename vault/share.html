@@ -249,7 +249,7 @@
     function matchInVault() {
       const text = items().map(it => `${Number(it.qty) || 0} ${it.name}`).join('\n');
       try { localStorage.setItem('vault:incoming', JSON.stringify({ kind: ROW.kind, text, from: (ROW.data && ROW.data.owner) || '' })); } catch (e) {}
-      location.href = './';
+      location.href = 'app.html';
     }
 
     function wire() {

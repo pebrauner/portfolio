@@ -1,595 +1,658 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es" data-theme="grimoire">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="robots" content="noindex,nofollow" />
-  <title>The Vault — MTG Collection Tracker</title>
+  <script>
+    /* Signed-in visitors skip the marketing page and land straight in the app.
+       (Supabase persists the session to localStorage as sb-<ref>-auth-token.) Runs before paint → no flash.
+       Add ?stay to the URL to view the landing while signed in. */
+    (function () {
+      try {
+        if (location.search.indexOf('stay') !== -1) return;
+        for (var i = 0; i < localStorage.length; i++) {
+          var k = localStorage.key(i);
+          if (/^sb-.*-auth-token$/.test(k) && localStorage.getItem(k)) { location.replace('app.html'); return; }
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <title>The Vault — Un grimorio para tu colección de Magic: The Gathering</title>
+  <meta name="description" content="The Vault es un registro hermoso y gratuito para Magic: The Gathering — cataloga tu colección, forja mazos, sigue precios, compara listas de compra y venta, y conecta con jugadores y tiendas." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@400;500;600;700;800&family=Spline+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/mana-font@latest/css/mana.css" rel="stylesheet" type="text/css" />
-  <link rel="stylesheet" href="styles.css?v=22" />
+  <link href="https://cdn.jsdelivr.net/npm/mana-font@1.15.7/css/mana.min.css" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #0b0a07; --ink-2: #120e08; --panel: #181107; --panel-2: #1f1709;
+      --edge: #342a17; --edge-soft: #28200f; --parch: #ece0c4; --parch-dim: #b0a384;
+      --muted: #8a8070; --faint: #5f5648; --gold: #c9a227; --gold-soft: #e3c869; --brass: #9a7b3f;
+      --W: #f6edcf; --U: #5fa9e0; --B: #9c82b8; --R: #e0593f; --G: #54b87c;
+      --display: 'Grenze Gotisch', serif; --body: 'Spline Sans', system-ui, sans-serif;
+      --gilt: linear-gradient(100deg, var(--gold), var(--gold-soft) 38%, #fff2c4 50%, var(--gold-soft) 62%, var(--gold));
+      --maxw: 1080px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--ink); color: var(--parch); font-family: var(--body); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    a { color: inherit; text-decoration: none; }
+    ::selection { background: rgba(201,162,39,.3); color: #fff; }
+
+    /* ---------- the living "multiverse" card-art wall ---------- */
+    #wall { position: fixed; inset: -14% -8%; z-index: 0; opacity: .22; filter: saturate(.88) brightness(.66) contrast(1.02); pointer-events: none; will-change: transform; }
+    .wcols { display: flex; gap: 12px; height: 100%; transform: rotate(-5deg) scale(1.22); transform-origin: center; }
+    .wcol { flex: 1; min-width: 0; overflow: hidden; }
+    .wtrack { display: flex; flex-direction: column; gap: 12px; animation: wroll linear infinite; }
+    .wcol:nth-child(even) .wtrack { animation-direction: reverse; }
+    .wcard { aspect-ratio: 488 / 680; border-radius: 9px; background: #0c0a07 center/cover no-repeat; box-shadow: 0 8px 22px -10px #000; }
+    @keyframes wroll { from { transform: translateY(0); } to { transform: translateY(-50%); } }
+    /* ===== layered, cinematic atmosphere: fog, hearth glow, embers (with depth) ===== */
+    .veil { position: fixed; inset: 0; z-index: 1; pointer-events: none; background:
+      radial-gradient(120% 92% at 50% -12%, rgba(20,15,7,.14), rgba(8,7,4,.8) 62%, var(--ink) 94%),
+      linear-gradient(180deg, rgba(8,7,4,.44), rgba(8,7,4,.12) 32%, rgba(8,7,4,.72)); }
+    /* soft ambient light pooling from above, slowly breathing */
+    .glow-top { position: fixed; left: 4%; right: 4%; top: -36%; height: 80%; z-index: 2; pointer-events: none; mix-blend-mode: screen;
+      background: radial-gradient(50% 78% at 50% 0, rgba(201,162,39,.085), rgba(150,100,30,.035) 46%, transparent 72%);
+      filter: blur(60px); animation: breatheA 13s ease-in-out infinite; }
+    /* thick, slow, warm fog — the body of the atmosphere (blobs injected by JS) */
+    .fog { position: fixed; inset: -32%; z-index: 2; pointer-events: none; mix-blend-mode: screen; opacity: .64; }
+    .fog i { position: absolute; display: block; border-radius: 50%; filter: blur(90px); will-change: transform; animation: fogdrift linear infinite alternate; }
+    @keyframes fogdrift { from { transform: translate(0,0) scale(1) rotate(0deg); } to { transform: translate(74px,-60px) scale(1.26) rotate(10deg); } }
+    /* heavily-blurred hearth glow rising from below, slowly breathing like embers under ash */
+    .firelight { position: fixed; left: -20%; right: -20%; bottom: -40%; height: 104%; z-index: 3; pointer-events: none;
+      background: radial-gradient(52% 100% at 50% 100%, rgba(228,132,42,.22), rgba(201,108,26,.08) 40%, transparent 66%);
+      filter: blur(64px); mix-blend-mode: screen; transform-origin: 50% 100%; animation: breatheB 9s ease-in-out infinite; }
+    @keyframes breatheA { 0%,100% { opacity: .45; } 50% { opacity: .85; } }
+    @keyframes breatheB { 0%,100% { opacity: .8; transform: scaleY(1) scaleX(1); } 45% { opacity: 1; transform: scaleY(1.08) scaleX(1.04); } 72% { opacity: .9; transform: scaleY(1.02); } }
+    /* rising gold embers, in two depth tiers (near = sharp/bright, far = blurred/dim) */
+    .embers { position: fixed; inset: 0; z-index: 4; pointer-events: none; overflow: hidden; }
+    .ember { position: absolute; bottom: -18px; border-radius: 50%;
+      background: radial-gradient(circle, #ffe9b4, #e3ad3a 50%, rgba(201,162,39,0) 72%);
+      box-shadow: 0 0 10px 1px rgba(227,173,58,.4); opacity: 0; will-change: transform; animation: rise linear infinite; }
+    .ember.far { filter: blur(2px); box-shadow: 0 0 7px 1px rgba(227,173,58,.24); }
+    @keyframes rise {
+      0% { transform: translateY(0) translateX(0) scale(.85); opacity: 0; }
+      10% { opacity: var(--o,.85); }
+      50% { transform: translateY(-54vh) translateX(var(--x,18px)) scale(1.02); opacity: .45; }
+      78% { opacity: var(--o,.7); }
+      100% { transform: translateY(-112vh) translateX(0) scale(1.12); opacity: 0; } }
+    .grain { position: fixed; inset: 0; z-index: 5; pointer-events: none; opacity: .055; mix-blend-mode: overlay;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+
+    .page { position: relative; z-index: 6; }
+    .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+
+    /* ---------- top nav ---------- */
+    nav.top { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; max-width: var(--maxw); margin: 0 auto; transition: .3s; }
+    nav.top.scrolled { background: linear-gradient(180deg, rgba(11,10,7,.92), rgba(11,10,7,.7)); backdrop-filter: blur(10px); border-bottom: 1px solid var(--edge-soft); }
+    .brand { display: flex; align-items: center; gap: 9px; }
+    .brand .seal { font-size: 20px; color: var(--gold); }
+    .brand .word { font-family: var(--display); font-weight: 700; font-size: 21px; letter-spacing: .4px; background: var(--gilt); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .nav-right { display: flex; align-items: center; gap: 18px; }
+    .nav-links { display: flex; align-items: center; gap: 24px; }
+    .nav-links a.lk { font-size: 13px; color: var(--parch-dim); letter-spacing: .02em; transition: .15s; }
+    .nav-links a.lk:hover { color: var(--gold-soft); }
+    @media (max-width: 800px) { .nav-links { display: none; } }
+    .lang { display: inline-flex; border: 1px solid var(--edge); border-radius: 8px; overflow: hidden; }
+    .lang button { font-family: var(--body); font-size: 11.5px; font-weight: 600; letter-spacing: .04em; cursor: pointer; border: none; background: transparent; color: var(--muted); padding: 6px 10px; transition: .15s; }
+    .lang button.on { color: #1a1305; background: linear-gradient(180deg, var(--gold-soft), var(--gold)); }
+    .lang button:not(.on):hover { color: var(--gold-soft); }
+
+    .btn { font-family: var(--body); font-size: 13px; font-weight: 600; letter-spacing: .02em; cursor: pointer; border-radius: 10px; padding: 11px 18px; display: inline-flex; align-items: center; gap: 8px; transition: .18s; border: 1px solid transparent; white-space: nowrap; }
+    .btn .ms { font-size: 14px; }
+    .btn.gold { color: #1a1305; background: var(--gilt); background-size: 200% 100%; box-shadow: 0 8px 22px -10px rgba(201,162,39,.6), inset 0 1px 0 rgba(255,255,255,.35); }
+    .btn.gold:hover { background-position: 100% 0; transform: translateY(-2px); box-shadow: 0 14px 30px -12px rgba(201,162,39,.7), inset 0 1px 0 rgba(255,255,255,.4); }
+    .btn.ghost { color: var(--parch-dim); border-color: var(--edge); background: rgba(18,14,8,.5); }
+    .btn.ghost:hover { color: var(--gold-soft); border-color: var(--gold); }
+    .btn.lg { font-size: 15px; padding: 15px 28px; border-radius: 12px; }
+
+    /* ---------- hero ---------- */
+    header.hero { min-height: 100svh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 80px 24px 70px; position: relative; }
+    .hero-sigil { font-size: 40px; color: var(--gold); text-shadow: 0 0 30px rgba(201,162,39,.45); animation: floaty 6s ease-in-out infinite; }
+    @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+    .eyebrow { font-size: 11.5px; letter-spacing: .42em; text-transform: uppercase; color: var(--brass); margin: 20px 0 14px; }
+    h1.hero-title { font-family: var(--display); font-weight: 800; line-height: .96; margin: 0; font-size: clamp(54px, 11vw, 132px); letter-spacing: -.5px; background: var(--gilt); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 6px 30px rgba(201,162,39,.18)); }
+    .hero-lead { max-width: 640px; margin: 22px auto 0; font-size: clamp(16px, 2.3vw, 20px); line-height: 1.55; color: var(--parch-dim); }
+    .hero-lead b { color: var(--parch); font-weight: 600; }
+    .hero-cta { display: flex; gap: 13px; flex-wrap: wrap; justify-content: center; margin-top: 34px; }
+    .trust { margin-top: 24px; font-size: 12px; color: var(--muted); display: flex; gap: 8px 18px; flex-wrap: wrap; justify-content: center; letter-spacing: .02em; }
+    .trust span { display: inline-flex; align-items: center; gap: 7px; }
+    .trust .ms { color: var(--gold-soft); font-size: 12px; }
+    .scrolldown { position: absolute; bottom: 26px; left: 50%; transform: translateX(-50%); color: var(--brass); font-size: 12px; letter-spacing: .2em; text-transform: uppercase; animation: bob 2.4s ease-in-out infinite; }
+    @keyframes bob { 0%,100% { transform: translateX(-50%) translateY(0); opacity: .7; } 50% { transform: translateX(-50%) translateY(6px); opacity: 1; } }
+
+    .pip-rule { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 0 auto; padding: 4px 0; }
+    .pip-rule::before, .pip-rule::after { content: ""; height: 1px; width: min(120px, 18vw); background: linear-gradient(90deg, transparent, var(--edge)); }
+    .pip-rule::after { background: linear-gradient(90deg, var(--edge), transparent); }
+    .pip-rule .ms { font-size: 15px; }
+
+    /* ---------- manifesto ---------- */
+    .manifesto { text-align: center; padding: 94px 24px; }
+    .manifesto p { max-width: 780px; margin: 22px auto 0; font-family: var(--display); font-weight: 500; font-size: clamp(26px, 4.6vw, 46px); line-height: 1.18; color: var(--parch); letter-spacing: .2px; }
+    .manifesto p em { font-style: normal; color: var(--gold-soft); }
+
+    /* ---------- chapters ---------- */
+    .chapter { padding: 70px 0; border-top: 1px solid var(--edge-soft); }
+    .ch-grid { display: grid; grid-template-columns: 1fr 1.05fr; gap: 50px; align-items: center; }
+    .chapter:nth-of-type(even) .ch-intro { order: 2; }
+    @media (max-width: 880px) { .ch-grid { grid-template-columns: 1fr; gap: 30px; } .chapter:nth-of-type(even) .ch-intro { order: 0; } }
+    .ch-label { font-size: 11px; letter-spacing: .32em; text-transform: uppercase; color: var(--brass); display: flex; align-items: center; gap: 10px; }
+    .ch-label .ms { color: var(--gold-soft); font-size: 14px; }
+    .ch-title { font-family: var(--display); font-weight: 700; font-size: clamp(32px, 5vw, 50px); line-height: 1.04; margin: 16px 0 0; color: var(--parch); }
+    .ch-title .gilt { background: var(--gilt); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .ch-lead { margin: 18px 0 0; font-size: 16px; line-height: 1.62; color: var(--parch-dim); max-width: 460px; }
+    .bullets { list-style: none; margin: 24px 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; max-width: 460px; }
+    @media (max-width: 440px) { .bullets { grid-template-columns: 1fr; } }
+    .bullets li { display: flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--parch-dim); }
+    .bullets .ms { color: var(--gold-soft); font-size: 15px; width: 18px; text-align: center; flex-shrink: 0; }
+
+    /* ---------- app-window mockups ("shots") ---------- */
+    .shot { border-radius: 14px; border: 1px solid var(--edge); overflow: hidden; background: linear-gradient(180deg, var(--ink-2), var(--ink)); box-shadow: 0 44px 90px -34px #000, 0 0 0 1px rgba(201,162,39,.07); transform: perspective(1400px) rotateY(0deg); }
+    .shot-bar { display: flex; align-items: center; gap: 12px; padding: 9px 13px; background: linear-gradient(180deg, rgba(31,23,9,.96), rgba(18,14,8,.96)); border-bottom: 1px solid var(--edge-soft); }
+    .shot-bar .sw { font-family: var(--display); font-weight: 700; font-size: 13px; color: var(--gold-soft); display: flex; align-items: center; gap: 6px; }
+    .shot-tabs { display: flex; gap: 13px; font-size: 10.5px; color: var(--faint); letter-spacing: .03em; overflow: hidden; }
+    .shot-tabs .t.on { color: var(--gold-soft); }
+    @media (max-width: 520px) { .shot-tabs { display: none; } }
+    .shot-body { padding: 14px; }
+    .shot-h { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+    .shot-h .ttl { font-family: var(--display); font-size: 19px; color: var(--parch); }
+    .shot-h .meta { font-family: var(--body); font-size: 11px; color: var(--muted); }
+    .mini-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+    .mini-grid.g4 { grid-template-columns: repeat(4, 1fr); }
+    .mini-grid.g3 { grid-template-columns: repeat(3, 1fr); }
+    .mcard { position: relative; aspect-ratio: 488/680; border-radius: 7px; overflow: hidden; border: 1px solid var(--edge); background: #0c0a07 center/cover no-repeat; }
+    .mcard .q { position: absolute; top: 4px; left: 4px; font-family: var(--body); font-size: 9px; font-weight: 600; color: #1a1305; background: linear-gradient(180deg, var(--gold-soft), var(--gold)); border-radius: 4px; padding: 1px 5px; }
+    .mcard .pr { position: absolute; bottom: 0; left: 0; right: 0; font-size: 9px; color: var(--gold-soft); background: linear-gradient(0deg, rgba(8,6,3,.92), transparent); padding: 9px 5px 3px; text-align: right; font-family: var(--body); }
+    .seg-mini { display: inline-flex; border: 1px solid var(--edge); border-radius: 7px; overflow: hidden; }
+    .seg-mini span { font-size: 9.5px; padding: 4px 8px; color: var(--muted); }
+    .seg-mini span.on { color: #1a1305; background: linear-gradient(180deg, var(--gold-soft), var(--gold)); }
+    .chip { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; padding: 3px 9px; border-radius: 99px; border: 1px solid var(--edge); color: var(--parch-dim); }
+    .chip.ok { color: var(--G); border-color: color-mix(in srgb, var(--G) 45%, var(--edge)); }
+    .chip.gold { color: var(--gold-soft); border-color: color-mix(in srgb, var(--gold) 45%, var(--edge)); }
+    .chip .ms { font-size: 10px; }
+    /* market rows */
+    .mrow { display: flex; align-items: center; gap: 10px; padding: 8px 4px; border-bottom: 1px solid var(--edge-soft); font-size: 12.5px; }
+    .mrow:last-child { border-bottom: none; }
+    .mrow .mq { font-family: var(--body); color: var(--gold-soft); font-size: 11px; width: 22px; }
+    .mrow .mn { flex: 1; color: var(--parch); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mrow .mp { font-family: var(--body); color: var(--parch-dim); font-size: 11px; }
+    .mtot { display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; color: var(--muted); }
+    .mtot b { color: var(--gold-soft); font-family: var(--body); }
+    /* search bar mock */
+    .msearch { display: flex; align-items: center; gap: 8px; border: 1px solid var(--edge); border-radius: 9px; padding: 9px 12px; color: var(--parch-dim); font-size: 12.5px; margin-bottom: 12px; background: rgba(12,10,7,.5); }
+    .msearch .ms { color: var(--gold-soft); }
+    .msearch .cur { color: var(--gold-soft); }
+    /* store/profile mock */
+    .mstore-head { display: flex; gap: 11px; align-items: center; margin-bottom: 12px; }
+    .mstore-logo { width: 44px; height: 44px; border-radius: 11px; display: grid; place-items: center; font-family: var(--display); font-size: 22px; color: var(--gold); border: 1px solid var(--brass); background: linear-gradient(160deg, var(--panel-2), var(--panel)); }
+    .mstore-name { font-family: var(--display); font-size: 18px; color: var(--parch); display: flex; align-items: center; gap: 7px; }
+    .mev { border: 1px solid var(--edge-soft); border-radius: 10px; padding: 10px 12px; background: linear-gradient(160deg, var(--panel-2), var(--panel)); margin-top: 10px; }
+    .mev-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .mev-ttl { font-family: var(--display); font-size: 15px; color: var(--parch); }
+    .mev-when { font-size: 10.5px; color: var(--parch-dim); margin-top: 3px; }
+    .badge-row { display: flex; gap: 7px; margin-top: 11px; flex-wrap: wrap; }
+    .wbadge { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; padding: 4px 9px; border-radius: 99px; color: var(--ink); background: linear-gradient(180deg, var(--gold-soft), var(--gold)); font-weight: 600; }
+
+    /* ---------- strip ---------- */
+    .strip { padding: 78px 0; border-top: 1px solid var(--edge-soft); text-align: center; }
+    .strip .sec-head { font-family: var(--display); font-weight: 700; font-size: clamp(28px, 4.4vw, 42px); margin: 14px 0 0; color: var(--parch); }
+    .perks { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-top: 40px; }
+    @media (max-width: 820px) { .perks { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 420px) { .perks { grid-template-columns: 1fr; } }
+    .perk .ms { font-size: 26px; color: var(--gold-soft); }
+    .perk h4 { font-family: var(--display); font-weight: 600; font-size: 17px; margin: 12px 0 5px; color: var(--parch); }
+    .perk p { margin: 0; font-size: 12.6px; color: var(--muted); line-height: 1.5; }
+
+    /* ---------- how ---------- */
+    .how { padding: 82px 0; border-top: 1px solid var(--edge-soft); }
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 42px; }
+    @media (max-width: 760px) { .steps { grid-template-columns: 1fr; } }
+    .step { padding: 26px 22px; border: 1px solid var(--edge); border-radius: 16px; background: linear-gradient(165deg, rgba(24,17,7,.7), rgba(15,11,6,.6)); }
+    .step .num { font-family: var(--display); font-weight: 800; font-size: 46px; line-height: 1; color: transparent; -webkit-text-stroke: 1.4px var(--brass); opacity: .8; }
+    .step h3 { font-family: var(--display); font-weight: 600; font-size: 21px; margin: 12px 0 7px; color: var(--gold-soft); }
+    .step p { margin: 0; font-size: 14px; color: var(--parch-dim); line-height: 1.56; }
+
+    /* ---------- finale ---------- */
+    .finale { text-align: center; padding: 108px 24px 94px; border-top: 1px solid var(--edge-soft); }
+    .finale h2 { font-family: var(--display); font-weight: 800; font-size: clamp(40px, 8vw, 86px); line-height: .98; margin: 18px 0 0; background: var(--gilt); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .finale p { max-width: 560px; margin: 20px auto 0; font-size: 16px; color: var(--parch-dim); line-height: 1.55; }
+
+    /* ---------- footer ---------- */
+    footer { border-top: 1px solid var(--edge-soft); padding: 40px 24px 56px; }
+    .foot { max-width: var(--maxw); margin: 0 auto; display: flex; flex-wrap: wrap; gap: 18px 30px; align-items: flex-start; justify-content: space-between; }
+    .foot .word { font-family: var(--display); font-weight: 700; font-size: 18px; color: var(--gold-soft); }
+    .foot .links { display: flex; gap: 20px; flex-wrap: wrap; font-size: 13px; }
+    .foot .links a { color: var(--parch-dim); } .foot .links a:hover { color: var(--gold-soft); }
+    .legal { max-width: var(--maxw); margin: 26px auto 0; font-size: 11px; line-height: 1.6; color: var(--faint); }
+    .legal a { color: var(--brass); }
+
+    [data-reveal] { opacity: 0; transform: translateY(26px); transition: opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1); }
+    [data-reveal].in { opacity: 1; transform: none; }
+    /* reduced-motion: still show content immediately, but keep the slow ambient background drift (non-jarring, decorative) */
+    @media (prefers-reduced-motion: reduce) { [data-reveal] { opacity: 1; transform: none; transition: none; } }
+  </style>
 </head>
 <body>
+  <div id="wall" aria-hidden="true"></div>
+  <div class="veil" aria-hidden="true"></div>
+  <div class="glow-top" aria-hidden="true"></div>
+  <div class="fog" aria-hidden="true"></div>
+  <div class="firelight" aria-hidden="true"></div>
+  <div class="embers" aria-hidden="true"></div>
   <div class="grain" aria-hidden="true"></div>
-  <div class="app-bg" aria-hidden="true"></div>
 
-  <header class="topbar">
-    <button class="brand" id="brandHome" title="Home" aria-label="Home">
-      <span class="sigil" aria-hidden="true">✦</span>
-      <div class="brand-text">
-        <h1>The Vault</h1>
-        <p data-i18n="Collection &amp; Deck Ledger">Collection &amp; Deck Ledger</p>
-      </div>
-    </button>
-    <nav class="tabs" id="tabs">
-      <button class="tab" data-view="decks"><i class="ms ms-saga tab-ico" aria-hidden="true"></i><span data-i18n="Decks">Decks</span></button>
-      <button class="tab" data-view="inventory"><i class="ms ms-library tab-ico" aria-hidden="true"></i><span data-i18n="Collection">Collection</span></button>
-      <div class="nav-group" id="buysellGroup">
-        <button class="tab" id="buysellTab" data-navgroup aria-haspopup="true" aria-expanded="false"><i class="ms ms-counter-gold tab-ico" aria-hidden="true"></i><span data-i18n="Buy / Sell">Buy / Sell</span><span class="tab-caret">▾</span></button>
-        <div class="nav-menu" id="buysellMenu" role="menu">
-          <button role="menuitem" data-view="buylist"><i class="ms ms-counter-gold" aria-hidden="true"></i> <span data-i18n="Buy List">Buy List</span></button>
-          <button role="menuitem" data-view="selllist"><i class="ms ms-loyalty-up" aria-hidden="true"></i> <span data-i18n="Sell List">Sell List</span></button>
-          <button role="menuitem" data-view="history"><i class="ms ms-counter-lore" aria-hidden="true"></i> <span data-i18n="History">History</span></button>
+  <div class="page">
+    <nav class="top" id="topnav">
+      <a class="brand" href="#top"><span class="seal">✦</span><span class="word">The Vault</span></a>
+      <div class="nav-right">
+        <div class="nav-links">
+          <a class="lk" href="#collection" data-t="nav.col">Colección</a>
+          <a class="lk" href="#market" data-t="nav.bs">Compra y venta</a>
+          <a class="lk" href="#table" data-t="nav.com">Comunidad</a>
+          <a class="lk" href="#how" data-t="nav.how">Cómo funciona</a>
         </div>
+        <div class="lang" id="lang" role="group" aria-label="Idioma / Language">
+          <button data-lang="es" class="on">ES</button><button data-lang="en">EN</button>
+        </div>
+        <a class="btn gold" href="app.html"><i class="ms ms-counter-lore" aria-hidden="true"></i> <span data-t="nav.open">Abrir The Vault</span></a>
       </div>
-      <button class="tab" data-view="browse"><i class="ms ms-ability-investigate tab-ico" aria-hidden="true"></i><span data-i18n="Browse">Browse</span></button>
-      <button class="tab" data-view="forge"><i class="ms ms-ability-craft tab-ico" aria-hidden="true"></i><span data-i18n="Forge">Forge</span></button>
     </nav>
-    <div class="topbar-actions">
-      <button class="btn ghost undo-btn" id="undoBtn" hidden>↶ <span data-i18n="Undo">Undo</span></button>
-      <div class="settings-group" id="settingsGroup">
-        <button class="btn ghost cog-btn" id="settingsBtn" aria-label="Settings" data-i18n-aria="Settings" aria-haspopup="true" aria-expanded="false">⚙</button>
-        <div class="settings-menu" id="settingsMenu" role="menu">
-          <div class="set-row">
-            <span class="set-label" data-i18n="Prices">Prices</span>
-            <div class="price-src" id="priceSrc">
-              <button class="ps-opt" data-pricesrc="tcg">TCG</button>
-              <button class="ps-opt" data-pricesrc="ck">CK</button>
-              <button class="ps-refresh" id="ckRefresh" aria-label="Refresh Card Kingdom prices" data-i18n-aria="Refresh Card Kingdom prices">↻</button>
-            </div>
+
+    <!-- HERO -->
+    <header class="hero" id="top">
+      <div class="hero-sigil" aria-hidden="true">✦</div>
+      <div class="eyebrow" data-reveal data-t="hero.eye">Para Magic: The Gathering</div>
+      <h1 class="hero-title" data-reveal>The Vault</h1>
+      <p class="hero-lead" data-reveal style="transition-delay:.08s" data-t="hero.lead">
+        Un grimorio para toda tu vida en Magic. <b>Cataloga cada carta,</b> forja y afina mazos, sigue los precios reales
+        y haz trueques con jugadores y tiendas — todo en un mismo lugar, sereno y dorado.
+      </p>
+      <div class="hero-cta" data-reveal style="transition-delay:.16s">
+        <a class="btn gold lg" href="app.html"><i class="ms ms-counter-lore" aria-hidden="true"></i> <span data-t="hero.cta1">Abrir The Vault — es gratis</span></a>
+        <a class="btn ghost lg" href="#collection" data-t="hero.cta2">Ver qué incluye ↓</a>
+      </div>
+      <div class="trust" data-reveal style="transition-delay:.24s">
+        <span><i class="ms ms-token" aria-hidden="true"></i> <span data-t="trust.1">Sin instalar</span></span>
+        <span><i class="ms ms-loyalty-up" aria-hidden="true"></i> <span data-t="trust.2">Se sincroniza entre dispositivos</span></span>
+        <span><i class="ms ms-ability-investigate" aria-hidden="true"></i> <span data-t="trust.3">Con tecnología de Scryfall</span></span>
+        <span><i class="ms ms-dfc-spark" aria-hidden="true"></i> <span data-t="trust.4">Gratis para empezar</span></span>
+      </div>
+      <a class="scrolldown" href="#manifesto" aria-label="scroll" data-t="scroll">desliza</a>
+    </header>
+
+    <!-- MANIFESTO -->
+    <section class="manifesto" id="manifesto">
+      <div class="wrap">
+        <div class="pip-rule" aria-hidden="true">
+          <i class="ms ms-cost ms-shadow ms-w"></i><i class="ms ms-cost ms-shadow ms-u"></i><i class="ms ms-cost ms-shadow ms-b"></i><i class="ms ms-cost ms-shadow ms-r"></i><i class="ms ms-cost ms-shadow ms-g"></i>
+        </div>
+        <p data-reveal data-t="mani">Cada carta que tienes. Cada mazo que creas. Cada trueque que haces. <em>Un solo grimorio para guardarlo todo.</em></p>
+      </div>
+    </section>
+
+    <div class="wrap">
+      <!-- CHAPTER I — COLLECTION -->
+      <section class="chapter" id="collection">
+        <div class="ch-grid">
+          <div class="ch-intro" data-reveal>
+            <div class="ch-label"><i class="ms ms-library" aria-hidden="true"></i> <span data-t="ch1.label">Capítulo I · La Colección</span></div>
+            <h2 class="ch-title" data-t="ch1.title">Tu colección, <span class="gilt">catalogada</span>.</h2>
+            <p class="ch-lead" data-t="ch1.lead">Registra cada carta hasta la edición, el acabado y el estado. Mira cuánto vale todo de un vistazo y encuentra cualquier carta en segundos.</p>
+            <ul class="bullets">
+              <li><i class="ms ms-library" aria-hidden="true"></i> <span data-t="ch1.b1">Cada variante</span></li>
+              <li><i class="ms ms-counter-gold" aria-hidden="true"></i> <span data-t="ch1.b2">Valores en vivo</span></li>
+              <li><i class="ms ms-token" aria-hidden="true"></i> <span data-t="ch1.b3">Arte, lista y pilas</span></li>
+              <li><i class="ms ms-ability-investigate" aria-hidden="true"></i> <span data-t="ch1.b4">Búsqueda instantánea</span></li>
+            </ul>
           </div>
-          <div class="set-row">
-            <span class="set-label" data-i18n="Theme">Theme</span>
-            <div class="theme-switch" id="themeSwitch" role="group" aria-label="Colour theme" data-i18n-aria="Colour theme">
-              <button class="sw" data-theme="grimoire" title="Grimoire" aria-label="Grimoire" data-i18n-title="Grimoire" data-i18n-aria="Grimoire" style="--sw:#c9a227"></button>
-              <button class="sw" data-theme="arcane"   title="Arcane"   aria-label="Arcane"   data-i18n-title="Arcane"   data-i18n-aria="Arcane"   style="--sw:#8a6fa3"></button>
-              <button class="sw" data-theme="tome"     title="Tome"     aria-label="Tome"     data-i18n-title="Tome"     data-i18n-aria="Tome"     style="--sw:#4a8fd6"></button>
-              <button class="sw" data-theme="verdant"  title="Verdant"  aria-label="Verdant"  data-i18n-title="Verdant"  data-i18n-aria="Verdant"  style="--sw:#3fa86a"></button>
-              <button class="sw" data-theme="ember"    title="Ember"    aria-label="Ember"    data-i18n-title="Ember"    data-i18n-aria="Ember"    style="--sw:#d4452f"></button>
+          <div class="ch-visual" data-reveal style="transition-delay:.1s">
+            <div class="shot">
+              <div class="shot-bar"><span class="sw">✦ The Vault</span><span class="shot-tabs"><span class="t on" data-t="shot.tab.col">Colección</span><span class="t">Decks</span><span class="t" data-t="shot.tab.bs">Compra/Venta</span><span class="t">Browse</span></span></div>
+              <div class="shot-body">
+                <div class="shot-h"><span class="ttl" data-t="shot.col.ttl">Mi colección</span><span class="meta" data-t="shot.col.meta">1,284 cartas · $4,210</span></div>
+                <div class="mini-grid" id="shotCol"></div>
+              </div>
             </div>
-          </div>
-          <div class="set-row">
-            <span class="set-label" data-i18n="Language">Language</span>
-            <div class="theme-switch lang-switch" id="langSwitch" role="group" aria-label="Language" data-i18n-aria="Language">
-              <button class="lang-opt" data-lang="en" title="English" aria-label="English">EN</button>
-              <button class="lang-opt" data-lang="es" title="Español" aria-label="Español">ES</button>
-            </div>
-          </div>
-          <div class="set-actions">
-            <button class="btn ghost" id="myStoreBtn" hidden><i class="ms ms-counter-lore btn-ico" aria-hidden="true"></i><span data-i18n="My Store">My Store</span></button>
-            <button class="btn ghost" id="genStoreInvite" hidden><i class="ms ms-counter-shield btn-ico" aria-hidden="true"></i><span data-i18n="Generate store invite">Generate store invite</span></button>
-            <button class="btn ghost" id="exportBtn"><i class="ms ms-loyalty-down btn-ico" aria-hidden="true"></i><span data-i18n="Export backup">Export backup</span></button>
-            <button class="btn ghost" id="importFileBtn"><i class="ms ms-loyalty-up btn-ico" aria-hidden="true"></i><span data-i18n="Restore backup">Restore backup</span></button>
           </div>
         </div>
-      </div>
-      <button class="btn ghost account-btn" id="accountBtn" hidden data-i18n="Sign in">Sign in</button>
-      <input type="file" id="restoreInput" accept="application/json" hidden />
+      </section>
+
+      <!-- CHAPTER II — THE FORGE -->
+      <section class="chapter" id="forge">
+        <div class="ch-grid">
+          <div class="ch-intro" data-reveal>
+            <div class="ch-label"><i class="ms ms-ability-craft" aria-hidden="true"></i> <span data-t="ch2.label">Capítulo II · La Forja</span></div>
+            <h2 class="ch-title" data-t="ch2.title">Forja mazos que valga la pena <span class="gilt">jugar</span>.</h2>
+            <p class="ch-lead" data-t="ch2.lead">Construye mazos de Commander como los piensas — revisa la legalidad, mira lo que te falta y baja el costo sin cambiar la lista.</p>
+            <ul class="bullets">
+              <li><i class="ms ms-saga" aria-hidden="true"></i> <span data-t="ch2.b1">Constructor de mazos</span></li>
+              <li><i class="ms ms-counter-shield" aria-hidden="true"></i> <span data-t="ch2.b2">Chequeo de legalidad</span></li>
+              <li><i class="ms ms-loyalty-down" aria-hidden="true"></i> <span data-t="ch2.b3">Optimizar costo</span></li>
+              <li><i class="ms ms-ability-craft" aria-hidden="true"></i> <span data-t="ch2.b4">La Forja</span></li>
+            </ul>
+          </div>
+          <div class="ch-visual" data-reveal style="transition-delay:.1s">
+            <div class="shot">
+              <div class="shot-bar"><span class="sw">✦ The Vault</span><span class="shot-tabs"><span class="t on">Decks</span><span class="t" data-t="shot.tab.col">Colección</span><span class="t">Browse</span><span class="t">Forge</span></span></div>
+              <div class="shot-body">
+                <div class="shot-h"><span class="ttl">Krenko Goblins</span><span class="chip ok"><i class="ms ms-counter-shield" aria-hidden="true"></i> <span data-t="shot.forge.legal">Commander legal</span></span></div>
+                <div style="display:flex;gap:8px;align-items:center;margin:-4px 0 12px;font-size:11px;color:var(--muted)">
+                  <span class="ms ms-cost ms-shadow ms-r" aria-hidden="true"></span>
+                  <span data-t="shot.forge.sub">99 cartas · comandante: Krenko, Mob Boss · ~$180</span>
+                </div>
+                <div class="mini-grid g3" id="shotForge"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CHAPTER III — THE MARKET -->
+      <section class="chapter" id="market">
+        <div class="ch-grid">
+          <div class="ch-intro" data-reveal>
+            <div class="ch-label"><i class="ms ms-counter-gold" aria-hidden="true"></i> <span data-t="ch3.label">Capítulo III · El Mercado</span></div>
+            <h2 class="ch-title" data-t="ch3.title">Sabe exactamente qué <span class="gilt">comprar</span>.</h2>
+            <p class="ch-lead" data-t="ch3.lead">Tu lista de compra se arma sola con lo que te falta para tus mazos y lo que pones en deseos. Compárala con cualquier vendedor y comparte listas con un enlace.</p>
+            <ul class="bullets">
+              <li><i class="ms ms-counter-gold" aria-hidden="true"></i> <span data-t="ch3.b1">Lista de compra automática</span></li>
+              <li><i class="ms ms-multiple" aria-hidden="true"></i> <span data-t="ch3.b2">Comparar una lista</span></li>
+              <li><i class="ms ms-loyalty-up" aria-hidden="true"></i> <span data-t="ch3.b3">Carpetas de venta</span></li>
+              <li><i class="ms ms-counter-lore" aria-hidden="true"></i> <span data-t="ch3.b4">Enlaces para compartir</span></li>
+            </ul>
+          </div>
+          <div class="ch-visual" data-reveal style="transition-delay:.1s">
+            <div class="shot">
+              <div class="shot-bar"><span class="sw">✦ The Vault</span><span class="shot-tabs"><span class="t on" data-t="shot.tab.buy">Lista de compra</span><span class="t" data-t="shot.tab.sell">Lista de venta</span><span class="t">History</span></span></div>
+              <div class="shot-body">
+                <div class="shot-h"><span class="ttl" data-t="shot.mkt.ttl">Lista de compra</span><span class="seg-mini"><span data-t="shot.art">Arte</span><span class="on" data-t="shot.list">Lista</span></span></div>
+                <div class="mrow"><span class="mq">1×</span><span class="mn">Wrenn and Six</span><span class="mp">$59.90</span></div>
+                <div class="mrow"><span class="mq">1×</span><span class="mn">Cyclonic Rift</span><span class="mp">$24.50</span></div>
+                <div class="mrow"><span class="mq">2×</span><span class="mn">Smothering Tithe</span><span class="mp">$21.00</span></div>
+                <div class="mrow"><span class="mq">1×</span><span class="mn">Cultivate</span><span class="mp">$1.20</span></div>
+                <div class="mtot"><span data-t="shot.mkt.foot">5 cartas para 3 mazos</span><b>$127.60</b></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CHAPTER IV — THE MULTIVERSE -->
+      <section class="chapter" id="multiverse">
+        <div class="ch-grid">
+          <div class="ch-intro" data-reveal>
+            <div class="ch-label"><i class="ms ms-ability-investigate" aria-hidden="true"></i> <span data-t="ch4.label">Capítulo IV · El Multiverso</span></div>
+            <h2 class="ch-title" data-t="ch4.title">Busca en <span class="gilt">todo Magic</span>.</h2>
+            <p class="ch-lead" data-t="ch4.lead">Cada carta impresa está a una tecla de distancia, con tecnología de Scryfall — busca por nombre o con sintaxis avanzada, explora por edición e importa mazos listos.</p>
+            <ul class="bullets">
+              <li><i class="ms ms-ability-investigate" aria-hidden="true"></i> <span data-t="ch4.b1">Búsqueda Scryfall</span></li>
+              <li><i class="ms ms-saga" aria-hidden="true"></i> <span data-t="ch4.b2">Mazos curados</span></li>
+              <li><i class="ms ms-dfc-spark" aria-hidden="true"></i> <span data-t="ch4.b3">Mazos de la comunidad</span></li>
+              <li><i class="ms ms-token" aria-hidden="true"></i> <span data-t="ch4.b4">Por edición</span></li>
+            </ul>
+          </div>
+          <div class="ch-visual" data-reveal style="transition-delay:.1s">
+            <div class="shot">
+              <div class="shot-bar"><span class="sw">✦ The Vault</span><span class="shot-tabs"><span class="t on">Browse</span><span class="t">Sets</span><span class="t">Decks</span><span class="t">Stores</span></span></div>
+              <div class="shot-body">
+                <div class="msearch"><i class="ms ms-ability-investigate" aria-hidden="true"></i> goblin<span class="cur">|</span></div>
+                <div class="mini-grid g3" id="shotBrowse"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CHAPTER V — THE TABLE -->
+      <section class="chapter" id="table">
+        <div class="ch-grid">
+          <div class="ch-intro" data-reveal>
+            <div class="ch-label"><i class="ms ms-commander" aria-hidden="true"></i> <span data-t="ch5.label">Capítulo V · La Mesa</span></div>
+            <h2 class="ch-title" data-t="ch5.title">Encuentra a <span class="gilt">los tuyos</span>.</h2>
+            <p class="ch-lead" data-t="ch5.lead">Agrega amigos y empareja trueques entre sus listas. Sigue a tus tiendas locales, anótate a sus torneos y luce las victorias que ganes en tu perfil.</p>
+            <ul class="bullets">
+              <li><i class="ms ms-commander" aria-hidden="true"></i> <span data-t="ch5.b1">Amigos y trueques</span></li>
+              <li><i class="ms ms-counter-lore" aria-hidden="true"></i> <span data-t="ch5.b2">Páginas de tienda</span></li>
+              <li><i class="ms ms-counter-shield" aria-hidden="true"></i> <span data-t="ch5.b3">Torneos</span></li>
+              <li><i class="ms ms-loyalty-up" aria-hidden="true"></i> <span data-t="ch5.b4">Insignias de victoria</span></li>
+            </ul>
+          </div>
+          <div class="ch-visual" data-reveal style="transition-delay:.1s">
+            <div class="shot">
+              <div class="shot-bar"><span class="sw">✦ The Vault</span><span class="shot-tabs"><span class="t">Browse</span><span class="t on" data-t="shot.tab.store">Tienda</span></span></div>
+              <div class="shot-body">
+                <div class="mstore-head">
+                  <div class="mstore-logo">M</div>
+                  <div>
+                    <div class="mstore-name">La Mazmorra <span class="chip gold"><i class="ms ms-counter-shield" aria-hidden="true"></i> <span data-t="shot.store.verified">Verificada</span></span></div>
+                    <div style="font-size:11px;color:var(--G);margin-top:3px;display:flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:var(--G);display:inline-block"></span><span data-t="shot.store.open">Abierta ahora · cierra 10 p.m.</span></div>
+                  </div>
+                </div>
+                <div class="mev">
+                  <div class="mev-top"><span class="mev-ttl">Commander Night</span><span class="chip gold" data-t="shot.store.rsvp">Anotarse</span></div>
+                  <div class="mev-when" data-t="shot.store.when">Vie · 7:00 p.m. · 18/32 anotados</div>
+                </div>
+                <div class="badge-row">
+                  <span class="wbadge"><i class="ms ms-counter-shield" aria-hidden="true"></i> <span data-t="shot.store.badge">Campeón ×3</span></span>
+                  <span class="chip"><i class="ms ms-counter-lore" aria-hidden="true"></i> <span data-t="shot.store.cab">La Vitrina · 6</span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
-  </header>
 
-  <main id="app">
-    <!-- Home -->
-    <section class="view is-active" id="view-home">
-      <div class="home-bg" id="homeBg" aria-hidden="true"></div>
-      <div class="home-hero">
-        <div class="home-sigil" aria-hidden="true">✦</div>
-        <h1 class="home-title">The Vault</h1>
-        <p class="home-tag" data-i18n="Your Magic: The Gathering collection &amp; deck ledger.">Your Magic: The Gathering collection &amp; deck ledger.</p>
-        <div class="home-searchwrap">
-          <i class="ms ms-ability-investigate home-search-ic" aria-hidden="true"></i>
-          <input type="search" id="homeSearch" class="home-search" placeholder="Search your decks, your cards, or all of Magic…" data-i18n-ph="Search your decks, your cards, or all of Magic…" spellcheck="false" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="homeResults" aria-autocomplete="list" />
-          <div class="home-results" id="homeResults" role="listbox" aria-label="Search results" data-i18n-aria="Search results" hidden></div>
-        </div>
-        <div class="home-stats" id="homeStats"></div>
-        <div class="home-quick">
-          <button class="home-link" data-homego="inventory"><i class="ms ms-library" aria-hidden="true"></i> <span data-i18n="Collection">Collection</span></button>
-          <button class="home-link" data-homego="decks"><i class="ms ms-saga" aria-hidden="true"></i> <span data-i18n="Decks">Decks</span></button>
-          <button class="home-link" data-homego="buylist"><i class="ms ms-counter-gold" aria-hidden="true"></i> <span data-i18n="Buy / Sell">Buy / Sell</span></button>
-          <button class="home-link" data-homego="browse"><i class="ms ms-ability-investigate" aria-hidden="true"></i> <span data-i18n="Browse">Browse</span></button>
-        </div>
-      </div>
-      <div class="home-foot">
-        <span><a href="terms.html" data-i18n="Terms">Terms</a> · <a href="privacy.html" data-i18n="Privacy">Privacy</a> · <a href="mailto:hello@pedrobrauner.com" data-i18n="Contact">Contact</a></span>
-        <span class="home-foot-fan" data-i18n="Unofficial fan content — not affiliated with Wizards of the Coast. Card data by Scryfall.">Unofficial fan content — not affiliated with Wizards of the Coast. Card data by Scryfall.</span>
-      </div>
-    </section>
-
-    <!-- Decks overview -->
-    <section class="view" id="view-decks">
-      <div class="ledger-summary" id="ledgerSummary"></div>
-      <div class="deck-grid" id="deckGrid"></div>
-      <div class="empty-state" id="decksEmpty" hidden>
-        <span class="empty-mark"><i class="ms ms-saga" aria-hidden="true"></i></span>
-        <h2 data-i18n="No decks yet">No decks yet</h2>
-        <p data-i18n="Import a list, build one from scratch, or start from a famous deck.">Import a list, build one from scratch, or start from a famous deck.</p>
-        <div class="empty-actions">
-          <button class="btn gold" id="emptyImportBtn"><i class="ms ms-saga btn-ico" aria-hidden="true"></i><span data-i18n="New deck">New deck</span></button>
-          <button class="btn" id="emptyBrowseDecks"><i class="ms ms-ability-investigate btn-ico" aria-hidden="true"></i><span data-i18n="Browse famous decks">Browse famous decks</span></button>
+    <!-- YOURS EVERYWHERE -->
+    <section class="strip">
+      <div class="wrap">
+        <div class="ch-label" style="justify-content:center" data-reveal><i class="ms ms-dfc-spark" aria-hidden="true"></i> <span data-t="strip.label">Y es discretamente tuyo</span></div>
+        <h3 class="sec-head" data-reveal data-t="strip.head">Hecho para acompañarte.</h3>
+        <div class="perks">
+          <div class="perk" data-reveal><i class="ms ms-loyalty-up" aria-hidden="true"></i><h4 data-t="perk1.t">Sincroniza en todos lados</h4><p data-t="perk1.d">Inicia sesión y todo tu vault te sigue entre dispositivos.</p></div>
+          <div class="perk" data-reveal style="transition-delay:.06s"><i class="ms ms-multiple" aria-hidden="true"></i><h4 data-t="perk2.t">Español e inglés</h4><p data-t="perk2.d">Interfaz completa en ambos — tus cartas siempre en inglés.</p></div>
+          <div class="perk" data-reveal style="transition-delay:.12s"><i class="ms ms-token" aria-hidden="true"></i><h4 data-t="perk3.t">Cinco temas</h4><p data-t="perk3.d">Grimoire, Arcane, Tome, Verdant o Ember — elige tu ánimo.</p></div>
+          <div class="perk" data-reveal style="transition-delay:.18s"><i class="ms ms-counter-shield" aria-hidden="true"></i><h4 data-t="perk4.t">Tuyo para siempre</h4><p data-t="perk4.d">Exporta un respaldo completo cuando quieras. Tu colección, tus datos.</p></div>
+          <div class="perk" data-reveal style="transition-delay:.24s"><i class="ms ms-counter-gold" aria-hidden="true"></i><h4 data-t="perk5.t">Gratis para empezar</h4><p data-t="perk5.d">No necesitas cuenta para empezar. Nada que instalar.</p></div>
         </div>
       </div>
     </section>
 
-    <!-- Single deck detail -->
-    <section class="view" id="view-deck">
-      <button class="back-link" id="backToDecks" data-i18n="← All decks">← All decks</button>
-      <div id="deckDetail"></div>
-    </section>
-
-    <!-- Inventory -->
-    <section class="view" id="view-inventory">
-      <div class="view-head">
-        <h2 class="view-title" data-i18n="Collection">Collection</h2>
-        <div class="inv-controls">
-          <div class="inv-ac-wrap"><input type="search" id="invSearch" class="search" placeholder="Search cards…" data-i18n-ph="Search cards…" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="invAcMenu" aria-autocomplete="list" /><div class="ac-menu inv-ac-menu" id="invAcMenu" role="listbox" hidden></div></div>
-          <div class="seg" id="invFilter">
-            <button class="seg-btn is-active" data-filter="all"><i class="ms ms-multiple" aria-hidden="true"></i> <span data-i18n="All">All</span></button>
-            <button class="seg-btn" data-filter="loose"><i class="ms ms-graveyard" aria-hidden="true"></i> <span data-i18n="Unlinked">Unlinked</span></button>
-          </div>
-          <div class="seg" id="invViewMode" title="Switch between card art and a text list" data-i18n-title="Switch between card art and a text list">
-            <button class="seg-btn is-active" data-mode="art"><i class="ms ms-token" aria-hidden="true"></i> <span data-i18n="Art">Art</span></button>
-            <button class="seg-btn" data-mode="text"><i class="ms ms-multiple" aria-hidden="true"></i> <span data-i18n="List">List</span></button>
-          </div>
-          <label class="size-ctl" id="invSizeWrap" title="Card size" data-i18n-title="Card size">
-            <i class="ms ms-token size-ic size-ic--sm" aria-hidden="true"></i>
-            <input type="range" id="invSizeRange" class="size-range" min="110" max="280" step="2" value="168" aria-label="Card size" data-i18n-aria="Card size" />
-            <i class="ms ms-token size-ic size-ic--lg" aria-hidden="true"></i>
-          </label>
-          <button class="btn ghost" id="copyCollectionBtn" title="Copy your whole collection as text" data-i18n-title="Copy your whole collection as text"><i class="ms ms-library btn-ico" aria-hidden="true"></i><span data-i18n="Copy collection">Copy collection</span></button>
-          <button class="btn gold" id="addCardsBtn"><i class="ms ms-counter-plus btn-ico" aria-hidden="true"></i><span data-i18n="Add Cards">Add Cards</span></button>
+    <!-- HOW IT WORKS -->
+    <section class="how" id="how">
+      <div class="wrap">
+        <div class="ch-label" data-reveal><i class="ms ms-ability-craft" aria-hidden="true"></i> <span data-t="how.label">En tres pasos</span></div>
+        <h2 class="ch-title" data-reveal data-t="how.title">De una caja de zapatos a un grimorio.</h2>
+        <div class="steps">
+          <div class="step" data-reveal><div class="num">1</div><h3 data-t="step1.t">Agrega tus cartas</h3><p data-t="step1.d">Pega una lista, busca en Scryfall o importa un mazo. The Vault completa el arte, los precios y los detalles por ti.</p></div>
+          <div class="step" data-reveal style="transition-delay:.1s"><div class="num">2</div><h3 data-t="step2.t">Construye y registra</h3><p data-t="step2.d">Forja mazos, observa el valor de tu colección y deja que tu lista de compra se arme sola con lo que te falta.</p></div>
+          <div class="step" data-reveal style="transition-delay:.2s"><div class="num">3</div><h3 data-t="step3.t">Comparte y juega</h3><p data-t="step3.d">Publica mazos, comparte listas de compra y venta, sigue tiendas y preséntate a torneos — con insignias y todo.</p></div>
         </div>
       </div>
-      <div class="inv-filters" id="invFilters">
-        <div class="filt-colors" id="invColorFilter" title="Filter by colour" data-i18n-title="Filter by colour">
-          <button class="cpip" data-color="W" aria-label="White" data-i18n-aria="White"><i class="ms ms-cost ms-shadow ms-w"></i></button>
-          <button class="cpip" data-color="U" aria-label="Blue" data-i18n-aria="Blue"><i class="ms ms-cost ms-shadow ms-u"></i></button>
-          <button class="cpip" data-color="B" aria-label="Black" data-i18n-aria="Black"><i class="ms ms-cost ms-shadow ms-b"></i></button>
-          <button class="cpip" data-color="R" aria-label="Red" data-i18n-aria="Red"><i class="ms ms-cost ms-shadow ms-r"></i></button>
-          <button class="cpip" data-color="G" aria-label="Green" data-i18n-aria="Green"><i class="ms ms-cost ms-shadow ms-g"></i></button>
-          <button class="cpip" data-color="C" aria-label="Colourless" data-i18n-aria="Colourless"><i class="ms ms-cost ms-shadow ms-c"></i></button>
-        </div>
-        <label class="filt-only" id="invColorOnly" title="Show only cards confined to the selected colours (e.g. mono-red)" data-i18n-title="Show only cards confined to the selected colours (e.g. mono-red)">
-          <input type="checkbox" id="invColorOnlyInput" /> <span data-i18n="Only">Only</span>
-        </label>
-        <select class="filt-select" id="invSortFilter" title="Sort cards" data-i18n-title="Sort cards">
-          <option value="name" data-i18n="Sort: A → Z">Sort: A → Z</option>
-          <option value="price-desc" data-i18n="Sort: Price ↓">Sort: Price ↓</option>
-          <option value="price-asc" data-i18n="Sort: Price ↑">Sort: Price ↑</option>
-          <option value="rarity-desc" data-i18n="Sort: Rarity ↓">Sort: Rarity ↓</option>
-          <option value="rarity-asc" data-i18n="Sort: Rarity ↑">Sort: Rarity ↑</option>
-          <option value="new" data-i18n="Sort: Newest added">Sort: Newest added</option>
-          <option value="old" data-i18n="Sort: Oldest added">Sort: Oldest added</option>
-        </select>
-        <div class="filt-types" id="invTypeFilter" title="Filter by card type" data-i18n-title="Filter by card type" role="group" aria-label="Filter by card type" data-i18n-aria="Filter by card type">
-          <button class="tpip" data-type="Creatures" aria-label="Creatures" title="Creatures" data-i18n-aria="Creatures" data-i18n-title="Creatures"><i class="ms ms-creature"></i></button>
-          <button class="tpip" data-type="Planeswalkers" aria-label="Planeswalkers" title="Planeswalkers" data-i18n-aria="Planeswalkers" data-i18n-title="Planeswalkers"><i class="ms ms-planeswalker"></i></button>
-          <button class="tpip" data-type="Instants" aria-label="Instants" title="Instants" data-i18n-aria="Instants" data-i18n-title="Instants"><i class="ms ms-instant"></i></button>
-          <button class="tpip" data-type="Sorceries" aria-label="Sorceries" title="Sorceries" data-i18n-aria="Sorceries" data-i18n-title="Sorceries"><i class="ms ms-sorcery"></i></button>
-          <button class="tpip" data-type="Artifacts" aria-label="Artifacts" title="Artifacts" data-i18n-aria="Artifacts" data-i18n-title="Artifacts"><i class="ms ms-artifact"></i></button>
-          <button class="tpip" data-type="Enchantments" aria-label="Enchantments" title="Enchantments" data-i18n-aria="Enchantments" data-i18n-title="Enchantments"><i class="ms ms-enchantment"></i></button>
-          <button class="tpip" data-type="Lands" aria-label="Lands" title="Lands" data-i18n-aria="Lands" data-i18n-title="Lands"><i class="ms ms-land"></i></button>
-          <button class="tpip" data-type="Other" aria-label="Other" title="Other" data-i18n-aria="Other" data-i18n-title="Other"><i class="ms ms-multiple"></i></button>
-        </div>
-        <div class="filt-rarity" id="invRarityFilter" title="Filter by rarity" data-i18n-title="Filter by rarity" role="group" aria-label="Filter by rarity" data-i18n-aria="Filter by rarity">
-          <button class="rpip common" data-rarity="common" aria-label="Common" title="Common" data-i18n-aria="Common" data-i18n-title="Common"><i class="ms ms-rarity"></i></button>
-          <button class="rpip uncommon" data-rarity="uncommon" aria-label="Uncommon" title="Uncommon" data-i18n-aria="Uncommon" data-i18n-title="Uncommon"><i class="ms ms-rarity"></i></button>
-          <button class="rpip rare" data-rarity="rare" aria-label="Rare" title="Rare" data-i18n-aria="Rare" data-i18n-title="Rare"><i class="ms ms-rarity"></i></button>
-          <button class="rpip mythic" data-rarity="mythic" aria-label="Mythic" title="Mythic" data-i18n-aria="Mythic" data-i18n-title="Mythic"><i class="ms ms-rarity ms-shadow"></i></button>
-        </div>
-        <button class="filt-clear" id="invFilterClear" hidden data-i18n="✕ clear filters">✕ clear filters</button>
-      </div>
-      <div class="inv-facet-bar" id="invFacetBar" hidden></div>
-      <div class="inv-stats" id="invStats"></div>
-      <div class="card-table" id="inventoryTable"></div>
     </section>
 
-    <!-- Forge (deck-building lens) -->
-    <section class="view" id="view-forge">
-      <div class="view-head">
-        <h2 class="view-title" data-i18n="The Forge">The Forge</h2>
-        <p class="view-sub" data-i18n="What your collection is ready to become">What your collection is ready to become</p>
+    <!-- FINALE -->
+    <section class="finale">
+      <div class="pip-rule" aria-hidden="true">
+        <i class="ms ms-cost ms-shadow ms-w"></i><i class="ms ms-cost ms-shadow ms-u"></i><i class="ms ms-cost ms-shadow ms-b"></i><i class="ms ms-cost ms-shadow ms-r"></i><i class="ms ms-cost ms-shadow ms-g"></i>
       </div>
-      <div id="forgeBody"></div>
+      <h2 data-reveal data-t="fin.t">Abre The Vault.</h2>
+      <p data-reveal style="transition-delay:.08s" data-t="fin.p">Empieza a catalogar en menos de un minuto. Sin cuenta — y gratis para siempre.</p>
+      <div class="hero-cta" style="justify-content:center" data-reveal>
+        <a class="btn gold lg" href="app.html"><i class="ms ms-counter-lore" aria-hidden="true"></i> <span data-t="fin.btn">Entrar a The Vault</span></a>
+      </div>
     </section>
 
-    <!-- Buy list -->
-    <section class="view" id="view-buylist">
-      <div class="view-head">
+    <footer>
+      <div class="foot">
         <div>
-          <h2 class="view-title" data-i18n="Buy List">Buy List</h2>
-          <p class="view-sub" id="buyListSub"></p>
+          <div class="word">✦ The Vault</div>
+          <div style="font-size:13px;color:var(--muted);margin-top:6px;max-width:320px;line-height:1.5" data-t="foot.tag">Un grimorio para coleccionistas de Magic: The Gathering. Hecho por Pedro Brauner.</div>
         </div>
-        <div class="buy-head-actions">
-          <input type="search" id="buySearch" class="search list-search" placeholder="Find by name…" data-i18n-ph="Find by name…" aria-label="Find a buy-list card by name" data-i18n-aria="Find a buy-list card by name" />
-          <select class="filt-select" id="buySortFilter" title="Sort cards" data-i18n-title="Sort cards">
-            <option value="name" data-i18n="Sort: A → Z">Sort: A → Z</option>
-            <option value="price-desc" selected data-i18n="Sort: Price ↓">Sort: Price ↓</option>
-            <option value="price-asc" data-i18n="Sort: Price ↑">Sort: Price ↑</option>
-            <option value="rarity-desc" data-i18n="Sort: Rarity ↓">Sort: Rarity ↓</option>
-            <option value="rarity-asc" data-i18n="Sort: Rarity ↑">Sort: Rarity ↑</option>
-            <option value="color" data-i18n="Sort: Colour (WUBRG)">Sort: Colour (WUBRG)</option>
-            <option value="type" data-i18n="Sort: Card type">Sort: Card type</option>
-            <option value="set" data-i18n="Sort: Set / edition">Sort: Set / edition</option>
-          </select>
-          <div class="seg" id="buyViewMode" title="Switch between card art and a text list" data-i18n-title="Switch between card art and a text list">
-            <button class="seg-btn is-active" data-mode="art"><i class="ms ms-token" aria-hidden="true"></i> <span data-i18n="Art">Art</span></button>
-            <button class="seg-btn" data-mode="text"><i class="ms ms-multiple" aria-hidden="true"></i> <span data-i18n="List">List</span></button>
-          </div>
-          <label class="size-ctl" id="buySizeWrap" title="Card size" data-i18n-title="Card size">
-            <i class="ms ms-token size-ic size-ic--sm" aria-hidden="true"></i>
-            <input type="range" id="buySizeRange" class="size-range" min="110" max="280" step="2" value="168" aria-label="Card size" data-i18n-aria="Card size" />
-            <i class="ms ms-token size-ic size-ic--lg" aria-hidden="true"></i>
-          </label>
-          <button class="btn ghost" id="buyMatchBtn" title="Paste a seller’s list and see which of those cards you still need" data-i18n-title="Paste a seller’s list and see which of those cards you still need"><i class="ms ms-ability-investigate" aria-hidden="true"></i> <span data-i18n="Match a list">Match a list</span></button>
-          <button class="btn ghost" id="exportPdfBtn" title="Export a printable PDF — 6 cards per page" data-i18n-title="Export a printable PDF — 6 cards per page">⎙ PDF</button>
-          <button class="btn ghost" id="copyBuyBtn" title="Copy as text for a seller" data-i18n-title="Copy as text for a seller" data-i18n="⧉ Copy list">⧉ Copy list</button>
-          <button class="btn ghost" id="buyShareBtn" title="Create a shareable link to this list" data-i18n-title="Create a shareable link to this list"><i class="ms ms-counter-lore" aria-hidden="true"></i> <span data-i18n="Share">Share</span></button>
+        <div class="links">
+          <a href="app.html" data-t="foot.l1">Abrir la app</a>
+          <a href="#collection" data-t="foot.l2">Funciones</a>
+          <a href="#how" data-t="foot.l3">Cómo funciona</a>
+          <a href="terms.html" data-t="foot.l4">Términos</a>
+          <a href="privacy.html" data-t="foot.l5">Privacidad</a>
         </div>
       </div>
-      <div class="sell-folders buy-folders" id="buyFolders"></div>
-      <div class="buy-filter" id="buyDeckFilter" hidden></div>
-      <div class="card-table" id="buyTable"></div>
-    </section>
-
-    <!-- Sell list -->
-    <section class="view" id="view-selllist">
-      <div class="view-head">
-        <div>
-          <h2 class="view-title" data-i18n="Sell List">Sell List</h2>
-          <p class="view-sub" id="sellListSub"></p>
-        </div>
-        <div class="buy-head-actions">
-          <input type="search" id="sellSearch" class="search list-search" placeholder="Find by name…" data-i18n-ph="Find by name…" aria-label="Find a sell-list card by name" data-i18n-aria="Find a sell-list card by name" />
-          <button class="btn ghost" id="sellMatchBtn" title="Paste a wants-list and see which of those cards you own" data-i18n-title="Paste a wants-list and see which of those cards you own"><i class="ms ms-ability-investigate" aria-hidden="true"></i> <span data-i18n="Match a list">Match a list</span></button>
-          <select class="filt-select" id="sellSortFilter" title="Sort cards" data-i18n-title="Sort cards">
-            <option value="name" data-i18n="Sort: A → Z">Sort: A → Z</option>
-            <option value="price-desc" selected data-i18n="Sort: Price ↓">Sort: Price ↓</option>
-            <option value="price-asc" data-i18n="Sort: Price ↑">Sort: Price ↑</option>
-            <option value="rarity-desc" data-i18n="Sort: Rarity ↓">Sort: Rarity ↓</option>
-            <option value="rarity-asc" data-i18n="Sort: Rarity ↑">Sort: Rarity ↑</option>
-            <option value="color" data-i18n="Sort: Colour (WUBRG)">Sort: Colour (WUBRG)</option>
-            <option value="type" data-i18n="Sort: Card type">Sort: Card type</option>
-            <option value="set" data-i18n="Sort: Set / edition">Sort: Set / edition</option>
-          </select>
-          <div class="seg" id="sellViewMode" title="Switch between card art and a text list" data-i18n-title="Switch between card art and a text list">
-            <button class="seg-btn is-active" data-mode="art"><i class="ms ms-token" aria-hidden="true"></i> <span data-i18n="Art">Art</span></button>
-            <button class="seg-btn" data-mode="text"><i class="ms ms-multiple" aria-hidden="true"></i> <span data-i18n="List">List</span></button>
-          </div>
-          <label class="size-ctl" id="sellSizeWrap" title="Card size" data-i18n-title="Card size">
-            <i class="ms ms-token size-ic size-ic--sm" aria-hidden="true"></i>
-            <input type="range" id="sellSizeRange" class="size-range" min="110" max="280" step="2" value="168" aria-label="Card size" data-i18n-aria="Card size" />
-            <i class="ms ms-token size-ic size-ic--lg" aria-hidden="true"></i>
-          </label>
-          <button class="btn ghost" id="sellAddUnlinkedBtn" title="List every owned card that isn't in a deck" data-i18n-title="List every owned card that isn't in a deck"><i class="ms ms-land" aria-hidden="true"></i> <span data-i18n="Add unlinked">Add unlinked</span></button>
-          <button class="btn ghost" id="sellMarkAllBtn" title="Mark everything listed as sold and remove from collection" data-i18n-title="Mark everything listed as sold and remove from collection" data-i18n="✓ Sold all">✓ Sold all</button>
-          <button class="btn ghost" id="exportSellPdfBtn" title="Export a printable PDF — 8 cards per page" data-i18n-title="Export a printable PDF — 8 cards per page">⎙ PDF</button>
-          <button class="btn ghost" id="copySellBtn" title="Copy as text for a buyer" data-i18n-title="Copy as text for a buyer" data-i18n="⧉ Copy list">⧉ Copy list</button>
-          <button class="btn ghost" id="sellShareBtn" title="Create a shareable link to this list" data-i18n-title="Create a shareable link to this list"><i class="ms ms-counter-lore" aria-hidden="true"></i> <span data-i18n="Share">Share</span></button>
-        </div>
-      </div>
-      <div class="sell-folders" id="sellFolders"></div>
-      <div class="card-table" id="sellTable"></div>
-    </section>
-
-    <!-- Browse (Scryfall card search, expansions, recommended decks) -->
-    <section class="view" id="view-browse">
-      <div class="view-head">
-        <div class="seg" id="browseModes" title="Browse cards, expansions, or recommended decks" data-i18n-title="Browse cards, expansions, or recommended decks">
-          <button class="seg-btn is-active" data-bmode="cards"><i class="ms ms-ability-investigate" aria-hidden="true"></i> <span data-i18n="Cards">Cards</span></button>
-          <button class="seg-btn" data-bmode="sets"><i class="ms ms-multiple" aria-hidden="true"></i> <span data-i18n="Sets">Sets</span></button>
-          <button class="seg-btn" data-bmode="decks"><i class="ms ms-commander" aria-hidden="true"></i> <span data-i18n="Decks">Decks</span></button>
-          <button class="seg-btn" data-bmode="stores"><i class="ms ms-counter-lore" aria-hidden="true"></i> <span data-i18n="Stores">Stores</span></button>
-        </div>
-        <label class="filt-only" id="browseCmdrWrap" title="Restrict card results to cards legal in Commander" data-i18n-title="Restrict card results to cards legal in Commander">
-          <input type="checkbox" id="browseCmdrOnly" checked /> <span data-i18n="Commander legal">Commander legal</span>
-        </label>
-      </div>
-
-      <div id="browsePaneCards">
-        <div class="browse-toolbar">
-          <div class="browse-ac-wrap"><input type="search" id="browseSearch" class="search browse-search" placeholder='Search any card — name, or t:creature, o:"draw a card", mv<=3…' data-i18n-ph='Search any card — name, or t:creature, o:"draw a card", mv<=3…' spellcheck="false" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="browseAcMenu" aria-autocomplete="list" /><div class="ac-menu" id="browseAcMenu" role="listbox" hidden></div></div>
-          <div class="filt-colors" id="browseIdFilter" title="Filter by colour identity" data-i18n-title="Filter by colour identity">
-            <button class="cpip" data-color="W" aria-label="White" data-i18n-aria="White"><i class="ms ms-cost ms-shadow ms-w"></i></button>
-            <button class="cpip" data-color="U" aria-label="Blue" data-i18n-aria="Blue"><i class="ms ms-cost ms-shadow ms-u"></i></button>
-            <button class="cpip" data-color="B" aria-label="Black" data-i18n-aria="Black"><i class="ms ms-cost ms-shadow ms-b"></i></button>
-            <button class="cpip" data-color="R" aria-label="Red" data-i18n-aria="Red"><i class="ms ms-cost ms-shadow ms-r"></i></button>
-            <button class="cpip" data-color="G" aria-label="Green" data-i18n-aria="Green"><i class="ms ms-cost ms-shadow ms-g"></i></button>
-            <button class="cpip" data-color="C" aria-label="Colourless" data-i18n-aria="Colourless"><i class="ms ms-cost ms-shadow ms-c"></i></button>
-          </div>
-          <select class="filt-select" id="browseOrder" title="Sort results" data-i18n-title="Sort results">
-            <option value="edhrec" data-i18n="Sort: Popularity">Sort: Popularity</option>
-            <option value="name" data-i18n="Sort: A → Z">Sort: A → Z</option>
-            <option value="usd" data-i18n="Sort: Price">Sort: Price</option>
-            <option value="cmc" data-i18n="Sort: Mana value">Sort: Mana value</option>
-            <option value="released" data-i18n="Sort: Newest">Sort: Newest</option>
-          </select>
-          <label class="size-ctl" id="browseSizeWrap" title="Card size" data-i18n-title="Card size">
-            <i class="ms ms-token size-ic size-ic--sm" aria-hidden="true"></i>
-            <input type="range" id="browseSizeRange" class="size-range" min="110" max="280" step="2" value="168" aria-label="Card size" data-i18n-aria="Card size" />
-            <i class="ms ms-token size-ic size-ic--lg" aria-hidden="true"></i>
-          </label>
-        </div>
-        <div class="browse-status" id="browseStatus"></div>
-        <div class="card-table gallery" id="browseTable" style="--tile:168px"></div>
-        <div class="browse-more" id="browseMore" hidden><button class="btn ghost" id="browseMoreBtn" data-i18n="Load more ↓">Load more ↓</button></div>
-      </div>
-
-      <div id="browsePaneSets" hidden>
-        <p class="view-sub" style="margin-bottom:16px" data-i18n="Every Magic expansion — click one to browse its cards.">Every Magic expansion — click one to browse its cards.</p>
-        <div class="set-grid" id="browseSets"></div>
-      </div>
-
-      <div id="browsePaneDecks" hidden>
-        <p class="view-sub" style="margin-bottom:16px" data-i18n="Community decks players have published &amp; liked, plus starter Commander decks to import, buy, or mark owned.">Community decks players have published &amp; liked, plus starter Commander decks to import, buy, or mark owned.</p>
-        <div id="browseDecks"></div>
-      </div>
-
-      <div id="browsePaneStores" hidden>
-        <p class="view-sub" style="margin-bottom:16px" data-i18n="Game stores on The Vault — add the ones you visit to keep their events, hours and stock close.">Game stores on The Vault — add the ones you visit to keep their events, hours and stock close.</p>
-        <div class="seg" id="browseStoresTabs" style="margin-bottom:16px">
-          <button class="seg-btn is-active" data-stab="popular"><i class="ms ms-counter-lore" aria-hidden="true"></i> <span data-i18n="Popular">Popular</span></button>
-          <button class="seg-btn" data-stab="mine"><i class="ms ms-counter-shield" aria-hidden="true"></i> <span data-i18n="My Stores">My Stores</span></button>
-        </div>
-        <div id="browseStores"></div>
-      </div>
-    </section>
-
-    <!-- History / activity ledger -->
-    <section class="view" id="view-history">
-      <div class="view-head">
-        <div>
-          <h2 class="view-title" data-i18n="History">History</h2>
-          <p class="view-sub" data-i18n="A day-by-day ledger of everything you buy, sell, and add to your collection.">A day-by-day ledger of everything you buy, sell, and add to your collection.</p>
-        </div>
-        <div class="buy-head-actions">
-          <div class="seg" id="histFilter" title="Filter activity" data-i18n-title="Filter activity">
-            <button class="seg-btn is-active" data-hfilter="all" data-i18n="All">All</button>
-            <button class="seg-btn" data-hfilter="bought"><i class="ms ms-counter-shield" aria-hidden="true"></i> <span data-i18n="Bought">Bought</span></button>
-            <button class="seg-btn" data-hfilter="sold"><i class="ms ms-counter-gold" aria-hidden="true"></i> <span data-i18n="Sold">Sold</span></button>
-            <button class="seg-btn" data-hfilter="adjust"><i class="ms ms-token" aria-hidden="true"></i> <span data-i18n="Adjustments">Adjustments</span></button>
-          </div>
-          <button class="btn ghost" id="histClearBtn" title="Erase the activity history (your collection is not affected)" data-i18n-title="Erase the activity history (your collection is not affected)" data-i18n="✕ Clear history">✕ Clear history</button>
-        </div>
-      </div>
-      <div class="ledger-summary" id="histSummary"></div>
-      <div id="historyBody"></div>
-    </section>
-
-    <!-- Profile page -->
-    <section class="view" id="view-profile">
-      <div id="profileView"></div>
-    </section>
-
-    <section class="view" id="view-store">
-      <div id="storeDashboard"></div>
-    </section>
-
-    <footer class="site-footer" id="siteFooter">
-      <div class="foot-grid">
-        <div class="foot-brand">
-          <div class="foot-word"><span class="foot-sigil" aria-hidden="true">✦</span> The Vault</div>
-          <p class="foot-tag" data-i18n="Your Magic: The Gathering collection &amp; deck ledger.">Your Magic: The Gathering collection &amp; deck ledger.</p>
-        </div>
-        <nav class="foot-col" aria-label="Sections" data-i18n-aria="Sections">
-          <h4 data-i18n="Explore">Explore</h4>
-          <button class="foot-link" data-foot-view="home" data-i18n="Home">Home</button>
-          <button class="foot-link" data-foot-view="inventory" data-i18n="Collection">Collection</button>
-          <button class="foot-link" data-foot-view="decks" data-i18n="Decks">Decks</button>
-          <button class="foot-link" data-foot-view="browse" data-i18n="Browse">Browse</button>
-          <button class="foot-link" data-foot-view="forge" data-i18n="Forge">Forge</button>
-        </nav>
-        <nav class="foot-col" aria-label="Legal &amp; contact" data-i18n-aria="Legal &amp; contact">
-          <h4 data-i18n="Legal">Legal</h4>
-          <a class="foot-link" href="terms.html" data-i18n="Terms of Service">Terms of Service</a>
-          <a class="foot-link" href="privacy.html" data-i18n="Privacy Policy">Privacy Policy</a>
-          <a class="foot-link" href="mailto:hello@pedrobrauner.com" data-i18n="Contact">Contact</a>
-        </nav>
-      </div>
-      <div class="foot-fine">
-        <p class="foot-disclaimer" data-i18n-html="The Vault is unofficial Fan Content permitted under the &lt;a href=&quot;https://company.wizards.com/en/legal/fancontentpolicy&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Wizards of the Coast Fan Content Policy&lt;/a&gt;. Not approved or endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC. Card data and images courtesy of &lt;a href=&quot;https://scryfall.com&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Scryfall&lt;/a&gt;; prices from TCGplayer and Card Kingdom and shown as estimates only — not offers, and not financial advice.">The Vault is unofficial Fan Content permitted under the <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Wizards of the Coast Fan Content Policy</a>. Not approved or endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC. Card data and images courtesy of <a href="https://scryfall.com" target="_blank" rel="noopener">Scryfall</a>; prices from TCGplayer and Card Kingdom and shown as estimates only — not offers, and not financial advice.</p>
-        <p class="foot-copy">© 2026 Pedro Brauner · The Vault.</p>
-      </div>
+      <p class="legal" data-t="foot.legal">
+        Partes de The Vault son contenido de fans no oficial permitido bajo la Política de Contenido de Fans de Wizards of the Coast.
+        No aprobado ni respaldado por Wizards. Magic: The Gathering y sus imágenes son © Wizards of the Coast LLC.
+        Datos e imágenes de cartas cortesía de <a href="https://scryfall.com" target="_blank" rel="noopener">Scryfall</a>.
+      </p>
     </footer>
-  </main>
-
-  <!-- Import modal -->
-  <div class="modal-scrim" id="importModal" hidden>
-    <div class="modal">
-      <button class="modal-close" id="closeImport" aria-label="Close" data-i18n-aria="Close">✕</button>
-      <h2 class="modal-title"><i class="ms ms-library" aria-hidden="true"></i> <span data-i18n="New Deck">New Deck</span></h2>
-      <p class="modal-hint" data-i18n="Name it, then paste a decklist — or build it from scratch and add cards as you go.">Name it, then paste a decklist — or build it from scratch and add cards as you go.</p>
-      <input type="text" id="deckNameInput" class="text-input" placeholder="Deck name (e.g. Mono-Red Aggro)" data-i18n-ph="Deck name (e.g. Mono-Red Aggro)" />
-      <textarea id="decklistInput" class="decklist-input" spellcheck="false" placeholder="4 Lightning Bolt&#10;4 Monastery Swiftspear&#10;20 Mountain&#10;1 Sol Ring (CMM) 472"></textarea>
-      <div class="modal-foot">
-        <label class="check-own"><input type="checkbox" id="ownAllInput" /> <span data-i18n="Mark every card as already owned">Mark every card as already owned</span></label>
-        <div class="modal-foot-btns">
-          <button class="btn ghost" id="scratchDeckBtn" title="Create an empty deck and add cards one by one" data-i18n-title="Create an empty deck and add cards one by one"><i class="ms ms-ability-craft btn-ico" aria-hidden="true"></i><span data-i18n="Build from scratch">Build from scratch</span></button>
-          <button class="btn gold" id="confirmImport"><i class="ms ms-library btn-ico" aria-hidden="true"></i><span data-i18n="Catalogue Deck">Catalogue Deck</span></button>
-        </div>
-      </div>
-      <div class="modal-status" id="importStatus"></div>
-    </div>
   </div>
 
-  <!-- Add loose cards modal -->
-  <div class="modal-scrim" id="addModal" hidden>
-    <div class="modal">
-      <button class="modal-close" id="closeAdd" aria-label="Close" data-i18n-aria="Close">✕</button>
-      <h2 class="modal-title"><i class="ms ms-multiple" aria-hidden="true"></i> <span id="addModalTitle" data-i18n="Add Cards to Collection">Add Cards to Collection</span></h2>
-      <p class="modal-hint" data-i18n="Loose cards you own that aren't in a deck. Search to add them one by one, paste a list, or import a ManaBox CSV scan.">Loose cards you own that aren't in a deck. Search to add them one by one, paste a list, or import a ManaBox CSV scan.</p>
-      <div class="tag-compose">
-        <div class="tag-field" id="addTagField">
-          <input type="text" id="addAutocomplete" class="tag-input" placeholder="Search a card by name…" data-i18n-ph="Search a card by name…" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="false" aria-controls="acMenu" aria-autocomplete="list" />
-          <div class="ac-menu" id="acMenu" role="listbox" hidden></div>
-        </div>
-        <div class="tag-list" id="addTagList" aria-live="polite"></div>
-      </div>
-      <div class="csv-row">
-        <button class="btn ghost" id="csvBtn" data-i18n="⤓ Import ManaBox CSV">⤓ Import ManaBox CSV</button>
-        <span class="csv-hint" data-i18n="Quantities, sets &amp; foils are read automatically.">Quantities, sets &amp; foils are read automatically.</span>
-        <input type="file" id="csvInput" accept=".csv,text/csv" hidden />
-      </div>
-      <details class="paste-fold">
-        <summary data-i18n="or paste a whole list">or paste a whole list</summary>
-        <textarea id="addInput" class="decklist-input" spellcheck="false" placeholder="2 Sol Ring&#10;1 Arcane Signet&#10;4 Fabled Passage"></textarea>
-      </details>
-      <div class="modal-foot">
-        <span class="modal-note" data-i18n="These are catalogued as unlinked until a deck uses them.">These are catalogued as unlinked until a deck uses them.</span>
-        <button class="btn gold" id="confirmAdd"><i class="ms ms-multiple btn-ico" aria-hidden="true"></i><span data-i18n="Add to Collection">Add to Collection</span></button>
-      </div>
-      <div class="modal-status" id="addStatus"></div>
-    </div>
-  </div>
+  <script>
+    var imgUrl = function (n) { return 'https://api.scryfall.com/cards/named?exact=' + encodeURIComponent(n) + '&format=image&version=normal'; };
 
-  <!-- Card art viewer -->
-  <div class="modal-scrim card-view" id="cardModal" hidden>
-    <div class="card-view-inner">
-      <button class="modal-close" id="closeCard" aria-label="Close" data-i18n-aria="Close">✕</button>
-      <div class="card-view-frame">
-        <img id="cardViewImg" alt="" />
-        <div class="card-view-fallback" id="cardViewFallback" hidden><i class="ms ms-dfc-back" aria-hidden="true"></i></div>
-      </div>
-      <div class="card-view-meta" id="cardViewMeta"></div>
-    </div>
-  </div>
+    /* ----- the multiverse wall ----- */
+    var ART_NAMES = ['Sol Ring','Wrenn and Six','Cyclonic Rift','Rhystic Study','Craterhoof Behemoth','Smothering Tithe','Atraxa, Praetors’ Voice','The Ur-Dragon','Edgar Markov','Liliana of the Veil','Teferi, Hero of Dominaria','Elesh Norn, Grand Cenobite','Dockside Extortionist','Esika’s Chariot','Yawgmoth, Thran Physician','Lightning Bolt','Birds of Paradise','Cultivate','Demonic Tutor','Swords to Plowshares','Mana Crypt','Eternal Witness','Sword of Fire and Ice','Wrath of God','Brainstorm','Krenko, Mob Boss','Counterspell','Solemn Simulacrum','Nicol Bolas, the Ravager','Kaalia of the Vast','Aurelia, the Warleader','Omnath, Locus of Creation','Korvold, Fae-Cursed King','Najeela, the Blade-Blossom','Thassa, Deep-Dwelling'];
+    (function buildWall() {
+      var wall = document.getElementById('wall'); if (!wall) return;
+      var imgs = ART_NAMES.map(imgUrl);
+      for (var i = imgs.length - 1; i > 0; i--) { var k = Math.floor(Math.random() * (i + 1)); var t = imgs[i]; imgs[i] = imgs[k]; imgs[k] = t; }
+      var vw = window.innerWidth || 1280, vh = window.innerHeight || 800;
+      var COLS = Math.min(13, Math.max(6, Math.ceil(vw / 190)));
+      var PER = Math.max(7, Math.ceil(vh / 150) + 2);
+      var DUR = [44, 34, 50, 38, 46, 36, 52, 40, 48, 35, 42];
+      var html = '';
+      for (var c = 0; c < COLS; c++) {
+        var set = '';
+        for (var j = 0; j < PER; j++) set += '<div class="wcard" style="background-image:url(\'' + imgs[(c * PER + j) % imgs.length] + '\')"></div>';
+        html += '<div class="wcol"><div class="wtrack" style="animation-duration:' + DUR[c % DUR.length] + 's;animation-delay:-' + (c * 6) + 's">' + set + set + '</div></div>';
+      }
+      wall.innerHTML = '<div class="wcols">' + html + '</div>';
+    })();
 
-  <!-- Account / sign-in modal -->
-  <div class="modal-scrim" id="authModal" hidden>
-    <div class="modal modal-sm">
-      <button class="modal-close" id="closeAuth" aria-label="Close" data-i18n-aria="Close">✕</button>
-      <h2 class="modal-title"><i class="ms ms-counter-lore" aria-hidden="true"></i> <span id="authTitle">Sign in</span></h2>
-      <p class="modal-hint" id="authHint">Sign in to sync your collection across devices.</p>
-      <input type="text" id="authUsername" class="text-input" placeholder="Username" data-i18n-ph="Username" autocomplete="username" maxlength="24" hidden />
-      <input type="email" id="authEmail" class="text-input" placeholder="you@email.com" autocomplete="email" />
-      <input type="password" id="authPassword" class="text-input" placeholder="Password" data-i18n-ph="Password" autocomplete="current-password" />
-      <input type="password" id="authConfirm" class="text-input" placeholder="Confirm password" data-i18n-ph="Confirm password" autocomplete="new-password" hidden />
-      <div class="modal-foot">
-        <button class="auth-switch" id="authSwitch">Need an account? Create one</button>
-        <button class="btn gold" id="authSubmit">Sign in</button>
-      </div>
-      <div class="modal-status" id="authStatus"></div>
-    </div>
-  </div>
+    /* ----- atmosphere: thick warm fog + two-tier rising gold embers ----- */
+    (function atmosphere() {
+      var fog = document.querySelector('.fog');
+      if (fog) {
+        var tones = ['rgba(98,66,33,.62)', 'rgba(124,80,37,.5)', 'rgba(72,49,27,.58)', 'rgba(152,98,41,.42)', 'rgba(60,41,23,.62)', 'rgba(112,72,34,.52)'];
+        var out = '';
+        for (var i = 0; i < 5; i++) {
+          var w = 480 + Math.round(Math.random() * 480);
+          var l = Math.round(Math.random() * 100), t = Math.round(Math.random() * 100);
+          var d = (34 + Math.random() * 40).toFixed(0), delay = (-Math.random() * 30).toFixed(0);
+          out += '<i style="width:' + w + 'px;height:' + w + 'px;left:' + l + '%;top:' + t + '%;'
+            + 'background:radial-gradient(circle,' + tones[i % tones.length] + ',transparent 70%);'
+            + 'animation-duration:' + d + 's;animation-delay:' + delay + 's;animation-direction:' + (i % 2 ? 'alternate' : 'alternate-reverse') + '"></i>';
+        }
+        fog.innerHTML = out;
+      }
+      var em = document.querySelector('.embers');
+      if (em) {
+        var N = Math.min(34, Math.max(18, Math.round((window.innerWidth || 1200) / 40)));
+        var h = '';
+        for (var j = 0; j < N; j++) {
+          var far = Math.random() < 0.42;
+          var size = (far ? 1.4 + Math.random() * 1.8 : 2.2 + Math.random() * 3).toFixed(1);
+          var left = (Math.random() * 100).toFixed(2);
+          var dur = (far ? 14 + Math.random() * 12 : 10 + Math.random() * 9).toFixed(1);
+          var delay = (-Math.random() * 26).toFixed(1);
+          var drift = Math.round(Math.random() * 80 - 40);
+          var o = (far ? 0.22 + Math.random() * 0.22 : 0.42 + Math.random() * 0.34).toFixed(2);
+          h += '<span class="ember' + (far ? ' far' : '') + '" style="left:' + left + '%;width:' + size + 'px;height:' + size + 'px;animation-duration:' + dur + 's;animation-delay:' + delay + 's;--x:' + drift + 'px;--o:' + o + '"></span>';
+        }
+        em.innerHTML = h;
+      }
+    })();
 
-  <!-- Profile modal -->
-  <div class="modal-scrim" id="profileModal" hidden>
-    <div class="modal modal-sm">
-      <button class="modal-close" id="closeProfile" aria-label="Close" data-i18n-aria="Close">✕</button>
-      <h2 class="modal-title"><i class="ms ms-counter-lore" aria-hidden="true"></i> <span data-i18n="Profile">Profile</span></h2>
-      <div id="profileBody"></div>
-    </div>
-  </div>
+    /* ----- fill the app-window mockups with real card art ----- */
+    function fillCards(id, items, cls) {
+      var el = document.getElementById(id); if (!el) return;
+      el.innerHTML = items.map(function (it) {
+        var q = it.q ? '<span class="q">' + it.q + '</span>' : '';
+        var p = it.p ? '<span class="pr">' + it.p + '</span>' : '';
+        return '<div class="mcard" style="background-image:url(\'' + imgUrl(it.n) + '\')">' + q + p + '</div>';
+      }).join('');
+    }
+    fillCards('shotCol', [
+      { n: 'Sol Ring', q: '3×', p: '$1.50' }, { n: 'Rhystic Study', q: '1×', p: '$32' },
+      { n: 'Cyclonic Rift', q: '1×', p: '$24' }, { n: 'Smothering Tithe', q: '2×', p: '$21' },
+      { n: 'Birds of Paradise', q: '4×', p: '$8' }
+    ]);
+    fillCards('shotForge', [
+      { n: 'Krenko, Mob Boss' }, { n: 'Goblin Chieftain' }, { n: 'Skirk Prospector' },
+      { n: 'Goblin Recruiter' }, { n: 'Lightning Bolt' }, { n: 'Sol Ring' }
+    ]);
+    fillCards('shotBrowse', [
+      { n: 'Krenko, Mob Boss' }, { n: 'Goblin Chieftain' }, { n: 'Goblin Recruiter' },
+      { n: 'Goblin Matron' }, { n: 'Skirk Prospector' }, { n: 'Goblin Warchief' }
+    ]);
 
-  <!-- Share a buy/sell list (creates a short link) -->
-  <div class="modal-scrim" id="shareModal" hidden>
-    <div class="modal modal-sm">
-      <button class="modal-close" id="closeShare" aria-label="Close" data-i18n-aria="Close">✕</button>
-      <h2 class="modal-title"><i class="ms ms-counter-lore" aria-hidden="true"></i> <span data-i18n="Share a list">Share a list</span></h2>
-      <div id="shareBody"></div>
-    </div>
-  </div>
+    /* ----- sticky-nav shade + scroll-reveals ----- */
+    var nav = document.getElementById('topnav');
+    var onScroll = function () { if (nav) nav.classList.toggle('scrolled', window.scrollY > 24); };
+    window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }); }, { threshold: 0.14, rootMargin: '0px 0px -8% 0px' });
+      document.querySelectorAll('[data-reveal]').forEach(function (el) { io.observe(el); });
+    } else { document.querySelectorAll('[data-reveal]').forEach(function (el) { el.classList.add('in'); }); }
 
-  <!-- Publish a deck to the community (view + like) -->
-  <div class="modal-scrim" id="deckShareModal" hidden>
-    <div class="modal modal-sm">
-      <button class="modal-close" id="closeDeckShare" aria-label="Close" data-i18n-aria="Close">✕</button>
-      <h2 class="modal-title"><i class="ms ms-commander" aria-hidden="true"></i> <span data-i18n="Share this deck">Share this deck</span></h2>
-      <div id="deckShareBody"></div>
-    </div>
-  </div>
-
-  <!-- Store: admin invite result -->
-  <div class="modal-scrim" id="storeInviteModal" hidden>
-    <div class="modal modal-sm">
-      <button class="modal-close" id="closeStoreInvite" aria-label="Close" data-i18n-aria="Close">✕</button>
-      <h2 class="modal-title"><i class="ms ms-counter-shield" aria-hidden="true"></i> <span data-i18n="Store invite">Store invite</span></h2>
-      <div id="storeInviteBody"></div>
-    </div>
-  </div>
-
-  <!-- Store: redeem an invite + create the store -->
-  <div class="modal-scrim" id="storeCreateModal" hidden>
-    <div class="modal modal-sm">
-      <button class="modal-close" id="closeStoreCreate" aria-label="Close" data-i18n-aria="Close">✕</button>
-      <h2 class="modal-title"><i class="ms ms-counter-lore" aria-hidden="true"></i> <span data-i18n="Create your store">Create your store</span></h2>
-      <div id="storeCreateBody"></div>
-    </div>
-  </div>
-
-  <!-- Friends: trade-match result -->
-  <div class="modal-scrim" id="friendMatchModal" hidden>
-    <div class="modal modal-sm">
-      <button class="modal-close" id="closeFriendMatch" aria-label="Close" data-i18n-aria="Close">✕</button>
-      <h2 class="modal-title"><i class="ms ms-ability-investigate" aria-hidden="true"></i> <span data-i18n="Trade match">Trade match</span></h2>
-      <div id="friendMatchBody"></div>
-    </div>
-  </div>
-
-  <!-- Store: add / edit an event -->
-  <div class="modal-scrim" id="storeEventModal" hidden>
-    <div class="modal modal-sm">
-      <button class="modal-close" id="closeStoreEvent" aria-label="Close" data-i18n-aria="Close">✕</button>
-      <h2 class="modal-title"><i class="ms ms-counter-lore" aria-hidden="true"></i> <span data-i18n="Event">Event</span></h2>
-      <div id="storeEventBody"></div>
-    </div>
-  </div>
-
-  <!-- QR code for a share link (opens over the share modal or the profile view) -->
-  <div class="modal-scrim qr-scrim" id="qrModal" hidden>
-    <div class="modal modal-sm">
-      <button class="modal-close" id="closeQr" aria-label="Close" data-i18n-aria="Close">✕</button>
-      <h2 class="modal-title"><i class="ms ms-counter-gold" aria-hidden="true"></i> <span data-i18n="List QR code">List QR code</span></h2>
-      <div id="qrBody"></div>
-    </div>
-  </div>
-
-  <!-- Onboarding wizard (after signup) -->
-  <div class="onboard-scrim" id="onboardModal" hidden>
-    <div class="onboard">
-      <div class="onb-progress"><div id="onbProgress"></div></div>
-      <button class="onb-skipall" id="onbSkipAll" data-i18n="Skip setup">Skip setup</button>
-      <div class="onb-body" id="onboardBody"></div>
-    </div>
-  </div>
-
-  <!-- Sync progress overlay (first upload / first download) -->
-  <div class="modal-scrim" id="syncModal" hidden>
-    <div class="modal modal-sm sync-modal">
-      <button class="modal-close" id="syncClose" aria-label="Close" data-i18n-aria="Close">✕</button>
-      <h2 class="modal-title" id="syncTitle">Syncing…</h2>
-      <div class="sync-bar"><div class="sync-fill" id="syncFill"></div></div>
-      <div class="sync-msg" id="syncStatus"></div>
-      <button class="btn gold" id="syncDone" hidden data-i18n="Done">Done</button>
-    </div>
-  </div>
-
-  <div class="toast" id="toast" hidden></div>
-
-  <!-- Sell-list folder picker (opens from inventory / card-viewer "Sell" buttons) -->
-  <div class="sell-pick" id="sellPickMenu" hidden></div>
-
-  <!-- Buy-binder picker (opens from the Buy List "file into binder" buttons) -->
-  <div class="sell-pick" id="buyPickMenu" hidden></div>
-
-  <!-- Printable buy-list sheet (only visible when printing) -->
-  <div id="printRoot" aria-hidden="true"></div>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
-  <script src="i18n.js?v=22"></script>
-  <script src="decks.js?v=22"></script>
-  <script src="app.js?v=22"></script>
+    /* ----- language: Spanish is the base (inline). English via the dict. ----- */
+    var EN = {
+      'nav.col': 'Collection', 'nav.bs': 'Buy &amp; Sell', 'nav.com': 'Community', 'nav.how': 'How it works', 'nav.open': 'Open the Vault',
+      'hero.eye': 'For Magic: The Gathering',
+      'hero.lead': 'A beautiful ledger for your whole Magic life. <b>Catalogue every card,</b> forge and tune decks, follow real prices, and trade with players and stores — all in one quiet, gilded place.',
+      'hero.cta1': "Open the Vault — it's free", 'hero.cta2': "See what's inside ↓",
+      'trust.1': 'No install', 'trust.2': 'Syncs across devices', 'trust.3': 'Powered by Scryfall', 'trust.4': 'Free to start', 'scroll': 'scroll',
+      'mani': 'Every card you own. Every deck you brew. Every trade you make. <em>One ledger to keep them all.</em>',
+      'ch1.label': 'Chapter I · The Collection', 'ch1.title': 'Your collection, <span class="gilt">catalogued</span>.',
+      'ch1.lead': "Log every card down to the printing, finish and condition. See what it's all worth at a glance, and find anything in seconds.",
+      'ch1.b1': 'Every variant', 'ch1.b2': 'Live values', 'ch1.b3': 'Art, list &amp; stacks', 'ch1.b4': 'Instant search',
+      'ch2.label': 'Chapter II · The Forge', 'ch2.title': 'Forge decks worth <span class="gilt">playing</span>.',
+      'ch2.lead': 'Build Commander decks the way you think about them — check legality, see what you still need, and trim the cost without changing the list.',
+      'ch2.b1': 'Deck builder', 'ch2.b2': 'Legality check', 'ch2.b3': 'Optimise cost', 'ch2.b4': 'The Forge',
+      'ch3.label': 'Chapter III · The Market', 'ch3.title': 'Know exactly what to <span class="gilt">buy</span>.',
+      'ch3.lead': 'Your buy list builds itself from the decks you’re missing cards for and the cards you wishlist. Match it against any seller, and share lists with a link.',
+      'ch3.b1': 'Auto buy list', 'ch3.b2': 'Match a list', 'ch3.b3': 'Sell folders', 'ch3.b4': 'Shareable links',
+      'ch4.label': 'Chapter IV · The Multiverse', 'ch4.title': 'Search <span class="gilt">all of Magic</span>.',
+      'ch4.lead': 'Every card ever printed is a keystroke away, powered by Scryfall — search by name or with full syntax, browse by set, and pull in ready-made decks.',
+      'ch4.b1': 'Scryfall search', 'ch4.b2': 'Curated decks', 'ch4.b3': 'Community decks', 'ch4.b4': 'By the set',
+      'ch5.label': 'Chapter V · The Table', 'ch5.title': 'Find your <span class="gilt">people</span>.',
+      'ch5.lead': 'Add friends and match trades between your lists. Follow your local game stores, RSVP to their tournaments, and wear the wins you earn on your profile.',
+      'ch5.b1': 'Friends &amp; trades', 'ch5.b2': 'Store pages', 'ch5.b3': 'Tournaments', 'ch5.b4': 'Win badges',
+      'shot.tab.col': 'Collection', 'shot.tab.bs': 'Buy/Sell', 'shot.tab.buy': 'Buy List', 'shot.tab.sell': 'Sell List', 'shot.tab.store': 'Store',
+      'shot.col.ttl': 'My collection', 'shot.col.meta': '1,284 cards · $4,210',
+      'shot.forge.legal': 'Commander legal', 'shot.forge.sub': '99 cards · commander: Krenko, Mob Boss · ~$180',
+      'shot.mkt.ttl': 'Buy List', 'shot.art': 'Art', 'shot.list': 'List', 'shot.mkt.foot': '5 cards for 3 decks',
+      'shot.store.verified': 'Verified', 'shot.store.open': 'Open now · closes 10 PM', 'shot.store.rsvp': 'RSVP', 'shot.store.when': 'Fri · 7:00 PM · 18/32 going',
+      'shot.store.badge': 'Champion ×3', 'shot.store.cab': 'The Cabinet · 6',
+      'strip.label': "And it's quietly yours", 'strip.head': 'Built to live with you.',
+      'perk1.t': 'Sync everywhere', 'perk1.d': 'Sign in and your whole vault follows you across devices.',
+      'perk2.t': 'English &amp; Spanish', 'perk2.d': 'Full interface in both — your cards always stay in English.',
+      'perk3.t': 'Five themes', 'perk3.d': 'Grimoire, Arcane, Tome, Verdant or Ember — pick your mood.',
+      'perk4.t': 'Yours to keep', 'perk4.d': 'Export a full backup any time. Your collection, your data.',
+      'perk5.t': 'Free to start', 'perk5.d': 'No account needed to begin. Nothing to install.',
+      'how.label': 'In three moves', 'how.title': 'From a shoebox to a grimoire.',
+      'step1.t': 'Add your cards', 'step1.d': 'Paste a list, scan through Scryfall, or import a deck. The Vault fills in art, prices and details for you.',
+      'step2.t': 'Build &amp; track', 'step2.d': "Forge decks, watch your collection's value, and let your buy list assemble itself from what you're missing.",
+      'step3.t': 'Share &amp; play', 'step3.d': 'Publish decks, share buy and sell lists, follow stores and turn up to tournaments — badges and all.',
+      'fin.t': 'Open the Vault.', 'fin.p': 'Start cataloguing in under a minute. No account required — and free to keep.', 'fin.btn': 'Enter The Vault',
+      'foot.tag': "A collector's ledger for Magic: The Gathering. Made by Pedro Brauner.",
+      'foot.l1': 'Open the app', 'foot.l2': 'Features', 'foot.l3': 'How it works', 'foot.l4': 'Terms', 'foot.l5': 'Privacy',
+      'foot.legal': 'Portions of The Vault are unofficial Fan Content permitted under the Wizards of the Coast Fan Content Policy. Not approved or endorsed by Wizards. Magic: The Gathering and its card images are © Wizards of the Coast LLC. Card data and images courtesy of <a href="https://scryfall.com" target="_blank" rel="noopener">Scryfall</a>.'
+    };
+    function applyLang(l) {
+      document.documentElement.lang = l;
+      document.querySelectorAll('[data-t]').forEach(function (el) {
+        var k = el.getAttribute('data-t');
+        if (l === 'en') { if (el.getAttribute('data-es') == null) el.setAttribute('data-es', el.innerHTML); if (EN[k] != null) el.innerHTML = EN[k]; }
+        else { var es = el.getAttribute('data-es'); if (es != null) el.innerHTML = es; }
+      });
+      var lg = document.getElementById('lang');
+      if (lg) lg.querySelectorAll('button').forEach(function (b) { b.classList.toggle('on', b.dataset.lang === l); });
+      try { localStorage.setItem('vault:landingLang', l); } catch (e) {}
+    }
+    var saved = null; try { saved = localStorage.getItem('vault:landingLang'); } catch (e) {}
+    applyLang(saved === 'en' ? 'en' : 'es');   // Spanish is the base
+    var lgEl = document.getElementById('lang');
+    if (lgEl) lgEl.addEventListener('click', function (e) { var b = e.target.closest('button[data-lang]'); if (b) applyLang(b.dataset.lang); });
+  </script>
 </body>
 </html>

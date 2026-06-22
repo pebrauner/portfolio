@@ -224,7 +224,7 @@
 
     async function toggleLike() {
       const btn = document.getElementById('likeBtn'); if (!btn) return;
-      if (!ME) { location.href = './'; return; }   // not signed in → send them to the app to sign in
+      if (!ME) { location.href = 'app.html'; return; }   // not signed in → send them to the app to sign in
       if (btn.dataset.busy) return; btn.dataset.busy = '1';
       try {
         const { data, error } = await sb.rpc('toggle_deck_like', { p_code: DECK.code });
@@ -250,7 +250,7 @@
         from: (DECK.data && DECK.data.owner) || ''
       };
       try { localStorage.setItem('vault:incomingDeck', JSON.stringify(payload)); } catch (e) {}
-      location.href = './';
+      location.href = 'app.html';
     }
     function wire() {
       const body = document.getElementById('body');

@@ -362,11 +362,11 @@
     }
     function matchBuyList() {   // hand the slug to the app; the app reads this key and runs the buy-list match for this store
       try { localStorage.setItem('vault:matchBuyStore', SLUG); } catch (e) {}
-      location.href = './';
+      location.href = 'app.html';
     }
     async function toggleFollow() {
       const btn = document.getElementById('followBtn'); if (!btn || !SOCIAL) return;
-      if (!ME) { location.href = './'; return; }   // not signed in → send them to the app to sign in (same as d.html likes)
+      if (!ME) { location.href = 'app.html'; return; }   // not signed in → send them to the app to sign in (same as d.html likes)
       if (btn.dataset.busy) return; btn.dataset.busy = '1';
       try {
         const { data, error } = await sb.rpc('toggle_store_follow', { p_slug: SLUG });
@@ -536,7 +536,7 @@
 
     async function toggleRsvp(id, btn) {
       if (!id) return;
-      if (!ME) { location.href = './'; return; }   // not signed in → send to the app to sign in
+      if (!ME) { location.href = 'app.html'; return; }   // not signed in → send to the app to sign in
       if (btn) { if (btn.dataset.busy) return; btn.dataset.busy = '1'; btn.disabled = true; }
       try {
         const { data, error } = await sb.rpc('rsvp_event', { p_event_id: id });
