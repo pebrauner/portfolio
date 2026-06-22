@@ -167,7 +167,7 @@ I18N.dicts.es = {
   'Creatures': 'Criaturas', 'Planeswalkers': 'Planeswalkers', 'Instants': 'Instantáneos',
   'Sorceries': 'Conjuros', 'Artifacts': 'Artefactos', 'Enchantments': 'Encantamientos',
   'Lands': 'Tierras', 'Other': 'Otros',
-  'Common': 'Común', 'Uncommon': 'Infrecuente', 'Rare': 'Rara', 'Mythic': 'Mítica',
+  'Common': 'Común', 'Uncommon': 'Infrecuente', 'Rare': 'Rara', 'Mythic': 'Mítica', 'Special': 'Especial', 'Bonus': 'Bonificación',
   'Near Mint': 'Casi nueva', 'Lightly Played': 'Poco jugada', 'Moderately Played': 'Algo jugada',
   'Heavily Played': 'Muy jugada', 'Damaged': 'Dañada',
   'Commander': 'Comandante',

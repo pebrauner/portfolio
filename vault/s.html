@@ -9,7 +9,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@500;700&family=Spline+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/mana-font@1.15.7/css/mana.min.css" rel="stylesheet" />
-  <script src="i18n.js?v=20"></script>
+  <script src="i18n.js?v=22"></script>
+  <script src="cardview.js?v=22"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -111,9 +112,9 @@
     .tile-foil { position: absolute; top: 7px; right: 7px; color: var(--gold-soft); font-size: 13px; text-shadow: 0 1px 3px #000; }
     .tile-cap { display: flex; justify-content: space-between; gap: 6px; margin-top: 6px; font-size: 12px; }
     .tile-cap .tn { color: var(--parch-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .tile-cap .tp { font-family: var(--mono); color: var(--gold-soft); white-space: nowrap; }
+    .tile-cap .tp { font-family: var(--mono); color: var(--gold-soft); white-space: nowrap; flex-shrink: 0; }
     /* The Cabinet (showcase-only cards) */
-    .cab-tile { cursor: default; }
+    .cab-tile { cursor: pointer; }
     .cab-tag { position: absolute; top: 7px; left: 7px; font-family: var(--label); font-size: 9px; letter-spacing: .05em; text-transform: uppercase;
       color: var(--gold-soft); background: rgba(0,0,0,.6); border: 1px solid var(--edge-soft); border-radius: 6px; padding: 2px 6px; }
     .cab-cap .tn { color: var(--parch); }
@@ -404,10 +405,11 @@
       } else {
         wrap.innerHTML = `<div class="gallery">${shown.map((c, i) => {
           const foil = c.foil ? `<span class="tile-foil" title="${esc(tr('Foil'))}">✦</span>` : '';
-          return `<button class="tile" data-i="${i}"><div class="tile-art"><span class="tile-qty">${Number(c.qty) || 1}×</span>${foil}<img src="${esc(artUrl(c.name))}" alt="${esc(c.name)}" loading="lazy" onerror="this.style.display='none'" /></div><div class="tile-cap"><span class="tn">${esc(c.name)}</span>${c.price ? `<span class="tp">${money(c.price)}</span>` : ''}</div></button>`;
+          return `<button class="tile" data-i="${i}" data-cv-name="${esc(c.name)}"><div class="tile-art"><span class="tile-qty">${Number(c.qty) || 1}×</span>${foil}<img src="${esc(CV.cardImg(c.img, c.name, c.set))}" alt="${esc(c.name)}" loading="lazy" onerror="this.style.display='none'" /></div><div class="tile-cap"><span class="tn">${esc(c.name)}</span>${c.price ? `<span class="tp">${money(c.price)}</span>` : ''}</div></button>`;
         }).join('')}</div>${more}`;
       }
       const mb = document.getElementById('invMore'); if (mb) mb.addEventListener('click', () => { invShown += 100; renderInv(); });
+      if (window.CV) CV.enrich(wrap);   // paint type/rarity marks onto the for-sale tiles
     }
     function inventoryHtml() {
       if (!forSale.length) return '';
@@ -426,26 +428,21 @@
     // "The Cabinet": showcase-only cards (display=true) — never for sale, value shown subtly, no buy framing
     function cabinetHtml() {
       if (!cabinet.length) return '';
-      const tiles = cabinet.map(c => {
+      const tiles = cabinet.map((c, i) => {
         const foil = c.foil ? `<span class="tile-foil" title="${esc(tr('Foil'))}">✦</span>` : '';
         const sub = c.set ? `<span class="cab-set">${esc(c.set)}</span>` : '';
         const val = c.price ? `<span class="cab-val" title="${esc(tr('Estimated value'))}">${money(c.price)}</span>` : '';
-        return `<div class="tile cab-tile"><div class="tile-art"><span class="cab-tag">${esc(tr('Not for sale'))}</span>${foil}<img src="${esc(artUrl(c.name))}" alt="${esc(c.name)}" loading="lazy" onerror="this.style.display='none'" /></div><div class="tile-cap cab-cap"><span class="tn">${esc(c.name)}</span>${val}</div>${sub}</div>`;
+        return `<div class="tile cab-tile" data-cab-i="${i}" data-cv-name="${esc(c.name)}"><div class="tile-art"><span class="cab-tag">${esc(tr('Not for sale'))}</span>${foil}<img src="${esc(CV.cardImg(c.img, c.name, c.set))}" alt="${esc(c.name)}" loading="lazy" onerror="this.style.display='none'" /></div><div class="tile-cap cab-cap"><span class="tn">${esc(c.name)}</span>${val}</div>${sub}</div>`;
       }).join('');
       return `<div class="sec"><div class="sec-h"><i class="ms ms-counter-shield"></i> ${esc(tr('The Cabinet'))} <span class="n">${cabinet.length}</span></div><div class="gallery cab-gallery">${tiles}</div></div>`;
     }
 
     function openLightbox(i) {
       const it = lbItems[i]; if (!it) return;
-      const img = safeUrl(it.img) || artUrl(it.name), uri = safeUrl(it.uri);
-      const bits = [it.set ? esc(it.set) : '', it.foil ? esc(tr('Foil')) : '', it.price ? money(it.price) : ''].filter(Boolean).join(' · ');
-      document.getElementById('lbCard').innerHTML =
-        `<img class="lb-img" src="${esc(img)}" alt="${esc(it.name)}" onerror="this.style.display='none'" />` +
-        `<div><div class="lb-name">${esc(it.name)}</div><div class="lb-info">${Number(it.qty) || 1}× · ${bits}</div></div>` +
-        (uri ? `<a class="lb-link" href="${esc(uri)}" target="_blank" rel="noopener">${esc(tr('View on Scryfall ↗'))}</a>` : '');
-      const lb = document.getElementById('lb'); lb.classList.add('on'); lb.setAttribute('aria-hidden', 'false');
+      // rich, inventory-style card viewer (full art + type line + mana + rarity + set + price), fetched on demand
+      CV.open(it.name, it.set || '', it.img, { qty: Number(it.qty) || 1, foil: !!it.foil, price: Number(it.price) || 0, uri: safeUrl(it.uri) });
     }
-    function closeLightbox() { const lb = document.getElementById('lb'); lb.classList.remove('on'); lb.setAttribute('aria-hidden', 'true'); }
+    function closeLightbox() { if (window.CV) CV.close(); }
 
     function render() {
       const s = STORE;
@@ -475,6 +472,7 @@
         <div class="actions" style="margin-top:24px"><a class="btn" href="./" target="_blank" rel="noopener"><i class="ms ms-token"></i> ${esc(tr('Track your own collection'))}</a></div>`;
       wire();
       renderInv();
+      if (window.CV) CV.enrich(card);   // paint type/rarity marks onto Cabinet (+ any rendered inventory) tiles
     }
     let invWired = false;
     function wire() {
@@ -483,6 +481,7 @@
         card.addEventListener('click', e => {
           const rs = e.target.closest('[data-rsvp]'); if (rs) { toggleRsvp(rs.dataset.rsvp, rs); return; }
           const t = e.target.closest('#invBody [data-i]'); if (t) { openLightbox(+t.dataset.i); return; }
+          const cab = e.target.closest('[data-cab-i]'); if (cab) { const c = cabinet[+cab.dataset.cabI]; if (c && window.CV) CV.open(c.name, c.set || '', c.img, { qty: Number(c.qty) || 1, foil: !!c.foil, price: Number(c.price) || 0, uri: safeUrl(c.uri) }); return; }
           const md = e.target.closest('.inv-seg [data-imode]'); if (md) { invMode = md.dataset.imode; render(); return; }
           const bf = e.target.closest('#invBinderFilter [data-binder]'); if (bf) { invBinder = bf.dataset.binder; invShown = 60; render(); return; }
         });
