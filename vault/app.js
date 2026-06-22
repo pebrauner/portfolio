@@ -45,6 +45,8 @@ let buyMatchResult = null;    // { wants:[{name,have,need,price}], skip:[...] } 
 let buyMatchLoading = false;  // resolving the pasted list against Scryfall
 let buyMatchOf = '';          // exact textarea text the current buyMatchResult was built from (drift guard)
 let sellMatchOf = '';         // exact textarea text the current sellMatchResult was built from (drift guard)
+let buyMatchMode = 'art';     // match-result display: 'art' gallery | 'text' list
+let sellMatchMode = 'art';    // match-result display: 'art' gallery | 'text' list
 let ckById = null, ckBySku = null, ckLoading = false;   // Card Kingdom price index (in-memory, per session): by scryfall id & by "SET-COLLECTOR"
 let invTile = clampTile(state.prefs.invTile);   // inventory gallery tile min-width (px)
 let buyTile = clampTile(state.prefs.buyTile);   // buy list gallery tile min-width (px)
@@ -67,8 +69,10 @@ let browseTotal = 0;                              // total_cards from the respon
 let browseLoading = false;                        // guards double-fires
 let browseSeq = 0;                                // stale-guard for out-of-order responses
 let browseTile = clampTile(state.prefs.browseTile);
-let browseMode = 'cards';                          // 'cards' | 'sets' | 'decks'
+let browseMode = 'cards';                          // 'cards' | 'sets' | 'decks' | 'stores'
 let setsCache = null, setsLoading = false;         // /sets result, loaded once per session
+let browseStoresTab = 'popular';                   // 'popular' | 'mine'
+let browseStoresCache = null;                      // last-rendered store list (for in-place follow updates)
 
 function load() {
   try {
@@ -413,6 +417,7 @@ function snapshotState() {
     variants: state.variants, sellLists: state.sellLists, activeSellList: state.activeSellList,
     wishlist: state.wishlist, decks: state.decks, history: state.history,
     buyBinders: state.buyBinders, activeBuyBinder: state.activeBuyBinder,
+    art: state.art,   // chosen printings — so "Optimize deck" (and any printing swap) is undoable
   });
 }
 function pushUndo(label) {
@@ -429,6 +434,7 @@ function undo() {
   state.wishlist = s.wishlist; state.decks = s.decks; state.history = s.history;
   if (s.buyBinders) state.buyBinders = s.buyBinders;   // older snapshots predate binders → leave current
   if ('activeBuyBinder' in s) state.activeBuyBinder = s.activeBuyBinder;
+  if (s.art) state.art = s.art;   // older snapshots predate art capture → leave current
   currentDeckId = null;   // a restored/removed deck may no longer match the open detail view
   save(); render();
   toast(tr('Undone — {label}.', { label: u.label }));
@@ -1131,7 +1137,11 @@ function renderDecks() {
 
   const grid = $('#deckGrid');
   $('#decksEmpty').hidden = state.decks.length > 0;
-  grid.innerHTML = state.decks.map(d => {
+  // "+ New deck" tile — only shown when decks exist (the empty state has its own button).
+  const newDeckTile = state.decks.length
+    ? `<button class="deck-new" data-newdeck title="${tr('New deck')}" aria-label="${tr('New deck')}"><span class="dn-plus" aria-hidden="true">+</span><span class="dn-label">${tr('New deck')}</span></button>`
+    : '';
+  grid.innerHTML = newDeckTile + state.decks.map(d => {
     const s = deckStats(d);
     const art = deckArt(d);
     return `<article class="deck-card" data-deck="${d.id}" style="--aura:${deckAura(d)}">
@@ -1197,6 +1207,7 @@ function renderDeckDetail() {
     <button class="lg-toggle ${deckEdit ? 'on' : ''}" data-deckedit title="${tr('Add / remove cards in this deck')}"><i class="ms ms-ability-craft" aria-hidden="true"></i> ${tr('Edit')}</button>
     <button class="lg-toggle ${state.prefs.showLegality ? 'on' : ''}" data-lgtoggle title="${tr('Show format legality')}"><i class="ms ms-counter-shield" aria-hidden="true"></i> ${tr('Legality')}</button>
     <button class="lg-toggle ${deckShowOriginal ? 'on' : ''}" data-origtoggle title="${tr('Compare with the original imported list')}"><i class="ms ms-saga" aria-hidden="true"></i> ${tr('Original')}${deckDivergence(deck) ? ` <span class="og-badge">${deckDivergence(deck)}</span>` : ''}</button>
+    ${s.completeCost > 0 ? `<button class="lg-toggle deck-optimize" data-deckoptimize title="${tr('Switch every unowned card to its cheapest printing to lower the buy cost')}"><i class="ms ms-counter-gold" aria-hidden="true"></i> ${tr('Optimize')}</button>` : ''}
     <div class="hero-stat"><div class="v">${s.pct}%</div><div class="l">${tr('Complete')}</div></div>
     <div class="hero-stat"><div class="v">${money(s.value)}</div><div class="l"><i class="ms ms-counter-gold stat-ic" aria-hidden="true"></i>${tr('Owned Value')}</div></div>
     <div class="hero-stat"><div class="v">${money(s.completeCost)}</div><div class="l"><i class="ms ms-counter-gold stat-ic" aria-hidden="true"></i>${tr('To Finish')}</div></div>
@@ -1330,9 +1341,63 @@ function deckGridTile(name, qty) {
   const owned = ownedOf(name) > 0;   // not-owned cards grey out (restore on hover), mirroring the stacks view
   return `<div class="art-tile deckcard${owned ? '' : ' not-owned'}" title="${esc(name)}${owned ? '' : ' — ' + tr('not owned')}">
     <button class="art-open" data-name="${esc(name)}">
-      ${artTile(name, qty + '×', `<span class="art-val">${money(priceOf(name))}</span>`)}
+      ${artTile(name, qty + '×', `<span class="art-val">${money(priceOf(name))}</span>`, '', true)}
     </button>
   </div>`;
+}
+
+/* ---------- optimize deck: switch unowned cards to their cheapest printing ----------
+   Fetches all printings per not-fully-owned card from Scryfall (cached), previews the
+   projected buy-cost savings, confirms, then applies undoably. Chosen printings are
+   GLOBAL per card name, so this changes those cards everywhere they appear. */
+let optimizeBusy = false;
+async function optimizeDeck(btn) {
+  if (optimizeBusy) return;
+  const deck = state.decks.find(d => d.id === currentDeckId);
+  if (!deck) return;
+  const qtyOf = (n) => (deck.cards.find(c => key(c.name) === key(n)) || {}).qty || 0;
+  const names = [...new Set(deck.cards.map(c => c.name))].filter(n => ownedOf(n) < qtyOf(n));
+  if (!names.length) { toast(tr('Every card in this deck is owned — nothing to optimize.')); return; }
+
+  optimizeBusy = true;
+  const origHtml = btn ? btn.innerHTML : '';
+  if (btn) btn.disabled = true;
+  const setBtn = (txt) => { if (btn) btn.innerHTML = `<span class="spin"></span> ${esc(txt)}`; };
+
+  const currentUsd = (n) => { const a = chosenArt(n); return (a && a.price > 0) ? a.price : (card(n).price || 0); };
+  const changes = [];   // { name, copies, from, to, print }
+  let done = 0, failed = 0;
+  for (const n of names) {
+    setBtn(tr('Optimizing… {done}/{total}', { done: ++done, total: names.length }));
+    const wasCached = key(n) in printingsCache;
+    let prints; try { prints = await loadPrintings(n); } catch (e) { prints = []; }
+    if (!wasCached) await sleep(70);   // gentle on Scryfall for fresh lookups only
+    if (!prints || !prints.length) { failed++; continue; }
+    const priced = prints.filter(p => p.price > 0);
+    if (!priced.length) continue;
+    const cheap = priced.reduce((m, p) => (p.price < m.price ? p : m), priced[0]);
+    const from = currentUsd(n);
+    if (!from || cheap.price < from - 0.005) changes.push({ name: n, copies: Math.max(1, qtyOf(n) - ownedOf(n)), from, to: cheap.price, print: cheap });
+  }
+
+  if (btn) { btn.disabled = false; btn.innerHTML = origHtml; }
+  optimizeBusy = false;
+
+  if (!changes.length) {
+    toast(failed === names.length ? tr('Couldn’t reach Scryfall — try again.') : tr('Already on the cheapest printings — nothing to change.'));
+    return;
+  }
+  const savings = changes.reduce((a, c) => a + c.copies * Math.max(0, (c.from || c.to) - c.to), 0);
+  if (!confirm(tr('Optimize will switch {n} cards to their cheapest printing, lowering this deck’s buy cost by about {amt}. This changes those cards’ printing everywhere they appear. Continue?', { n: changes.length, amt: money(savings) }))) return;
+
+  pushUndo(tr('Optimize {deck}', { deck: deck.name }));
+  changes.forEach(c => {
+    const p = c.print;
+    state.art[key(c.name)] = { image: p.image, art: p.art, set: p.set, set_name: p.set_name, collector: p.collector, scryfallId: p.id, price: p.price, price_foil: p.price_foil };
+  });
+  save();
+  render();
+  toast(tr('Optimized {n} cards — about {amt} off the buy cost.', { n: changes.length, amt: money(savings) }), { undo: true });
 }
 
 /* ---------- deck format legality ---------- */
@@ -1727,15 +1792,30 @@ function renderInventory() {
 }
 
 // A full-card-art tile for the gallery view (aggregates a card's variants).
-function artTile(name, badge, valueHtml, extra = '') {
+// inlineQty=true puts the quantity badge next to the card name (used by the deck Grid view)
+// instead of as an overlay on the card image.
+function artTile(name, badge, valueHtml, extra = '', inlineQty = false) {
   const meta = card(name);
   const src = displayImage(name);
   const img = src
     ? `<img src="${esc(src)}" alt="${esc(name)}" loading="lazy"/>`
     : `<div class="art-fallback"><i class="ms ms-dfc-back" aria-hidden="true"></i></div>`;
   const marks = `<span class="art-marks">${typeIcon(name)}${rarityIcon(meta.rarity)}</span>`;
-  return `<div class="art-img">${img}${badge ? `<span class="art-qty">${badge}</span>` : ''}${marks}${extra}</div>
-    <div class="art-info"><span class="art-name">${esc(name)}</span>${valueHtml}</div>`;
+  const overlay = (badge && !inlineQty) ? `<span class="art-qty">${badge}</span>` : '';
+  const nameHtml = (badge && inlineQty) ? `<b class="art-qn">${badge}</b> ${esc(name)}` : esc(name);
+  return `<div class="art-img">${img}${overlay}${marks}${extra}</div>
+    <div class="art-info"><span class="art-name">${nameHtml}</span>${valueHtml}</div>`;
+}
+// One art tile for the list-matcher galleries (opens the card viewer on click). `dim` greys cards in the "skip / not-owned" group.
+function matchTile(name, badge, price, dim) {
+  return `<div class="art-tile match${dim ? ' dim' : ''}"><button class="art-open" data-name="${esc(name)}">${artTile(name, badge, `<span class="art-val">${price ? money(price) : '—'}</span>`)}</button></div>`;
+}
+// Art / List toggle shown above match results. `id` = 'buyMatchMode' | 'sellMatchMode'; `mode` = current.
+function matchModeToggle(id, mode) {
+  return `<div class="seg sm-modeseg" id="${id}">
+    <button class="seg-btn ${mode === 'art' ? 'is-active' : ''}" data-matchmode="art"><i class="ms ms-token" aria-hidden="true"></i> ${tr('Art')}</button>
+    <button class="seg-btn ${mode === 'text' ? 'is-active' : ''}" data-matchmode="text"><i class="ms ms-multiple" aria-hidden="true"></i> ${tr('List')}</button>
+  </div>`;
 }
 function inventoryArtTile(name) {
   const meta = card(name);
@@ -2585,18 +2665,109 @@ function browseResultTile(c, i) {
 
 // Dispatcher: show the active Browse pane and render it.
 function renderBrowse() {
-  const panes = { cards: $('#browsePaneCards'), sets: $('#browsePaneSets'), decks: $('#browsePaneDecks') };
+  const panes = { cards: $('#browsePaneCards'), sets: $('#browsePaneSets'), decks: $('#browsePaneDecks'), stores: $('#browsePaneStores') };
   if (!panes.cards) return;
-  for (const [m, el] of Object.entries(panes)) el.hidden = browseMode !== m;
+  for (const [m, el] of Object.entries(panes)) { if (el) el.hidden = browseMode !== m; }
   if (browseMode === 'cards') renderBrowseCards();
   else if (browseMode === 'sets') renderBrowseSets();
   else if (browseMode === 'decks') renderBrowseDecks();
+  else if (browseMode === 'stores') renderBrowseStores();
 }
 function setBrowseMode(mode) {
   browseMode = mode;
   $$('#browseModes .seg-btn').forEach(b => b.classList.toggle('is-active', b.dataset.bmode === mode));
   if (mode === 'sets' && !setsCache) loadSets();
   renderBrowse();
+}
+
+/* ---------- Browse: stores (Popular + My Stores, with follow/rank) ---------- */
+// Entry point: reflects the sub-toggle, then fetches the active tab's list and paints it.
+async function renderBrowseStores() {
+  const g = $('#browseStores'); if (!g) return;
+  $$('#browseStoresTabs .seg-btn').forEach(b => b.classList.toggle('is-active', b.dataset.stab === browseStoresTab));
+
+  if (browseStoresTab === 'mine' && !authUser) {
+    browseStoresCache = null;
+    g.innerHTML = `<div class="empty-state" style="padding:48px 20px"><span class="empty-mark"><i class="ms ms-counter-lore" aria-hidden="true"></i></span><h2>${tr('Sign in to see your stores')}</h2><p>${tr('Add the game stores you visit to keep their events, hours and stock close.')}</p><div style="margin-top:14px"><button class="btn gold" data-storesignin="1">${tr('Sign in')}</button></div></div>`;
+    return;
+  }
+
+  g.innerHTML = `<p class="bd-note">${tr('Loading stores…')}</p>`;
+  const tab = browseStoresTab;
+  let list = [];
+  if (sb) {
+    try {
+      const { data, error } = tab === 'mine'
+        ? await sb.rpc('my_stores')
+        : await sb.rpc('top_stores', { p_limit: 24 });
+      if (!error && Array.isArray(data)) list = data;
+    } catch (e) { list = []; }
+  }
+  if (browseStoresTab !== tab) return;   // tab switched mid-fetch — let the newer render win
+  browseStoresCache = list;
+  paintBrowseStores();
+}
+// Paint from cache only (no fetch) — used after follow toggles for an in-place update.
+function paintBrowseStores() {
+  const g = $('#browseStores'); if (!g) return;
+  const list = browseStoresCache || [];
+  if (!list.length) {
+    if (browseStoresTab === 'mine') {
+      g.innerHTML = `<div class="empty-state" style="padding:48px 20px"><span class="empty-mark"><i class="ms ms-counter-lore" aria-hidden="true"></i></span><h2>${tr('No stores yet.')}</h2><p>${tr('Find a shop under {popular} and add it to keep it here.', { popular: '<b>' + tr('Popular') + '</b>' })}</p></div>`;
+    } else {
+      g.innerHTML = `<div class="empty-state" style="padding:48px 20px"><span class="empty-mark"><i class="ms ms-counter-lore" aria-hidden="true"></i></span><h2>${tr('No stores yet.')}</h2></div>`;
+    }
+    return;
+  }
+  g.innerHTML = `<div class="precon-grid">${list.map(storeCardHtml).join('')}</div>`;
+}
+function storeCardHtml(st) {
+  const slug = st.slug || '';
+  const place = [st.city, st.country].filter(Boolean).map(esc).join(' · ');
+  const rank = (st.rank === null || st.rank === undefined) ? null : Number(st.rank);
+  const n = Number(st.followers) || 0;
+  const badge = (rank !== null && !Number.isNaN(rank))
+    ? tr('#{rank} · {n} collectors', { rank, n })
+    : tr('{n} collectors', { n });
+  const followed = !!st.followed;
+  const logo = st.logo
+    ? `<img class="store-tile-logo" src="${esc(st.logo)}" alt="" loading="lazy" />`
+    : `<span class="store-tile-logo store-tile-logo--ph"><i class="ms ms-counter-lore" aria-hidden="true"></i></span>`;
+  return `<article class="precon-card store-tile" data-storeopen="${esc(slug)}" tabindex="0" role="link" title="${esc(st.name || '')}">
+    <div class="store-tile-head">
+      ${logo}
+      <div class="store-tile-id">
+        <h3>${esc(st.name || tr('Store'))}${st.verified ? ` <span class="verified-chip sm"><i class="ms ms-counter-shield" aria-hidden="true"></i> ${tr('Verified')}</span>` : ''}</h3>
+        ${place ? `<div class="store-tile-place">${place}</div>` : ''}
+      </div>
+    </div>
+    <div class="precon-meta">${badge}</div>
+    <div class="precon-actions">
+      <button class="btn ${followed ? 'ghost' : 'gold'}" data-storefollow="${esc(slug)}">${followed ? tr('✓ In My Stores') : tr('＋ Add to My Stores')}</button>
+    </div>
+  </article>`;
+}
+async function toggleStoreFollow(slug) {
+  if (!slug) return;
+  if (!authUser) { openAuth('signin'); return; }
+  if (!sb) return;
+  try {
+    const { data, error } = await sb.rpc('toggle_store_follow', { p_slug: slug });
+    if (error || !data) return;
+    if (Array.isArray(browseStoresCache)) {
+      const st = browseStoresCache.find(s => s.slug === slug);
+      if (st) {
+        st.followed = !!data.followed;
+        if (data.count !== undefined && data.count !== null) st.followers = data.count;
+        st.rank = (data.rank === undefined) ? st.rank : data.rank;
+      }
+      // On the "mine" tab, unfollowing should drop the store from the list.
+      if (browseStoresTab === 'mine' && st && !st.followed) {
+        browseStoresCache = browseStoresCache.filter(s => s.slug !== slug);
+      }
+    }
+    paintBrowseStores();
+  } catch (e) { /* graceful: leave UI as-is */ }
 }
 
 function renderBrowseCards() {
@@ -3429,14 +3600,20 @@ function renderMatchResults() {
   const haveCopies = r.matches.reduce((a, m) => a + Math.min(m.want, m.have), 0);
   const matchRow = m => `<div class="sm-row have"><span class="sm-name nm" data-name="${esc(m.name)}" title="${esc(m.name)}">${esc(m.name)}</span><span class="sm-qty">${tr('want {a} · {have}', { a: m.want, have: `<b class="sm-have">${tr('have {n}', { n: m.have })}</b>` })}</span><span class="sm-price">${m.price ? money(m.price) : '—'}</span></div>`;
   const missRow = m => `<div class="sm-row miss"><span class="sm-name nm" data-name="${esc(m.name)}" title="${esc(m.name)}">${esc(m.name)}</span><span class="sm-qty">${tr('want {n}', { n: m.want })}</span><span class="sm-x">${tr('not owned')}</span></div>`;
+  const matchTileFn = m => matchTile(m.name, m.have + '×', m.price);
+  const missTileFn = m => matchTile(m.name, '', m.price, true);
+  const secList = (arr, rowFn, tileFn) => sellMatchMode === 'art'
+    ? `<div class="card-table gallery sm-gallery" style="--tile:150px">${arr.map(tileFn).join('')}</div>`
+    : `<div class="sm-list">${arr.map(rowFn).join('')}</div>`;
   return `<div class="sm-summary">${tr('You have {x} of the {total} requested · {copies} · {value} at market', { x: `<b>${r.matches.length}</b>`, total: `<b>${total}</b>`, copies: tr(haveCopies === 1 ? '{n} copy' : '{n} copies', { n: haveCopies }), value: `<b>${money(fulfill)}</b>` })}</div>
+    <div class="sm-modebar">${matchModeToggle('sellMatchMode', sellMatchMode)}</div>
     ${r.matches.length ? `<div class="sm-act">
       <button class="btn" id="sellMatchSell"><i class="ms ms-counter-gold" aria-hidden="true"></i> ${tr('Quick-sell · −{n} from collection', { n: haveCopies })}</button>
       <button class="btn ghost" id="sellMatchAdd">${tr('＋ Add to “{list}”', { list: esc(sellListName()) })}</button>
       <button class="btn ghost" id="sellMatchCopy">${tr('⧉ Copy what you have')}</button>
     </div>` : ''}
-    ${r.matches.length ? `<div class="sm-sec">${tr('You have · {n}', { n: r.matches.length })}</div><div class="sm-list">${r.matches.map(matchRow).join('')}</div>` : `<div class="sm-empty">${tr('None of those cards are in your collection.')}</div>`}
-    ${r.misses.length ? `<div class="sm-sec">${tr('Not owned · {n}', { n: r.misses.length })}</div><div class="sm-list">${r.misses.map(missRow).join('')}</div>` : ''}`;
+    ${r.matches.length ? `<div class="sm-sec">${tr('You have · {n}', { n: r.matches.length })}</div>${secList(r.matches, matchRow, matchTileFn)}` : `<div class="sm-empty">${tr('None of those cards are in your collection.')}</div>`}
+    ${r.misses.length ? `<div class="sm-sec">${tr('Not owned · {n}', { n: r.misses.length })}</div>${secList(r.misses, missRow, missTileFn)}` : ''}`;
 }
 function sellMatchPanel() {
   const results = sellMatchLoading
@@ -3522,13 +3699,19 @@ function renderBuyMatchResults() {
   const buyCopies = r.wants.reduce((a, w) => a + Math.min(w.have, w.need), 0);
   const wantRow = w => `<div class="sm-row have"><span class="sm-name nm" data-name="${esc(w.name)}" title="${esc(w.name)}">${esc(w.name)}</span><span class="sm-qty">${tr('they have {a} · {need}', { a: w.have, need: `<b class="sm-have">${tr('you need {n}', { n: w.need })}</b>` })}</span><span class="sm-price">${w.price ? money(w.price) : '—'}</span></div>`;
   const skipRow = s => `<div class="sm-row miss"><span class="sm-name nm" data-name="${esc(s.name)}" title="${esc(s.name)}">${esc(s.name)}</span><span class="sm-qty">${tr('they have {n}', { n: s.have })}</span><span class="sm-x">${tr('don’t need')}</span></div>`;
+  const wantTileFn = w => matchTile(w.name, w.need + '×', w.price);
+  const skipTileFn = s => matchTile(s.name, '', s.price, true);
+  const secList = (arr, rowFn, tileFn) => buyMatchMode === 'art'
+    ? `<div class="card-table gallery sm-gallery" style="--tile:150px">${arr.map(tileFn).join('')}</div>`
+    : `<div class="sm-list">${arr.map(rowFn).join('')}</div>`;
   return `<div class="sm-summary">${tr('You’d buy {x} of the {total} offered · {copies} · {cost}', { x: `<b>${r.wants.length}</b>`, total: `<b>${total}</b>`, copies: tr(buyCopies === 1 ? '{n} copy' : '{n} copies', { n: buyCopies }), cost: `<b>${money(cost)}</b>` })}</div>
+    <div class="sm-modebar">${matchModeToggle('buyMatchMode', buyMatchMode)}</div>
     ${r.wants.length ? `<div class="sm-act">
       <button class="btn" id="buyMatchBuy"><i class="ms ms-counter-shield" aria-hidden="true"></i> ${tr('Quick-buy · +{n} to collection', { n: buyCopies })}</button>
       <button class="btn ghost" id="buyMatchCopy">${tr('⧉ Copy what you want')}</button>
     </div>` : ''}
-    ${r.wants.length ? `<div class="sm-sec">${tr('You want · {n}', { n: r.wants.length })}</div><div class="sm-list">${r.wants.map(wantRow).join('')}</div>` : `<div class="sm-empty">${tr('Nothing on that list is on your buy list.')}</div>`}
-    ${r.skip.length ? `<div class="sm-sec">${tr('Don’t need · {n}', { n: r.skip.length })}</div><div class="sm-list">${r.skip.map(skipRow).join('')}</div>` : ''}`;
+    ${r.wants.length ? `<div class="sm-sec">${tr('You want · {n}', { n: r.wants.length })}</div>${secList(r.wants, wantRow, wantTileFn)}` : `<div class="sm-empty">${tr('Nothing on that list is on your buy list.')}</div>`}
+    ${r.skip.length ? `<div class="sm-sec">${tr('Don’t need · {n}', { n: r.skip.length })}</div>${secList(r.skip, skipRow, skipTileFn)}` : ''}`;
 }
 function buyMatchPanel() {
   const results = buyMatchLoading
@@ -3793,7 +3976,7 @@ if (histFilterEl) histFilterEl.addEventListener('click', e => {
 const histClearBtn = $('#histClearBtn'); if (histClearBtn) histClearBtn.addEventListener('click', clearHistory);
 const undoBtnEl = $('#undoBtn'); if (undoBtnEl) undoBtnEl.addEventListener('click', undo);
 const toastEl = $('#toast'); if (toastEl) toastEl.addEventListener('click', e => { if (e.target.closest('#toastUndo')) { toastEl.hidden = true; undo(); } });
-$('#newDeckBtn').addEventListener('click', openImport);
+// (New Deck creation now lives on the "+ New deck" tile in the Decks view — see the #deckGrid [data-newdeck] handler.)
 $('#emptyImportBtn').addEventListener('click', openImport);
 const emptyBrowseDecksEl = $('#emptyBrowseDecks'); if (emptyBrowseDecksEl) emptyBrowseDecksEl.addEventListener('click', () => { setView('browse'); setBrowseMode('decks'); });
 $('#closeImport').addEventListener('click', closeImport);
@@ -3960,6 +4143,7 @@ const friendMatchModalEl = $('#friendMatchModal');
 if (friendMatchModalEl) friendMatchModalEl.addEventListener('click', e => { if (e.target.id === 'friendMatchModal') closeFriendMatch(); });
 
 $('#deckGrid').addEventListener('click', e => {
+  if (e.target.closest('[data-newdeck]')) { openImport(); return; }
   const c = e.target.closest('.deck-card');
   if (c) openDeck(c.dataset.deck);
 });
@@ -3982,6 +4166,8 @@ $('#deckDetail').addEventListener('click', e => {
   if (editToggle) { deckEdit = !deckEdit; deckHideAc(); renderDeckDetail(); return; }
   const origToggle = e.target.closest('[data-origtoggle]');
   if (origToggle) { deckShowOriginal = !deckShowOriginal; renderDeckDetail(); return; }
+  const optimize = e.target.closest('[data-deckoptimize]');
+  if (optimize) { optimizeDeck(optimize); return; }
   const origCopy = e.target.closest('[data-origcopy]');
   if (origCopy) { copyDeckOriginal(origCopy.dataset.origcopy); return; }
   const origRebase = e.target.closest('[data-origrebaseline]');
@@ -4129,6 +4315,7 @@ const sellMatchBtn = $('#sellMatchBtn'); if (sellMatchBtn) sellMatchBtn.addEvent
 const sellTableEl = $('#sellTable');
 if (sellTableEl) {
   sellTableEl.addEventListener('click', e => {
+    const mm = e.target.closest('[data-matchmode]'); if (mm) { sellMatchMode = mm.dataset.matchmode; renderSellList(); return; }
     if (e.target.closest('#sellMatchRun')) { runSellMatch(); return; }
     if (e.target.closest('#sellMatchClear')) { sellMatchText = ''; sellMatchResult = null; renderSellList(); return; }
     if (e.target.closest('#sellMatchSell')) { quickSellMatches(); return; }
@@ -4248,6 +4435,26 @@ $('#browseDecks').addEventListener('click', e => {
   const wish = e.target.closest('[data-recwish]'); if (wish) { recDeckWish(+wish.dataset.recwish); return; }
   const own = e.target.closest('[data-recown]'); if (own) { recDeckOwn(+own.dataset.recown); return; }
 });
+const browseStoresTabsEl = $('#browseStoresTabs');
+if (browseStoresTabsEl) browseStoresTabsEl.addEventListener('click', e => {
+  const b = e.target.closest('.seg-btn'); if (!b) return;
+  if (browseStoresTab === b.dataset.stab) return;
+  browseStoresTab = b.dataset.stab;
+  renderBrowseStores();
+});
+const browseStoresEl = $('#browseStores');
+if (browseStoresEl) browseStoresEl.addEventListener('click', e => {
+  const si = e.target.closest('[data-storesignin]'); if (si) { openAuth('signin'); return; }
+  const f = e.target.closest('[data-storefollow]'); if (f) { e.stopPropagation(); toggleStoreFollow(f.dataset.storefollow); return; }
+  const open = e.target.closest('[data-storeopen]'); if (open) { const slug = open.dataset.storeopen; if (slug) window.open(storePublicUrl(slug), '_blank', 'noopener'); return; }
+});
+if (browseStoresEl) browseStoresEl.addEventListener('keydown', e => {   // role="link" cards: open on Enter/Space
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const card = e.target.closest('[data-storeopen]');
+  if (!card || e.target.closest('[data-storefollow]')) return;
+  e.preventDefault();
+  if (card.dataset.storeopen) window.open(storePublicUrl(card.dataset.storeopen), '_blank', 'noopener');
+});
 $('#invTypeFilter').addEventListener('click', e => {
   const b = e.target.closest('.tpip');
   if (!b) return;
@@ -4300,6 +4507,7 @@ const buyMatchBtn = $('#buyMatchBtn'); if (buyMatchBtn) buyMatchBtn.addEventList
 $('#buyTable').addEventListener('click', e => {
   const got = e.target.closest('[data-bought]');
   if (got) { e.stopPropagation(); markBought(got.dataset.bought); return; }
+  const mm = e.target.closest('[data-matchmode]'); if (mm) { buyMatchMode = mm.dataset.matchmode; renderBuyList(); return; }
   if (e.target.closest('#buyMatchRun')) { runBuyMatch(); return; }
   if (e.target.closest('#buyMatchClear')) { buyMatchText = ''; buyMatchResult = null; renderBuyList(); return; }
   if (e.target.closest('#buyMatchBuy')) { quickBuyMatches(); return; }
@@ -5367,7 +5575,8 @@ function renderStoreDashboard() {
   el.innerHTML = `
     <div class="store-head">
       <div><h2 class="view-title">${esc(s.name)} <span class="verified-chip"><i class="ms ms-counter-shield"></i> ${tr('Verified')}</span></h2>
-      <p class="view-sub"><a href="${esc(storePublicUrl(s.slug))}" target="_blank" rel="noopener">${tr('View public page ↗')}</a> · <span id="storeSaveState" class="store-savestate"></span></p></div>
+      <p class="view-sub"><a href="${esc(storePublicUrl(s.slug))}" target="_blank" rel="noopener">${tr('View public page ↗')}</a> · <span id="storeSaveState" class="store-savestate"></span></p>
+      <p class="view-sub store-social" id="storeSocialLine" hidden></p></div>
       <div class="store-head-actions">
         <button class="btn" id="storeCopyLink"><i class="ms ms-counter-lore btn-ico"></i> ${tr('Copy link')}</button>
       </div>
@@ -5420,6 +5629,22 @@ function renderStoreDashboard() {
   renderStoreInventory();
   renderStoreHistory();
   renderStoreStaff();
+  loadStoreSocial();
+}
+// Show "{n} collectors have added your store · ranked #{rank}" in the dashboard header. Best-effort.
+async function loadStoreSocial() {
+  const line = $('#storeSocialLine');
+  if (!line || !sb || !myStore) return;
+  try {
+    const { data, error } = await sb.rpc('get_store_social', { p_slug: myStore.slug });
+    if (error || !data) return;
+    const n = Number(data.followers) || 0;
+    const rank = (data.rank === null || data.rank === undefined) ? null : Number(data.rank);
+    let txt = tr('{n} collectors have added your store', { n });
+    if (rank !== null && !Number.isNaN(rank)) txt += ' ' + tr('· ranked #{rank}', { rank });
+    line.textContent = txt;
+    line.hidden = false;
+  } catch (e) { /* graceful: no social line */ }
 }
 function renderStoreHistory() {
   const el = $('#storeHistList'); if (!el) return;

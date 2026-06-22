@@ -1182,4 +1182,41 @@ I18N.dicts.es = {
   'This profile is private or doesn’t exist.': 'Este perfil es privado o no existe.',
   'Something went wrong loading this profile.': 'Algo salió mal al cargar este perfil.',
 
+  /* ---------- optimize deck ---------- */
+  'Optimize': 'Optimizar',
+  'Switch every unowned card to its cheapest printing to lower the buy cost': 'Cambia cada carta que no tienes a su edición más barata para reducir el costo de compra',
+  'Every card in this deck is owned — nothing to optimize.': 'Ya tienes todas las cartas de este mazo — no hay nada que optimizar.',
+  'Optimizing… {done}/{total}': 'Optimizando… {done}/{total}',
+  'Couldn’t reach Scryfall — try again.': 'No se pudo conectar con Scryfall — inténtalo de nuevo.',
+  'Already on the cheapest printings — nothing to change.': 'Ya están en las ediciones más baratas — no hay nada que cambiar.',
+  'Optimize will switch {n} cards to their cheapest printing, lowering this deck’s buy cost by about {amt}. This changes those cards’ printing everywhere they appear. Continue?': 'Optimizar cambiará {n} cartas a su edición más barata, reduciendo el costo de compra de este mazo en unos {amt}. Esto cambia la edición de esas cartas en todos los lugares donde aparecen. ¿Continuar?',
+  'Optimize {deck}': 'Optimizar {deck}',
+  'Optimized {n} cards — about {amt} off the buy cost.': 'Optimizadas {n} cartas — unos {amt} menos en el costo de compra.',
+
+  /* ---------- My Stores (follow + ranking) ---------- */
+  'Stores': 'Tiendas',
+  'Store': 'Tienda',
+  'Popular': 'Populares',
+  'My Stores': 'Mis tiendas',
+  '＋ Add to My Stores': '＋ Añadir a Mis tiendas',
+  '✓ In My Stores': '✓ En Mis tiendas',
+  'Add to My Stores': 'Añadir a Mis tiendas',
+  'Remove from My Stores': 'Quitar de Mis tiendas',
+  'Sign in on The Vault to save stores': 'Inicia sesión en The Vault para guardar tiendas',
+  'Sign in to see your stores': 'Inicia sesión para ver tus tiendas',
+  'Add the game stores you visit to keep their events, hours and stock close.': 'Añade las tiendas que visitas para tener cerca sus eventos, horarios y existencias.',
+  'Game stores on The Vault — add the ones you visit to keep their events, hours and stock close.': 'Tiendas de juegos en The Vault — añade las que visitas para tener cerca sus eventos, horarios y existencias.',
+  'Loading stores…': 'Cargando tiendas…',
+  'No stores yet.': 'Aún no hay tiendas.',
+  'Find a shop under {popular} and add it to keep it here.': 'Busca una tienda en {popular} y añádela para tenerla aquí.',
+  '#{rank} · {n} collectors': '#{rank} · {n} coleccionistas',
+  '{n} collectors': '{n} coleccionistas',
+  '{n} collectors have added your store': '{n} coleccionistas han añadido tu tienda',
+  '· ranked #{rank}': '· clasificada #{rank}',
+
+  /* ---------- store dashboard (previously missed — straight-apostrophe keys) ---------- */
+  "You've been invited to open a store on The Vault. Pick a name and a web address.": 'Te han invitado a abrir una tienda en The Vault. Elige un nombre y una dirección web.',
+  "What's your store about?": '¿De qué trata tu tienda?',
+  "No sales yet. The green {sell} button on a card logs each sale here — your running record of what's moved.": 'Aún no hay ventas. El botón verde {sell} en una carta registra cada venta aquí — tu historial de lo que se ha vendido.',
+
 };

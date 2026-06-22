@@ -39,7 +39,6 @@
     </nav>
     <div class="topbar-actions">
       <button class="btn ghost undo-btn" id="undoBtn" hidden>↶ <span data-i18n="Undo">Undo</span></button>
-      <button class="btn gold" id="newDeckBtn"><i class="ms ms-saga btn-ico" aria-hidden="true"></i><span data-i18n="New Deck">New Deck</span></button>
       <div class="settings-group" id="settingsGroup">
         <button class="btn ghost cog-btn" id="settingsBtn" aria-label="Settings" data-i18n-aria="Settings" aria-haspopup="true" aria-expanded="false">⚙</button>
         <div class="settings-menu" id="settingsMenu" role="menu">
@@ -291,6 +290,7 @@
           <button class="seg-btn is-active" data-bmode="cards"><i class="ms ms-ability-investigate" aria-hidden="true"></i> <span data-i18n="Cards">Cards</span></button>
           <button class="seg-btn" data-bmode="sets"><i class="ms ms-multiple" aria-hidden="true"></i> <span data-i18n="Sets">Sets</span></button>
           <button class="seg-btn" data-bmode="decks"><i class="ms ms-commander" aria-hidden="true"></i> <span data-i18n="Decks">Decks</span></button>
+          <button class="seg-btn" data-bmode="stores"><i class="ms ms-counter-lore" aria-hidden="true"></i> <span data-i18n="Stores">Stores</span></button>
         </div>
         <label class="filt-only" id="browseCmdrWrap" title="Restrict card results to cards legal in Commander" data-i18n-title="Restrict card results to cards legal in Commander">
           <input type="checkbox" id="browseCmdrOnly" checked /> <span data-i18n="Commander legal">Commander legal</span>
@@ -334,6 +334,15 @@
       <div id="browsePaneDecks" hidden>
         <p class="view-sub" style="margin-bottom:16px" data-i18n="Community decks players have published &amp; liked, plus starter Commander decks to import, buy, or mark owned.">Community decks players have published &amp; liked, plus starter Commander decks to import, buy, or mark owned.</p>
         <div id="browseDecks"></div>
+      </div>
+
+      <div id="browsePaneStores" hidden>
+        <p class="view-sub" style="margin-bottom:16px" data-i18n="Game stores on The Vault — add the ones you visit to keep their events, hours and stock close.">Game stores on The Vault — add the ones you visit to keep their events, hours and stock close.</p>
+        <div class="seg" id="browseStoresTabs" style="margin-bottom:16px">
+          <button class="seg-btn is-active" data-stab="popular"><i class="ms ms-counter-lore" aria-hidden="true"></i> <span data-i18n="Popular">Popular</span></button>
+          <button class="seg-btn" data-stab="mine"><i class="ms ms-counter-shield" aria-hidden="true"></i> <span data-i18n="My Stores">My Stores</span></button>
+        </div>
+        <div id="browseStores"></div>
       </div>
     </section>
 

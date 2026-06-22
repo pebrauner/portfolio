@@ -48,6 +48,13 @@
       color: var(--ink); background: linear-gradient(180deg, var(--gold-soft), var(--gold)); padding: 3px 9px; border-radius: 999px; }
     .s-where { font-size: 13.5px; color: var(--brass); margin-top: 4px; }
     .s-bio { font-size: 14px; color: var(--parch-dim); line-height: 1.5; margin-top: 9px; }
+    /* social: follower badge + follow button */
+    .s-social-row { display: block; margin-top: 10px; }
+    .s-social-badge { display: inline-flex; align-items: center; gap: 6px; font-family: var(--label); font-size: 11.5px; letter-spacing: .03em;
+      padding: 4px 11px; border-radius: 999px; border: 1px solid var(--edge); background: var(--ink-2); color: var(--parch-dim); }
+    .s-social-badge .ms { color: var(--gold-soft); font-size: 12px; }
+    .followbtn.followed { color: var(--ink); background: linear-gradient(180deg, var(--gold-soft), var(--gold)); border-color: var(--gold-soft); }
+    .followbtn[disabled] { cursor: default; opacity: .85; }
     .openbadge { display: inline-flex; align-items: center; gap: 6px; font-family: var(--label); font-size: 12px; margin-top: 10px;
       padding: 5px 12px; border-radius: 999px; border: 1px solid var(--edge); background: var(--ink-2); color: var(--muted); }
     .openbadge.open { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 45%, var(--edge)); }
@@ -173,6 +180,7 @@
     const SOCIALS = { instagram: ['Instagram','ms-counter-lore'], facebook: ['Facebook','ms-counter-lore'], x: ['X','ms-counter-lore'], twitter: ['X','ms-counter-lore'], discord: ['Discord','ms-counter-lore'], tiktok: ['TikTok','ms-counter-lore'], youtube: ['YouTube','ms-counter-lore'] };
 
     let STORE = null, lbItems = [];
+    let sb = null, ME = null, SOCIAL = null, SLUG = '';   // SOCIAL = { followers, rank, followed } once loaded (null = hide badge + button)
     const initials = (s) => String(s || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || '?';
 
     function showState(icon, msg) { card.innerHTML = `<div class="state"><span class="big"><i class="ms ${icon}"></i></span>${esc(msg)}</div>`; }
@@ -207,8 +215,9 @@
       const q = [STORE.address, STORE.city, STORE.country].filter(Boolean).join(', ');
       return q ? 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q) : '';
     }
-    function actionsHtml() {
+    function actionsHtml(extra) {
       const out = [];
+      if (extra) out.push(extra);
       const map = mapHref(); if (map) out.push(`<a class="btn gold" href="${esc(map)}" target="_blank" rel="noopener"><i class="ms ms-counter-lore"></i> ${esc(tr('Directions'))}</a>`);
       const site = safeUrl(STORE.website); if (site) out.push(`<a class="btn" href="${esc(site)}" target="_blank" rel="noopener"><i class="ms ms-counter-lore"></i> ${esc(tr('Website'))}</a>`);
       if (STORE.whatsapp) out.push(`<a class="btn" href="https://wa.me/${encodeURIComponent(String(STORE.whatsapp).replace(/[^\d]/g, ''))}" target="_blank" rel="noopener"><i class="ms ms-counter-lore"></i> ${esc(tr('WhatsApp'))}</a>`);
@@ -245,6 +254,42 @@
         </div>`;
       }).join('');
       return `<div class="sec"><div class="sec-h"><i class="ms ms-counter-lore"></i> ${esc(tr('Upcoming events'))} <span class="n">${up.length}</span></div><div class="events">${cards}</div></div>`;
+    }
+
+    // social: follower count/rank badge + "My Stores" follow toggle (hidden entirely if SOCIAL never loaded)
+    function socialBadgeHtml() {
+      if (!SOCIAL) return '';
+      const n = Number(SOCIAL.followers) || 0, rank = Number(SOCIAL.rank) || 0;
+      const txt = rank > 0 ? tr('#{rank} · {n} collectors', { rank: rank, n: n }) : tr('{n} collectors', { n: n });
+      return `<div class="s-social-row" id="socialBadge"><span class="s-social-badge"><i class="ms ms-counter-lore" aria-hidden="true"></i> ${esc(txt)}</span></div>`;
+    }
+    function followBtnHtml() {
+      if (!SOCIAL) return '';
+      const followed = !!SOCIAL.followed;
+      const label = followed ? tr('✓ In My Stores') : tr('＋ Add to My Stores');
+      const titleTxt = ME ? (followed ? tr('Remove from My Stores') : tr('Add to My Stores')) : tr('Sign in on The Vault to save stores');
+      return `<button class="btn followbtn${followed ? ' followed' : ''}" id="followBtn" aria-pressed="${followed}" title="${esc(titleTxt)}"><i class="ms ms-counter-shield"></i> ${esc(label)}</button>`;
+    }
+    function refreshSocialUi() {   // re-render just the badge + button in place (no full re-render)
+      const badge = document.getElementById('socialBadge');
+      if (badge) badge.outerHTML = socialBadgeHtml();
+      const btn = document.getElementById('followBtn');
+      if (btn) { btn.outerHTML = followBtnHtml(); const nb = document.getElementById('followBtn'); if (nb) nb.addEventListener('click', toggleFollow); }
+    }
+    async function toggleFollow() {
+      const btn = document.getElementById('followBtn'); if (!btn || !SOCIAL) return;
+      if (!ME) { location.href = './'; return; }   // not signed in → send them to the app to sign in (same as d.html likes)
+      if (btn.dataset.busy) return; btn.dataset.busy = '1';
+      try {
+        const { data, error } = await sb.rpc('toggle_store_follow', { p_slug: SLUG });
+        if (!error && data) {
+          SOCIAL.followed = !!data.followed;
+          SOCIAL.followers = Number(data.count) || 0;
+          SOCIAL.rank = (data.rank == null) ? 0 : Number(data.rank);
+          refreshSocialUi();
+        }
+      } catch (e) {}
+      delete btn.dataset.busy;
     }
 
     // store inventory — every non-reserved card is for sale; art/list + search + binder filter
@@ -318,9 +363,10 @@
             ${owner ? `<div class="s-where">${tr('Run by {who}', { who: `<a href="u.html?u=${encodeURIComponent(owner)}">@${esc(owner)}</a>` })}</div>` : ''}
             ${s.bio ? `<div class="s-bio">${esc(s.bio)}</div>` : ''}
             ${os ? `<div class="openbadge ${os.open ? 'open' : ''}"><span class="dot"></span>${esc(os.open ? tr('Open now') : tr('Closed'))}${os.label ? ` <span class="todays">· ${esc(tr('today {hours}', { hours: os.label }))}</span>` : ''}</div>` : ''}
+            ${socialBadgeHtml()}
           </div>
         </div>
-        ${actionsHtml()}
+        ${actionsHtml(followBtnHtml())}
         ${eventsHtml(s.events)}
         ${inventoryHtml()}
         ${hoursHtml(s.hours)}
@@ -340,16 +386,29 @@
       }
       const is = document.getElementById('invSearch');
       if (is) is.addEventListener('input', e => { invQuery = e.target.value; invShown = 60; renderInv(); });
+      const fb = document.getElementById('followBtn'); if (fb) fb.addEventListener('click', toggleFollow);
     }
     document.getElementById('lbClose').addEventListener('click', closeLightbox);
     document.getElementById('lb').addEventListener('click', e => { if (e.target.id === 'lb') closeLightbox(); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
 
+    async function loadSocial() {   // followers/rank/followed — degrade gracefully if RPC isn't deployed
+      if (!sb || !SLUG) return;
+      try {
+        const { data, error } = await sb.rpc('get_store_social', { p_slug: SLUG });
+        if (error || !data || typeof data !== 'object') return;   // not deployed / nothing → leave SOCIAL null (badge + button stay hidden)
+        SOCIAL = { followers: Number(data.followers) || 0, rank: (data.rank == null) ? 0 : Number(data.rank), followed: !!data.followed };
+        render();   // re-render so the badge + follow button appear (they were absent on first paint when SOCIAL was null)
+      } catch (e) { /* RPC missing or failed → stay hidden, no UI */ }
+    }
+
     (async () => {
       const slug = new URLSearchParams(location.search).get('s');
       if (!slug) { showState('ms-counter-shield', tr('No store in this link.')); return; }
       if (!window.supabase) { showState('ms-counter-shield', tr('Could not load — please check your connection.')); return; }
-      const sb = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+      SLUG = slug;
+      sb = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+      try { const { data: { user } } = await sb.auth.getUser(); ME = user || null; } catch (e) { ME = null; }   // same-origin session (if signed in on the app) lets follows work
       try {
         const { data, error } = await sb.rpc('get_store_profile', { p_slug: slug });
         if (error) { showState('ms-counter-shield', tr('Could not load this store. It may have been removed.')); return; }
@@ -357,6 +416,7 @@
         STORE = data;
         document.title = (STORE.name || tr('A store')) + ' · The Vault';
         render();
+        loadSocial();   // after render; populates badge + button if RPC is available (fire-and-forget)
       } catch (e) { showState('ms-counter-shield', tr('Something went wrong loading this store.')); }
     })();
   </script>
