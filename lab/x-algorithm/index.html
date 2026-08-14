@@ -1,0 +1,1383 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The New Open-Source X Algorithm</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>document.documentElement.classList.add('js');</script>
+<style>
+:root{
+  /* Warm neutral ground. The cold blue-grey ramp was half the generated look. */
+  --bg:#0a0a09; --bg2:#0f0e0c; --panel:#131211; --panel2:#0e0d0c; --edge:#272420; --edge2:#3f3931;
+  --ink:#ece6da; --mut:#a8a091; --faint:#7b7466;
+
+  /* THE ACCENT LAW
+     --ock (mustard) carries every STRUCTURAL job: marks, rules, labels, emphasis.
+     --grn is reserved for LIVE state - if it moves when you touch it, it is green.
+     --grn-dim / --grn-glow are repointed at mustard on purpose, so any selector
+     missed in the sweep degrades warm instead of reintroducing the neon. */
+  --ock:#c9a227; --ock-dim:#8c7526;
+  --grn:#4cc389;   /* nudged off the stock spring-green; it is the live-state signal, not the theme */
+  --grn-dim:#c9a227; --grn-glow:rgba(201,162,39,.10);
+  --red:#d9635f; --red-dim:#dd8f8b; --amb:#e0902f;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+  --sans:'Archivo',system-ui,sans-serif;
+  --disp:'Instrument Serif',Georgia,'Times New Roman',serif;
+  --rad:0px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}
+body{
+  background:var(--bg); color:var(--ink); font:400 15.5px/1.62 var(--sans); counter-reset:sec;
+  -webkit-font-smoothing:antialiased; overflow-x:hidden;
+}
+/* ============ ATMOSPHERE: dithered wave field ============ */
+/* low-res canvas, scaled up hard so the ordered-dither pattern stays chunky */
+#dither{
+  position:fixed; inset:0; width:100%; height:100%;
+  z-index:0; pointer-events:none; display:block;
+  image-rendering:pixelated; image-rendering:crisp-edges;
+  opacity:.26;
+}
+/* readability wash — ::after so it paints OVER the canvas but under the content (z-index:1) */
+body::after{
+  content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(120% 80% at 50% 42%, rgba(10,10,9,.82) 0%, rgba(10,10,9,.5) 45%, transparent 78%),
+    radial-gradient(900px 520px at 10% -6%, rgba(201,162,39,.05), transparent 62%),
+    linear-gradient(180deg, rgba(10,10,9,.9) 0%, transparent 22%);
+}
+::selection{background:var(--ock);color:#0a0a09}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:#2b2721;border-radius:0;border:3px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:#3f3931}
+a{color:var(--ock);text-underline-offset:3px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px;position:relative;z-index:1}
+.mono{font-family:var(--mono)}
+.grn{color:var(--ock)} .red{color:var(--red)} .amb{color:var(--amb)} .mut{color:var(--mut)}
+
+/* ============ NAV ============ */
+nav{
+  position:sticky;top:0;z-index:50;background:#0a0a09;
+  border-bottom:1px solid var(--edge2);
+}
+.navin{max-width:1180px;margin:0 auto;padding:10px 28px;display:flex;gap:8px;align-items:center;overflow-x:auto;scrollbar-width:none}
+.navin::-webkit-scrollbar{display:none}
+.brand{font-family:var(--mono);font-weight:800;font-size:12px;letter-spacing:.08em;color:var(--ink);white-space:nowrap;margin-right:10px;text-decoration:none}
+.brand b{color:var(--ock)}
+.nl{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:var(--mut);
+  text-decoration:none;padding:5px 9px;border:1px solid transparent;border-radius:0;white-space:nowrap;
+  transition:color .15s,border-color .15s,background .15s;
+}
+.nl:hover{color:var(--ink);border-color:var(--edge2)}
+.nl.back{color:var(--faint);border-color:var(--edge);margin-right:4px}
+.nl.back:hover{color:var(--ock);border-color:var(--ock-dim)}
+.nl.active{color:var(--ock);border-color:var(--ock-dim);background:transparent}
+
+/* ============ HERO ============ */
+header{position:relative;z-index:1;padding:96px 0 72px;overflow:hidden}
+.typeline{font-family:var(--mono);font-size:11.5px;letter-spacing:.05em;color:var(--faint);white-space:nowrap;overflow:hidden}
+@keyframes typing{from{width:0}to{width:51ch}}
+@keyframes caret{0%,100%{border-color:transparent}50%{border-color:var(--grn)}}
+h1{
+  font-family:var(--disp);font-weight:400;font-size:clamp(46px,7vw,88px);
+  line-height:1.02;letter-spacing:-.005em;text-transform:none;margin:24px 0 20px;
+}
+/* the accent word carries the colour, nothing else - no block, no stroke */
+h1 .ghost{color:var(--ock)}
+.sub{max-width:52ch;color:var(--mut);font-size:16.5px}
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.chip{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:var(--ock);
+  border:1px solid var(--ock-dim);background:transparent;
+  padding:5px 10px;border-radius:0;
+}
+.chip.dim{color:var(--faint);border-color:var(--edge);background:transparent}
+.hero-grid{display:grid;grid-template-columns:1.4fr .8fr;gap:56px;align-items:start}
+.term{
+  background:var(--panel2);border:1px solid var(--edge2);border-radius:0;
+  font-family:var(--mono);font-size:12.5px;line-height:1.8;
+}
+.term .tbar{display:flex;gap:7px;padding:13px 16px;border-bottom:1px solid var(--edge)}
+.term .dot{width:7px;height:7px;border-radius:0;background:var(--edge2)}
+.term .tbody{padding:16px 20px}
+.term .c{color:var(--ock)} .term .w{color:var(--ink)} .term .m{color:var(--mut)} .term .f{color:var(--faint)}
+.blink{animation:caret 1.1s step-end infinite;border-right:.5em solid var(--ock-dim)}
+
+/* ============ SECTIONS ============ */
+section{padding:76px 0 22px;position:relative;z-index:1;counter-increment:sec}
+.kick{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--ock);margin-bottom:12px}
+.kick::before{content:"";display:block;width:38px;height:3px;background:var(--ock);margin-bottom:14px}
+h2{font-family:var(--disp);font-weight:400;font-size:clamp(28px,3.3vw,40px);letter-spacing:0;line-height:1.08;margin-bottom:14px}
+.lead{color:var(--mut);max-width:60ch;margin-bottom:30px}
+.lead b,.lead strong{color:var(--ink)}
+html.js .rv{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease}
+html.js .rv.in{opacity:1;transform:none}
+
+.card{background:transparent;border:0;border-top:2px solid var(--edge2);border-radius:0;padding:18px 0 0;transition:border-color .2s}
+.card:hover{border-color:var(--ock-dim)}
+.card h3{font-size:16px;font-weight:700;margin-bottom:12px}
+.card .tag{font-family:var(--mono);font-size:11.5px;font-weight:700;color:var(--ock);letter-spacing:.06em}
+.grid2{display:grid;grid-template-columns:1.15fr .85fr;gap:28px}
+.grid3{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:28px}
+ul.cl{list-style:none}
+ul.cl li{padding:7px 0 7px 20px;position:relative;color:var(--mut);font-size:14px}
+ul.cl li::before{content:"—";position:absolute;left:0;color:var(--ock-dim);font-weight:400}
+ul.cl li b{color:var(--ink);font-weight:600}
+.note{border-left:2px solid var(--ock);background:transparent;padding:10px 0 10px 18px;border-radius:0;color:var(--mut);font-size:14px;margin-top:22px}
+.note b{color:var(--ink)}
+.note.warn{border-color:var(--amb);background:transparent}
+.note.bad{border-color:var(--red);background:transparent}
+
+/* timeline (drop) */
+.tl{display:flex;flex-direction:column;gap:0}
+.tle{display:grid;grid-template-columns:22px 118px 1fr;gap:14px;padding:14px 0;position:relative}
+.tle .nd{width:7px;height:7px;border-radius:0;background:var(--edge2);margin-top:8px;position:relative;z-index:1}
+.tle.hot .nd{background:var(--ock);box-shadow:none}
+.tle::before{content:"";position:absolute;left:3px;top:20px;bottom:-8px;width:1px;background:var(--edge)}
+.tle:last-child::before{display:none}
+.tle .dt{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--mut);padding-top:2px}
+.tle.hot .dt{color:var(--ock)}
+.tle h4{font-size:15px;margin-bottom:3px}
+.tle p{color:var(--mut);font-size:13.5px}
+
+/* pipeline stepper */
+.steps{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.stepbtn{
+  font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.03em;
+  background:transparent;border:1px solid var(--edge2);color:var(--mut);
+  padding:9px 13px;border-radius:0;cursor:pointer;transition:color .16s,border-color .16s,background .16s;
+}
+.stepbtn:hover{color:var(--ink);border-color:var(--ock-dim)}
+.stepbtn.active{color:var(--bg);border-color:var(--ock);background:var(--ock)}
+.stepbtn .n{color:inherit;opacity:.55;margin-right:6px}
+.stage{background:var(--panel);border:1px solid var(--edge2);border-radius:0;padding:24px 26px;min-height:190px}
+.stage h3{font-size:19px;margin-bottom:6px}
+.stage .path{font-family:var(--mono);font-size:11px;color:var(--faint);margin-bottom:14px;display:block}
+.stage ul.cl li{font-size:14px}
+
+/* funnel */
+.funnel{margin-top:26px;display:flex;flex-direction:column;gap:9px}
+.frow{display:grid;grid-template-columns:1fr 200px;gap:16px;align-items:center}
+.fbar{height:32px;border-radius:0;background:rgba(201,162,39,.13);border:1px solid var(--ock-dim);display:flex;align-items:center;padding:0 14px;font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ink);width:24px;transition:width 1s cubic-bezier(.2,.7,.2,1);white-space:nowrap;overflow:hidden}
+.frow.final .fbar{background:var(--ock);border-color:var(--ock);color:var(--bg)}
+.fnote{font-family:var(--mono);font-size:10.5px;color:var(--faint)}
+
+/* keyval rows */
+.kv{display:grid;grid-template-columns:190px 1fr;gap:10px 18px;align-items:start}
+.kv dt{font-family:var(--mono);font-size:11.5px;font-weight:700;color:var(--ock);padding-top:3px}
+.kv dd{color:var(--mut);font-size:14px;padding-bottom:10px;border-bottom:1px solid var(--edge)}
+.kv dd:last-of-type,.kv dt:last-of-type{border:none}
+
+/* ============ SCORE LAB ============ */
+.lab{background:var(--panel);border:1px solid var(--edge2);border-radius:0;overflow:hidden}
+.labhead{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 24px;border-bottom:1px solid var(--edge);background:var(--panel2);flex-wrap:wrap}
+.labhead .t{font-family:var(--mono);font-weight:800;font-size:12.5px;letter-spacing:.14em;color:var(--ock)}
+.presets{display:flex;gap:8px;flex-wrap:wrap}
+.preset{font-family:var(--mono);font-size:11px;background:transparent;border:1px solid var(--edge2);color:var(--mut);padding:6px 11px;border-radius:0;cursor:pointer;transition:color .15s,border-color .15s}
+.preset:hover{color:var(--ock);border-color:var(--ock-dim)}
+.labbody{display:grid;grid-template-columns:1.1fr .9fr;gap:0}
+.labL{padding:24px 26px;border-right:1px solid var(--edge)}
+.labR{padding:24px 26px;background:var(--panel2)}
+.gh{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.14em;color:var(--faint);margin:18px 0 10px}
+.gh:first-child{margin-top:0}
+.sl{display:grid;grid-template-columns:150px 1fr 74px;gap:12px;align-items:center;padding:5px 0}
+.sl label{font-size:13px;color:var(--mut)}
+.sl output{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ink);text-align:right}
+input[type=range]{-webkit-appearance:none;appearance:none;height:3px;border-radius:0;background:#2a2620;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:13px;height:13px;border-radius:0;background:var(--grn);border:2px solid var(--bg);cursor:grab}
+input[type=range]::-moz-range-thumb{width:11px;height:11px;border-radius:0;background:var(--grn);border:2px solid var(--bg);cursor:grab}
+input[type=range].neg::-webkit-slider-thumb{background:var(--red);border-color:var(--bg)}
+input[type=range].neg::-moz-range-thumb{background:var(--red);border-color:var(--bg)}
+.tgl{display:flex;align-items:center;gap:10px;padding:7px 0;cursor:pointer;user-select:none}
+.tgl input{display:none}
+.tgl .sw{width:34px;height:18px;border-radius:0;background:#2a2620;position:relative;transition:background .18s;flex:none}
+.tgl .sw::after{content:"";position:absolute;top:3px;left:3px;width:12px;height:12px;border-radius:0;background:var(--mut);transition:all .18s}
+.tgl input:checked + .sw{background:rgba(76,195,137,.32)}
+.tgl input:checked + .sw::after{left:19px;background:var(--grn)}
+.tgl span.lb{font-size:13px;color:var(--mut)}
+.seg{display:inline-flex;border:1px solid var(--edge2);border-radius:0;overflow:hidden}
+.seg button{font-family:var(--mono);font-size:11.5px;font-weight:700;background:transparent;border:none;color:var(--mut);padding:7px 12px;cursor:pointer;border-right:1px solid var(--edge2)}
+.seg button:last-child{border-right:none}
+.seg button.active{background:var(--ock);color:var(--bg)}
+.scorebox{text-align:left;padding:6px 0 14px;border-bottom:1px solid var(--edge)}
+.scorebox .lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:var(--faint)}
+.scoreval{font-family:var(--mono);font-weight:800;font-size:54px;letter-spacing:-.02em;color:var(--grn);line-height:1.06}
+.scoreval.neg{color:var(--red)}
+.eq{font-family:var(--mono);font-size:11.5px;color:var(--mut);margin-top:4px}
+.posneg{display:flex;gap:22px;margin-top:12px;font-family:var(--mono);font-size:12px}
+.contrib{margin-top:16px}
+.crow{display:grid;grid-template-columns:118px 1fr 64px;gap:10px;align-items:center;padding:3px 0;font-size:12px}
+.crow .nm{color:var(--mut);font-family:var(--mono);font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crow .bar{height:8px;border-radius:0;background:var(--grn);opacity:.85;min-width:2px;transition:width .3s}
+.crow.neg .bar{background:var(--red)}
+.crow .vl{font-family:var(--mono);font-size:10.5px;color:var(--faint);text-align:right}
+.labfoot{padding:12px 24px;border-top:1px solid var(--edge);font-size:12px;color:var(--faint)}
+
+/* weights board */
+.wb{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.wrow{display:grid;grid-template-columns:172px 1fr 92px;gap:14px;align-items:center}
+.wrow .nm{font-size:13px;color:var(--mut);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wrow .nm b{color:var(--ink);font-weight:600}
+.wtrack{position:relative;height:20px;display:flex;align-items:center}
+.wtrack::before{content:"";position:absolute;left:26%;top:-4px;bottom:-4px;width:1px;background:var(--edge2)}
+.wbar{position:absolute;height:10px;border-radius:0;transition:width .5s cubic-bezier(.2,.7,.2,1)}
+.wbar.pos{left:calc(26% + 1px);background:var(--ock)}
+.wbar.neg{right:74%;background:var(--red)}
+.wrow .vv{font-family:var(--mono);font-size:12px;font-weight:700;text-align:left;color:var(--ock)}
+.wrow.negv .vv{color:var(--red)}
+.wrow.zero .vv{color:var(--faint)}
+.wnote{font-family:var(--mono);font-size:10px;color:var(--faint)}
+
+/* decay */
+.decay{display:grid;grid-template-columns:auto 1fr;gap:26px;align-items:center}
+.dval{font-family:var(--mono);font-weight:800;font-size:44px;color:var(--grn)}
+.dbar{height:12px;border-radius:0;background:var(--grn);transition:width .4s cubic-bezier(.2,.7,.2,1)}
+.dtrack{background:#1a1713;border-radius:0;padding:0;height:12px}
+
+/* boost timeline */
+.btl{position:relative;display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-top:34px}
+.btl::before{content:"";position:absolute;top:3px;left:6%;right:6%;height:1px;background:var(--edge2)}
+.bev{position:relative;padding-top:26px}
+.bev::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);width:7px;height:7px;border-radius:0;background:var(--ock)}
+.bev{text-align:center}
+.bev .d{font-family:var(--mono);font-size:11.5px;font-weight:800;color:var(--ock)}
+.bev h4{font-size:15px;margin:4px 0}
+.bev p{font-size:12.5px;color:var(--mut)}
+.bigswap{font-family:var(--disp);font-weight:400;font-size:clamp(34px,4.8vw,52px);letter-spacing:0;margin:6px 0 2px}
+.bigswap .from{color:var(--faint);text-decoration:line-through;text-decoration-color:rgba(217,99,95,.75);text-decoration-thickness:3px}
+.bigswap .arr{color:var(--faint);font-weight:400;margin:0 10px}
+.bigswap .to{color:var(--ock)}
+
+/* shelf life */
+.shelf{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.srow{display:grid;grid-template-columns:196px 1fr 118px;gap:14px;align-items:center}
+.srow .nm{font-size:13.5px;color:var(--mut);text-align:right}
+.strack{background:#181613;border-radius:0;height:20px;position:relative;overflow:hidden}
+.sbar{position:absolute;left:0;top:0;bottom:0;border-radius:0;background:var(--ock-dim);width:0;transition:width 1s cubic-bezier(.2,.7,.2,1)}
+.srow.hot .sbar{background:var(--ock)}
+.srow .vv{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ock)}
+.axis{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--faint);margin-top:6px;padding-left:210px;padding-right:132px}
+
+/* tabs */
+.tabs{display:flex;gap:8px;margin-bottom:16px}
+.tab{font-family:var(--mono);font-size:11.5px;font-weight:700;background:transparent;border:1px solid var(--edge2);color:var(--mut);padding:9px 15px;border-radius:0;cursor:pointer;transition:color .15s,background .15s,border-color .15s}
+.tab.active{color:var(--bg);border-color:var(--ock);background:var(--ock)}
+.tab.red.active{color:var(--bg);border-color:var(--red);background:var(--red)}
+.tabpanel{display:none}
+.tabpanel.show{display:block}
+
+/* accordions */
+details.acc{background:transparent;border:0;border-bottom:1px solid var(--edge);border-radius:0;margin-bottom:0;overflow:hidden}
+details.acc summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:14px;padding:15px 0;transition:background .15s}
+details.acc summary::-webkit-details-marker{display:none}
+details.acc summary:hover{background:rgba(236,230,218,.03)}
+details.acc summary .tg{font-family:var(--mono);font-size:12.5px;font-weight:800;color:var(--ock);min-width:120px}
+details.acc summary .tg.red{color:var(--red)}
+details.acc summary .hint{font-size:12.5px;color:var(--faint);font-style:italic;flex:1}
+details.acc summary .pm{font-family:var(--mono);color:var(--faint);transition:transform .2s}
+details.acc[open] summary .pm{transform:rotate(45deg)}
+details.acc .accbody{padding:0 0 18px;color:var(--mut);font-size:14px}
+details.acc .accbody b{color:var(--ink)}
+
+/* myths */
+.myths{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.myth{background:transparent;border:0;border-top:2px solid var(--edge2);border-radius:0;padding:16px 0 18px;cursor:pointer;text-align:left;color:inherit;font:inherit;transition:border-color .2s}
+.myth:hover{border-color:var(--red-dim)}
+.myth .q{font-size:15px;font-weight:700;color:var(--red-dim);font-style:italic}
+.myth .hintline{font-family:var(--mono);font-size:10px;color:var(--faint);margin-top:8px;letter-spacing:.08em}
+.myth .a{max-height:0;overflow:hidden;transition:max-height .35s ease,margin .35s ease;color:var(--mut);font-size:13.5px}
+.myth.open{border-color:var(--ock)}
+.myth.open .a{max-height:180px;margin-top:12px}
+.myth.open .hintline{display:none}
+.myth .a b{color:var(--ock)}
+
+.qt{font-family:var(--mono);font-size:9px;font-weight:800;letter-spacing:.1em;color:var(--amb);border:1px solid var(--amb);border-radius:0;padding:2px 6px;margin-left:8px;vertical-align:2px;white-space:nowrap}
+/* url gauntlet */
+.grades{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0 26px}
+.grade{border-radius:0;padding:12px 0 0;border:0;border-top:2px solid var(--edge);background:transparent}
+.grade .g{font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:.06em}
+.grade p{font-size:11.5px;color:var(--mut);margin-top:5px}
+.grade.safe{border-color:var(--grn)} .grade.safe .g{color:var(--grn)}
+.grade.warn{border-color:var(--amb)} .grade.warn .g{color:var(--amb)}
+.grade.bad{border-color:var(--red)} .grade.bad .g{color:var(--red)}
+.usim{background:var(--panel);border:1px solid var(--edge2);border-radius:0;padding:24px 26px}
+.uctl{display:flex;gap:26px;flex-wrap:wrap;align-items:center;margin-bottom:22px}
+.uctl .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--faint);display:block;margin-bottom:7px}
+.uchain{display:flex;align-items:center;gap:0;flex-wrap:wrap;margin:6px 0 20px}
+.hop{border-radius:0;border:1px solid var(--edge2);background:var(--panel2);padding:10px 16px;text-align:center;min-width:110px}
+.hop .hn{font-family:var(--mono);font-size:11.5px;font-weight:700;color:var(--ink)}
+.hop .hv{font-family:var(--mono);font-size:9px;font-weight:800;letter-spacing:.08em;margin-top:3px}
+.hop.safe{border-color:var(--grn)} .hop.safe .hv{color:var(--grn)}
+.hop.warn{border-color:var(--amb)} .hop.warn .hv{color:var(--amb)}
+.hop.bad{border-color:var(--red);background:transparent} .hop.bad .hv{color:var(--red)}
+.hop.neu .hv{color:var(--faint)}
+.harrow{font-family:var(--mono);color:var(--faint);padding:0 10px}
+.uout{border-radius:0;padding:16px 0 0;border:0;border-top:2px solid var(--edge)}
+.uout.ok{border-color:var(--grn);background:transparent}
+.uout.warn{border-color:var(--amb);background:transparent}
+.uout.bad{border-color:var(--red);background:transparent}
+.uout h4{font-size:15px;margin-bottom:6px}
+.uout.ok h4{color:var(--grn)} .uout.warn h4{color:var(--amb)} .uout.bad h4{color:var(--red-dim)}
+.uout p{font-size:13px;color:var(--mut)}
+.uout .pens{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+@media(max-width:940px){.grades{grid-template-columns:1fr 1fr}}
+/* hard nos */
+.nonos{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.nono{background:transparent;border:0;border-left:2px solid var(--red);border-radius:0;padding:4px 0 4px 18px;transition:border-color .2s}
+.nono:hover{border-color:var(--red-dim)}
+.nono .x{font-family:var(--mono);font-weight:800;font-size:17px;color:var(--red);margin-right:9px}
+.nono h4{display:inline;font-size:15px;color:var(--red-dim)}
+.nono p{font-size:13px;color:var(--mut);margin-top:9px}
+.nono p b{color:var(--ink)}
+.pen{display:inline-block;font-family:var(--mono);font-size:9.5px;font-weight:800;letter-spacing:.06em;color:var(--red);border:1px solid var(--red);background:transparent;border-radius:0;padding:2px 7px;margin-top:11px}
+@media(max-width:940px){.nonos{grid-template-columns:1fr}}
+/* playbook */
+.pb{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pbi{display:flex;gap:14px;background:transparent;border:0;border-top:1px solid var(--edge);border-radius:0;padding:14px 0;cursor:pointer;transition:border-color .2s}
+.pbi:hover{border-color:var(--ock-dim)}
+.pbi input{display:none}
+.pbi .box{flex:none;width:20px;height:20px;border-radius:0;border:1px solid var(--edge2);margin-top:2px;display:grid;place-items:center;font-family:var(--mono);font-weight:800;color:var(--bg);font-size:12px;transition:all .15s}
+.pbi input:checked ~ .box{background:var(--grn);border-color:var(--grn)}
+.pbi input:checked ~ .box::after{content:"✓"}
+.pbi h4{font-size:14px;margin-bottom:3px}
+.pbi p{font-size:12.5px;color:var(--mut)}
+.pbi input:checked ~ div h4{color:var(--ock)}
+.pbmeter{display:flex;align-items:center;gap:16px;margin:20px 0 24px}
+.pbtrack{flex:1;height:6px;border-radius:0;background:#1a1713;overflow:hidden}
+.pbfill{height:100%;width:0;border-radius:0;background:var(--grn);transition:width .35s}
+.pbcount{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--grn)}
+
+/* footer */
+footer{padding:70px 0 60px;border-top:1px solid var(--edge);margin-top:80px;position:relative;z-index:1}
+.files{display:grid;grid-template-columns:1.2fr 1fr;gap:8px 34px;margin-top:16px}
+.file{display:flex;gap:12px;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--edge);text-decoration:none}
+.file .fp{font-family:var(--mono);font-size:11.5px;font-weight:700;color:var(--ock)}
+.file .fd{font-size:12.5px;color:var(--faint)}
+.file:hover .fp{color:var(--ink)}
+.endline{margin-top:44px;font-family:var(--mono);font-size:11px;color:var(--faint)}
+
+/* readouts that recompute on every keystroke must not reflow horizontally */
+.sl output,.crow .vl,.wrow .vv,.srow .vv,.pbcount,.scoreval,.dval,.eq,.fnote,.kv dt{font-variant-numeric:tabular-nums}
+/* paste-up stagger - desktop only, so it cannot disturb the stacked mobile layout */
+@media(min-width:941px){ .myth:nth-child(even){margin-top:26px} }
+/* section numerals hung in the left margin, only where there is margin to hang them in */
+@media(min-width:1360px){
+  section::before{
+    content:counter(sec,decimal-leading-zero);
+    position:absolute;top:80px;left:calc(50% - 590px - 54px);
+    font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--edge2);
+  }
+}
+@media(max-width:940px){
+  .hero-grid,.labbody,.grid3,.grid2,.myths,.pb,.files{grid-template-columns:1fr}
+  .labL{border-right:none;border-bottom:1px solid var(--edge)}
+  .kv{grid-template-columns:130px 1fr}
+  .btl{grid-template-columns:1fr;gap:26px}
+  .btl::before{display:none}
+  .srow{grid-template-columns:120px 1fr 92px}
+  .srow .nm{font-size:11.5px}
+  .axis{padding-left:134px;padding-right:106px}
+  .wrow{grid-template-columns:120px 1fr 74px}
+  .sl{grid-template-columns:110px 1fr 62px}
+  .seg button{padding:7px 9px;font-size:10.5px}
+  .typeline{width:auto;white-space:normal;border-right:none;animation:none}
+}
+</style>
+</head>
+<body>
+
+<canvas id="dither" aria-hidden="true"></canvas>
+
+<nav>
+  <div class="navin">
+    <a class="nl back" href="/lab/">&#8592; Lab</a>
+    <a class="brand" href="#top">x-algorithm<b>/</b></a>
+    <a class="nl" href="#drop">#drop</a>
+    <a class="nl" href="#pipeline">#pipeline</a>
+    <a class="nl" href="#lab">#score-lab</a>
+    <a class="nl" href="#weights">#weights</a>
+    <a class="nl" href="#boost">#mutual-boost</a>
+    <a class="nl" href="#shelf">#shelf-life</a>
+    <a class="nl" href="#labels">#labels</a>
+    <a class="nl" href="#rules">#rulebook</a>
+    <a class="nl" href="#myths">#myths</a>
+    <a class="nl" href="#hardnos">#hard-nos</a>
+    <a class="nl" href="#urls">#url-rules</a>
+    <a class="nl" href="#dotoday">#do-today</a>
+    <a class="nl" href="#playbook">#playbook</a>
+    <a class="nl" href="#verify">#verify</a>
+  </div>
+</nav>
+
+<header id="top">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="typeline">$ git clone https://github.com/xai-org/x-algorithm</div>
+      <h1>The New<br><span class="ghost">Open-Source</span><br>X Algorithm</h1>
+      <p class="sub">On August 13, 2026, xAI released the X algorithm as open source, documenting in detail how the whole system decides what you see. This page is a summary of that drop and a quick reference for anything to do with how X ranks, filters and labels a post.</p>
+      <div class="chips">
+        <span class="chip">weights synced 2026-08-12</span>
+        <span class="chip dim">commit a389166</span>
+        <span class="chip dim">2,014 files · Rust + JAX + Scala</span>
+      </div>
+    </div>
+    <div class="term rv">
+      <div class="tbar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+      <div class="tbody">
+        <div class="c">$ git log --oneline</div>
+        <div class="w">a389166&nbsp;&nbsp;2026-08-13&nbsp;&nbsp;&lt;- this page</div>
+        <div class="m">0bfc279&nbsp;&nbsp;2026-05-15</div>
+        <div class="m">aaa167b&nbsp;&nbsp;2026-01-20&nbsp;&nbsp;first drop</div>
+        <div class="c" style="margin-top:12px">$ ls</div>
+        <div class="m">home-mixer/&nbsp;&nbsp;&nbsp;phoenix/&nbsp;&nbsp;&nbsp;grox/</div>
+        <div class="m">thunder/&nbsp;&nbsp;simclusters/&nbsp;&nbsp;vm-ranker/</div>
+        <div class="m">visibility-filtering/ ...</div>
+        <div class="c" style="margin-top:12px"><span class="blink">$</span></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ================= DROP ================= -->
+<section id="drop">
+  <div class="wrap">
+    <div class="kick">// THE DROP</div>
+    <h2 class="rv">What August 13 actually released</h2>
+    <p class="lead rv">Three drops so far. The first two showed the plumbing. This one shipped the parts that matter: the production weights, the real model, and the moderation stack.</p>
+    <div class="grid3">
+      <div class="card rv">
+        <h3>Timeline</h3>
+        <div class="tl">
+          <div class="tle"><span class="nd"></span><span class="dt">2026-01-20</span><div><h4>Initial open-sourcing</h4><p>Pipeline code, demo model derived from Grok-1. No weights.</p></div></div>
+          <div class="tle"><span class="nd"></span><span class="dt">2026-05-15</span><div><h4>Refresh</h4><p>Incremental sync of the same scope.</p></div></div>
+          <div class="tle hot"><span class="nd"></span><span class="dt">2026-08-13</span><div><h4>The real thing</h4><p>+363k lines: weights, Phoenix training and serving code, the whole labeling stack.</p></div></div>
+        </div>
+      </div>
+      <div class="card rv">
+        <h3><span class="grn">Now public</span></h3>
+        <ul class="cl">
+          <li><b>Production scoring weights</b>, auto-synced from prod config (param.rs)</li>
+          <li><b>Phoenix</b>: real training + serving code (JAX + Rust), with synthetic data to run it yourself</li>
+          <li><b>Visibility filtering</b>: the full two-tier rulebook</li>
+          <li><b>Grok classifiers</b> (grox), media models, reputation systems (agatha, bdsm, user-cred-v2)</li>
+          <li><b>SimClusters</b> + retrieval index machinery</li>
+          <li><b>Under the Hood</b> transparency tool: <a href="https://x.com/i/under_the_hood" target="_blank" rel="noopener">x.com/i/under_the_hood</a></li>
+        </ul>
+      </div>
+      <div class="card rv">
+        <h3><span class="red">Still withheld</span></h3>
+        <ul class="cl">
+          <li>The Grok classifier <b>prompts</b> (.j2 templates)</li>
+          <li><b>Most botmaker spam rules</b> (20 published; rule IDs visibly span past 25,000)</li>
+          <li><b>Bot-detection thresholds</b>, redacted as the sentinel value 9.99</li>
+        </ul>
+        <p style="margin-top:14px;font-size:12.5px;color:var(--faint);font-style:italic">Stated reason: reduce gameability.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PIPELINE ================= -->
+<section id="pipeline">
+  <div class="wrap">
+    <div class="kick">// home-mixer/</div>
+    <h2 class="rv">One feed load, end to end</h2>
+    <p class="lead rv">Click through the six stages. <b>Ranking decides the order</b>; whether a post can appear at all is a separate system (visibility filtering), fed by labels computed off the request path.</p>
+    <div class="steps rv" id="stepbtns"></div>
+    <div class="stage rv" id="stagebox"></div>
+
+    <div class="funnel rv" id="funnel">
+      <div class="frow"><div class="fbar" data-w="100">~3,000 sourced</div><span class="fnote">1,200 Thunder + 1,000 retrieval + 800 SimClusters</span></div>
+      <div class="frow"><div class="fbar" data-w="78">survive pre-scoring filters</div><span class="fnote">age, seen, muted, OON replies/RTs...</span></div>
+      <div class="frow"><div class="fbar" data-w="78">all scored by Phoenix</div><span class="fnote">one forward pass, per viewer</span></div>
+      <div class="frow"><div class="fbar" data-w="30">top 50 selected</div><span class="fnote">by final adjusted score</span></div>
+      <div class="frow"><div class="fbar" data-w="28">visibility filtering + dedup</div><span class="fnote">per-viewer rules · one branch per thread</span></div>
+      <div class="frow final"><div class="fbar" data-w="19">35 posts served</div><span class="fnote">+ ads, Who to Follow at slot 6, prompts</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SOURCES + VIEWER + FILTERS ================= -->
+<section id="sources">
+  <div class="wrap">
+    <div class="kick">// thunder/ · phoenix/ retrieval · simclusters/</div>
+    <h2 class="rv">Where candidates come from</h2>
+    <div class="grid3" style="margin-top:26px">
+      <div class="card rv">
+        <span class="tag">THUNDER</span>
+        <p style="font-size:12px;color:var(--faint);font-style:italic;margin:4px 0 12px">in-network · up to 1,200</p>
+        <ul class="cl">
+          <li>In-memory store of the last <b>48 hours</b> of everyone's posts</li>
+          <li>Read for the accounts you follow, reverse-chronological, unscored</li>
+          <li>Per-author read caps: <b>50 originals, 30 replies + reposts, 100 videos</b></li>
+        </ul>
+      </div>
+      <div class="card rv">
+        <span class="tag">PHOENIX RETRIEVAL</span>
+        <p style="font-size:12px;color:var(--faint);font-style:italic;margin:4px 0 12px">out-of-network · up to 1,000</p>
+        <ul class="cl">
+          <li>Two-tower model: your history becomes one vector, dot product against <b>10-28M post embeddings</b></li>
+          <li>Main corpus: posts with <b>at least 1 fav in the last 24h</b></li>
+          <li>A post is its <b>semantic IDs + author hashes</b>. No post-ID embedding: pure content + author similarity</li>
+        </ul>
+      </div>
+      <div class="card rv">
+        <span class="tag">SIMCLUSTERS</span>
+        <p style="font-size:12px;color:var(--faint);font-style:italic;margin:4px 0 12px">out-of-network · up to 800</p>
+        <ul class="cl">
+          <li><b>145,000 communities</b> computed weekly from the follow graph</li>
+          <li>Seeds: posts you recently engaged with. Returns posts co-liked by the same communities</li>
+          <li>Cluster affinity decays with an <b>8h half-life</b>; ~8+ favs to register; posts &lt; 48h, score &gt; 0.5</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="grid2" style="margin-top:18px">
+      <div class="card rv">
+        <h3>What the model knows about the viewer</h3>
+        <dl class="kv" style="margin-top:6px">
+          <dt>behavior</dt><dd>the last <b style="color:var(--ink)">1,024 engagement actions</b>: which post, which author, which action, dwell, hour of day</dd>
+          <dt>explicit</dt><dd>last 15 each of favs, replies, reposts, bookmarks, shares</dd>
+          <dt>implicit</dt><dd>last 15 each of photo expands and 10s+ video views</dd>
+          <dt>profile</dt><dd>country, language, geo from IP, age bracket, stated + inferred gender, <b style="color:var(--ink)">installed apps</b> (WhatsApp, Discord, TikTok, Twitch, ChatGPT, Grok...)</dd>
+        </dl>
+        <div class="note">Personalization is almost entirely behavioral. <b>No interest tags, no keyword profile, no follower-count feature.</b></div>
+      </div>
+      <div class="card rv">
+        <h3>Killed before scoring</h3>
+        <dl class="kv" style="margin-top:6px">
+          <dt>AgeFilter</dt><dd>older than <b style="color:var(--ink)">48 hours</b>. A hard wall</dd>
+          <dt>OONRetweetReply</dt><dd>replies + reposts from accounts you don't follow: dropped entirely</dd>
+          <dt>Seen / Served</dt><dd>anything already seen; last 100 served posts within 10 minutes</dd>
+          <dt>MutedKeyword</dt><dd>case-insensitive, contiguous-phrase match</dd>
+          <dt>Socialgraph</dt><dd>authors you block or mute, and authors who block you</dd>
+        </dl>
+        <div class="note bad">For You is a <b>48-hour marketplace</b>, and plain retweets contribute nothing to non-follower reach.</div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ================= SCORE LAB ================= -->
+<section id="lab">
+  <div class="wrap">
+    <div class="kick">// ranking_scorer.rs, runnable</div>
+    <h2 class="rv">The Score Lab</h2>
+    <p class="lead rv">The real formula with the real production weights: <span class="mono grn" style="font-size:13px">score = Σ weight × P(action)</span>, then the offset, same-author decay and the OON discount, exactly as the code applies them. Drag the probabilities and watch what the feed would do.</p>
+
+    <div class="lab rv">
+      <div class="labhead">
+        <span class="t">SCORE_LAB v1 · weights of 2026-08-12</span>
+        <div class="presets">
+          <button class="preset" data-preset="clip">▸ clip that travels</button>
+          <button class="preset" data-preset="link">▸ link dump</button>
+          <button class="preset" data-preset="bait">▸ rage bait</button>
+          <button class="preset" data-preset="mutual">▸ mutuals magnet</button>
+        </div>
+      </div>
+      <div class="labbody">
+        <div class="labL">
+          <div class="gh">ENGAGEMENT · P(action) %</div>
+          <div id="slidersPos"></div>
+          <div class="gh">ATTENTION</div>
+          <div id="slidersAtt"></div>
+          <div class="gh">NEGATIVE SIGNALS · P(action) %</div>
+          <div id="slidersNeg"></div>
+        </div>
+        <div class="labR">
+          <div class="scorebox">
+            <div class="lbl">FINAL SCORE</div>
+            <div class="scoreval" id="scoreOut">0.000</div>
+            <div class="eq" id="scoreEq"></div>
+            <div class="posneg">
+              <span class="grn">+ <span id="posOut">0</span> positive</span>
+              <span class="red">− <span id="negOut">0</span> negative</span>
+            </div>
+          </div>
+          <div class="gh" style="margin-top:16px">CONTEXT</div>
+          <label class="tgl"><input type="checkbox" id="tMutual"><span class="sw"></span><span class="lb">Mutual-follow author, original post <span class="mono grn">reply w 5→20</span></span></label>
+          <label class="tgl"><input type="checkbox" id="tOon"><span class="sw"></span><span class="lb">Out-of-network viewer (or in-network reply/repost) <span class="mono red">×0.75</span></span></label>
+          <label class="tgl"><input type="checkbox" id="tTopic"><span class="sw"></span><span class="lb">Topic feed <span class="mono red">×0.5</span> (overrides ×0.75)</span></label>
+          <div style="display:flex;align-items:center;gap:12px;margin:10px 0 4px;flex-wrap:wrap">
+            <span class="lb" style="font-size:13px;color:var(--mut)">Your Nth post in this load</span>
+            <div class="seg" id="segN">
+              <button data-n="0" class="active">1st</button><button data-n="1">2nd</button><button data-n="2">3rd</button><button data-n="3">4th</button><button data-n="4">5th</button>
+            </div>
+          </div>
+          <div class="wnote" id="multsOut" style="margin-top:8px"></div>
+          <div class="gh" style="margin-top:18px">CONTRIBUTIONS</div>
+          <div class="contrib" id="contrib"></div>
+        </div>
+      </div>
+      <div class="labfoot">Probabilities here are illustrative; in production Phoenix predicts them per viewer from their last 1,024 actions. Negative weights already price in how rare those actions are.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= WEIGHTS ================= -->
+<section id="weights">
+  <div class="wrap">
+    <div class="kick">// home-mixer/params/param.rs</div>
+    <h2 class="rv">Every weight on the board</h2>
+    <p class="lead rv">Square-root scale so the small ones stay visible. Toggle the mutual-follow condition to see the reply weight jump.</p>
+    <label class="tgl rv" style="margin-bottom:10px"><input type="checkbox" id="wMutual"><span class="sw"></span><span class="lb">Viewer mutually follows the author, post is an original</span></label>
+    <div class="wb rv" id="wboard"></div>
+    <div class="note warn rv" style="max-width:820px"><b>Caveat, straight from the code comment:</b> weights bake in value AND typical propensity. Copy-link is weighted 40× a fav partly because it is ~40× rarer. Directionally: shares &gt; replies &gt; reposts &gt; likes.</div>
+  </div>
+</section>
+
+<!-- ================= ADJUSTMENTS / DECAY ================= -->
+<section id="adjust">
+  <div class="wrap">
+    <div class="kick">// after the sum</div>
+    <h2 class="rv">Same-author decay, live</h2>
+    <div class="grid2" style="margin-top:24px">
+      <div class="card rv">
+        <h3>multiplier = 0.75 × 0.5<sup>k</sup> + 0.25</h3>
+        <p style="font-size:13px;color:var(--mut);margin-bottom:16px">k = how many of your posts rank above this one in the same pool. Pick your post:</p>
+        <div class="seg" id="segDecay">
+          <button data-k="0" class="active">1st</button><button data-k="1">2nd</button><button data-k="2">3rd</button><button data-k="3">4th</button><button data-k="4">5th</button><button data-k="5">6th</button>
+        </div>
+        <div class="decay" style="margin-top:22px">
+          <div class="dval" id="decayVal">100%</div>
+          <div class="dtrack"><div class="dbar" id="decayBar" style="width:100%"></div></div>
+        </div>
+        <p style="font-size:12.5px;color:var(--faint);margin-top:14px">Floor is 25%. Your posts compete inside one load; they never stack. Thread dedup then keeps only your best-scoring branch.</p>
+      </div>
+      <div class="card rv">
+        <h3>The other two adjustments</h3>
+        <dl class="kv" style="margin-top:8px">
+          <dt>OON ×0.75</dt><dd>posts from non-followed accounts, AND replies/reposts from followed accounts. Topic feeds: ×0.5</dd>
+          <dt>negative floor</dt><dd>a net-negative sum is squashed into a band just above zero (offset 0.001): bad posts sink rather than being excluded by score</dd>
+          <dt>cold start</dt><dd>one original from a ≤1,000-follower author (&lt;24h, &lt;1,000 views) gets lifted to <b style="color:var(--ink)">slot ~15-16</b> per eligible load</dd>
+          <dt>DPP rerank</dt><dd>a determinantal point process trades a little score for less similarity between neighbors (theta 0.65, top 150)</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= BOOST ================= -->
+<section id="boost">
+  <div class="wrap">
+    <div class="kick">// docs/BIDIRECTIONAL_BOOST_CHANGE.md</div>
+    <h2 class="rv">Case study: the mutual-follow boost</h2>
+    <p class="lead rv">Reply weight on <b>original posts from mutual follows</b>. Not replies, not reposts. xAI published this change with full diffs as the template for how future updates will appear.</p>
+    <div class="bigswap rv"><span class="from">5.0</span><span class="arr">→</span><span class="to">20.0</span><span class="mono" style="font-size:13px;color:var(--faint);margin-left:14px">4× on the reply term</span></div>
+    <div class="btl rv">
+      <div class="bev"><span class="d">JUL 10</span><h4>A/B test starts</h4><p>Random users get +5, +10, +15 or +20. Most stay at 0.</p></div>
+      <div class="bev"><span class="d">JUL 13</span><h4>Shipped at +20</h4><p>Rolled out broadly after strong early results.</p></div>
+      <div class="bev"><span class="d">JUL 24</span><h4>Dialed to +15</h4><p>World Cup feedback: discussion from non-followed accounts was getting crowded out.</p></div>
+    </div>
+    <div class="grid2" style="margin-top:34px">
+      <div class="card rv">
+        <h3>Training wheels for small accounts</h3>
+        <ul class="cl">
+          <li><b>Cold-start audition:</b> one original per load lifted to slot ~15-16 (author ≤1,000 followers, post &lt;24h, &lt;1,000 views)</li>
+          <li><b>TAIL index:</b> a retrieval corpus reserved for authors under 1,000 followers</li>
+          <li><b>Exploration head:</b> posts under 3% follower reach in 24h earn a learned bonus (weight 0.02, in-network)</li>
+        </ul>
+        <div class="note">Launching a new account is mechanically easier than folklore says, <b>if the early posts convert their audition impressions.</b></div>
+      </div>
+      <div class="card rv">
+        <h3>Negative feedback, in fav units</h3>
+        <div style="display:flex;gap:26px;flex-wrap:wrap;margin-top:8px">
+          <div><div class="mono red" style="font-size:40px;font-weight:800">118</div><div style="font-size:12px;color:var(--mut)">favs erased by one expected mute</div></div>
+          <div><div class="mono red" style="font-size:40px;font-weight:800">468</div><div style="font-size:12px;color:var(--mut)">favs erased by one expected report</div></div>
+          <div><div class="mono red" style="font-size:40px;font-weight:800">2×</div><div style="font-size:12px;color:var(--mut)">a mute hurts about twice a block</div></div>
+        </div>
+        <div class="note bad" style="margin-top:18px">These are per-viewer predictions: the model learns <b>which audiences</b> would mute you. Reach into the wrong crowd poisons distribution while the like counter goes up.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SHELF LIFE ================= -->
+<section id="shelf">
+  <div class="wrap">
+    <div class="kick">// phoenix-rankall index windows · log scale</div>
+    <h2 class="rv">OON shelf life: video is a different asset class</h2>
+    <p class="lead rv">How long a post stays a retrieval candidate for people who don't follow you. Originals only: replies, reposts and community posts never enter these indexes. Re-indexing fires when favs cross 1, 2, 4, 8, 16...</p>
+    <div class="shelf rv">
+      <div class="srow"><span class="nm">32fav · post_creation · tail</span><div class="strack"><div class="sbar" data-h="24"></div></div><span class="vv">24h</span></div>
+      <div class="srow"><span class="nm">1fav (main corpus)</span><div class="strack"><div class="sbar" data-h="48"></div></div><span class="vv">24-48h</span></div>
+      <div class="srow"><span class="nm">imagine (Grok media)</span><div class="strack"><div class="sbar" data-h="96"></div></div><span class="vv">4 days</span></div>
+      <div class="srow hot"><span class="nm">video (&gt;10s)</span><div class="strack"><div class="sbar" data-h="720"></div></div><span class="vv">up to 30 days</span></div>
+      <div class="srow hot"><span class="nm">evergreen video</span><div class="strack"><div class="sbar" data-h="43800"></div></div><span class="vv">5 YEARS</span></div>
+    </div>
+    <div class="axis rv"><span>24h</span><span>1 week</span><span>1 month</span><span>1 year</span><span>5y</span></div>
+    <div class="note rv" style="max-width:760px">A text or image post is an OON candidate for <b>1-2 days</b>. A &gt;10s video: <b>up to 30 days</b>, and evergreen video for <b>years</b>. Cutting content to video is a shelf-life decision, and the 10 seconds are strict.</div>
+  </div>
+</section>
+<!-- ================= LABELS ================= -->
+<section id="labels">
+  <div class="wrap">
+    <div class="kick">// grox/ · agatha/ · bdsm/ · user-cred-v2/</div>
+    <h2 class="rv">Grok reads every post</h2>
+    <p class="lead rv">Off the request path, continuously: <span class="mono" style="font-size:12.5px">post published → category screen (10 safety categories) → policy classifiers → labels</span>. The labels come back at serve time as the visibility rulebook.</p>
+    <div style="margin-top:8px">
+      <details class="acc rv"><summary><span class="tg">escalation</span><span class="hint">bigger posts get bigger models</span><span class="pm">+</span></summary><div class="accbody">Posts crossing <b>128 favs</b> get re-checked by a bigger Grok model; at <b>1,024 favs</b>, bigger still (adult / violent-media categories). Reach buys scrutiny, never immunity.</div></details>
+      <details class="acc rv"><summary><span class="tg red">the big trap</span><span class="hint">engagement bait is a labeled offense</span><span class="pm">+</span></summary><div class="accbody">Engagement <b>baiting</b> ("reply if / like if / RT if") and engagement <b>farming</b> are classified per post → <b>SPAM_HIGH_RECALL</b>: invisible to all non-followers for the label's duration. High-reputation accounts are <b>not exempt</b> from this one.</div></details>
+      <details class="acc rv"><summary><span class="tg">replies</span><span class="hint">Grok scores those too</span><span class="pm">+</span></summary><div class="accbody">A reply scored 0 by Grok gets <b>RiskyHighVizReply</b> for 14 days: demoted in reply ranking. Substantive replies from brand accounts; never drive-by promo.</div></details>
+      <details class="acc rv"><summary><span class="tg">quality pass</span><span class="hint">yes, there is a slop score</span><span class="pm">+</span></summary><div class="accbody">Grox writes tags, topics, <b>isHighQuality</b> and a <b>slop_score</b> per post. The slop_score has no visible consumer in the repo yet: plumbing installed, consequences pending.</div></details>
+      <details class="acc rv"><summary><span class="tg">reputation</span><span class="hint">four systems that decide what sticks to you</span><span class="pm">+</span></summary><div class="accbody"><b>agatha</b>: blocks/reports relative to favs received, extreme percentiles (&gt;0.9975) → spam labels. <b>bdsm</b>: a behavior transformer reading raw action cadence, 8 bot archetypes, thresholds redacted. <b>user-cred-v2</b>: PageRank over the follow graph; score ≥54 (fallback &gt;25k followers) exempts you from most automated spam labeling, but never from bait or NSFW labels. <b>Escalation</b>: 3 of your last 5 posts labeled NSFW-high-precision labels the whole account for 7 days.</div></details>
+      <details class="acc rv"><summary><span class="tg">withheld</span><span class="hint">what you can't read</span><span class="pm">+</span></summary><div class="accbody">All classifier prompts (.j2 templates) and most botmaker rules are excluded to reduce gameability. The <b>Under the Hood</b> tool shows the labels on your own account instead: <a href="https://x.com/i/under_the_hood" target="_blank" rel="noopener">x.com/i/under_the_hood</a>.</div></details>
+    </div>
+  </div>
+</section>
+
+<!-- ================= RULEBOOK ================= -->
+<section id="rules">
+  <div class="wrap">
+    <div class="kick">// visibility-filtering/rules/registry.rs</div>
+    <h2 class="rv">The two-tier rulebook</h2>
+    <p class="lead rv">First drop wins and evaluation stops. "Hidden from non-followers" is literally the second tab.</p>
+    <div class="tabs rv">
+      <button class="tab active" data-tab="t1">TIER 1 · everyone (28 rules)</button>
+      <button class="tab red" data-tab="t2">TIER 2 · recs to non-followers (+26, all drops)</button>
+    </div>
+    <div class="tabpanel show rv" id="t1">
+      <div class="card">
+        <ul class="cl">
+          <li>Suspended / deactivated authors; viewer <b>blocks and mutes</b></li>
+          <li><b>SPAM</b>, PDNA, BOUNCE, the FOSNR family (hateful conduct, violent speech, abuse, civic integrity)</li>
+          <li>Legal takedowns by country; age gating</li>
+          <li>NSFW and gore for followers: shown behind an <b>interstitial</b>, not dropped</li>
+        </ul>
+      </div>
+    </div>
+    <div class="tabpanel" id="t2">
+      <div class="card" style="border-color:rgba(255,122,118,.25)">
+        <ul class="cl">
+          <li><b>Any NSFW signal</b>, post-level or account-level</li>
+          <li><b>SPAM_HIGH_RECALL</b>, DO_NOT_AMPLIFY, MALICIOUS_URL</li>
+          <li>Compromised / impersonation / abusive <b>account labels</b></li>
+          <li>DMCA and geo-restricted media</li>
+        </ul>
+        <div class="note bad" style="margin-top:16px">The same post stays visible to followers. As a recommendation to strangers, it simply never appears.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= MYTHS ================= -->
+<section id="myths">
+  <div class="wrap">
+    <div class="kick">// folklore, checked against the source</div>
+    <h2 class="rv">Myths vs. the code</h2>
+    <p class="lead rv">Click a claim to see what the repo actually says.</p>
+    <div class="myths">
+      <button class="myth rv"><div class="q">"Links get downranked"</div><div class="hintline">[ CLICK TO CHECK THE CODE ]</div><div class="a"><b>False as a ranking rule.</b> No penalty term exists; link opens are +0.2. The real risk is URL reputation labels (spam, malicious), and weak dwell on naked-link posts.</div></button>
+      <button class="myth rv"><div class="q">"The algorithm counts likes"</div><div class="hintline">[ CLICK TO CHECK THE CODE ]</div><div class="a"><b>Off.</b> Count features exist in code and are switched off. Counts matter through retrieval eligibility (1 fav, powers of two) and through other users' action histories.</div></button>
+      <button class="myth rv"><div class="q">"Blue check = ranking boost"</div><div class="hintline">[ CLICK TO CHECK THE CODE ]</div><div class="a"><b>Not in the scorer.</b> Premium appears only in PageRank's teleport vector and enforcement exemptions.</div></button>
+      <button class="myth rv"><div class="q">"Bookmarks are the secret metric"</div><div class="hintline">[ CLICK TO CHECK THE CODE ]</div><div class="a"><b>Tracked, weightless.</b> Bookmark is a prediction head with no weight in the current production formula.</div></button>
+      <button class="myth rv"><div class="q">"Post 10x a day for reach"</div><div class="hintline">[ CLICK TO CHECK THE CODE ]</div><div class="a"><b>Sublinear.</b> Same-author decay plus thread dedup cap volume inside any feed load. Fresh originals do earn fresh 24h retrieval windows.</div></button>
+      <button class="myth rv"><div class="q">"Editing kills your banger"</div><div class="hintline">[ CLICK TO CHECK THE CODE ]</div><div class="a"><b>Reset, not death.</b> An edit creates a new post ID; the stale original is dropped and the new one re-enters retrieval from zero.</div></button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= HARD NOS ================= -->
+<section id="hardnos">
+  <div class="wrap">
+    <div class="kick" style="color:var(--red)">// tripwires in the code</div>
+    <h2 class="rv">HARD NOs</h2>
+    <p class="lead rv">Each of these is a mechanical tripwire in the published code, with the label it fires. Where a reputation exemption exists, the URL panel below spells it out.</p>
+    <div class="nonos">
+      <div class="nono rv"><span class="x">✕</span><h4>Engagement bait, ever</h4><p>"Reply if / like if / RT if", follow trains, vote-with-a-like. Grok classifies <b>per post</b> and the label hides it from every non-follower. High credibility does <b>not</b> exempt you.</p><span class="pen">SPAM_HIGH_RECALL</span></div>
+      <div class="nono rv"><span class="x">✕</span><h4>Bought followers or engagement</h4><p>Credibility is PageRank over the follow graph: mass from low-cred accounts rounds to zero. Meanwhile agatha tracks blocks and reports <b>relative to favs received</b>, so fake numbers push the exact ratios that get you labeled.</p><span class="pen">AGATHA_SPAM · challenge / suspend</span></div>
+      <div class="nono rv"><span class="x">✕</span><h4>Team engagement in lockstep</h4><p>The bot detector reads raw action sequences <b>with timing</b>; "engagement amplifier" is one of its eight archetypes. Staggered, organic replies from accounts that behave like humans, or don't bother.</p><span class="pen">bdsm → enforcement</span></div>
+      <div class="nono rv"><span class="x">✕</span><h4>Drive-by promo replies</h4><p>Grok scores replies too. A zero lands a 14-day reply demotion, and low-quality links at-mentioning non-followers have their own dedicated spam rule.</p><span class="pen">RISKY_HIGH_VIZ_REPLY · 14d</span></div>
+      <div class="nono rv"><span class="x">✕</span><h4>Sketchy or shortened URLs, anywhere</h4><p>URL reputation rules label posts on sight, and a bad link in a <b>pinned</b> post labels the whole account for 7 days. Canonical domains only, especially in pins.</p><span class="pen">MALICIOUS_URL · DO_NOT_AMPLIFY · account 7d</span></div>
+      <div class="nono rv"><span class="x">✕</span><h4>Copypasta across posts or accounts</h4><p>Duplicate-text clustering runs on word and character n-grams. Identical captions across your account network get swept together in one pass.</p><span class="pen">COPYPASTA_SPAM</span></div>
+      <div class="nono rv"><span class="x">✕</span><h4>Grey-zone media on brand accounts</h4><p>Media models score every image and video. Three NSFW-labeled posts among your last five labels the <b>account</b> for 7 days: everything hidden from non-followers.</p><span class="pen">account NSFW · 7d</span></div>
+      <div class="nono rv"><span class="x">✕</span><h4>Trading mutes for likes</h4><p>The formula prices one expected mute at ~118 favs and one report at ~468, predicted per viewer. Rage-reach compounds negatively while the like counter climbs.</p><span class="pen">-58.8 mute · -234 report</span></div>
+      <div class="nono rv"><span class="x">✕</span><h4>Building a beat around plain retweets</h4><p>RTs from non-followed accounts are hard-dropped and never indexed for retrieval; even in-network they run at 0.75x. Quote or original, always.</p><span class="pen">OONRetweetReplyFilter</span></div>
+    </div>
+    <div class="note bad rv" style="max-width:820px">This list covers what the <b>published</b> code punishes mechanically. Some botmaker rules are withheld; assume the unpublished ones rhyme with these.</div>
+  </div>
+</section>
+
+<!-- ================= URL RULES ================= -->
+<section id="urls">
+  <div class="wrap">
+    <div class="kick">// botmaker-rules/scarecrow/bot/ · url_event rules</div>
+    <h2 class="rv">How X judges your links</h2>
+    <p class="lead rv">Every domain and URL carries a stored reputation grade, like a credit score X keeps for the whole web. When you post a link, the system unwraps it (t.co, then every redirect behind it) into a <b>chain of hops</b> and judges the whole route. The service that assigns grades is not published; the punishments are.</p>
+
+    <div class="grades rv">
+      <div class="grade safe"><span class="g">WHITELIST · GOOD</span><p>The safe grades. A chain is only clean if its final stop holds one of these.</p></div>
+      <div class="grade warn"><span class="g">LOW_QUALITY</span><p>Spam-adjacent. Punished in context: bad final stop, @-mention promo, or a pinned post.</p></div>
+      <div class="grade bad"><span class="g">BAD</span><p>Spam grade. The post is labeled SPAM, and every other post carrying the URL gets swept too.</p></div>
+      <div class="grade bad"><span class="g">UNSAFE</span><p>The malicious tier: phishing/malware class. Four labels at once, including MALICIOUS_URL.</p></div>
+    </div>
+
+    <div class="usim rv">
+      <div class="uctl">
+        <div><span class="lbl">HOW YOU POST IT</span>
+          <div class="seg" id="segMid">
+            <button data-m="none" class="active">direct link</button>
+            <button data-m="good">clean shortener</button>
+            <button data-m="lq">abused shortener</button>
+          </div>
+        </div>
+        <div><span class="lbl">DESTINATION'S GRADE</span>
+          <div class="seg" id="segDest">
+            <button data-d="good" class="active">GOOD</button>
+            <button data-d="lq">LOW_QUALITY</button>
+            <button data-d="bad">BAD</button>
+            <button data-d="unsafe">UNSAFE</button>
+          </div>
+        </div>
+        <label class="tgl" style="margin-top:14px"><input type="checkbox" id="uPinned"><span class="sw"></span><span class="lb">the link sits in your pinned post</span></label>
+      </div>
+      <div class="uchain" id="uchain"></div>
+      <div class="uout" id="uout"></div>
+      <p style="font-size:11.5px;color:var(--faint);margin-top:14px">Exemptions: the at-post-time rules skip high-PageRank accounts (cred score 54+, fallback 25k+ followers) and government-verified accounts. The retroactive sweeps that fire when a grade CHANGES skip nobody.</p>
+    </div>
+
+    <div class="grid2" style="margin-top:18px">
+      <div class="card rv">
+        <h3>Your preview image is part of the link</h3>
+        <p style="font-size:13.5px;color:var(--mut)">The media models score every link card. An OG image graded near-certain NSFW (0.999+) writes a verdict on the <b style="color:var(--ink)">URL itself</b> for 7 days, labeling up to 5,000 posts that carry it. An article can be clean and still get poisoned by its thumbnail.</p>
+      </div>
+      <div class="card rv">
+        <h3>What to actually do</h3>
+        <ul class="cl">
+          <li>Post the <b>real destination URL</b> (rdy.gg/article), never a shortener: every extra hop is a grade you don't control</li>
+          <li>Keep OG images unambiguous on anything you publish</li>
+          <li>Treat pinned posts as the highest-stakes link slot: that's where a link problem becomes an <b>account</b> problem</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= DO TODAY ================= -->
+<section id="dotoday">
+  <div class="wrap">
+    <div class="kick">// instant levers</div>
+    <h2 class="rv">Do this today</h2>
+    <p class="lead rv">One-time moves where the mechanism applies the moment you act. None of this rescues weak content: every lever multiplies P(action)s the post itself has to earn.</p>
+    <div class="pbmeter rv"><div class="pbtrack"><div class="pbfill" id="qwfill"></div></div><span class="pbcount" id="qwcount">0 / 10 done</span></div>
+    <div class="pb">
+      <label class="pbi rv"><input type="checkbox"><span class="box"></span><div><h4>Follow the community back<span class="qt">30 MIN</span></h4><p>Mutual follow flips reply weight on your originals from 5 to 20 for those viewers. Scan recent replies on each brand account and follow back the active fans first: they are the ones the boost compounds on.</p></div></label>
+      <label class="pbi rv"><input type="checkbox"><span class="box"></span><div><h4>Run the label check on every account<span class="qt">5 MIN</span></h4><p>x.com/i/under_the_hood shows visibility-limiting labels. Most expire on 7-14 day TTLs: find the behavior that caused one, stop it, and the account recovers on its own.</p></div></label>
+      <label class="pbi rv"><input type="checkbox"><span class="box"></span><div><h4>Audit pinned posts for links<span class="qt">5 MIN</span></h4><p>A bad or low-quality URL in a pinned post labels the whole ACCOUNT spam-high-recall for 7 days (published rule 20719). Keep pins link-clean or canonical-domain only.</p></div></label>
+      <label class="pbi rv"><input type="checkbox"><span class="box"></span><div><h4>Purge bait phrasing from the queue<span class="qt">15 MIN</span></h4><p>"Reply if / like if / RT if" and follow-trains are Grok-classified per post into spam-high-recall: invisible to non-followers, no reputation exemption. Recut those CTAs as actual takes.</p></div></label>
+      <label class="pbi rv"><input type="checkbox"><span class="box"></span><div><h4>Convert scheduled retweets into quotes<span class="qt">10 MIN</span></h4><p>Quotes are originals: retrieval-eligible, with a 5.0 head of their own. Plain reposts are dropped for non-followers and run at 0.75x even for followers.</p></div></label>
+      <label class="pbi rv"><input type="checkbox"><span class="box"></span><div><h4>Re-cut this week's best post as an 11s+ video<span class="qt">1 HOUR</span></h4><p>Video gets 2-30 day retrieval windows plus a 5-year evergreen pool, against 24-48h for text and images. Stay safely over the 10-second gate.</p></div></label>
+      <label class="pbi rv"><input type="checkbox"><span class="box"></span><div><h4>Reshape the first-hour routine<span class="qt">STANDING</span></h4><p>Team responds with replies and quotes, never a like-wall. A few early favs still matter (indexing re-fires at 1, 2, 4, 8 favs), and SimClusters affinity decays on an 8h half-life, so land posts when the community is online.</p></div></label>
+      <label class="pbi rv"><input type="checkbox"><span class="box"></span><div><h4>Space today's posts by 2+ hours<span class="qt">FREE</span></h4><p>Your 2nd post in one feed pool runs at 62.5%, the 3rd at 43.75%, and thread dedup keeps one branch. Spread out, each post carries full weight.</p></div></label>
+      <label class="pbi rv"><input type="checkbox"><span class="box"></span><div><h4>Count your on-topic share: 8 of the last 15?<span class="qt">10 MIN</span></h4><p>Topic-feed eligibility is recomputed from a rolling window of your last 15 original/quote posts at ~50% category share. If you drifted, the fix is simply posting on-topic: the window rolls forward fast.</p></div></label>
+      <label class="pbi rv"><input type="checkbox"><span class="box"></span><div><h4>Kill copypasta templates across accounts<span class="qt">15 MIN</span></h4><p>Near-identical text across posts triggers duplicate-text clustering (COPYPASTA_SPAM labels). Vary caption templates between accounts and between posts.</p></div></label>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PLAYBOOK ================= -->
+<section id="playbook">
+  <div class="wrap">
+    <div class="kick">// implications for the day job</div>
+    <h2 class="rv">The playbook</h2>
+    <p class="lead rv">Ten operating rules derived from the code above. Check off what you already run.</p>
+    <div class="pbmeter rv"><div class="pbtrack"><div class="pbfill" id="pbfill"></div></div><span class="pbcount" id="pbcount">0 / 10 running</span></div>
+    <div class="pb">
+      <label class="pbi rv"><input type="checkbox"><span class="box"></span><div><h4>Originals are the distribution unit</h4><p>Replies and reposts: no retrieval index, dropped for non-followers, 0.75× in-network. Quote instead of plain repost when reach matters.</p></div></label>
+      <label class="pbi rv"><input type="checkbox"><span class="box"></span><div><h4>Design for the forward</h4><p>Copy-link 20.0 and DM share 5.0 dwarf the fav at 0.5. Make things people paste into Discords: stat graphics, bracket scenarios, settle-the-argument clips.</p></div></label>
+      <label class="pbi rv"><input type="checkbox"><span class="box"></span><div><h4>Provoke replies with substance</h4><p>Reply weight 5.0, and 20.0 from mutuals on originals. Takes people must answer. Never "reply if / like if": Grok labels bait, no reputation exemption.</p></div></label>
+      <label class="pbi rv"><input type="checkbox"><span class="box"></span><div><h4>Cut everything worth cutting to &gt;10s video</h4><p>Its own prediction head, 2-30 day retrieval windows, a 5-year evergreen index. Text gets 1-2 days.</p></div></label>
+      <label class="pbi rv"><input type="checkbox"><span class="box"></span><div><h4>Don't alienate adjacent audiences</h4><p>One expected mute erases ~118 favs of value, predicted per viewer. Keep each account unambiguous about what it is.</p></div></label>
+      <label class="pbi rv"><input type="checkbox"><span class="box"></span><div><h4>Win the first 24 hours</h4><p>1 fav enters the corpus; re-index at 1, 2, 4, 8; SimClusters decays on an 8h half-life; 48h is the wall. Post when the community is on; early team engagement = replies and shares, never a like-wall.</p></div></label>
+      <label class="pbi rv"><input type="checkbox"><span class="box"></span><div><h4>Follow the community back</h4><p>Mutuals see your originals at reply weight 20 instead of 5. A few hundred real mutuals become the seed retrieval generalizes from.</p></div></label>
+      <label class="pbi rv"><input type="checkbox"><span class="box"></span><div><h4>Guard topic consistency</h4><p>Topic eligibility is computed from your last 15 original/quote posts (~50% category share). Off-topic detours reclassify the account.</p></div></label>
+      <label class="pbi rv"><input type="checkbox"><span class="box"></span><div><h4>Don't compete with yourself</h4><p>2nd post in one pool runs at 62.5%, 3rd at 43.75%; one branch per thread survives. Space distinct posts by hours.</p></div></label>
+      <label class="pbi rv"><input type="checkbox"><span class="box"></span><div><h4>Run hygiene like a checklist</h4><p>Check under_the_hood on every account. No sketchy URLs (a bad pinned link labels the ACCOUNT for 7 days). No copypasta-identical text.</p></div></label>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FOOTER / VERIFY ================= -->
+<footer id="verify">
+  <div class="wrap">
+    <div class="kick">// caveats + where to verify</div>
+    <h2 class="rv">Read it yourself</h2>
+    <div class="grid2" style="margin-top:24px">
+      <div class="card rv">
+        <h3 class="amb">Caveats</h3>
+        <ul class="cl">
+          <li>Weights bake in action rarity: cross-action "worth" comparisons are directional, never literal</li>
+          <li>Defaults change. Values auto-sync from prod, and experiments at 10%+ of traffic should appear as public diffs</li>
+          <li>Snapshot: commit a389166, August 13, 2026</li>
+        </ul>
+      </div>
+      <div class="card rv">
+        <h3>Key files</h3>
+        <div class="files" style="grid-template-columns:1fr">
+          <a class="file" href="https://github.com/xai-org/x-algorithm/blob/main/home-mixer/params/param.rs" target="_blank" rel="noopener"><span class="fp">param.rs</span><span class="fd">every weight and switch, synced from prod</span></a>
+          <a class="file" href="https://github.com/xai-org/x-algorithm/blob/main/home-mixer/scorers/ranking_scorer.rs" target="_blank" rel="noopener"><span class="fp">ranking_scorer.rs</span><span class="fd">the formula and adjustments</span></a>
+          <a class="file" href="https://github.com/xai-org/x-algorithm/blob/main/visibility-filtering/rules/registry.rs" target="_blank" rel="noopener"><span class="fp">registry.rs</span><span class="fd">the visibility rulebook, in evaluation order</span></a>
+          <a class="file" href="https://github.com/xai-org/x-algorithm/blob/main/docs/BIDIRECTIONAL_BOOST_CHANGE.md" target="_blank" rel="noopener"><span class="fp">BIDIRECTIONAL_BOOST_CHANGE.md</span><span class="fd">the July change, with full diffs</span></a>
+          <a class="file" href="https://github.com/xai-org/x-algorithm/tree/main/phoenix" target="_blank" rel="noopener"><span class="fp">phoenix/</span><span class="fd">model training + serving, runnable</span></a>
+          <a class="file" href="https://github.com/xai-org/x-algorithm/tree/main/grox" target="_blank" rel="noopener"><span class="fp">grox/flows/</span><span class="fd">the Grok classifiers</span></a>
+        </div>
+      </div>
+    </div>
+    <div class="endline">github.com/xai-org/x-algorithm · compiled 2026-08-14 · Pedro Brauner · companion doc: x-algorithm-explained.md</div>
+  </div>
+</footer>
+
+<script>
+(function(){
+"use strict";
+/* ---------- reveal on scroll ---------- */
+const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}})},{threshold:.12});
+document.querySelectorAll('.rv').forEach(el=>io.observe(el));
+
+/* ---------- scrollspy ---------- */
+const links=[...document.querySelectorAll('.nl[href^="#"]')];   // non-hash nav links (e.g. "/lab/") are not selectors
+const secs=links.map(l=>document.querySelector(l.getAttribute('href'))).filter(Boolean);
+const spy=new IntersectionObserver(es=>{
+  es.forEach(e=>{ if(e.isIntersecting){
+    links.forEach(l=>l.classList.toggle('active', l.getAttribute('href')==='#'+e.target.id));
+  }});
+},{rootMargin:'-30% 0px -60% 0px'});
+secs.forEach(s=>spy.observe(s));
+
+/* ---------- pipeline stages ---------- */
+const stages=[
+ {n:'01',t:'Source ~3,000 posts',p:'home-mixer/sources/',b:['Thunder: up to 1,200 in-network posts from the last 48h, unscored','Phoenix retrieval: up to 1,000 out-of-network by embedding similarity','SimClusters: up to 800 by community co-engagement','All three pools ranked together; in-network gets no scoring privilege at source']},
+ {n:'02',t:'Pre-scoring filters',p:'home-mixer/filters/',b:['48h age wall, no exceptions','OON replies and reposts dropped entirely','Already seen (two records) + last 100 served in 10 min','Muted keywords, blocked/muted authors, authors who block you']},
+ {n:'03',t:'Phoenix scores each post',p:'home-mixer/scorers/phoenix_scorer.rs',b:['One forward pass, up to 1,400 candidates','64 sigmoid heads: P(fav), P(reply), P(mute)... per post, per viewer','Plus a continuous dwell-seconds regression','Candidates cannot see each other: scores are stable and cacheable']},
+ {n:'04',t:'Weighted sum + adjustments',p:'home-mixer/scorers/ranking_scorer.rs',b:['score = Σ weight × P(action), production weights below','Same-author decay: 100% → 62.5% → 43.75% → floor 25%','OON ×0.75 (also in-network replies/reposts); topic feeds ×0.5','Cold-start lift for small authors toward slot 15-16']},
+ {n:'05',t:'Select + safety',p:'top_k_score_selector.rs · vf_filter.rs',b:['Top 50 by final score','Per-viewer visibility filtering: allow / interstitial / drop','Posts whose parent, quote or repost was dropped go too','Conversation dedup: one branch per thread','DPP reranker spaces out near-identical content (theta 0.65)']},
+ {n:'06',t:'Blend and serve 35',p:'for_you_candidate_pipeline.rs',b:['35 organic posts per load','Ads mixed at roughly every 3+ posts; Who to Follow at slot 6 (max once per 30h); prompts at slot 0','Top 750 scored posts cached 3 minutes, so scrolling does not re-rank']}
+];
+const stepBtns=document.getElementById('stepbtns');
+const stageBox=document.getElementById('stagebox');
+stages.forEach((s,i)=>{
+  const b=document.createElement('button');b.className='stepbtn'+(i===0?' active':'');
+  b.innerHTML='<span class="n">'+s.n+'</span>'+s.t;
+  b.addEventListener('click',()=>{document.querySelectorAll('.stepbtn').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderStage(i);});
+  stepBtns.appendChild(b);
+});
+function renderStage(i){const s=stages[i];
+  stageBox.innerHTML='<h3><span class="mono grn">'+s.n+'</span> &nbsp;'+s.t+'</h3><span class="path">// '+s.p+'</span><ul class="cl">'+s.b.map(x=>'<li>'+x+'</li>').join('')+'</ul>';}
+renderStage(0);
+
+/* ---------- funnel animate ---------- */
+const fun=document.getElementById('funnel');
+const fio=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){
+  fun.querySelectorAll('.fbar').forEach(b=>{b.style.width=b.dataset.w+'%';});fio.disconnect();}})},{threshold:.3});
+fio.observe(fun);
+
+/* ---------- shelf bars (log scale) ---------- */
+const LOGMAX=Math.log10(43800/12);
+document.querySelectorAll('.sbar').forEach(b=>{
+  const h=+b.dataset.h; b.dataset.wpct=Math.max(4,(Math.log10(h/12)/LOGMAX)*100);
+});
+const shelfEl=document.querySelector('.shelf');
+const sio=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){
+  document.querySelectorAll('.sbar').forEach(b=>b.style.width=b.dataset.wpct+'%');sio.disconnect();}})},{threshold:.3});
+sio.observe(shelfEl);
+
+/* ---------- decay ---------- */
+const dmul=k=>0.75*Math.pow(0.5,k)+0.25;
+document.getElementById('segDecay').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  document.querySelectorAll('#segDecay button').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+  const m=dmul(+b.dataset.k);
+  document.getElementById('decayVal').textContent=(m*100).toFixed(2).replace(/\.?0+$/,'')+'%';
+  document.getElementById('decayBar').style.width=(m*100)+'%';
+});
+
+/* ---------- tabs ---------- */
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');
+  document.querySelectorAll('.tabpanel').forEach(p=>p.classList.toggle('show',p.id===t.dataset.tab));
+}));
+
+/* ---------- myths ---------- */
+document.querySelectorAll('.myth').forEach(m=>m.addEventListener('click',()=>m.classList.toggle('open')));
+
+/* ---------- playbook + do-today meters ---------- */
+function meter(scope,fillId,countId,word){
+  const els=[...document.querySelectorAll(scope+' .pbi input')];
+  const up=()=>{const n=els.filter(i=>i.checked).length;
+    document.getElementById(fillId).style.width=(n/els.length*100)+'%';
+    document.getElementById(countId).textContent=n+' / '+els.length+' '+word;};
+  els.forEach(i=>i.addEventListener('change',up));
+}
+meter('#playbook','pbfill','pbcount','running');
+meter('#dotoday','qwfill','qwcount','done');
+
+/* ============ SCORE LAB ============ */
+const Wt={fav:.5,reply:5,retweet:1,quote:5,share:2,dm:5,copy:20,follow:4,click:.4,link:.2,photo:.05,video:.05,vqv:.05,dwellSec:.004,notDwelled:-.02,ni:-43.2,mute:-58.8,block:-31.2,report:-234};
+const MUTUAL_REPLY_BOOST=15;
+const SLIDERS=[
+ {id:'fav',  g:'pos',lb:'Favorite',      max:30, step:.1,  def:4,   w:'fav'},
+ {id:'reply',g:'pos',lb:'Reply',         max:10, step:.05, def:.8,  w:'reply'},
+ {id:'rt',   g:'pos',lb:'Repost',        max:10, step:.05, def:.7,  w:'retweet'},
+ {id:'quote',g:'pos',lb:'Quote',         max:5,  step:.05, def:.2,  w:'quote'},
+ {id:'dm',   g:'pos',lb:'Share via DM',  max:5,  step:.05, def:.3,  w:'dm'},
+ {id:'copy', g:'pos',lb:'Copy link',     max:5,  step:.05, def:.15, w:'copy'},
+ {id:'follow',g:'pos',lb:'Follow author',max:5,  step:.05, def:.2,  w:'follow'},
+ {id:'click',g:'att',lb:'Open post',     max:40, step:.5,  def:6,   w:'click'},
+ {id:'link', g:'att',lb:'Open ext. link',max:20, step:.25, def:1,   w:'link'},
+ {id:'vqv',  g:'att',lb:'Quality video view', max:60, step:.5, def:0, w:'vqv'},
+ {id:'dwell',g:'att',lb:'Expected dwell (s)', max:60, step:.5, def:8, w:'dwellSec', secs:true},
+ {id:'nd',   g:'neg',lb:'Not dwelled',   max:100,step:1,   def:55,  w:'notDwelled'},
+ {id:'ni',   g:'neg',lb:'Not interested',max:3,  step:.01, def:.1,  w:'ni'},
+ {id:'mute', g:'neg',lb:'Mute author',   max:1.5,step:.01, def:.02, w:'mute'},
+ {id:'rep',  g:'neg',lb:'Report',        max:.5, step:.005,def:.005,w:'report'}
+];
+const holders={pos:document.getElementById('slidersPos'),att:document.getElementById('slidersAtt'),neg:document.getElementById('slidersNeg')};
+const state={n:0,mutual:false,oon:false,topic:false,v:{}};
+SLIDERS.forEach(s=>{
+  state.v[s.id]=s.def;
+  const row=document.createElement('div');row.className='sl';
+  row.innerHTML='<label for="in_'+s.id+'">'+s.lb+'</label><input type="range" id="in_'+s.id+'" class="'+(s.g==='neg'?'neg':'')+'" min="0" max="'+s.max+'" step="'+s.step+'" value="'+s.def+'"><output id="out_'+s.id+'"></output>';
+  holders[s.g].appendChild(row);
+  row.querySelector('input').addEventListener('input',e=>{state.v[s.id]=+e.target.value;compute();});
+});
+document.getElementById('tMutual').addEventListener('change',e=>{state.mutual=e.target.checked;compute();syncBoard();});
+document.getElementById('tOon').addEventListener('change',e=>{state.oon=e.target.checked;compute();});
+document.getElementById('tTopic').addEventListener('change',e=>{state.topic=e.target.checked;compute();});
+document.getElementById('segN').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  document.querySelectorAll('#segN button').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+  state.n=+b.dataset.n;compute();
+});
+function fmt(x,d){return x.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function compute(){
+  let pos=0,neg=0;const contribs=[];
+  SLIDERS.forEach(s=>{
+    const raw=state.v[s.id];
+    document.getElementById('out_'+s.id).textContent=s.secs?raw.toFixed(1)+'s':raw.toFixed(s.step<0.1?2:1)+'%';
+    let w=Wt[s.w];
+    if(s.id==='reply'&&state.mutual)w+=MUTUAL_REPLY_BOOST;
+    const p=s.secs?raw:raw/100;
+    const c=p*w;
+    if(c>=0)pos+=c;else neg+=-c;
+    if(Math.abs(c)>1e-7)contribs.push({lb:s.lb,c});
+  });
+  const net=pos-neg;
+  /* offset_score (weighted mode) */
+  const posSum=43.37+(state.mutual?MUTUAL_REPLY_BOOST:0), negSum=367.22, totalSum=posSum+negSum, OFF=0.001;
+  let score0 = net>=0 ? net+OFF : (net+negSum)/totalSum*OFF;
+  const dm=dmul(state.n);
+  const oonF=state.topic?0.5:(state.oon?0.75:1);
+  const final=score0*dm*oonF;
+  const out=document.getElementById('scoreOut');
+  out.textContent=final>=0.01?fmt(final,3):final.toFixed(final>=0.0001?4:6);
+  out.classList.toggle('neg',net<0);
+  document.getElementById('posOut').textContent=fmt(pos,3);
+  document.getElementById('negOut').textContent=fmt(neg,3);
+  document.getElementById('scoreEq').textContent=net>=0?('≈ '+fmt(final/0.5,1)+' fav-equivalents of predicted value'):'net negative: squashed to the bottom of the pool';
+  document.getElementById('multsOut').textContent='applied: offset → ×'+dm.toFixed(4).replace(/0+$/,'').replace(/\.$/,'')+' (author decay) → ×'+oonF+' (network) = final';
+  /* contributions */
+  contribs.sort((a,b)=>Math.abs(b.c)-Math.abs(a.c));
+  const top=contribs.slice(0,9);
+  const mx=Math.max(...top.map(t=>Math.abs(t.c)),1e-9);
+  document.getElementById('contrib').innerHTML=top.map(t=>'<div class="crow'+(t.c<0?' neg':'')+'"><span class="nm">'+t.lb+'</span><div style="display:flex"><div class="bar" style="width:'+Math.max(2,Math.abs(t.c)/mx*100)+'%"></div></div><span class="vl">'+(t.c>=0?'+':'−')+fmt(Math.abs(t.c),3)+'</span></div>').join('');
+}
+const PRESETS={
+ clip:{v:{fav:6,reply:1.2,rt:1.5,quote:.4,dm:.8,copy:.5,follow:.35,click:8,link:.2,vqv:22,dwell:14,nd:38,ni:.06,mute:.01,rep:.003},mutual:false,oon:true,topic:false,n:0},
+ link:{v:{fav:1.2,reply:.2,rt:.3,quote:.05,dm:.15,copy:.25,follow:.05,click:3,link:6,vqv:0,dwell:3,nd:78,ni:.25,mute:.03,rep:.006},mutual:false,oon:true,topic:false,n:0},
+ bait:{v:{fav:8,reply:3,rt:2,quote:.8,dm:.4,copy:.2,follow:.2,click:9,link:.3,vqv:0,dwell:6,nd:50,ni:1.4,mute:.35,rep:.09},mutual:false,oon:true,topic:false,n:0},
+ mutual:{v:{fav:5,reply:4,rt:.8,quote:.5,dm:.6,copy:.3,follow:0,click:7,link:.2,vqv:0,dwell:12,nd:40,ni:.05,mute:.005,rep:.002},mutual:true,oon:false,topic:false,n:0}
+};
+document.querySelectorAll('.preset').forEach(p=>p.addEventListener('click',()=>{
+  const pr=PRESETS[p.dataset.preset];if(!pr)return;
+  Object.entries(pr.v).forEach(([k,v])=>{state.v[k]=v;const el=document.getElementById('in_'+k);if(el)el.value=v;});
+  state.mutual=pr.mutual;state.oon=pr.oon;state.topic=pr.topic;state.n=pr.n;
+  document.getElementById('tMutual').checked=pr.mutual;
+  document.getElementById('tOon').checked=pr.oon;
+  document.getElementById('tTopic').checked=pr.topic;
+  document.querySelectorAll('#segN button').forEach(x=>x.classList.toggle('active',+x.dataset.n===pr.n));
+  compute();syncBoard();
+}));
+
+/* ---------- URL gauntlet ---------- */
+const U={mid:'none',dest:'good',pinned:false};
+const VMETA={good:{t:'GOOD',c:'safe'},wl:{t:'WHITELIST',c:'safe'},lq:{t:'LOW_QUALITY',c:'warn'},bad:{t:'BAD',c:'bad'},unsafe:{t:'UNSAFE',c:'bad'}};
+function uHop(name,v){const m=v?VMETA[v]:null;
+  return '<div class="hop '+(m?m.c:'neu')+'"><div class="hn">'+name+'</div><div class="hv">'+(m?m.t:'no grade')+'</div></div>';}
+function uRender(){
+  const hops=[];
+  hops.push(uHop('your post',null));
+  hops.push(uHop('t.co',null));
+  if(U.mid==='good')hops.push(uHop('shortener','good'));
+  if(U.mid==='lq')hops.push(uHop('shortener','lq'));
+  hops.push(uHop('destination',U.dest));
+  document.getElementById('uchain').innerHTML=hops.join('<span class="harrow">→</span>');
+  const anyLq=U.mid==='lq'||U.dest==='lq';
+  const out=document.getElementById('uout');
+  let cls,h,p,pens=[];
+  if(U.dest==='unsafe'){
+    cls='bad';h='The malicious tier';
+    p='Rules 20789/20790 fire four labels at once. The post is removed from search, never recommended to non-followers, and the sweep applies to every post on the platform carrying this URL.';
+    pens=['MALICIOUS_URL','UNSAFE_URL','DO_NOT_AMPLIFY','SEARCH_BLACKLIST'];
+  } else if(U.dest==='bad'){
+    cls='bad';h='Spam grade';
+    p='Rule 3226 labels the post SPAM (a reposted original gets labeled instead of the repost). When a URL grade flips to BAD, rule 2002 retroactively labels every post carrying it, and un-labels them all if the grade is later cleared.'+(U.pinned?' Pinned: rule 20719 also labels your whole ACCOUNT spam-high-recall for 7 days.':'');
+    pens=['SPAM'];if(U.pinned)pens.push('account SPAM_HIGH_RECALL · 7d');
+  } else if(U.dest==='lq'){
+    cls='bad';h='Caught by the chain rule';
+    p='Rule 6754: final stop not GOOD/WHITELIST plus a LOW_QUALITY hop anywhere in the chain labels the post spam-high-recall: invisible to non-followers. An @-mention to a non-follower trips rule 5239 on the same grade.'+(U.pinned?' Pinned: rule 20719 escalates it to a 7-day ACCOUNT label.':'');
+    pens=['SPAM_HIGH_RECALL'];if(U.pinned)pens.push('account SPAM_HIGH_RECALL · 7d');
+  } else if(anyLq){
+    cls='warn';h='Skates by, for now';
+    p='The final stop is GOOD, so rule 6754 does not fire today.'+(U.pinned?' But rule 20719 checks every expanded URL on a pinned post: the LOW_QUALITY hop still earns the ACCOUNT label for 7 days.':' You are one grade change away, though: if any hop flips to BAD later, the retroactive sweep labels this post with no reputation exemption. Shorteners are hops you do not control.');
+    if(U.pinned){cls='bad';h='Pinned = account problem';pens=['account SPAM_HIGH_RECALL · 7d'];}
+  } else {
+    cls='ok';h='Clean route';
+    p='No URL rule involves itself. The link is just content: predicted link-opens even add a small positive term (+0.2 weight). This is what "post the canonical URL" buys you: a chain with no hops you do not control.';
+  }
+  out.className='uout '+cls;
+  out.innerHTML='<h4>'+h+'</h4><p>'+p+'</p>'+(pens.length?'<div class="pens">'+pens.map(x=>'<span class="pen">'+x+'</span>').join('')+'</div>':'');
+}
+document.getElementById('segMid').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  document.querySelectorAll('#segMid button').forEach(x=>x.classList.remove('active'));b.classList.add('active');U.mid=b.dataset.m;uRender();});
+document.getElementById('segDest').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  document.querySelectorAll('#segDest button').forEach(x=>x.classList.remove('active'));b.classList.add('active');U.dest=b.dataset.d;uRender();});
+document.getElementById('uPinned').addEventListener('change',e=>{U.pinned=e.target.checked;uRender();});
+uRender();
+
+/* ---------- weights board ---------- */
+const BOARD=[
+ ['Copy-link share',20,'rust_home_mixer_share_via_copy_link_weight'],
+ ['Reply',5,'rust_home_mixer_reply_weight','reply'],
+ ['Share via DM',5,'rust_home_mixer_share_via_dm_weight'],
+ ['Quote',5,'rust_home_mixer_quote_weight'],
+ ['Follow author',4,'rust_home_mixer_follow_author_weight'],
+ ['Share (menu)',2,'rust_home_mixer_share_weight'],
+ ['Repost',1,'rust_home_mixer_retweet_weight'],
+ ['Favorite',0.5,'rust_home_mixer_favorite_weight'],
+ ['Click',0.4,'rust_home_mixer_click_weight'],
+ ['Open link',0.2,'rust_home_mixer_open_link_weight'],
+ ['Photo / video / VQV',0.05,'photo_expand · video_open · vqv'],
+ ['Exploration bonus',0.02,'rust_home_mixer_post_unexplored_weight'],
+ ['Dwell (per second)',0.004,'rust_home_mixer_cont_dwell_time_weight'],
+ ['Profile click · bookmark',0,'profile_click_weight = 0 · no bookmark param'],
+ ['Not dwelled',-0.02,'rust_home_mixer_not_dwelled_weight'],
+ ['Block author',-31.2,'rust_home_mixer_block_author_weight'],
+ ['Not interested',-43.2,'rust_home_mixer_not_interested_weight'],
+ ['Mute author',-58.8,'rust_home_mixer_mute_author_weight'],
+ ['Report',-234,'rust_home_mixer_report_weight']
+];
+const wb=document.getElementById('wboard');
+const SQMAX=Math.sqrt(234);
+function boardRow(nm,w,param,key){
+  const aw=Math.abs(w), pct=aw===0?0:Math.max(1.2,Math.sqrt(aw)/SQMAX*(w>0?72:24));
+  return '<div class="wrow'+(w<0?' negv':(w===0?' zero':''))+'" '+(key?'data-key="'+key+'"':'')+' title="'+param+'">'+
+    '<span class="nm">'+nm+'</span>'+
+    '<div class="wtrack"><div class="wbar '+(w<0?'neg':'pos')+'" style="width:'+pct+'%"></div></div>'+
+    '<span class="vv">'+(w>0?'+':'')+w+'</span></div>';
+}
+function syncBoard(){
+  wb.innerHTML=BOARD.map(r=>{
+    let w=r[1];
+    if(r[3]==='reply'&&document.getElementById('wMutual').checked)w=20;
+    return boardRow(r[0]+(r[3]==='reply'&&document.getElementById('wMutual').checked?' (mutual)':''),w,r[2],r[3]);
+  }).join('');
+}
+document.getElementById('wMutual').addEventListener('change',syncBoard);
+syncBoard();
+compute();
+})();
+</script>
+
+<!-- ============ BACKGROUND: ordered-dither lava field ============ -->
+<script>
+(function(){
+  var cv=document.getElementById('dither');
+  if(!cv||!cv.getContext) return;
+  var ctx=cv.getContext('2d',{alpha:true});
+  if(!ctx) return;
+
+  var PX=2;                 // CSS pixels per dither cell — bigger = chunkier
+  var MAXCELLS=7.5e5;       // above this the buffer coarsens rather than eating a core
+  var LOWDIV=4;             // the blob field is smooth, so it is solved at 1/4 scale
+  var FPS=30, STEP=1000/FPS;
+  var SPEED=0.0012;         // phase advance per ms — how fast the lamp churns
+  // NOTE: this background deliberately animates even under prefers-reduced-motion.
+  // Windows "Animation effects: off" sets that query for every browser on the machine,
+  // and a frozen background is the bug this page was reported for. Nothing here
+  // flashes, strobes or moves fast — it is a slow tonal drift.
+
+  // 8x8 ordered (Bayer) matrix — the classic newsprint / 1-bit dither pattern
+  var B=[0,32,8,40,2,34,10,42, 48,16,56,24,50,18,58,26, 12,44,4,36,14,46,6,38,
+         60,28,52,20,62,30,54,22, 3,35,11,43,1,33,9,41, 51,19,59,27,49,17,57,25,
+         15,47,7,39,13,45,5,37, 63,31,55,23,61,29,53,21];
+
+  // Lamp colours. Each blob carries one of these; where blobs overlap their indices
+  // average, so a merge crossfades through the stops between them.
+  var STOPS=[[74,35,82],[163,59,82],[209,102,46],[201,162,39],[232,196,106],[45,107,99]];
+  //          plum        magenta      rust         ochre        gold          teal
+  var BANDS=[[0.45,120],[0.70,165],[0.88,205],[1.00,235]];   // [brightness, alpha]
+
+  // Six blobs on Lissajous drifts. Different x/y frequencies keep them from ever
+  // repeating the same arrangement, which is what sells it as fluid rather than looped.
+  //     bx    by    r     ampx  ampy  freqx  freqy  phase  hue
+  var BALL=[
+    [0.18, 0.72, 0.26, 0.15, 0.18, 0.520, 0.416, 0.0, 0],
+    [0.78, 0.30, 0.23, 0.19, 0.14, 0.416, 0.572, 1.3, 4],
+    [0.52, 0.86, 0.28, 0.22, 0.11, 0.325, 0.715, 2.4, 2],
+    [0.88, 0.78, 0.21, 0.13, 0.20, 0.637, 0.377, 3.7, 3],
+    [0.10, 0.34, 0.19, 0.16, 0.22, 0.468, 0.520, 5.1, 1],
+    [0.62, 0.12, 0.17, 0.20, 0.15, 0.572, 0.468, 0.8, 5]
+  ];
+
+  // pack RGBA into one Uint32 (endian-aware)
+  var LE=(function(){var b=new ArrayBuffer(4);new Uint32Array(b)[0]=1;return new Uint8Array(b)[0]===1})();
+  function pack(r,g,b,a){ return (LE ? (a<<24|b<<16|g<<8|r) : (r<<24|g<<16|b<<8|a))>>>0 }
+
+  // Palette LUT: HSTEPS interpolated hues x 4 brightness bands, built once.
+  var HSTEPS=40, PAL=new Uint32Array(HSTEPS*4);
+  (function(){
+    var last=STOPS.length-1;
+    for(var i=0;i<HSTEPS;i++){
+      var f=i/(HSTEPS-1)*last, k=Math.min(last-1,f|0), m=f-k;
+      var c0=STOPS[k], c1=STOPS[k+1];
+      var r=c0[0]+(c1[0]-c0[0])*m, g=c0[1]+(c1[1]-c0[1])*m, b=c0[2]+(c1[2]-c0[2])*m;
+      for(var j=0;j<4;j++){
+        var mul=BANDS[j][0];
+        PAL[(i<<2)|j]=pack(r*mul|0, g*mul|0, b*mul|0, BANDS[j][1]);
+      }
+    }
+  })();
+
+  var bw=0,bh=0,img=null,buf=null,lowW=0,lowH=0,fld=null,hue=null,
+      colIdx,colFrac,colMask,rowIdx,rowFrac,rowMask;
+
+  var vw=0,vh=0;
+  // Transactional: everything is built into locals and only committed once every
+  // allocation has succeeded. If one throws (allocation pressure on a 4K resize, a
+  // transient 0-width during a mobile URL-bar transition), the previous frame's state
+  // survives intact and vw/vh stay stale, so the self-heal simply retries next frame.
+  function resize(){
+    var w=window.innerWidth, h=window.innerHeight;
+    var px=PX;                               // 2px cells, coarsened only on huge displays
+    while((w/px)*(h/px)>MAXCELLS) px++;
+    var nbw=Math.max(2,Math.ceil(w/px)), nbh=Math.max(2,Math.ceil(h/px));
+    var nlw=Math.ceil(nbw/LOWDIV)+2, nlh=Math.ceil(nbh/LOWDIV)+2;
+
+    var nimg=ctx.createImageData(nbw,nbh), nbuf=new Uint32Array(nimg.data.buffer);
+    var nfld=new Float32Array(nlw*nlh), nhue=new Float32Array(nlw*nlh);
+    var ci=new Int32Array(nbw), cf=new Float32Array(nbw), cm=new Float32Array(nbw);
+    var ri=new Int32Array(nbh), rf=new Float32Array(nbh), rm=new Float32Array(nbh);
+
+    for(var y=0;y<nbh;y++){
+      var ly=y/LOWDIV, li=ly|0;
+      if(li>nlh-2) li=nlh-2;
+      ri[y]=li; rf[y]=ly-li;
+      var v=y/nbh;
+      var m=(0.26+0.9*v)*Math.min(1,v/0.10);   // denser low, clears out under the nav
+      rm[y]=m>1?1:m;
+    }
+    for(var x=0;x<nbw;x++){
+      var lx=x/LOWDIV, xi=lx|0;
+      if(xi>nlw-2) xi=nlw-2;
+      ci[x]=xi; cf[x]=lx-xi;
+      var u=x/nbw-0.5;                         // gentle dip behind the text column
+      cm[x]=1-0.28*Math.exp(-(u*u)/0.10);
+    }
+    // commit
+    cv.width=nbw; cv.height=nbh;
+    bw=nbw; bh=nbh; img=nimg; buf=nbuf;
+    lowW=nlw; lowH=nlh; fld=nfld; hue=nhue;
+    colIdx=ci; colFrac=cf; colMask=cm;
+    rowIdx=ri; rowFrac=rf; rowMask=rm;
+    vw=w; vh=h;
+  }
+
+  function frame(t){
+    var asp=bw/bh, i, j, x, y;
+
+    // --- solve the metaball field at 1/4 scale ---
+    var n=BALL.length, cxs=new Float64Array(n), cys=new Float64Array(n), r2=new Float64Array(n), hs=new Float64Array(n);
+    for(j=0;j<n;j++){
+      var b=BALL[j];
+      cxs[j]=b[0]+b[3]*Math.sin(t*b[5]+b[7]);
+      cys[j]=b[1]+b[4]*Math.sin(t*b[6]+b[7]*1.7);
+      r2[j]=b[2]*b[2];
+      hs[j]=b[8];
+    }
+    i=0;
+    for(y=0;y<lowH;y++){
+      var v=(y*LOWDIV)/bh;
+      for(x=0;x<lowW;x++){
+        var u=(x*LOWDIV)/bw;
+        var sum=0, hsum=0;
+        for(j=0;j<n;j++){
+          var dx=(u-cxs[j])*asp, dy=v-cys[j];
+          var wgt=r2[j]/(dx*dx+dy*dy+0.0006);
+          sum+=wgt; hsum+=wgt*hs[j];
+        }
+        fld[i]=sum/(sum+1);                    // asymptotic: blobs plateau, they do not clip
+        hue[i]=sum>0?hsum/sum:0;
+        i++;
+      }
+    }
+
+    // --- dither it at full scale, bilinear-sampling the low-res field ---
+    i=0;
+    for(y=0;y<bh;y++){
+      var fy=rowFrac[y], r0=rowIdx[y]*lowW, r1=r0+lowW,
+          mk=rowMask[y], brow=(y&7)<<3;
+      for(x=0;x<bw;x++){
+        var c0=colIdx[x], fx=colFrac[x], i00=r0+c0, i10=r1+c0;
+        var d0=fld[i00], d1=fld[i00+1], e0=fld[i10], e1=fld[i10+1];
+        var a=d0+(d1-d0)*fx, bb=e0+(e1-e0)*fx;
+        var lv=(a+(bb-a)*fy)*mk*colMask[x];
+        if(lv>((B[brow+(x&7)]+0.5)*0.015625)){
+          var h0=hue[i00], h1=hue[i00+1], g0=hue[i10], g1=hue[i10+1];
+          var ha=h0+(h1-h0)*fx, hb=g0+(g1-g0)*fx;
+          var hq=((ha+(hb-ha)*fy)*7.8)|0;      // (HSTEPS-1)/(STOPS-1) = 39/5
+          if(hq<0) hq=0; else if(hq>HSTEPS-1) hq=HSTEPS-1;
+          buf[i]=PAL[(hq<<2)|(lv<0.40?0:lv<0.58?1:lv<0.74?2:3)];
+        } else buf[i]=0;
+        i++;
+      }
+    }
+    ctx.putImageData(img,0,0);
+  }
+
+  var t=1.7,last=0,acc=0,started=0;
+  function loop(ts){
+    // scheduled FIRST: a throw inside frame() must not be able to kill the loop
+    requestAnimationFrame(loop);
+    if(!started){ started=1; last=ts; }   // a legitimate ts of 0 must not cost a frame
+    var dt=ts-last; last=ts;
+    if(dt>250) dt=250;                    // coming back from a background tab
+    t+=dt*SPEED;                          // wall-clock, NOT per rendered frame — otherwise
+    acc+=dt;                              // the 30fps throttle silently halves the speed
+    if(acc>=STEP){                        // at 60Hz and quarters it at 120Hz
+      acc%=STEP;
+      // catches the case where the page loaded in a hidden/zero-size tab, or any
+      // viewport change that never fired a resize event (mobile URL bar, devtools)
+      if(window.innerWidth!==vw||window.innerHeight!==vh) resize();
+      frame(t);
+    }
+  }
+
+  var rt;
+  window.addEventListener('resize',function(){
+    clearTimeout(rt);
+    rt=setTimeout(function(){ resize(); frame(t); },140);
+  });
+
+  resize();
+  requestAnimationFrame(loop);
+})();
+</script>
+
+</body>
+</html>
