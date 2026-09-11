@@ -1,5 +1,5 @@
 /* match/moments.js
-   TI 2026 Match Analysis, the key moments list.
+   TI 2026 Match Analysis, the fights and objectives list.
    Mount: m-moments.
 
    G5.teamfights and G5.objectives merged into one list, sorted by the second
@@ -16,6 +16,13 @@
    economy chart, the scoreboard, the item tracks and the sidebar summary all
    move to the same reading. As the index moves, the moment nearest to it is
    marked, so scrubbing anywhere on the page walks this list.
+
+   NO NARRATIVE RULE, 2026-09-11. No row carries prose. A fight headline is one
+   template over the winner side (the sign of the fight's own gold delta), the
+   two death counts and the swing; an objective headline is the same kind of
+   template over the record. The one card lifted above the ladder is the
+   BIGGEST SWING, argmax of abs(swingWindow.value) among the fights, and that
+   rule is printed under the card, not implied by a gold chip.
 */
 (function () {
   'use strict';
@@ -25,11 +32,18 @@
   var h = Hub.h;
   var F = Hub.fmt;
 
+  /* The 'majors' filter is a rule, so the rule is printed where the reader
+     meets the label: as the button's title and aria-label, and as a line in
+     the legend. Contract 12.3 rule H. */
+  var MINOR_TOWER_TIER = 2;
+  var MAJOR_RULE = 'Fights and majors: every teamfight, plus every objective '
+    + 'that is not a tower of tier ' + MINOR_TOWER_TIER + ' or below.';
+
   var DEFAULTS = {
     /* moments-wall: 28 of the 35 rows were objectives and most of those were
        near identical tier 1 and tier 2 tower lines, so the list opened as an
-       undifferentiated 3,000px ladder. It now opens on the fights and the
-       objectives that decided something; the tower runs are one line away. */
+       undifferentiated 3,000px ladder. It now opens on the 'majors' filter,
+       whose rule is MAJOR_RULE below; the tower runs are one click away. */
     filter: 'majors',     /* 'majors', 'all', 'fights', 'objectives' */
     maxDeadPortraits: 6,  /* portraits shown before the text line carries the rest */
     featuredId: null,     /* null means: whichever fight the record flags as featured */
@@ -55,9 +69,15 @@
     roshan: 'roshan',
     aegis: 'roshan',
     tormentor: 'tormentor',
-    courier: 'tormentor',
+    courier: 'courier',
     firstblood: 'firstblood'
   };
+
+  /* one full stop at the end of a sentence, never two */
+  function endStop(text) {
+    var t = String(text == null ? '' : text).replace(/\s+$/, '');
+    return /[.!?]$/.test(t) ? t : t + '.';
+  }
 
   function resolveOptions(over) {
     var o = {}, k;
@@ -130,8 +150,6 @@
         index: idxOf(tf.startSeconds),
         side: tf.winnerSide || null,
         headline: tf.headline,
-        story: tf.story || null,
-        storyNote: tf.storyNote || null,
         tf: tf,
         obj: null
       });
@@ -152,8 +170,6 @@
         side: (Timeline && Timeline.gainSide ? Timeline.gainSide(o) : (o.takenBy || o.side || null)),
         ownerSide: (o.takenBy ? (o.side || null) : null),
         headline: o.headline,
-        story: null,
-        storyNote: null,
         tf: null,
         obj: o
       });
@@ -175,13 +191,15 @@
     /* ---------- header, with a filter that really filters ---------- */
 
     var segButtons = {};
-    function segBtn(value, label) {
-      var b = h('button', {
+    function segBtn(value, label, rule) {
+      var attrs = {
         type: 'button',
         'class': 'm-seg-btn',
         'aria-pressed': value === opts.filter ? 'true' : 'false',
         'data-filter': value
-      }, label);
+      };
+      if (rule) { attrs.title = rule; attrs['aria-label'] = rule; }
+      var b = h('button', attrs, label);
       b.addEventListener('click', function () { setFilter(value); });
       segButtons[value] = b;
       return b;
@@ -189,13 +207,13 @@
 
     root.appendChild(h('div', { 'class': 'card-header' },
       h('div', { 'class': 'titles' },
-        h('h2', { 'class': 'title rdy-heading-5' }, 'Key moments'),
+        h('h2', { 'class': 'title rdy-heading-5' }, 'Fights and objectives'),
         h('div', { 'class': 'subtitle' },
           nFights + ' teamfights and ' + nObjectives + ' objectives, in the order they happened.')
       ),
       h('div', { 'class': 'action' },
         h('div', { 'class': 'm-seg', role: 'group', 'aria-label': 'Filter moments' },
-          segBtn('majors', 'Fights and majors'),
+          segBtn('majors', 'Fights and majors', MAJOR_RULE),
           segBtn('all', 'All'),
           segBtn('fights', 'Fights'),
           segBtn('objectives', 'Objectives')
@@ -213,7 +231,9 @@
       h('span', { 'class': 'm-legend-item' },
         h('span', { 'class': 'm-swatch m-swatch--dire' }), teamName.dire + ' ahead'),
       h('span', { 'class': 'm-legend-item u-dim' },
-        'Every row carries the same gold line with a dot at its own minute, on one scale up to ' + F.num(maxAbs) + ' gold.')
+        'Every row carries the same gold line with a dot at its own minute, on one scale up to ' + F.num(maxAbs) + ' gold. ' +
+        'A fight is won by the side with the positive gold delta inside the fight window, which is the only thing "win" means here.'),
+      h('span', { 'class': 'm-legend-item u-dim' }, MAJOR_RULE)
     ));
 
     /* ---------- the items ---------- */
@@ -244,29 +264,28 @@
     var rows = [];   /* {item, el, countsAs} */
     var playCards = [];
 
-    /* moments-wall: the two rows that decide the game sat 1,500px and 2,400px
-       down a flat ladder. They are lifted out as full width hero cards at the
-       top of the section, and both are derived, never typed: the fight the
-       record flags as featured, and the fight that set up the first barracks.
-       The ladder below still carries them in chronological order. */
+    /* moments-wall: the row that moves the gold line furthest sat 2,400px down
+       a flat ladder. It is lifted out as a full width card at the top of the
+       section. It is chosen, never typed: teamfights[].featured is the argmax
+       of abs(swingWindow.value) and the build sets it. The ladder below still
+       carries the same row in chronological order. */
     function featuredItems() {
       var out = [];
       items.forEach(function (it) { if (it.featured) out.push(it); });
-      var firstRax = null;
-      for (var i = 0; i < items.length; i++) {
-        if (items[i].type === 'barracks') { firstRax = items[i]; break; }
-      }
-      if (firstRax) {
-        var setup = null;
-        for (var j = 0; j < items.length; j++) {
-          if (items[j].kind !== 'fight') continue;
-          if (items[j].seconds >= firstRax.seconds) break;
-          setup = items[j];
-        }
-        if (setup && out.indexOf(setup) === -1) out.push(setup);
-      }
       out.sort(function (a, b) { return a.seconds - b.seconds; });
       return out;
+    }
+
+    /* the rule, in words, printed under the card that the rule produced */
+    function swingRule() {
+      var feat = null;
+      items.forEach(function (it) { if (it.featured && it.tf) feat = it; });
+      if (!feat) return '';
+      var w = feat.tf.swingWindow || {};
+      if (typeof w.value !== 'number') return '';
+      return 'Biggest swing: the fight with the largest absolute change in the gold line ' +
+        'across its own window, minute ' + w.fromMinute + ' to minute ' + w.toMinute + ', ' +
+        F.num(Math.abs(w.value)) + ' to ' + teamName[w.value > 0 ? 'dire' : 'radiant'] + '.';
     }
 
     /* moments-bar-useless: a scaled length in a 132px track put 28 of the 35
@@ -409,7 +428,7 @@
         'data-index': String(it.index),
         'data-moment-id': it.id,
         'data-testid': 'match-row',
-        'aria-label': it.clock + '. ' + it.headline + '. Go to this minute.'
+        'aria-label': it.clock + '. ' + endStop(it.headline) + ' Go to this minute.'
       },
         h('span', { 'class': 'mt-mo-rail', 'aria-hidden': 'true' }),
         h('span', { 'class': 'mt-mo-time u-tnum' }, it.clock),
@@ -419,7 +438,7 @@
           it.tf
             ? h('span', { 'class': 'mt-mo-kindrow' },
                 h('span', { 'class': 'mt-mo-kind' }, TYPE_LABEL[it.type] || 'Moment'),
-                it.featured ? h('span', { 'class': 'chip chip--gold' }, 'THE PLAY') : null)
+                it.featured ? h('span', { 'class': 'chip chip--gold' }, 'BIGGEST SWING') : null)
             : null,
           it.tf
             ? h('span', { 'class': 'mt-mo-headline' }, it.headline)
@@ -430,9 +449,7 @@
                   : null,
                 h('span', { 'class': 'mt-mo-headline' }, it.headline)),
           it.tf ? fightMeta(it.tf) : objectiveMeta(it.obj),
-          it.tf ? deadStrip(it.tf) : null,
-          it.story ? h('span', { 'class': 'mt-mo-story rdy-par-6' }, it.story) : null,
-          it.storyNote ? h('span', { 'class': 'mt-mo-note rdy-par-7 u-dim' }, it.storyNote) : null
+          it.tf ? deadStrip(it.tf) : null
         ),
         h('span', {
           'class': 'mt-mo-goldcol',
@@ -454,7 +471,9 @@
       var feat = featuredItems();
       if (!feat.length) return;
       var wrap = h('div', { 'class': 'mt-mo-plays', 'data-testid': 'match-overview' });
-      wrap.appendChild(h('h3', { 'class': 'mt-mo-plays-title rdy-subh-5' }, 'The plays'));
+      wrap.appendChild(h('h3', { 'class': 'mt-mo-plays-title rdy-subh-5' }, 'Biggest swing'));
+      var rule = swingRule();
+      if (rule) { wrap.appendChild(h('p', { 'class': 'mt-mo-plays-rule u-dim rdy-par-7' }, rule)); }
       var grid = h('div', { 'class': 'mt-mo-plays-grid' });
       feat.forEach(function (it) {
         var card = h('button', {
@@ -463,17 +482,16 @@
           'data-index': String(it.index),
           'data-moment-id': 'play-' + it.id,
           'data-testid': 'card-match',
-          'aria-label': it.clock + '. ' + it.headline + '. Go to this minute.'
+          'aria-label': it.clock + '. ' + endStop(it.headline) + ' Go to this minute.'
         },
           h('span', { 'class': 'mt-mo-play-top' },
             h('span', { 'class': 'mt-mo-time u-tnum' }, it.clock),
-            it.featured ? h('span', { 'class': 'chip chip--gold' }, 'THE PLAY') : null,
+            it.featured ? h('span', { 'class': 'chip chip--gold' }, 'BIGGEST SWING') : null,
             goldText(it.index)
           ),
           h('span', { 'class': 'mt-mo-play-headline' }, it.headline),
           it.tf ? deadStrip(it.tf) : null,
-          it.tf ? fightMeta(it.tf) : null,
-          it.story ? h('span', { 'class': 'mt-mo-story rdy-par-6' }, it.story) : null
+          it.tf ? fightMeta(it.tf) : null
         );
         card.addEventListener('click', function () {
           if (Timeline) Timeline.set(it.index);
@@ -518,10 +536,12 @@
           index: it.index,
           seconds: it.seconds,
           id: it.id,
-          kind: it.featured ? 'story' : it.kind,
+          kind: it.featured ? 'swing' : it.kind,
           side: it.side,
-          label: it.clock + ' ' + it.headline,
-          short: it.clock + ' ' + (TYPE_LABEL[it.type] || 'Moment')
+          /* the clock is printed by the strip itself (renderMarks prefixes it)
+             and by the readout, so neither field repeats it here */
+          label: it.headline,
+          short: (TYPE_LABEL[it.type] || 'Moment')
         };
       }));
     }
@@ -530,12 +550,12 @@
 
     var filter = opts.filter;
 
-    /* a major is a fight, or an objective that is not one of the fourteen
-       tier 1 and tier 2 towers */
+    /* MAJOR_RULE in code: a major is a fight, or an objective that is not a
+       tower of tier MINOR_TOWER_TIER or below. */
     function isMajor(it) {
       if (it.kind === 'fight') return true;
       if (it.type !== 'tower') return true;
-      return !(it.obj && it.obj.tier && it.obj.tier <= 2);
+      return !(it.obj && it.obj.tier && it.obj.tier <= MINOR_TOWER_TIER);
     }
 
     function passes(it) {

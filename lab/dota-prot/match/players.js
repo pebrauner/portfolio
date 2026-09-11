@@ -170,7 +170,7 @@
     var bars = buildBars();
     var chart = buildChart();
     var damage = buildDamage();
-    var hotg = buildHeroOfGame();
+    var hotg = buildTopPerformer();
 
     /* radar-ignores-clock: the radar's own two state control. It moves the
        radar only; every other panel already follows the master timeline. */
@@ -915,33 +915,38 @@
     }
 
     /* ==============================================================
-       hero of the game
+       top performer
+
+       NO NARRATIVE RULE C, 2026-09-11. Nobody picks a hero of the game. This
+       is the argmax of a published points formula over the ten final stat
+       lines, and the formula is printed in the card so the reader can redo the
+       ranking from the table below it.
        ============================================================== */
-    function buildHeroOfGame() {
-      var hg = G5.heroOfTheGame;
+    function buildTopPerformer() {
+      var hg = G5.topPerformer;
       if (!hg) return null;
       var p = byKey[hg.playerKey];
       var link = Hub.link && Hub.link.player ? Hub.link.player(hg.rdyPlayerId) : null;
 
       var stats = [
+        { label: 'Points', value: (Math.round(hg.points * 10) / 10).toFixed(1) },
         { label: 'K / D / A', value: hg.line },
         { label: 'Net worth', value: N(hg.netWorth) },
-        { label: 'Gold earned', value: N(hg.goldEarned) },
-        { label: 'Hero damage', value: N(hg.heroDamage) }
+        { label: 'Net worth share', value: hg.netWorthSharePct + '%' }
       ];
 
       return h('div', {
         'class': 'mt-pl-hotg m-hl',
         'data-player-key': hg.playerKey,
         'data-player-id': hg.playerKey,
-        'data-testid': 'hero-of-the-game',
+        'data-testid': 'top-performer',
         onmouseenter: function () { if (opts.crossHighlight) Timeline.highlightPlayer(hg.playerKey); },
         onmouseleave: function () { if (opts.crossHighlight) Timeline.highlightPlayer(null); }
       },
         h('div', { 'class': 'mt-pl-hotg-top' },
           h('span', { 'class': 'mt-pl-hotg-photo' }, Hub.avatar(p || hg, hg.teamKey, 'lg')),
           h('span', { 'class': 'mt-pl-hotg-names' },
-            h('span', { 'class': 'chip chip--gold' }, 'Hero of the game'),
+            h('span', { 'class': 'chip chip--gold' }, 'Top performer'),
             h('span', { 'class': 'mt-pl-hotg-handle' },
               link ? Hub.extLink(link, { 'class': 'mt-pl-hotg-link' }, hg.handle) : hg.handle),
             h('span', { 'class': 'mt-pl-hotg-hero' },
@@ -954,7 +959,7 @@
               h('span', { 'class': 'm-readout-value u-tnum' }, s.value));
           }))
         ),
-        h('p', { 'class': 'mt-pl-hotg-why' }, hg.why),
+        h('p', { 'class': 'mt-pl-hotg-why' }, hg.rule),
         h('button', {
           type: 'button', 'class': 'btn btn-ghost btn-sm mt-pl-hotg-btn',
           onclick: function () { select(hg.playerKey, null); }

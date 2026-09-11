@@ -234,7 +234,13 @@
       live: true,
       date: GF5.date,
       img: 'ed1',
-      headline: km.headline || 'The Lotus Orb that flipped the decider',
+      /* No narrative rule, round 2 (audit N08). GF5.keyMoment carries no
+         headline any more, so this line had degraded into a hand-written
+         literal inside component code. It is now the R9 template over the key
+         moment's own numbers: deaths, window and gold delta, side from the
+         data. No fallback string is left. */
+      headline: F.num(km.deaths) + ' heroes down between ' + km.clock + ' and ' + km.endClock +
+                ', ' + F.num(km.goldDelta) + ' gold to ' + ((Hub.team(km.teamKey) || {}).displayName || ''),
       dek: 'TEAM VISION were ' + F.num(peaks.visionPeak ? peaks.visionPeak.value : null) +
            ' gold up at minute ' + (peaks.visionPeak ? peaks.visionPeak.minute : '') +
            ' and went looking for the fight that ends the series. Forty seven seconds later they had lost four heroes and the gold line.',
@@ -690,9 +696,16 @@
     );
 
     var card = h('div', { 'class': 'card card--live ed-card-side', 'data-testid': 'event-card' },
+      /* No narrative rule, round 2 (audit N-R2-01). The chip used to read
+         "Decider", the same hand-written stakes label the trim already
+         replaced with "in progress" in the #m-live game 5 pip and in the
+         Drafts tab header meta. It is now a state chip: the status comes
+         from GF5.live, nothing is asserted about what the game is worth. */
       cardHead('Today, ' + F.date(GF5.date, 'short'),
         GF5.stage + ', ' + GF5.format + '. Times in ' + TI.event.city + ', UTC+8',
-        h('span', { 'class': 'chip chip--gold' }, 'Decider')),
+        GF5.live
+          ? h('span', { 'class': 'chip chip--live' }, 'In progress')
+          : h('span', { 'class': 'chip chip--outline' }, 'Final')),
       h('div', { 'class': 'card-body' }, head, table),
       h('div', { 'class': 'card-footer ed-side-actions' },
         textButton('Full schedule', function () {
@@ -729,9 +742,13 @@
 
     var items = [
       {
+        /* Contract section 13 rule 4, now closed: events[] no longer ships the
+           deprecated headline / detail aliases, so this card reads the real
+           fields. label and facts.join(' ') are the exact strings the aliases
+           carried, so the rendered text is unchanged. */
         kind: 'photos', img: 'ev1',
-        title: rosh ? rosh.headline : 'Roshan falls',
-        text: rosh ? rosh.detail : '',
+        title: rosh ? rosh.label : 'Roshan falls',
+        text: rosh ? rosh.facts.join(' ') : '',
         stamp: 'Game 5, ' + (rosh ? rosh.time : GF5.frozenAt.clock)
       },
       {
@@ -976,11 +993,16 @@
         h('p', { 'class': 'ed-info-note u-dim' },
           'Published prize pool totals differ, so rdy.gg prints the range safe figure and never a per team amount. ' +
           'No Battle Pass: the pool is a ' + F.num(ev.prizePoolBase) + ' base from ' + ev.organiser + ' plus supporter bundle sales.'),
+        /* No narrative rule, round 2 (audit N-R2-06). The footnote used to end
+           with event.viewership.allTimeRank, a cross-year ranking against TI
+           2021 and TI 2019 that no rule in either contract produces. The peak
+           figure and its source stay; the ranking is gone, and the field is no
+           longer emitted by build_ti2026.py. */
         v.source ? h('p', { 'class': 'ed-info-note u-dim' },
           'Viewership from ' + v.source + '. The peak was set before the grand final, so it holds at the ' +
           'frozen moment. Averages, hours watched and broadcast hours are whole event aggregates and ' +
           'cannot be final while game ' + (GF5.game || '') + ' is still running, so they are ' +
-          'not printed here. ' + (v.allTimeRank || '')) : null)
+          'not printed here.') : null)
     );
     mount.appendChild(card);
   });

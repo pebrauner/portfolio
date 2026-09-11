@@ -232,11 +232,25 @@
 .live-gbar-tick--radiant { color: color-mix(in srgb, var(--color-radiant) 85%, transparent); }
 .live-gbar-tick:first-child { transform: none; }
 .live-gbar-tick:last-child { transform: translateX(-100%); }
+/* The callout is two rule derived lines and their caption: the reading at the
+   freeze, then the biggest swing window. No narrative rule, 2026-09-11. */
 .live-gbar-callout {
   margin: 10px 0 0;
   color: var(--text-secondary);
   border-left: 2px solid var(--color-dire);
   padding-left: 10px;
+}
+.live-gbar-now {
+  margin: 0;
+  color: var(--color-rdy-white);
+  font-weight: 600;
+}
+.live-gbar-swing { margin: 2px 0 0; color: var(--text-secondary); }
+
+/* One muted caption carrying the rule that produced the label above it. */
+.live-rule-note {
+  margin: 8px 0 0;
+  max-width: 78ch;
 }
 
 /* ========================================================= 2. gold graph */
@@ -527,7 +541,14 @@
 .live-ev-type { text-transform: uppercase; letter-spacing: .04em; }
 .live-ev-team { font-size: 11px; }
 .live-ev-head { margin: 0; color: var(--color-rdy-white); }
-.live-ev-detail { margin: 4px 0 0; color: var(--text-secondary); }
+/* One templated fact per line, so a machine written entry reads as a record
+   and not as a paragraph. */
+.live-ev-facts {
+  list-style: none;
+  margin: 4px 0 0; padding: 0;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.live-ev-fact { color: var(--text-secondary); }
 .live-ev--key {
   background: color-mix(in srgb, var(--color-rdy-gold) 7%, transparent);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-rdy-gold) 28%, transparent);

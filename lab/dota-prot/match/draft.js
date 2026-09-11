@@ -12,7 +12,15 @@
    a discrete thing and there is nowhere to travel to.
 
    Nothing is typed by hand. Phase labels, phase boundaries, the ban and pick
-   counts, the lineups and the five notes all come from the payload.
+   counts and the lineups all come from the payload.
+
+   NO NARRATIVE RULE, 2026-09-11. draft[].note is gone: the five sentences that
+   field carried were written by a person and leaned on what an ability does and
+   on another year's grand final. What a step carries now is rule D, a count
+   line built here from TI2026.heroMeta: how often the event picked or banned
+   that hero across the 147 TI 2026 games in the dataset, and nothing else. A
+   hero the event barely touched carries no line, because the counts are
+   published as top ten lists.
 */
 (function () {
   'use strict';
@@ -20,6 +28,40 @@
   if (!window.Hub) { return; }
 
   var h = Hub.h;
+
+  /* ---- rule D: event counts, the only note a draft step can carry ----
+     TI2026.heroMeta publishes four top ten lists over the 147 TI 2026 games in
+     the dataset. A hero that appears in any of them gets one templated line of
+     counts. Nothing is inferred and nothing is ranked here: the numbers are
+     printed in the order picks, bans, win rate, and the source is captioned
+     once above the list. */
+  function heroMetaIndex() {
+    var meta = (window.TI2026 && window.TI2026.heroMeta) || null;
+    if (!meta) return null;
+    var idx = {};
+    ['mostContested', 'mostBanned', 'mostPicked', 'bestWinrate'].forEach(function (listName) {
+      (meta[listName] || []).forEach(function (e) {
+        var row = idx[e.hero] || (idx[e.hero] = {});
+        if (typeof e.picks === 'number' && row.picks === undefined) row.picks = e.picks;
+        if (typeof e.bans === 'number' && row.bans === undefined) row.bans = e.bans;
+        if (typeof e.winPct === 'number' && row.winPct === undefined) row.winPct = e.winPct;
+      });
+    });
+    idx.__total = (typeof meta.totalMatches === 'number') ? meta.totalMatches : null;
+    return idx;
+  }
+
+  function eventNote(idx, heroKey) {
+    if (!idx) return null;
+    var row = idx[heroKey];
+    if (!row) return null;
+    var bits = [];
+    if (typeof row.picks === 'number') bits.push(row.picks + (row.picks === 1 ? ' pick' : ' picks'));
+    if (typeof row.bans === 'number') bits.push(row.bans + (row.bans === 1 ? ' ban' : ' bans'));
+    if (typeof row.winPct === 'number') bits.push(row.winPct + '% win rate');
+    if (!bits.length) return null;
+    return bits.join(', ') + (idx.__total ? ' in ' + idx.__total + ' TI 2026 games' : ' at TI 2026');
+  }
 
   /* Options with defaults, principle 9. Pass them to Hub.register's closure by
      editing DRAFT_OPTIONS, or read them from window.MatchDraftOptions if the
@@ -109,6 +151,9 @@
 
     function onDown(e) {
       if (e.button !== undefined && e.button !== 0) return;
+      /* contract 3.10: any pointerdown on any scrub surface stops the time
+         lapse, so the page never marches on under the reader's hand */
+      if (api.pause) api.pause();
       down = true; travel = 0; sx = e.clientX; sy = e.clientY; pid = e.pointerId;
       try { el.setPointerCapture(pid); } catch (err) {}
       el.classList.add('is-scrubbing');
@@ -147,6 +192,11 @@
     function onKey(e) {
       var big = e.shiftKey ? opts.bigStep : 1;
       var k = e.key;
+      if (k === 'ArrowRight' || k === 'ArrowUp' || k === 'ArrowLeft' || k === 'ArrowDown' ||
+          k === 'Home' || k === 'End' || k === 'PageUp' || k === 'PageDown') {
+        /* contract 3.10: a keyboard scrub stops the time lapse too */
+        if (api.pause) api.pause();
+      }
       if (k === 'ArrowRight' || k === 'ArrowUp') { api.commit(api.committed() + big); }
       else if (k === 'ArrowLeft' || k === 'ArrowDown') { api.commit(api.committed() - big); }
       else if (k === 'Home') { api.commit(opts.first); }
@@ -178,6 +228,7 @@
     var lineups = G5.lineups || { radiant: [], dire: [] };
     var match = G5.match || {};
     var counts = G5.draftCounts || null;
+    var META = heroMetaIndex();   /* rule D, built once per mount */
 
     var root = h('section', {
       'class': 'card mt-dr',
@@ -422,9 +473,9 @@
       teamPanel('dire')
     ));
 
-    /* ---------- the notes, five sourced lines in the payload ---------- */
+    /* ---------- rule D: the event count lines ---------- */
 
-    var noted = draft.filter(function (s) { return !!s.note; });
+    var noted = draft.filter(function (s) { return !!eventNote(META, s.hero); });
     var noteRows = {};
     if (noted.length) {
       var noteList = h('ul', { 'class': 'mt-dr-notes' });
@@ -438,7 +489,7 @@
           },
             h('span', { 'class': 'mt-dr-note-step u-tnum' }, String(st.order)),
             Hub.heroImg(st.hero, { side: side, size: 'sm', alt: st.heroDisplay }),
-            h('span', { 'class': 'mt-dr-note-text rdy-par-6' }, st.note)
+            h('span', { 'class': 'mt-dr-note-text rdy-par-6' }, eventNote(META, st.hero))
           )
         );
         row.querySelector('button').addEventListener('click', function () { commit(st.order); });
@@ -446,7 +497,11 @@
         noteList.appendChild(row);
       });
       body.appendChild(h('div', { 'class': 'mt-dr-notes-wrap' },
-        h('div', { 'class': 'm-sub' }, 'Notable steps'),
+        h('div', { 'class': 'm-sub' }, 'At The International 2026'),
+        h('p', { 'class': 'mt-dr-notes-source u-dim rdy-par-7' },
+          'Pick and ban counts for the heroes in this draft that reach a TI 2026 top ten list, ' +
+          'from ' + ((window.TI2026 && window.TI2026.heroMeta && window.TI2026.heroMeta.source) ||
+            'the event hero counts') + ' Click a line to go to that step.'),
         noteList
       ));
     }
@@ -511,7 +566,8 @@
         dPlayer.appendChild(h('span', { 'class': 'mt-dr-detail-team u-dim' }, name + ' ban'));
       }
 
-      if (st.note) { dNote.textContent = st.note; dNote.hidden = false; }
+      var stNote = eventNote(META, st.hero);
+      if (stNote) { dNote.textContent = stNote; dNote.hidden = false; }
       else { dNote.textContent = ''; dNote.hidden = true; }
 
       var k;
@@ -563,7 +619,8 @@
       last: lastStep,
       committed: function () { return committed; },
       commit: commit,
-      hover: hover
+      hover: hover,
+      pause: function () { if (Timeline && Timeline.pause) Timeline.pause(); }
     }, opts);
 
     /* cross module highlight: a pick row lights up when another component

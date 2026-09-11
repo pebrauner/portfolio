@@ -20,7 +20,7 @@ window.GF5 = {
     "vision": 2,
     "spirit": 2
   },
-  "seriesNote": "Series level at 2-2. Game 5 decides The International 2026.",
+  "seriesNote": "Series level at 2-2, game 5 of 5.",
   "sides": {
     "radiant": "vision",
     "dire": "spirit"
@@ -684,10 +684,32 @@ window.GF5 = {
       "minute": 42,
       "value": 4430
     },
+    "leadPeak": {
+      "dire": {
+        "minute": 42,
+        "clock": "42:00",
+        "value": 4430,
+        "atFreeze": true
+      },
+      "radiant": {
+        "minute": 37,
+        "clock": "37:00",
+        "value": 4794,
+        "atFreeze": false
+      }
+    },
     "swingWindow": {
-      "from": 37,
-      "to": 40,
-      "value": 7763
+      "fromMinute": 38,
+      "toMinute": 41,
+      "fromClock": "38:00",
+      "toClock": "41:00",
+      "windowMinutes": 3,
+      "value": 7802,
+      "side": "dire",
+      "teamKey": "spirit",
+      "teamName": "Team Spirit",
+      "teamTag": "TSP",
+      "rule": "Biggest swing: the 3 minute window with the largest change in the gold line, argmax of the absolute difference between its two readings."
     }
   },
   "players": [
@@ -708,7 +730,7 @@ window.GF5 = {
       "kills": 2,
       "deaths": 2,
       "assists": 2,
-      "assistsNote": "teamfight participation proxy, see snapshot-derivation.md",
+      "assistsNote": "kills by team mates inside the fights he took part in, see snapshot-derivation.md",
       "lastHits": 642,
       "denies": 31,
       "gold": 30443,
@@ -773,7 +795,7 @@ window.GF5 = {
       "kills": 9,
       "deaths": 1,
       "assists": 2,
-      "assistsNote": "teamfight participation proxy, see snapshot-derivation.md",
+      "assistsNote": "kills by team mates inside the fights he took part in, see snapshot-derivation.md",
       "lastHits": 323,
       "denies": 10,
       "gold": 23483,
@@ -838,7 +860,7 @@ window.GF5 = {
       "kills": 1,
       "deaths": 3,
       "assists": 2,
-      "assistsNote": "teamfight participation proxy, see snapshot-derivation.md",
+      "assistsNote": "kills by team mates inside the fights he took part in, see snapshot-derivation.md",
       "lastHits": 423,
       "denies": 15,
       "gold": 26455,
@@ -903,7 +925,7 @@ window.GF5 = {
       "kills": 2,
       "deaths": 8,
       "assists": 1,
-      "assistsNote": "teamfight participation proxy, see snapshot-derivation.md",
+      "assistsNote": "kills by team mates inside the fights he took part in, see snapshot-derivation.md",
       "lastHits": 46,
       "denies": 2,
       "gold": 10609,
@@ -968,7 +990,7 @@ window.GF5 = {
       "kills": 7,
       "deaths": 6,
       "assists": 1,
-      "assistsNote": "teamfight participation proxy, see snapshot-derivation.md",
+      "assistsNote": "kills by team mates inside the fights he took part in, see snapshot-derivation.md",
       "lastHits": 87,
       "denies": 1,
       "gold": 13323,
@@ -1033,7 +1055,7 @@ window.GF5 = {
       "kills": 1,
       "deaths": 7,
       "assists": 7,
-      "assistsNote": "teamfight participation proxy, see snapshot-derivation.md",
+      "assistsNote": "kills by team mates inside the fights he took part in, see snapshot-derivation.md",
       "lastHits": 20,
       "denies": 0,
       "gold": 10516,
@@ -1098,7 +1120,7 @@ window.GF5 = {
       "kills": 3,
       "deaths": 2,
       "assists": 5,
-      "assistsNote": "teamfight participation proxy, see snapshot-derivation.md",
+      "assistsNote": "kills by team mates inside the fights he took part in, see snapshot-derivation.md",
       "lastHits": 566,
       "denies": 17,
       "gold": 31443,
@@ -1163,7 +1185,7 @@ window.GF5 = {
       "kills": 7,
       "deaths": 3,
       "assists": 7,
-      "assistsNote": "teamfight participation proxy, see snapshot-derivation.md",
+      "assistsNote": "kills by team mates inside the fights he took part in, see snapshot-derivation.md",
       "lastHits": 326,
       "denies": 13,
       "gold": 22731,
@@ -1228,7 +1250,7 @@ window.GF5 = {
       "kills": 2,
       "deaths": 6,
       "assists": 7,
-      "assistsNote": "teamfight participation proxy, see snapshot-derivation.md",
+      "assistsNote": "kills by team mates inside the fights he took part in, see snapshot-derivation.md",
       "lastHits": 80,
       "denies": 0,
       "gold": 12568,
@@ -1293,7 +1315,7 @@ window.GF5 = {
       "kills": 7,
       "deaths": 3,
       "assists": 2,
-      "assistsNote": "teamfight participation proxy, see snapshot-derivation.md",
+      "assistsNote": "kills by team mates inside the fights he took part in, see snapshot-derivation.md",
       "lastHits": 456,
       "denies": 2,
       "gold": 31485,
@@ -1594,104 +1616,154 @@ window.GF5 = {
       "time": "42:00",
       "type": "state",
       "team": "dire",
-      "headline": "Spirit hold the gold lead at minute 42",
-      "detail": "From +4,794 for Vision at minute 37 to +4,430 for Spirit at minute 42. A swing of 9,224 gold in five minutes, with the Aegis still on Yatoro."
+      "label": "At 42:00, Team Spirit +4,430",
+      "facts": [
+        "Total gold earned: TEAM VISION 104,313, Team Spirit 108,743.",
+        "Biggest swing 38:00 to 41:00: +7,802 to Team Spirit."
+      ]
     },
     {
       "seconds": 2494,
       "time": "41:34",
       "type": "tower",
       "team": "dire",
-      "headline": "TEAM VISION lose the tier 2 top",
-      "detail": "Team Spirit break it with Lifestealer. At that minute Spirit lead by 3,477."
+      "label": "TEAM VISION tier 2 top down",
+      "facts": [
+        "Taken by Team Spirit, Yatoro (Lifestealer).",
+        "Gold line at minute 41: Team Spirit +3,477."
+      ]
     },
     {
       "seconds": 2453,
       "time": "40:53",
       "type": "aegis",
       "team": "dire",
-      "headline": "Aegis of the Immortal to Yatoro",
-      "detail": "Lifestealer carries it out. Still live at the freeze, it runs out at 45:52."
+      "label": "Aegis to Yatoro (Lifestealer)",
+      "facts": [
+        "Picked up at 40:52.",
+        "Expires at 45:52, after the freeze."
+      ]
     },
     {
       "seconds": 2452,
       "time": "40:52",
       "type": "roshan",
       "team": "dire",
-      "headline": "Roshan number 2 goes to Team Spirit",
-      "detail": "Team Spirit clear the pit at 40:52. Next spawn window opens eight minutes later."
+      "label": "Roshan 2 to Team Spirit",
+      "facts": [
+        "Killed at 40:52.",
+        "Respawn window 48:52 to 51:52."
+      ]
     },
     {
       "seconds": 2375,
       "time": "39:35",
       "type": "tower",
       "team": "dire",
-      "headline": "TEAM VISION lose the tier 2 mid",
-      "detail": "Team Spirit break it with Lifestealer. At that minute Spirit lead by 958."
+      "label": "TEAM VISION tier 2 mid down",
+      "facts": [
+        "Taken by Team Spirit, Yatoro (Lifestealer).",
+        "Gold line at minute 39: Team Spirit +958."
+      ]
     },
     {
-      "seconds": 2309,
-      "time": "38:29",
+      "seconds": 2340,
+      "time": "39:00",
+      "type": "state",
+      "team": "dire",
+      "label": "Gold line crosses to Team Spirit at minute 39",
+      "facts": [
+        "Minute 38: TEAM VISION +4,325.",
+        "Minute 39: Team Spirit +958.",
+        "Latest change of sign at or before the freeze."
+      ]
+    },
+    {
+      "seconds": 2329,
+      "time": "38:49",
       "type": "teamfight",
       "team": "dire",
-      "headline": "A Lotus Orb turns the grand final",
-      "detail": "Vision were up 4,794 and hunting the fight that ends the series. Collapse shells himself on Dark Seer, Satanic commits Omnislash into the reflect and dies at 38:17, and rue holds Fiend’s Grip through it on Bane. Spirit take four for nothing between 38:02 and 38:49: Satanic (Juggernaut), 9Class (Rubick), No[o]ne- (Invoker), Noticed (Axe)."
+      "label": "Teamfight 38:02 to 38:49, 4 deaths",
+      "facts": [
+        "TEAM VISION 4 heroes down: Satanic (Juggernaut), 9Class (Rubick), No[o]ne- (Invoker), Noticed (Axe).",
+        "Gold inside the window +5,131 to Team Spirit."
+      ]
     },
     {
       "seconds": 2220,
       "time": "37:00",
       "type": "state",
       "team": "radiant",
-      "headline": "Vision hit their peak at plus 4,794",
-      "detail": "Minute 37 is the high-water mark of the game for TEAM VISION. They have led the gold line since minute ten and they have just broken the Spirit tier two bot."
+      "label": "Peak lead, TEAM VISION +4,794",
+      "facts": [
+        "Highest gold advantage for TEAM VISION at any minute up to the freeze.",
+        "Minute 37 of 42."
+      ]
     },
     {
       "seconds": 2135,
       "time": "35:35",
       "type": "tower",
       "team": "radiant",
-      "headline": "Team Spirit lose the tier 2 bot",
-      "detail": "TEAM VISION break it with Invoker. At that minute Vision lead by 952."
+      "label": "Team Spirit tier 2 bot down",
+      "facts": [
+        "Taken by TEAM VISION, No[o]ne- (Invoker).",
+        "Gold line at minute 35: TEAM VISION +952."
+      ]
     },
     {
       "seconds": 1982,
       "time": "33:02",
       "type": "tormentor",
       "team": "dire",
-      "headline": "Tormentor down for Team Spirit",
-      "detail": "The shard goes to rue."
+      "label": "Tormentor to Team Spirit",
+      "facts": [
+        "Credited to rue (Bane)."
+      ]
     },
     {
       "seconds": 1796,
       "time": "29:56",
       "type": "aegis",
       "team": "dire",
-      "headline": "Aegis of the Immortal to Yatoro",
-      "detail": "Lifestealer carries it out. It ran out at 34:55 without being used."
+      "label": "Aegis to Yatoro (Lifestealer)",
+      "facts": [
+        "Picked up at 29:55.",
+        "Expired at 34:55, before the freeze."
+      ]
     },
     {
       "seconds": 1795,
       "time": "29:55",
       "type": "roshan",
       "team": "dire",
-      "headline": "Roshan number 1 goes to Team Spirit",
-      "detail": "Team Spirit clear the pit at 29:55. Next spawn window opens eight minutes later."
+      "label": "Roshan 1 to Team Spirit",
+      "facts": [
+        "Killed at 29:55.",
+        "Respawn window 37:55 to 40:55."
+      ]
     },
     {
       "seconds": 801,
       "time": "13:21",
       "type": "teamfight",
-      "team": null,
-      "headline": "Five heroes die around the Spirit mid tier one",
-      "detail": "Vision commit to the mid tower and it falls at 12:52. Five heroes die inside forty four seconds, and Collapse walks out of it with the biggest gold gain of the fight."
+      "team": "dire",
+      "label": "Teamfight 12:52 to 13:21, 5 deaths",
+      "facts": [
+        "TEAM VISION 3 heroes down: No[o]ne- (Invoker), Dukalis (Hoodwink), 9Class (Rubick).",
+        "Team Spirit 2 heroes down: rue (Bane), Larl (Pangolier).",
+        "Gold inside the window +79 to Team Spirit."
+      ]
     },
     {
       "seconds": 79,
       "time": "1:19",
       "type": "firstblood",
       "team": "radiant",
-      "headline": "First blood to Dukalis",
-      "detail": "Hoodwink draws the opening kill on not_me (Mirana) inside the first ninety seconds."
+      "label": "First blood, Dukalis (Hoodwink)",
+      "facts": [
+        "Victim not_me (Mirana), Team Spirit."
+      ]
     }
   ],
   "draft": [
@@ -2171,71 +2243,91 @@ window.GF5 = {
     "clock": "38:02",
     "seconds": 2282,
     "endClock": "38:49",
-    "headline": "The Lotus Orb that flipped the decider",
-    "detail": "TEAM VISION peaked at +4,794 one minute earlier and went looking for the fight that ends the series. Collapse put Lotus Orb on himself, Satanic committed Omnislash into the reflect and killed his own Juggernaut at 38:17, and rue held Fiend’s Grip through it on Bane. Spirit took Satanic, 9Class, No[o]ne- and Noticed for nothing between 38:02 and 38:49, and the gold line crossed for the first time since minute nine."
+    "endSeconds": 2329,
+    "deaths": 4,
+    "goldDelta": 5131,
+    "side": "dire",
+    "teamKey": "spirit",
+    "rule": "Largest teamfight by the sum of gold_delta inside the fight window, among the fights that had ended at or before the freeze."
   },
   "chartMarkers": [
     {
       "minute": 12,
       "seconds": 772,
-      "label": "First fight, mid tier one",
+      "label": "Teamfight, 5 deaths",
       "kind": "teamfight",
-      "team": null
+      "team": "dire"
     },
     {
       "minute": 29,
       "seconds": 1795,
-      "label": "Roshan 1 to Spirit",
+      "label": "Roshan 1 to TSP",
       "kind": "roshan",
       "team": "dire"
     },
     {
       "minute": 35,
       "seconds": 2135,
-      "label": "Vision take the Spirit tier two bot",
+      "label": "TSP tier 2 bot down",
       "kind": "tower",
       "team": "radiant"
     },
     {
       "minute": 37,
       "seconds": 2220,
-      "label": "Vision peak, plus 4,794",
+      "label": "Peak lead, VSN +4,794",
       "kind": "peak",
       "team": "radiant"
     },
     {
       "minute": 38,
       "seconds": 2282,
-      "label": "Lotus Orb fight",
+      "label": "Teamfight, 4 deaths",
       "kind": "teamfight",
       "team": "dire"
     },
     {
       "minute": 39,
       "seconds": 2340,
-      "label": "Gold line crosses",
+      "label": "Gold line crosses to TSP",
       "kind": "crossover",
+      "team": "dire"
+    },
+    {
+      "minute": 39,
+      "seconds": 2375,
+      "label": "VSN tier 2 mid down",
+      "kind": "tower",
       "team": "dire"
     },
     {
       "minute": 40,
       "seconds": 2452,
-      "label": "Roshan 2 and Aegis to Yatoro",
+      "label": "Roshan 2 to TSP",
       "kind": "roshan",
       "team": "dire"
     },
     {
       "minute": 41,
       "seconds": 2494,
-      "label": "Vision lose the tier two top",
+      "label": "VSN tier 2 top down",
       "kind": "tower",
       "team": "dire"
     }
   ],
   "crossoverMinute": 39,
-  "nowCallout": "Spirit +4,430 at 42:00, four Vision heroes buried in the Lotus Orb fight and the Aegis still on Yatoro.",
+  "rules": {
+    "events": "Every feed entry is a fixed template over the match log. Nothing in the feed is written by hand.",
+    "swing": "Biggest swing: the 3 minute window with the largest change in the gold line, argmax of the absolute difference between its two readings.",
+    "peakLead": "Peak lead: the minute at which the gold line reaches its extreme for that side, up to the freeze.",
+    "crossover": "Gold line crosses: the latest minute at or before the freeze whose sign differs from the minute before it.",
+    "fightSide": "A fight is credited to the side with the larger sum of gold_delta inside the fight window, start to end plus five seconds.",
+    "fightDeaths": "Deaths in a fight are the kills_log entries inside that same window.",
+    "markers": "Marked moments are generated: every logged teamfight, every Roshan, every tier two or higher building, the peak lead of each side, the gold line crossing, and first blood. A building marker names the side that lost it.",
+    "towers": "Tier one buildings are in objectives[] and towerStatus, not in the feed."
+  },
   "dataNotes": {
-    "assists": "Assist totals at the freeze are a teamfight participation proxy. OpenDota does not publish a per-kill assist list, so for every teamfight that had ended by the freeze and that a player took part in, the kills made by his team mates inside that fight are counted.",
+    "assists": "OpenDota does not publish a per-kill assist list, so for every teamfight that had ended by the freeze and that a player took part in, the kills made by his team mates inside that fight are counted.",
     "gold": "Gold column is total gold earned at minute N (OpenDota gold_t), not liquid gold.",
     "level": "Level is read from xp_t at minute N against the OpenDota xp_level table.",
     "items": "Inventory is replayed from purchase_log up to the freeze, with components folded into the item they build and consumables removed."

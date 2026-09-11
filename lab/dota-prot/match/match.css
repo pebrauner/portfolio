@@ -418,10 +418,17 @@
 .mt-tl-mark--ancient { background: var(--color-rdy-white); width: 11px; height: 11px; margin-left: -5.5px; }
 .mt-tl-mark--roshan { background: var(--color-rdy-gold); }
 .mt-tl-mark--tormentor { background: var(--color-rdy-steel); width: 7px; height: 7px; margin-left: -3.5px; }
+/* the courier is its own object, so it never reads as a Tormentor: a round
+   pip instead of the tormentor diamond */
+.mt-tl-mark--courier {
+  background: var(--color-rdy-steel);
+  width: 7px; height: 7px; margin-left: -3.5px;
+  border-radius: 50%;
+}
 .mt-tl-mark--firstblood { background: var(--color-rdy-steel); width: 7px; height: 7px; margin-left: -3.5px; }
 .mt-tl-mark--radiant { background: var(--side-radiant); }
 .mt-tl-mark--dire { background: var(--side-dire); }
-.mt-tl-mark--story {
+.mt-tl-mark--swing {
   background: var(--color-rdy-light-gold);
   width: 13px; height: 13px; margin-left: -6.5px; bottom: 7px;
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-rdy-gold) 35%, transparent);

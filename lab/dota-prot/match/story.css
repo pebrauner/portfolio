@@ -1,13 +1,17 @@
 /* match/story.css
-   The editorial column and the three sidebar cards written by story.js.
+   The three sidebar cards written by story.js.
    One prefix for the whole file: mt-st-
-     mt-st-      the article
      mt-st-su-   the sidebar summary at the current index
      mt-st-se-   the series card
-     mt-st-hg-   hero of the game
+     mt-st-hg-   the top performer card
      mt-st-lk-   the rdy.gg links card
    Sidebar cards live in a 320px rail, so nothing here is wider than 288px of
-   content. */
+   content.
+
+   NO NARRATIVE RULE, 2026-09-11: the article the mt-st- prefix used to style is
+   gone with the m-story mount, and every .mt-st-title, .mt-st-deck,
+   .mt-st-byline, .mt-st-pull, .mt-st-rail, .mt-st-body, .mt-st-section,
+   .mt-st-p, .mt-st-note, .mt-st-figure and .mt-st-foot rule went with it. */
 
 /* mount motion, no fill mode: if the animation never runs (background tab,
    print, reduced motion) the card is still at its visible base state. */
@@ -15,126 +19,9 @@
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: none; }
 }
-.mt-st.is-in, .mt-st-su.is-in, .mt-st-se.is-in, .mt-st-hg.is-in, .mt-st-lk.is-in {
+.mt-st-su.is-in, .mt-st-se.is-in, .mt-st-hg.is-in, .mt-st-lk.is-in {
   animation: mt-st-in .3s ease;
 }
-
-/* ================= the article ================= */
-
-.mt-st-head { padding-bottom: 8px; }
-.mt-st-kicker { align-items: center; gap: 8px; margin-bottom: 10px; }
-.mt-st-league { font-size: 12px; color: var(--text-tertiary); }
-
-/* story-empty-measure: the page's own subject was set at 33px and wrapped to
-   three lines of three words. It now outranks every module heading on the
-   page and reads in two lines at 1440. */
-.mt-st-title {
-  margin: 0 0 12px;
-  color: var(--text-primary);
-  max-width: 20ch;
-  font-size: 36px;
-  line-height: 1.08;
-  letter-spacing: -.015em;
-}
-@media (min-width: 1200px) { .mt-st-title { max-width: 24ch; font-size: 44px; } }
-@media (min-width: 1600px) { .mt-st-title { font-size: 48px; } }
-
-.mt-st-deck {
-  margin: 0 0 12px;
-  color: var(--text-secondary);
-  max-width: var(--width-article, 728px);
-}
-
-.mt-st-byline {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--text-tertiary);
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--border-hair);
-}
-.mt-st-author { font-weight: 700; color: var(--text-primary); }
-.mt-st-dot { color: var(--color-rdy-white-45); }
-
-/* the pull numbers: every one is a control that pins the page */
-.mt-st-pulls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
-}
-.mt-st-pull {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  align-items: flex-start;
-  min-width: 0;
-  padding: 8px 12px;
-  border: 1px solid var(--border-soft);
-  border-left: 3px solid var(--color-rdy-gold);
-  border-radius: var(--radius-md);
-  background: var(--color-rdy-white-5);
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition: background .14s ease, border-color .14s ease, transform .14s ease;
-}
-.mt-st-pull:hover { background: var(--surface-card-hover); transform: translateY(-1px); }
-.mt-st-pull:focus-visible { outline: 2px solid var(--color-rdy-turquoise); outline-offset: 2px; }
-.mt-st-pull-value { font-size: 22px; font-weight: 800; line-height: 1.1; color: var(--text-primary); }
-.mt-st-pull-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
-.mt-st-pull-min { font-size: 11px; }
-
-/* story-empty-measure: the article keeps its 728px measure and the rail takes
-   the margin that was empty beside it. */
-.mt-st-bodywrap {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 20px;
-  align-items: start;
-}
-@media (min-width: 1200px) {
-  .mt-st-bodywrap { grid-template-columns: minmax(0, var(--width-article, 728px)) minmax(180px, 1fr); gap: 28px; }
-}
-.mt-st-rail { min-width: 0; }
-.mt-st-rail-inner {
-  position: sticky;
-  top: calc(var(--match-sticky-stack) + 14px);
-  display: flex; flex-direction: column; gap: 8px;
-}
-.mt-st-rail .mt-st-pull { width: 100%; }
-
-.mt-st-body { display: flex; flex-direction: column; gap: 22px; padding-top: 14px; }
-.mt-st-section { display: flex; flex-direction: column; gap: 8px; }
-.mt-st-h { margin: 0; color: var(--text-primary); }
-.mt-st-p {
-  margin: 0;
-  color: var(--text-secondary);
-  max-width: var(--width-article, 728px);
-  line-height: 1.55;
-}
-.mt-st-note {
-  margin: 0;
-  padding-left: 10px;
-  border-left: 2px solid var(--border-strong);
-  max-width: var(--width-article, 728px);
-}
-.mt-st-figures {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 22px;
-  padding: 10px 12px;
-  border-radius: var(--radius-lg);
-  background: var(--surface-raised);
-}
-.mt-st-figure { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-.mt-st-figure-value { font-size: 18px; font-weight: 800; color: var(--text-primary); }
-.mt-st-figure-label { font-size: 11px; }
-
-.mt-st-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 
 /* ================= sidebar: the summary ================= */
 
@@ -229,7 +116,7 @@ a.mt-st-se-row:hover { background: var(--surface-card-hover); }
 .mt-st-se-here { margin-left: auto; flex: 0 0 auto; }
 .mt-st-se-foot { padding-top: 10px; }
 
-/* ================= sidebar: hero of the game ================= */
+/* ================= sidebar: top performer ================= */
 
 .mt-st-hg-body { display: flex; flex-direction: column; gap: 10px; }
 .mt-st-hg-top { display: flex; align-items: center; gap: 10px; min-width: 0; }
@@ -255,7 +142,45 @@ a.mt-st-se-row:hover { background: var(--surface-card-hover); }
 }
 .mt-st-hg-stat-value { font-size: 14px; font-weight: 800; color: var(--text-primary); white-space: nowrap; }
 .mt-st-hg-stat-label { font-size: 11px; }
-.mt-st-hg-rank { margin: -2px 0 0; }
+
+/* the full ten, so the formula in the subtitle is checkable on the card */
+.mt-st-hg-rank-wrap { display: flex; flex-direction: column; gap: 4px; }
+.mt-st-hg-rank-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.mt-st-hg-rank-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  padding: 3px 6px;
+  border-radius: var(--radius-sm);
+  border-left: 2px solid transparent;
+  transition: background .14s ease;
+}
+.mt-st-hg-rank-row.is-radiant { border-left-color: var(--side-radiant); }
+.mt-st-hg-rank-row.is-dire { border-left-color: var(--side-dire); }
+.mt-st-hg-rank-row.is-top { background: var(--color-rdy-white-10); }
+.mt-st-hg-rank-row.is-hl { background: var(--surface-card-hover); }
+.mt-st-hg-rank-no { flex: 0 0 12px; font-size: 11px; text-align: right; }
+.mt-st-hg-rank-row .hero-portrait { width: 26px; height: 15px; flex: 0 0 auto; }
+.mt-st-hg-rank-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mt-st-hg-rank-row.is-top .mt-st-hg-rank-name { color: var(--text-primary); font-weight: 700; }
+.mt-st-hg-rank-pts { flex: 0 0 auto; font-size: 12px; font-weight: 700; color: var(--text-primary); }
 .mt-st-hg-why { margin: 0; color: var(--text-secondary); }
 
 /* ================= sidebar: links ================= */
@@ -325,9 +250,9 @@ a.mt-st-lk-line:hover { color: var(--color-rdy-fresh-green); }
 .mt-st-lk-line:last-child { border-bottom: 0; }
 
 @media (prefers-reduced-motion: reduce) {
-  .mt-st.is-in, .mt-st-su.is-in, .mt-st-se.is-in, .mt-st-hg.is-in, .mt-st-lk.is-in { animation: none; }
-  .mt-st, .mt-st-su, .mt-st-se, .mt-st-hg, .mt-st-lk,
-  .mt-st-pull, .mt-st-se-row, .mt-st-lk-team, .mt-st-lk-player, .mt-st-su-jump {
+  .mt-st-su.is-in, .mt-st-se.is-in, .mt-st-hg.is-in, .mt-st-lk.is-in { animation: none; }
+  .mt-st-su, .mt-st-se, .mt-st-hg, .mt-st-lk,
+  .mt-st-se-row, .mt-st-hg-rank-row, .mt-st-lk-team, .mt-st-lk-player, .mt-st-su-jump {
     transition: none;
     opacity: 1;
     transform: none;

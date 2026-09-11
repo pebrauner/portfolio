@@ -61,7 +61,7 @@
     magnetRadius: 16,    /* px, the ceiling on the capture distance */
     magnetRadiusMin: 8,  /* px, the floor, so a magnet is never smaller than a finger */
     magnetRadiusScale: 0.45, /* px of radius per px of one minute on this surface */
-    magnetKinds: ['story', 'fight', 'rax', 'roshan', 'aegis', 'ancient', 'firstblood'],
+    magnetKinds: ['swing', 'fight', 'rax', 'roshan', 'aegis', 'ancient', 'firstblood'],
     magnetLead: 1.5,     /* the nearest magnet must be this much closer than the runner up */
     rubberR: 320,        /* drawn = (R * raw) / (R + raw) */
     rubberMax: 56,       /* px, hard ceiling on the drawn overshoot */
@@ -580,7 +580,10 @@
      component mounts. One snap per minute, the most significant wins.
      Ids are stable: 'tf<n>' for a teamfight, 'obj-<seconds>' for an
      objective, so moments.js can add the same list without duplicating. */
-  var SNAP_PRIORITY = { story: 6, fight: 5, ancient: 5, rax: 4, roshan: 4, tower: 2, tormentor: 1, firstblood: 1 };
+  /* 'swing' is the biggest-swing fight, teamfights[].featured, chosen by the
+     build as the argmax of abs(swingWindow.value). There is no 'story' kind
+     any more: nothing on this page is a magnet because a person said so. */
+  var SNAP_PRIORITY = { swing: 6, fight: 5, ancient: 5, rax: 4, roshan: 4, tower: 2, tormentor: 1, courier: 1, firstblood: 1 };
 
   /* moments-tower-side-inverted: ONE rule for the whole page. An objective is
      coloured by the side that GAINED it, never by the side that owned it.
@@ -625,12 +628,12 @@
       out.push({
         index: Math.min(last, typeof tf.startMinute === 'number' ? tf.startMinute : Math.round(tf.startSeconds / 60)),
         id: tf.id || ('tf' + (i + 1)),
-        kind: tf.featured ? 'story' : 'fight',
+        kind: tf.featured ? 'swing' : 'fight',
         side: tf.winnerSide || null,
         seconds: tf.startSeconds,
         label: tf.headline || '',
-        short: tf.featured ? 'The Lotus Orb fight' : ('Teamfight ' + (tf.number || i + 1)),
-        priority: tf.featured ? SNAP_PRIORITY.story : SNAP_PRIORITY.fight
+        short: tf.featured ? 'Biggest swing' : ('Teamfight ' + (tf.number || i + 1)),
+        priority: tf.featured ? SNAP_PRIORITY.swing : SNAP_PRIORITY.fight
       });
     }
     var objs = g.objectives || [];
@@ -717,10 +720,11 @@
   }
 
   /* ---- mirrorJumps: the sidebar's landmarks, in the sticky strip ----
-     The sidebar card that owns Start / Peak / Swing / Comeback / Final is not
-     on screen for most of the article, so the same five are mirrored here,
-     where they are always reachable. The sidebar derives them from storyFacts
-     and hands them over; this file never types a minute. */
+     The sidebar card that owns Start / Peak / Closest / Swing / Final scrolls
+     out of view, so the same stops are mirrored here, where they are always
+     reachable. The sidebar derives them from G5.landmarks and hands them over
+     with the rule that produced each one; this file never types a minute and
+     never writes a label. */
   var pendingJumps = null;
 
   function mirrorJumps(list) {
@@ -740,6 +744,7 @@
           'aria-pressed': 'false',
           'data-minute': String(j.minute),
           title: j.title || ('Go to ' + j.label + ', ' + j.clock),
+          'aria-label': j.ariaLabel || ((j.title ? j.title + ' ' : '') + 'Go to minute ' + j.minute + '.'),
           onclick: function () { set(j.minute); }
         },
           h('span', { 'class': 'mt-tl-jump-word' }, j.label),
@@ -1075,7 +1080,7 @@
 
     /* jump-buttons-no-state: the five landmarks mirrored out of the sidebar
        card, which stops being on screen long before the article ends. Filled
-       by mirrorJumps once the sidebar has derived them from storyFacts. */
+       by mirrorJumps once the sidebar has derived them from G5.landmarks. */
     var jumpsEl = h('div', { 'class': 'mt-tl-jumps', role: 'group', 'aria-label': 'Jump to a moment' });
 
     var head = h('div', { 'class': 'mt-tl-head' },
@@ -1427,14 +1432,19 @@
       h('span', { 'class': 'chip chip--outline' }, 'Game ' + f.game),
       h('span', { 'class': 'chip' }, 'Final'));
 
-    /* M-07: the page's <h1> is the match itself, and it is the first heading
-       in document order. Built from the record, never typed. */
+    /* M-07: the page's <h1> is the match itself, and it is the first and only
+       heading of its level in document order. NO NARRATIVE RULE, 2026-09-11:
+       with the write up gone this is the page's whole subject line, and it is
+       one template over the record, winner first, kills then duration. */
     var winKey = f.winnerKey || (f.winner === 'dire' ? f.direKey : f.radiantKey);
     var loseKey = winKey === f.direKey ? f.radiantKey : f.direKey;
+    var winKills = f.killScore ? f.killScore[winKey === f.direKey ? 'dire' : 'radiant'] : null;
+    var loseKills = f.killScore ? f.killScore[winKey === f.direKey ? 'radiant' : 'dire'] : null;
     var title = h('h1', { 'class': 'm-bn-title' },
-      f.stage + ' Game ' + f.game + ': ' +
-      Hub.teamName(winKey) + ' beat ' + Hub.teamName(loseKey) +
-      (f.duration ? ' in ' + f.duration : ''));
+      f.stage + ' Game ' + f.game + ': ' + Hub.teamName(winKey) +
+      (winKills !== null && loseKills !== null
+        ? ' ' + winKills + ' : ' + loseKills + ' ' : ' ') +
+      Hub.teamName(loseKey) + (f.duration ? ', ' + f.duration : ''));
 
     var centre = h('div', { 'class': 'm-bn-centre' });
     if (f.killScore) {

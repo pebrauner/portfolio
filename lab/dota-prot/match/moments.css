@@ -1,5 +1,5 @@
 /* match/moments.css
-   Key moments. Prefix: mt-mo-
+   Fights and objectives. Prefix: mt-mo-
    One row geometry for every moment: the time column, the body, and a gold
    column whose track is the same width on every row, so two bars are
    comparable by eye. */
@@ -43,6 +43,7 @@
 /* moments-wall: the two plays, lifted out of the ladder */
 .mt-mo-plays { display: flex; flex-direction: column; gap: 8px; }
 .mt-mo-plays-title { margin: 0; color: var(--text-primary); }
+.mt-mo-plays-rule { margin: -4px 0 0; max-width: 78ch; }
 .mt-mo-plays-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -175,15 +176,6 @@
 }
 .mt-mo-dead-text { font-size: 11px; }
 
-.mt-mo-story {
-  display: block;
-  margin: 2px 0 0;
-  color: var(--text-secondary);
-  border-left: 2px solid var(--color-rdy-gold);
-  padding-left: 10px;
-}
-.mt-mo-item.is-featured .mt-mo-story { color: var(--text-primary); }
-.mt-mo-note { display: block; margin: 0; font-size: 11px; line-height: 1.4; }
 
 /* ---------- the gold column, identical geometry on every row ---------- */
 

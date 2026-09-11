@@ -291,6 +291,7 @@
 /* ---------- notes ---------- */
 
 .mt-dr-notes-wrap { display: flex; flex-direction: column; gap: 6px; }
+.mt-dr-notes-source { margin: -2px 0 2px; max-width: 90ch; }
 .mt-dr-notes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
 .mt-dr-note-btn {
   display: grid;

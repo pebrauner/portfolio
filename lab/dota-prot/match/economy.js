@@ -522,7 +522,9 @@
           markerEls[m.id] = g;
         });
 
-        /* the featured fight is labelled in the plot, so it is not hover-only */
+        /* NO NARRATIVE RULE, 2026-09-11: the one labelled fight is the biggest
+           swing, teamfights[].featured, the argmax of abs(swingWindow.value).
+           The rule itself is printed under the fights and objectives card. */
         var feat = null;
         for (var fi = 0; fi < fightMarkers.length; fi++) { if (fightMarkers[fi].featured) feat = fightMarkers[fi]; }
         if (feat) {
@@ -538,7 +540,7 @@
           lg.appendChild(svg('text', {
             'class': 'mt-eco-featlabel-text', x: anchorRight ? fx - 8 : fx + 8,
             y: Math.max(dataTop + 14, fy - 34) + 15, 'text-anchor': anchorRight ? 'end' : 'start'
-          }, 'Lotus Orb fight, the game turns'));
+          }, 'Biggest swing'));
           marks.appendChild(lg);
         }
 
@@ -726,12 +728,16 @@
         roMomentText.textContent = moment.label || moment.short;
       } else {
         roMomentTime.textContent = '';
-        roMomentText.textContent = 'Nothing yet, the lanes are still setting up.';
+        roMomentText.textContent = 'No moment at or before this reading.';
       }
 
       plot.setAttribute('aria-valuenow', String(i));
-      var vt = clock + ', ' + (s.metric === 'xp' ? 'experience' : 'gold') + ' advantage ' +
-        fmt.num(Math.abs(adv)) + (leadKey ? ' to ' + nameOf(leadKey) : ', level') +
+      /* at a zero advantage the word replaces the number, the way the master
+         strip says it, instead of trailing an empty ", level" after a 0 */
+      var metricWord = s.metric === 'xp' ? 'experience' : 'gold';
+      var vt = clock + ', ' + (leadKey
+          ? metricWord + ' advantage ' + fmt.num(Math.abs(adv)) + ' to ' + nameOf(leadKey)
+          : metricWord + ' level') +
         ', kills ' + Hub.killsPairText(kills, radiantKey, direKey, { left: radiantKey });
       plot.setAttribute('aria-valuetext', vt);
       speak(vt, st.state);

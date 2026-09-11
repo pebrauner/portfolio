@@ -17,7 +17,7 @@
 .mt-it-key--owned { background: var(--color-rdy-white-85); }
 .mt-it-key--future { background: var(--color-rdy-white-25); }
 .mt-it-key--spent { background: var(--color-rdy-white-15); box-shadow: inset 0 0 0 1px var(--color-rdy-white-25); }
-.mt-it-key--story { background: var(--color-rdy-gold); }
+.mt-it-key--top { background: var(--color-rdy-gold); }
 .mt-it-key--final { background: var(--color-rdy-white-45); border-bottom: 2px solid var(--color-rdy-fresh-green); border-radius: 2px 2px 0 0; }
 
 .mt-it-consbtn { white-space: nowrap; }
@@ -34,7 +34,7 @@
   background: var(--surface-raised);
   box-shadow: inset 0 0 0 1px var(--border-hair);
 }
-.mt-it-detail.is-story { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-rdy-gold) 40%, transparent); }
+.mt-it-detail.is-top { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-rdy-gold) 40%, transparent); }
 
 .mt-it-detail-icon { display: flex; flex: 0 0 auto; width: 30px; height: 22px; }
 .mt-it-detail-icon .mt-it-img { width: 30px; height: 22px; }
@@ -45,7 +45,7 @@
 .mt-it-detail-name { font-size: 13px; font-weight: 800; color: var(--text-primary); }
 .mt-it-detail-meta { font-size: 12px; color: var(--text-secondary); }
 .mt-it-detail-note { font-size: 12px; line-height: 1.35; color: var(--text-tertiary); }
-.mt-it-detail.is-story .mt-it-detail-note { color: var(--color-rdy-light-gold); }
+.mt-it-detail.is-top .mt-it-detail-note { color: var(--color-rdy-light-gold); }
 
 /* ---------- the frame: head, ten rows, one cursor ---------- */
 
@@ -125,12 +125,15 @@
   transition: transform .14s ease, background .14s ease;
 }
 .mt-it-rmark--fight { background: var(--color-rdy-yellow); }
-.mt-it-rmark--story { background: var(--color-rdy-gold); }
+.mt-it-rmark--swing { background: var(--color-rdy-light-gold); }
 .mt-it-rmark--roshan { background: var(--color-rdy-gold); }
 .mt-it-rmark--ancient { background: var(--color-rdy-white); }
 .mt-it-rmark--rax { background: var(--color-rdy-light-red); }
 .mt-it-rmark--tormentor,
 .mt-it-rmark--firstblood { background: var(--color-rdy-steel); }
+/* the courier keeps the steel of the small objects and takes a round pip,
+   so the rail never shows it as a Tormentor */
+.mt-it-rmark--courier { background: var(--color-rdy-steel); border-radius: 50%; }
 .mt-it-rmark.is-captured { background: var(--match-magnet); transform: rotate(45deg) scale(1.45); }
 
 /* ---------- rows ---------- */
@@ -245,11 +248,11 @@
 .mt-it-item.is-future.is-final6::after,
 .mt-it-item.is-future.is-neutral::after { opacity: .35; }
 
-.mt-it-item.is-story { z-index: 3; }
-.mt-it-item.is-story.is-owned {
+.mt-it-item.is-top { z-index: 3; }
+.mt-it-item.is-top.is-owned {
   box-shadow: 0 0 0 2px var(--color-rdy-gold), 0 0 10px color-mix(in srgb, var(--color-rdy-gold) 45%, transparent);
 }
-.mt-it-item.is-story.is-future { box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-rdy-gold) 55%, transparent); }
+.mt-it-item.is-top.is-future { box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-rdy-gold) 55%, transparent); }
 
 .mt-it-item:hover,
 .mt-it-item:focus-visible {
@@ -273,7 +276,7 @@
 
 .mt-it-tick { position: absolute; top: 0; width: 1px; height: 3px; background: var(--color-rdy-white-10); }
 .mt-it-tick--main { height: 3px; background: var(--color-rdy-white-25); }
-.mt-it-tick.is-story { background: var(--color-rdy-gold); width: 2px; }
+.mt-it-tick.is-top { background: var(--color-rdy-gold); width: 2px; }
 
 /* ---------- end column ---------- */
 

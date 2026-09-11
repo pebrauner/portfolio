@@ -7,6 +7,12 @@
      seconds <= secondsAt[i] && (consumedAt === null || consumedAt > secondsAt[i])
 
    Owns: .mt-it-* only. Reads MatchTimeline, never keeps its own index.
+
+   NO NARRATIVE RULE, 2026-09-11: no purchase is flagged by hand. The detail
+   panel opens on the TOP BUY, the most expensive single purchase of the match
+   (argmax of cost, earliest second on a tie), and says so. The old storyItem
+   and storyNote fields are gone from the payload, and with them the magnet the
+   Lotus Orb used to register on the master strip.
    ============================================================ */
 (function (global) {
   'use strict';
@@ -33,7 +39,6 @@
     compWNarrow: 11,
     compHNarrow: 8,
     showConsumables: false,
-    storySnapId: 'item-lotus',
     tickEvery: 5,
     labelEvery: 10
   };
@@ -72,26 +77,30 @@
     }
 
     /* ============================================================
-       1. The story item registers its own magnet
+       1. Rule E: the top buy, the panel's resting state
+       Most expensive single purchase of the match, argmax of cost with the
+       earliest second winning a tie. Nothing is flagged in the data; the rule
+       runs over the same timelines the tracks are drawn from, and the panel
+       prints it so the reader knows why that item is the one showing.
        ============================================================ */
-    var story = null;
-    for (var pi = 0; pi < G5.players.length && !story; pi++) {
+    var topBuy = null;
+    for (var pi = 0; pi < G5.players.length; pi++) {
       var tl = G5.players[pi].items.timeline;
       for (var ti = 0; ti < tl.length; ti++) {
-        if (tl[ti].storyItem) { story = { player: G5.players[pi], entry: tl[ti] }; break; }
+        var cand = tl[ti];
+        if (cand.consumable || cand.recipe || cand.preGame) continue;
+        if (typeof cand.cost !== 'number') continue;
+        if (!topBuy || cand.cost > topBuy.entry.cost ||
+            (cand.cost === topBuy.entry.cost && cand.seconds < topBuy.entry.seconds)) {
+          topBuy = { player: G5.players[pi], entry: cand };
+        }
       }
     }
-    if (story) {
-      T.addSnapPoints([{
-        seconds: story.entry.seconds,
-        index: Math.min(LAST, story.entry.minute),
-        id: opts.storySnapId,
-        kind: 'story',
-        side: story.player.side,
-        label: story.player.handle + ' buys the ' + story.entry.display + ' at ' + story.entry.clock,
-        short: story.entry.display,
-        priority: 9
-      }]);
+    var TOP_BUY_RULE = topBuy
+      ? 'Most expensive single purchase of the match.'
+      : '';
+    function isTopBuy(p, e) {
+      return !!topBuy && topBuy.player.key === p.key && topBuy.entry === e;
     }
 
     /* ============================================================
@@ -116,7 +125,7 @@
       h('span', { 'class': 'm-legend-item' }, h('span', { 'class': 'mt-it-key mt-it-key--future' }), 'Bought later'),
       h('span', { 'class': 'm-legend-item' }, h('span', { 'class': 'mt-it-key mt-it-key--spent' }), 'Folded into a later item'),
       h('span', { 'class': 'm-legend-item' }, h('span', { 'class': 'mt-it-key mt-it-key--final' }), 'In the final six'),
-      h('span', { 'class': 'm-legend-item' }, h('span', { 'class': 'mt-it-key mt-it-key--story' }), 'Story item'),
+      h('span', { 'class': 'm-legend-item' }, h('span', { 'class': 'mt-it-key mt-it-key--top' }), 'Most expensive buy'),
       h('span', { 'class': 'm-legend-item mt-it-legend-note' }, 'Big lane: completed items. Small lane: components and recipes, dimmed once a later item swallows them. The chip at the end of each row counts consumables, which are kept off the track.'));
 
     /* the detail strip: hover information that is also there without a pointer */
@@ -263,7 +272,7 @@
             type: 'button',
             tabindex: '-1',
             'class': 'mt-it-item mt-it-item--' + lane +
-              (e.storyItem ? ' is-story' : '') +
+              (isTopBuy(p, e) ? ' is-top' : '') +
               (e.usedOnPickup ? ' is-used' : '') +
               (lane === 'main' && finalSets[p.key][e.item] ? ' is-final6' : '') +
               (lane === 'main' && p.items.neutral === e.item ? ' is-neutral' : ''),
@@ -288,7 +297,7 @@
         if (lane !== 'cons') icons.push(rec);
 
         tickLane.appendChild(h('span', {
-          'class': 'mt-it-tick mt-it-tick--' + lane + (e.storyItem ? ' is-story' : ''),
+          'class': 'mt-it-tick mt-it-tick--' + lane + (isTopBuy(p, e) ? ' is-top' : ''),
           style: 'left:' + (rec.f * 100) + '%'
         }));
       });
@@ -440,15 +449,16 @@
       paintDetail(T.index);
     }
     function paintDetail(i) {
-      var d = detailPinned || (story ? { p: story.player, entry: story.entry } : null);
+      var d = detailPinned || (topBuy ? { p: topBuy.player, entry: topBuy.entry } : null);
       if (!d) { detail.hidden = true; return; }
       detail.hidden = false;
       setDetailIcon(d.entry);
       dName.textContent = d.entry.display;
       dMeta.textContent = d.p.handle + ' (' + d.p.heroDisplay + ') at ' + d.entry.clock + ', ' +
         fmt.num(d.entry.cost) + ' gold, ' + statusWord(d.p, d.entry, i);
-      dNote.textContent = d.entry.storyNote || '';
-      detail.classList.toggle('is-story', !!d.entry.storyItem);
+      var isTop = isTopBuy(d.p, d.entry);
+      dNote.textContent = isTop ? TOP_BUY_RULE : '';
+      detail.classList.toggle('is-top', isTop);
     }
 
     /* ============================================================

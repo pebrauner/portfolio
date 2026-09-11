@@ -73,6 +73,17 @@
     return h('span', { 'class': 'chip chip--' + side }, sideLabel(side));
   }
 
+  /* No narrative rule, 2026-09-11: a figure that has already been attributed to
+     a team prints its magnitude with a leading plus, never a minus, so the sign
+     never has to be read against a side. Full precision, comma grouped. */
+  function plusNum(v) { return '+' + fmt.num(Math.abs(v)); }
+
+  /* One caption line, muted, carrying the rule that produced the label above
+     it. Every rule-derived label on these surfaces is paired with one. */
+  function ruleNote(text) {
+    return text ? h('p', { 'class': 'live-rule-note rdy-par-7 u-dim' }, text) : null;
+  }
+
   /* GF5 side -> the tournament team record */
   function teamOf(GF5, side) { return GF5.teams[side]; }
 
@@ -193,7 +204,7 @@
         /* Sides swap game to game, so the kills pair is printed in one fixed
            order with both tags on it (verifier I01), never as a bare pair. */
         isLive
-          ? h('span', { 'class': 'live-pip-sub u-dim' }, 'decider')
+          ? h('span', { 'class': 'live-pip-sub u-dim' }, 'in progress')
           : Hub.killsPair(g.killScore, g.radiant, g.dire, { className: 'live-pip-kills' }),
         (!isLive && g.duration)
           ? h('span', { 'class': 'live-pip-dur u-dim u-tnum' }, g.duration)
@@ -236,6 +247,22 @@
     });
     growLater(fill, 'width', fillPct + '%');
 
+    /* The two lines under the bar are templates over the one gold array, not
+       copy: the reading at the freeze, then the biggest swing window, which is
+       an argmax the build script computes and ships with its own rule string
+       (GF5.peaks.swingWindow). Nothing here knows why the line moved. */
+    var swing = (GF5.peaks && GF5.peaks.swingWindow) || null;
+    var nowLine = adv.value === 0
+      ? 'Gold level at ' + GF5.frozenAt.clock
+      : lead.name + ' ' + plusNum(adv.value) + ' at ' + GF5.frozenAt.clock;
+
+    var callout = h('div', { 'class': 'live-gbar-callout' },
+      h('p', { 'class': 'live-gbar-now rdy-par-6 u-tnum' }, nowLine),
+      swing ? h('p', { 'class': 'live-gbar-swing rdy-par-7 u-tnum' },
+        'Biggest swing ' + swing.fromClock + ' to ' + swing.toClock + ': ' +
+        plusNum(swing.value) + ' to ' + swing.teamName) : null,
+      swing ? ruleNote(swing.rule) : null);
+
     var ticks = [-SCALE, -SCALE / 2, 0, SCALE / 2, SCALE];
     var bar = h('div', { 'class': 'live-gbar', 'data-testid': 'gold-bar' },
       h('div', { 'class': 'live-gbar-heads' },
@@ -262,7 +289,7 @@
           style: { '--x': (((t + SCALE) / (2 * SCALE)) * 100) + '%' }
         }, t === 0 ? 'even' : fmt.gold(Math.abs(t)));
       })),
-      h('p', { 'class': 'live-gbar-callout rdy-par-6' }, GF5.nowCallout));
+      callout);
 
     mount.appendChild(card({
       cls: 'card--live live-card',
@@ -279,6 +306,7 @@
 
   Hub.register('m-gold-graph', function (mount, ctx) {
     var GF5 = ctx.GF5;
+    var rules = GF5.rules || {};
     var radiant = teamOf(GF5, 'radiant');
     var dire = teamOf(GF5, 'dire');
     var series = GF5.goldAdvantage;
@@ -350,13 +378,17 @@
     gfx.push(svg('text', { 'class': 'live-gg-side live-gg-side--radiant', x: M.left + 6, y: M.top + plotH - 6 },
       radiant.name + ' ahead'));
 
-    /* markers: first blood from the objectives, then the derived chart markers */
+    /* Markers: first blood read off the objective log, then GF5.chartMarkers,
+       which the build script generates by rule (every teamfight, every Roshan,
+       every tier two or higher building, each side's peak lead, the crossing).
+       No marker is hand picked and no label is written by hand. */
     var markers = [];
     (GF5.objectives || []).forEach(function (o) {
       if (o.type === 'CHAT_MESSAGE_FIRSTBLOOD') {
         markers.push({
           minute: Math.floor(o.seconds / 60), seconds: o.seconds,
-          label: 'First blood to ' + o.by, kind: 'firstblood', team: o.team
+          label: 'First blood, ' + o.by + ' (' + Hub.heroLabel(o.byHero) + ')',
+          kind: 'firstblood', team: o.team
         });
       }
     });
@@ -416,7 +448,8 @@
       legend,
       h('div', { 'class': 'live-gg-wrap' }, chart),
       h('div', { 'class': 'u-label live-sub-label' }, 'Marked moments'),
-      keyList
+      keyList,
+      ruleNote(rules.markers)
     ]));
   });
 
@@ -656,13 +689,16 @@
       h('p', null, 'Six carried item slots, then the ringed slot: the neutral item. ' +
         'S marks Aghanim’s Shard, B marks Aghanim’s Blessing.'),
       h('p', null, GF5.dataNotes.gold),
-      h('p', null, 'Assist totals at the freeze are a teamfight participation proxy.'));
+      h('p', null, GF5.dataNotes.assists));
 
     mount.appendChild(card({
       testid: 'scoreboard',
       title: 'Scoreboard',
-      sub: 'game ' + GF5.game + ' at ' + GF5.frozenAt.clock + ', kills ' + GF5.killScore +
-        ' (' + abbr(teamOf(GF5, 'radiant').key) + ' first)'
+      /* Contract section 5 (verifier I01): every surface that prints a kills
+         pair goes through Hub.killsPair / Hub.killsPairText, so the tags
+         travel with the numbers and the order never depends on the side. */
+      sub: 'game ' + GF5.game + ' at ' + GF5.frozenAt.clock + ', kills ' +
+        Hub.killsPairText(GF5.score, GF5.sides.radiant, GF5.sides.dire)
     }, [teamTable('radiant'), h('hr', { 'class': 'divider live-rule' }), teamTable('dire'), notes]));
   });
 
@@ -682,10 +718,18 @@
       firstblood: { icon: ICON.drop, label: 'First blood' }
     };
 
+    /* Every line in this feed is a fixed template the build script fills from
+       the match log: GF5.events[].label and .facts. The one flagged row is the
+       teamfight with the largest gold change inside its own window, which is
+       an argmax (GF5.keyMoment), and the rule is printed under the list. */
+    var rules = GF5.rules || {};
+    var key = GF5.keyMoment || null;
+
     var items = GF5.events.map(function (e) {
       var t = TYPE[e.type] || { icon: ICON.clock, label: e.type };
-      var isKey = Math.floor(e.seconds / 60) === GF5.keyMoment.minute && e.type === 'teamfight';
+      var isKey = !!(key && e.type === 'teamfight' && e.seconds === key.endSeconds);
       var teamName = e.team ? teamOf(GF5, e.team).name : null;
+      var facts = e.facts || (e.detail ? [e.detail] : []);
       return h('li', {
         'class': 'live-ev live-ev--' + (e.team || 'neutral') + (isKey ? ' live-ev--key' : ''),
         'data-testid': 'event'
@@ -697,10 +741,18 @@
             h('span', { 'class': 'live-ev-time u-tnum' }, e.time),
             h('span', { 'class': 'live-ev-type rdy-subh-6 u-dim' }, t.label),
             teamName ? h('span', { 'class': 'live-ev-team u-dim' }, teamName) : null,
-            isKey ? h('span', { 'class': 'chip chip--gold' }, 'Key moment') : null),
-          h('h3', { 'class': 'live-ev-head rdy-subh-4' }, e.headline),
-          h('p', { 'class': 'live-ev-detail rdy-par-7' }, e.detail)));
+            isKey ? h('span', { 'class': 'chip chip--gold' }, 'Biggest fight swing') : null),
+          h('h3', { 'class': 'live-ev-head rdy-subh-4' }, e.label || ''),
+          h('ul', { 'class': 'live-ev-facts' }, facts.map(function (f) {
+            return h('li', { 'class': 'live-ev-fact rdy-par-7' }, f);
+          }))));
     });
+
+    var keyNote = key
+      ? 'Biggest fight swing: the logged teamfight with the largest gold change inside its own ' +
+        'window, ' + key.clock + ' to ' + key.endClock + ', ' + plusNum(key.goldDelta) + ' to ' +
+        teamOf(GF5, key.side).name + '.'
+      : null;
 
     mount.appendChild(card({
       testid: 'events',
@@ -710,7 +762,9 @@
     }, [
       h('ol', { 'class': 'live-evlist' }, items),
       h('p', { 'class': 'live-ev-foot u-dim rdy-par-7' },
-        'The feed stops at the freeze. Nothing after ' + GF5.frozenAt.clock + ' is recorded.')
+        'The feed stops at the freeze. Nothing after ' + GF5.frozenAt.clock + ' is recorded.'),
+      ruleNote(rules.events),
+      ruleNote(keyNote)
     ]));
   });
 
@@ -964,7 +1018,9 @@
       meta.push(h('span', { 'class': 'chip chip--outline' }, 'Game ' + g.game));
       if (g.status === 'live') {
         meta.push(h('span', { 'class': 'chip chip--live' }, h('span', { 'class': 'live-dot', 'aria-hidden': 'true' }), 'Live'));
-        meta.push(h('span', { 'class': 'u-dim rdy-par-7' }, 'decider, frozen at ' + GF5.frozenAt.clock));
+        /* No narrative rule (audit N02): the same templated words as the
+           #m-live game pip. "decider" was a hand-written label. */
+        meta.push(h('span', { 'class': 'u-dim rdy-par-7' }, 'in progress, frozen at ' + GF5.frozenAt.clock));
       } else {
         var w = Hub.team(g.winner);
         if (w) meta.push(h('span', { 'class': 'chip chip--green' }, w.name + ' won'));

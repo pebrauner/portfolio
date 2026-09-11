@@ -413,7 +413,11 @@
 
     [
       { key: 'upper', label: 'Upper Bracket', sub: 'Losers drop into the Lower Bracket' },
-      { key: 'lower', label: 'Lower Bracket', sub: 'One loss and the run is over' }
+      /* No narrative rule, round 2 (audit N-R2-02). The sub-caption read "One
+         loss and the run is over", a rhetorical restatement of the format
+         inside a data module. It is now the plain format rule, the same
+         register as its Upper Bracket sibling. */
+      { key: 'lower', label: 'Lower Bracket', sub: 'Single elimination' }
     ].forEach(function (lane) {
       var rounds = br[lane.key] || [];
       if (!rounds.length) { return; }
@@ -741,7 +745,7 @@
     if (GF5.live) {
       meCard.appendChild(h('div', { 'class': 'card-footer tour-sched-foot' },
         h('span', { 'class': 'u-dim' },
-          'Grand Final game ' + GF5.game + ' is in progress, ' + GF5.seriesNote),
+          'Grand Final in progress. ' + GF5.seriesNote),
         h('button', {
           type: 'button', 'class': 'btn btn-sm btn-primary',
           onclick: function () { Hub.tabs.activate('overview', { scroll: true }); }
@@ -986,9 +990,14 @@
         h('div', { 'class': 'u-label tour-team-sec-title' }, 'Run through the event'),
         h('div', { 'class': 'tour-routes' }, runRows)));
 
-      /* notes carry facts from after the freeze on two teams, so the data
-         flags them and hands over a frozen moment safe angle instead. */
-      var note = t.notesSafeBeforeDecider ? t.notes : t.notesPreDeciderAngle;
+      /* No narrative rule, round 2 (audit N-R2-03/04/05). teams[].notes is now
+         a computed-only field: build_ti2026.py generates it from an allowlist
+         of four rules over the event's own record and emits nothing for every
+         other team, so a note can no longer carry biography, reported facts or
+         anything from after the freeze. The notesSafeBeforeDecider /
+         notesPreDeciderAngle pair that used to guard this line is gone with
+         the prose it guarded. */
+      var note = t.notes;
       if (note) {
         body.appendChild(h('div', { 'class': 'tour-team-sec' },
           h('div', { 'class': 'u-label tour-team-sec-title' }, 'Notes'),

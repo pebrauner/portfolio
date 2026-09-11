@@ -78,7 +78,6 @@ window.TI2026 = {
       "hoursWatched": 64512840,
       "broadcastHours": 109,
       "source": "Esports Charts",
-      "allTimeRank": "Third highest peak in TI history, behind TI 2021 (2.74M) and TI 2019 (1.97M). Not a record.",
       "note": "Esports Charts figures. averageViewers, hoursWatched and broadcastHours are whole-event aggregates and are close to final at the frozen moment, not exact."
     },
     "broadcastBranding": "The Group Stage and Elimination Round were broadcast together as 'The Road to The International'."
@@ -97,6 +96,7 @@ window.TI2026 = {
       "openDotaId": 7119388,
       "rdyTeamId": null,
       "logo": "assets/teams/spirit.png",
+      "logoNote": null,
       "colour": "#E23636",
       "groupStage": {
         "seed": 8,
@@ -270,9 +270,7 @@ window.TI2026 = {
           "facePosition": null
         }
       ],
-      "notes": "Second coach MiLAN also worked with the team through qualifiers, EWC 2026 and TI. Did not receive a direct invite.",
-      "notesSafeBeforeDecider": true,
-      "notesPreDeciderAngle": null
+      "notes": null
     },
     {
       "key": "vision",
@@ -287,6 +285,7 @@ window.TI2026 = {
       "openDotaId": 9572001,
       "rdyTeamId": 342,
       "logo": "assets/teams/Parivision.webp",
+      "logoNote": null,
       "colour": "#7B5CFF",
       "groupStage": {
         "seed": 1,
@@ -427,9 +426,7 @@ window.TI2026 = {
           "facePosition": null
         }
       ],
-      "notes": "Went 7-0 in series before the grand final. Satanic was 18 years old at the event. Coach Clement 'Puppey' Ivanov: won TI 2011 as a player with Natus Vincere, runner-up in 2012, 2013 and 2022 as a player, and lost his first TI grand final as a coach here.",
-      "notesSafeBeforeDecider": false,
-      "notesPreDeciderAngle": "Went 7-0 in series before the grand final. Satanic was 18 years old at the event. Coach Clement 'Puppey' Ivanov won TI 2011 as a player with Natus Vincere and was runner-up in 2012, 2013 and 2022."
+      "notes": "Went 7-0 in series before the grand final."
     },
     {
       "key": "yandex",
@@ -444,6 +441,7 @@ window.TI2026 = {
       "openDotaId": 9823272,
       "rdyTeamId": 445,
       "logo": "assets/teams/Yandex.webp",
+      "logoNote": null,
       "colour": "#FC3F1D",
       "groupStage": {
         "seed": 10,
@@ -594,9 +592,7 @@ window.TI2026 = {
           "facePosition": null
         }
       ],
-      "notes": "Listed as Maladych on OpenDota. Qualified for the playoffs as the eighth and final seed by beating LGD Gaming in the Elimination Round.",
-      "notesSafeBeforeDecider": true,
-      "notesPreDeciderAngle": null
+      "notes": null
     },
     {
       "key": "boomboys",
@@ -611,6 +607,7 @@ window.TI2026 = {
       "openDotaId": 8255888,
       "rdyTeamId": 56,
       "logo": "assets/teams/betboom.png",
+      "logoNote": null,
       "colour": "#FFD400",
       "groupStage": {
         "seed": 12,
@@ -761,9 +758,7 @@ window.TI2026 = {
           "facePosition": null
         }
       ],
-      "notes": null,
-      "notesSafeBeforeDecider": true,
-      "notesPreDeciderAngle": null
+      "notes": null
     },
     {
       "key": "liquid",
@@ -778,6 +773,7 @@ window.TI2026 = {
       "openDotaId": 2163,
       "rdyTeamId": 48,
       "logo": "assets/teams/liquid.png",
+      "logoNote": null,
       "colour": "#1B6FE0",
       "groupStage": {
         "seed": 2,
@@ -912,9 +908,7 @@ window.TI2026 = {
           "facePosition": null
         }
       ],
-      "notes": "Knocked the defending champions Team Falcons out of the tournament.",
-      "notesSafeBeforeDecider": true,
-      "notesPreDeciderAngle": null
+      "notes": "Beat Team Falcons 2-1 in the lower bracket."
     },
     {
       "key": "nigma",
@@ -929,6 +923,7 @@ window.TI2026 = {
       "openDotaId": 10136357,
       "rdyTeamId": null,
       "logo": null,
+      "logoNote": null,
       "colour": "#00B37E",
       "groupStage": {
         "seed": 3,
@@ -1063,9 +1058,7 @@ window.TI2026 = {
           "facePosition": null
         }
       ],
-      "notes": "Longest average winning duration of the event at 55:36. SumaiL hinted at retirement after their exit.",
-      "notesSafeBeforeDecider": true,
-      "notesPreDeciderAngle": null
+      "notes": "Longest average winning duration of the event at 55:36."
     },
     {
       "key": "ironwing",
@@ -1211,9 +1204,7 @@ window.TI2026 = {
           "facePosition": null
         }
       ],
-      "notes": "1win Team acquired the Tundra Esports roster, which held the direct invite.",
-      "notesSafeBeforeDecider": true,
-      "notesPreDeciderAngle": null
+      "notes": null
     },
     {
       "key": "falcons",
@@ -1228,6 +1219,7 @@ window.TI2026 = {
       "openDotaId": 9247354,
       "rdyTeamId": 53,
       "logo": "assets/teams/falcons.png",
+      "logoNote": null,
       "colour": "#00B140",
       "groupStage": {
         "seed": 5,
@@ -1361,9 +1353,7 @@ window.TI2026 = {
           "facePosition": null
         }
       ],
-      "notes": "Defending champions (TI 2025). Announced their exit from Dota 2 on 2026-09-06.",
-      "notesSafeBeforeDecider": false,
-      "notesPreDeciderAngle": "Defending champions, TI 2025."
+      "notes": null
     },
     {
       "key": "vici",
@@ -1378,6 +1368,7 @@ window.TI2026 = {
       "openDotaId": 726228,
       "rdyTeamId": null,
       "logo": null,
+      "logoNote": null,
       "colour": "#F5C518",
       "groupStage": {
         "seed": 13,
@@ -1487,9 +1478,7 @@ window.TI2026 = {
           "facePosition": null
         }
       ],
-      "notes": null,
-      "notesSafeBeforeDecider": true,
-      "notesPreDeciderAngle": null
+      "notes": null
     },
     {
       "key": "aurora",
@@ -1504,6 +1493,7 @@ window.TI2026 = {
       "openDotaId": 9467224,
       "rdyTeamId": 464,
       "logo": "assets/teams/aurora.png",
+      "logoNote": null,
       "colour": "#A24BFF",
       "groupStage": {
         "seed": 6,
@@ -1613,9 +1603,7 @@ window.TI2026 = {
           "facePosition": null
         }
       ],
-      "notes": null,
-      "notesSafeBeforeDecider": true,
-      "notesPreDeciderAngle": null
+      "notes": null
     },
     {
       "key": "resilience",
@@ -1630,6 +1618,7 @@ window.TI2026 = {
       "openDotaId": 5017210,
       "rdyTeamId": null,
       "logo": null,
+      "logoNote": null,
       "colour": "#E8552D",
       "groupStage": {
         "seed": 9,
@@ -1739,9 +1728,7 @@ window.TI2026 = {
           "facePosition": null
         }
       ],
-      "notes": "YSR-04E also known as Erika or poyoyo.",
-      "notesSafeBeforeDecider": true,
-      "notesPreDeciderAngle": null
+      "notes": null
     },
     {
       "key": "gamerlegion",
@@ -1756,6 +1743,7 @@ window.TI2026 = {
       "openDotaId": 9964962,
       "rdyTeamId": null,
       "logo": null,
+      "logoNote": null,
       "colour": "#F2B705",
       "groupStage": {
         "seed": 11,
@@ -1865,9 +1853,7 @@ window.TI2026 = {
           "facePosition": null
         }
       ],
-      "notes": null,
-      "notesSafeBeforeDecider": true,
-      "notesPreDeciderAngle": null
+      "notes": null
     },
     {
       "key": "lgd",
@@ -1882,6 +1868,7 @@ window.TI2026 = {
       "openDotaId": 10150538,
       "rdyTeamId": null,
       "logo": "assets/teams/lgd-gaming.png",
+      "logoNote": null,
       "colour": "#C8102E",
       "groupStage": {
         "seed": 7,
@@ -1991,9 +1978,7 @@ window.TI2026 = {
           "facePosition": null
         }
       ],
-      "notes": "Chinese org that qualified through South America with a South American roster. Topson replaced TaiLung, who was banned over match-fixing allegations. KJ is listed as KingJungles on OpenDota.",
-      "notesSafeBeforeDecider": true,
-      "notesPreDeciderAngle": null
+      "notes": null
     },
     {
       "key": "xtreme",
@@ -2008,6 +1993,7 @@ window.TI2026 = {
       "openDotaId": 8261500,
       "rdyTeamId": 72,
       "logo": "assets/teams/xtreme.png",
+      "logoNote": null,
       "colour": "#FF6B00",
       "groupStage": {
         "seed": 14,
@@ -2111,9 +2097,7 @@ window.TI2026 = {
           "facePosition": null
         }
       ],
-      "notes": "Ame's TI 2025 Juggernaut loss was the reference point for Satanic's Game 5 pick in the 2026 grand final.",
-      "notesSafeBeforeDecider": true,
-      "notesPreDeciderAngle": null
+      "notes": null
     },
     {
       "key": "og",
@@ -2128,6 +2112,7 @@ window.TI2026 = {
       "openDotaId": 2586976,
       "rdyTeamId": null,
       "logo": "assets/teams/og.png",
+      "logoNote": null,
       "colour": "#2FBF71",
       "groupStage": {
         "seed": 15,
@@ -2231,9 +2216,7 @@ window.TI2026 = {
           "facePosition": null
         }
       ],
-      "notes": "Ceb is listed as a current team member on OpenDota but was not on the TI roster.",
-      "notesSafeBeforeDecider": true,
-      "notesPreDeciderAngle": null
+      "notes": null
     },
     {
       "key": "huligani",
@@ -2248,6 +2231,7 @@ window.TI2026 = {
       "openDotaId": 10149530,
       "rdyTeamId": null,
       "logo": null,
+      "logoNote": null,
       "colour": "#7A8899",
       "groupStage": {
         "seed": 16,
@@ -2344,9 +2328,7 @@ window.TI2026 = {
           "facePosition": null
         }
       ],
-      "notes": "Only team to finish the Swiss stage without a series win.",
-      "notesSafeBeforeDecider": true,
-      "notesPreDeciderAngle": null
+      "notes": "Only team to finish the Swiss stage without a series win."
     }
   ],
   "groupStage": {
@@ -3602,11 +3584,6 @@ window.TI2026 = {
             "lastHits": 93,
             "heroDamage": 24422
           }
-        ],
-        "notable": [
-          "Yatoro rampage on Shadow Fiend",
-          "VISION's early Ember Spirit answered immediately with Slark",
-          "Spirit's most one-sided game of the series at 42-17"
         ]
       },
       {
@@ -4036,13 +4013,6 @@ window.TI2026 = {
             "lastHits": 152,
             "heroDamage": 14233
           }
-        ],
-        "notable": [
-          "VISION won despite losing the kill count 46-48",
-          "Noticed 95,959 hero damage on Underlord, the highest single-game figure of the final",
-          "9Class 0/13/38 on Rubick",
-          "Yatoro 892 last hits",
-          "Satanic's Lifestealer took the buildings"
         ]
       },
       {
@@ -4472,12 +4442,6 @@ window.TI2026 = {
             "lastHits": 113,
             "heroDamage": 8541
           }
-        ],
-        "notable": [
-          "Marci's tournament debut, on 9Class",
-          "Yatoro 10/1/12 Terrorblade, 973 GPM",
-          "Larl's Nature's Prophet with Aghanim's Scepter credited as pivotal",
-          "Spirit won a decisive 38th-minute fight then closed after picking off Noticed"
         ]
       },
       {
@@ -4907,12 +4871,6 @@ window.TI2026 = {
             "lastHits": 30,
             "heroDamage": 14198
           }
-        ],
-        "notable": [
-          "Noticed kept a perfect 5-0 record on Doom at TI 2026 (dotesports claim, unverified against match data)",
-          "Doom used repeatedly on Collapse's Centaur to strip Work Horse saves off Yatoro's Templar Assassin",
-          "not_me died 14 times on Clockwerk",
-          "The most controlled game of the series, 31-13"
         ]
       },
       {
@@ -5245,12 +5203,7 @@ window.TI2026 = {
               "portrait": "assets/dota2_portraits/bane.png"
             }
           ]
-        },
-        "notable": [
-          "Satanic's surprise Juggernaut, a callback to Ame's TI 2025 Juggernaut loss",
-          "Only the fifth TI grand final to reach a game five",
-          "Treant Protector banned again, as in every Main Event game"
-        ]
+        }
       }
     ]
   },
