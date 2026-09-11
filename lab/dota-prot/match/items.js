@@ -269,7 +269,7 @@
               (lane === 'main' && p.items.neutral === e.item ? ' is-neutral' : ''),
             'aria-label': label,
             title: label,
-            onclick: function () { T.togglePin(indexOwned(e.seconds)); showDetail(p, e); },
+            onclick: function () { T.set(indexOwned(e.seconds)); showDetail(p, e); },
             onmouseenter: function () { showDetail(p, e); },
             onmouseleave: function () { resetDetail(); },
             onfocus: function () { showDetail(p, e); }
@@ -509,7 +509,7 @@
 
     function apply(st) {
       cursor.style.setProperty('--x', String(clamp01(st.position / st.last)));
-      frame.classList.toggle('is-pinned', st.pinned !== null);
+      frame.classList.toggle('is-playing', !!st.playing);
 
       var capId = st.captured ? st.captured.id : null;
       if (capId !== lastCaptured) {
@@ -565,7 +565,7 @@
        7. Wiring
        ============================================================ */
 
-    T.attachScrubSurface(ruler, { hover: true, tap: true, keyboard: true });
+    T.attachScrubSurface(ruler, { keyboard: true });
     T.onHighlight(function (key) {
       for (var r = 0; r < rows.length; r++) {
         rows[r].row.classList.toggle('is-hl', !!key && rows[r].player.key === key);

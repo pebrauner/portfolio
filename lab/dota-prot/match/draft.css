@@ -98,6 +98,15 @@
 .mt-dr-cell--ban .mt-dr-cell-img { filter: grayscale(1) brightness(.62); }
 .mt-dr-cell.is-current .mt-dr-cell-img { filter: none; }
 
+/* interaction-rule-change 2026-09-11: a hover outlines the cell it is over
+   and commits nothing. The panel keeps showing the committed step. */
+.mt-dr-cell.is-hover {
+  opacity: 1;
+  box-shadow: inset 0 0 0 2px var(--color-rdy-light-gold);
+  z-index: 1;
+}
+.mt-dr-cell.is-hover .mt-dr-cell-img { filter: none; }
+
 .mt-dr-cell-bar {
   position: absolute;
   left: 0; right: 0; bottom: 0;
@@ -131,7 +140,7 @@
 .mt-dr-num.is-current { color: var(--text-primary); font-weight: 700; }
 
 .mt-dr-hint { font-size: 12px; }
-.mt-dr-track.is-preview + .mt-dr-nums .mt-dr-num.is-current { color: var(--color-rdy-light-gold); }
+
 
 /* ---------- the detail card ---------- */
 

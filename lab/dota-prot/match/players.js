@@ -255,7 +255,7 @@
       var f = Math.max(0, Math.min(1, s.position / s.last));
       cursorEl.style.setProperty('--x', String(f));
       chart.plot.classList.toggle('is-scrubbing', s.state === 'scrubbing');
-      chart.plot.classList.toggle('is-pinned', s.pinned !== null);
+      chart.plot.classList.toggle('is-playing', !!s.playing);
     });
 
     root.addEventListener('mt:destroy', function () {
@@ -731,7 +731,7 @@
           h('span', { 'class': 'mt-pl-legbadge mt-pl-legbadge--b' }, 'B'),
           h('span', { 'class': 'm-swatch mt-pl-swatch mt-pl-swatch--b' }),
           h('span', { 'class': 'mt-pl-legname mt-pl-legname--b' }, '')),
-        h('span', { 'class': 'm-legend-item mt-pl-leghint' }, 'Drag the plot, or use the arrow keys. Enter pins the minute.')
+        h('span', { 'class': 'm-legend-item mt-pl-leghint' }, 'Drag the plot, or use the arrow keys. It stays where you let go.')
       );
 
       var hint = h('span', { 'class': 'mt-pl-chint u-tnum' }, '');
@@ -746,7 +746,7 @@
         srLive
       );
 
-      var detach = Timeline.attachScrubSurface(plot, { hover: true, tap: true, keyboard: true });
+      var detach = Timeline.attachScrubSurface(plot, { keyboard: true });
       /* M-06: silent unless focus is inside this chart card */
       var speak = Timeline.quietLive ? Timeline.quietLive(srLive, el)
         : function (t) { srLive.textContent = t; };

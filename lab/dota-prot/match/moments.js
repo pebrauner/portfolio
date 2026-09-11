@@ -409,7 +409,7 @@
         'data-index': String(it.index),
         'data-moment-id': it.id,
         'data-testid': 'match-row',
-        'aria-label': it.clock + '. ' + it.headline + '. Pin the timeline here.'
+        'aria-label': it.clock + '. ' + it.headline + '. Go to this minute.'
       },
         h('span', { 'class': 'mt-mo-rail', 'aria-hidden': 'true' }),
         h('span', { 'class': 'mt-mo-time u-tnum' }, it.clock),
@@ -444,9 +444,7 @@
       );
 
       el.addEventListener('click', function () {
-        if (!Timeline) return;
-        if (Timeline.pinned === it.index) { Timeline.unpin(); }
-        else { Timeline.pin(it.index); }
+        if (Timeline) Timeline.set(it.index);
       });
       return el;
     }
@@ -465,7 +463,7 @@
           'data-index': String(it.index),
           'data-moment-id': 'play-' + it.id,
           'data-testid': 'card-match',
-          'aria-label': it.clock + '. ' + it.headline + '. Pin the timeline here.'
+          'aria-label': it.clock + '. ' + it.headline + '. Go to this minute.'
         },
           h('span', { 'class': 'mt-mo-play-top' },
             h('span', { 'class': 'mt-mo-time u-tnum' }, it.clock),
@@ -478,9 +476,7 @@
           it.story ? h('span', { 'class': 'mt-mo-story rdy-par-6' }, it.story) : null
         );
         card.addEventListener('click', function () {
-          if (!Timeline) return;
-          if (Timeline.pinned === it.index) { Timeline.unpin(); }
-          else { Timeline.pin(it.index); }
+          if (Timeline) Timeline.set(it.index);
         });
         playCards.push({ item: it, el: card });
         grid.appendChild(card);
@@ -511,7 +507,7 @@
 
     root.appendChild(h('div', { 'class': 'card-footer mt-mo-foot' },
       h('span', { 'class': 'u-dim rdy-par-7' },
-        'Click a moment to pin the whole page at that minute. Click it again to release.')
+        'Click a moment to move the whole page to that minute. It stays there until you move it again.')
     ));
 
     /* ---------- register the magnets, deduped against the seeded ids ---------- */
@@ -567,14 +563,14 @@
         if (grp.countEl) grp.countEl.textContent = String(visible);
         if (grp.sectionEl) grp.sectionEl.hidden = visible === 0;
       });
-      mark(Timeline ? Timeline.index : last, Timeline ? Timeline.pinned : null);
+      mark(Timeline ? Timeline.index : last);
     }
 
     /* ---------- the index drives the list ---------- */
 
     var lastNear = null;
 
-    function mark(index, pinned) {
+    function mark(index) {
       var best = null, bestD = Infinity;
       for (var i = 0; i < rows.length; i++) {
         var r = rows[i];
@@ -585,16 +581,14 @@
       for (var j = 0; j < rows.length; j++) {
         var row = rows[j];
         var isNear = row === best;
-        var isPinned = pinned !== null && pinned !== undefined && row.item.index === pinned;
         row.el.classList.toggle('is-near', isNear);
-        row.el.classList.toggle('is-pinned', !!isPinned);
+        row.el.classList.toggle('is-at', row.item.index === index);
         if (isNear) { row.el.setAttribute('aria-current', 'true'); }
         else { row.el.removeAttribute('aria-current'); }
       }
       for (var k = 0; k < playCards.length; k++) {
         var pc = playCards[k];
-        var pinnedPlay = pinned !== null && pinned !== undefined && pc.item.index === pinned;
-        pc.el.classList.toggle('is-pinned', !!pinnedPlay);
+        pc.el.classList.toggle('is-at', pc.item.index === index);
         pc.el.classList.toggle('is-near', !!best && best.item === pc.item);
       }
       lastNear = best;
@@ -602,10 +596,10 @@
 
     if (Timeline && Timeline.subscribe) {
       Timeline.subscribe(function (s) {
-        mark(s.index, s.pinned);
+        mark(s.index);
       });
     } else {
-      mark(last, null);
+      mark(last);
     }
 
     setFilter(filter);

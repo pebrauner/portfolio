@@ -65,7 +65,7 @@
   border-color: color-mix(in srgb, var(--color-rdy-gold) 45%, transparent);
   background: color-mix(in srgb, var(--color-rdy-gold) 9%, transparent);
 }
-.mt-mo-play.is-pinned { border-color: var(--match-pin); }
+.mt-mo-play.is-at { border-color: var(--match-at); }
 .mt-mo-play.is-near { border-color: var(--color-rdy-white-25); }
 .mt-mo-play-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .mt-mo-play-top .mt-mo-time { font-size: 15px; }
@@ -103,7 +103,7 @@
 .mt-mo-item:hover { background: var(--surface-card-hover); }
 .mt-mo-item:focus-visible { outline: 2px solid var(--color-rdy-turquoise); outline-offset: 2px; }
 .mt-mo-item.is-near { border-color: var(--color-rdy-white-25); background: var(--color-rdy-white-10); }
-.mt-mo-item.is-pinned { border-color: var(--match-pin); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--match-pin) 45%, transparent); }
+.mt-mo-item.is-at { border-color: var(--match-at); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--match-at) 45%, transparent); }
 .mt-mo-item.is-featured { border-color: color-mix(in srgb, var(--color-rdy-gold) 45%, transparent); background: color-mix(in srgb, var(--color-rdy-gold) 7%, transparent); }
 
 .mt-mo-rail { display: block; height: 100%; min-height: 34px; background: var(--color-rdy-steel); }

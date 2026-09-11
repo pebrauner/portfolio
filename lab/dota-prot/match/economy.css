@@ -186,7 +186,25 @@
 }
 .mt-eco-dot.is-right .mt-eco-dot-flag { left: auto; right: 10px; }
 
-.mt-eco.is-pinned .mt-eco-dot-ring { box-shadow: 0 0 0 2px var(--match-pin); }
+.mt-eco.is-playing .mt-eco-dot-ring { box-shadow: 0 0 0 2px var(--color-rdy-fresh-green); }
+
+/* the hover preview, drawn inside this chart's own SVG */
+.mt-eco-ghost-line { stroke: var(--color-rdy-white-25); stroke-width: 1; stroke-dasharray: 3 3; }
+.mt-eco-ghost-dot { fill: var(--color-rdy-white-45); }
+.mt-eco-ghost-box {
+  fill: color-mix(in srgb, var(--color-rdy-dark-sky) 92%, transparent);
+  stroke: var(--color-rdy-white-25); stroke-width: 1;
+}
+.mt-eco-ghost-clock {
+  fill: var(--text-primary);
+  font-family: var(--font-sans); font-size: 11px; font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.mt-eco-ghost-value {
+  fill: var(--text-secondary);
+  font-family: var(--font-sans); font-size: 11px; font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
 
 .mt-eco-edge {
   position: absolute; top: 0; bottom: 0; width: 22px;

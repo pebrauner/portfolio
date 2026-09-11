@@ -188,12 +188,12 @@
 .mt-st-su-jump-clock { font-size: 10px; line-height: 1.15; color: var(--match-label-quiet); }
 /* jump-buttons-no-state: which one am I standing on */
 .mt-st-su-jump.is-on { color: var(--text-primary); border-color: var(--color-rdy-white-25); background: var(--color-rdy-white-10); }
-.mt-st-su-jump.is-pinned {
+.mt-st-su-jump.is-on {
   color: var(--color-rdy-dark-sky);
-  background: var(--match-pin);
-  border-color: var(--match-pin);
+  background: var(--match-at);
+  border-color: var(--match-at);
 }
-.mt-st-su-jump.is-pinned .mt-st-su-jump-clock { color: var(--color-rdy-dark-sky); }
+.mt-st-su-jump.is-on .mt-st-su-jump-clock { color: var(--color-rdy-dark-sky); }
 .mt-st-su-jump:hover { background: var(--surface-card-hover); color: var(--text-primary); }
 .mt-st-su-jump:focus-visible { outline: 2px solid var(--color-rdy-turquoise); outline-offset: 2px; }
 

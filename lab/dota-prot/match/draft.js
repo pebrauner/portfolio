@@ -5,11 +5,11 @@
    One array is the whole truth here too: G5.draft is 24 steps in order, and
    everything on screen is that array read at one step index. The stepper owns
    its own index because the draft happens before minute 0, so it is not on the
-   master minute timeline. Every other principle is the same: instant pointer
-   tracking, snap to a real step, hover previews and leaving restores the
-   committed step, a tap commits, arrows and Home and End on the keyboard, and
-   an aria-live readout. No spring, because a step is a discrete thing and
-   there is nothing to travel back over.
+   master minute timeline. Every other rule is the same: instant pointer
+   tracking, snap to a real step, a hover only outlines the step it is over,
+   a release stays exactly where the pointer left it, arrows and Home and End
+   on the keyboard, and an aria-live readout. Nothing springs back: a step is
+   a discrete thing and there is nowhere to travel to.
 
    Nothing is typed by hand. Phase labels, phase boundaries, the ban and pick
    counts, the lineups and the five notes all come from the payload.
@@ -27,7 +27,7 @@
   var DEFAULTS = {
     home: null,        /* committed step on mount. null means the last step, the full draft */
     first: 1,          /* the first real step */
-    hoverScrub: true,  /* hovering the strip previews a step without committing */
+    hoverPreview: true,/* hovering the strip outlines the step under the pointer */
     tap: true,         /* a press and release commits the step under the pointer */
     keyboard: true,    /* arrows, Shift arrows, Home, End on the strip */
     bigStep: 5,        /* how far Shift plus arrow moves */
@@ -85,8 +85,11 @@
   }
 
   /* ------------------------------------------------------------------ *
-   * The local step scrub. Principles 2, 3, 4 (commit is a tap, there is no
-   * magnet to capture because every step is itself a snap), 6, 7, 8.
+   * The local step scrub.
+   * interaction-rule-change 2026-09-11: a hover outlines the step under the
+   * pointer and changes nothing else. A pointerdown or a drag tracks the
+   * pointer, and the release leaves the panel on the step the pointer was
+   * over. Nothing springs back.
    * ------------------------------------------------------------------ */
 
   function attachStepScrub(el, api, opts) {
@@ -109,16 +112,17 @@
       down = true; travel = 0; sx = e.clientX; sy = e.clientY; pid = e.pointerId;
       try { el.setPointerCapture(pid); } catch (err) {}
       el.classList.add('is-scrubbing');
-      api.preview(stepFromX(e.clientX));
+      api.hover(null);
+      api.commit(stepFromX(e.clientX));
       if (e.cancelable) e.preventDefault();
     }
 
     function onMove(e) {
       if (down) {
         travel = Math.max(travel, Math.abs(e.clientX - sx) + Math.abs(e.clientY - sy));
-        api.preview(stepFromX(e.clientX));
-      } else if (opts.hoverScrub) {
-        api.preview(stepFromX(e.clientX));
+        api.commit(stepFromX(e.clientX));
+      } else if (opts.hoverPreview) {
+        api.hover(stepFromX(e.clientX));
       }
     }
 
@@ -127,20 +131,18 @@
       down = false;
       try { el.releasePointerCapture(pid); } catch (err) {}
       el.classList.remove('is-scrubbing');
-      /* a tap and a drag both commit: the step under the pointer is the step
-         the reader is looking at, so there is nothing to spring back from */
-      if (opts.tap || travel >= 4) { api.commit(stepFromX(e.clientX)); }
-      else { api.restore(); }
+      /* the release stays: the step under the pointer is the step the reader
+         is looking at, and it is already committed */
+      api.commit(stepFromX(e.clientX));
     }
 
     function onCancel() {
       if (!down) return;
       down = false;
       el.classList.remove('is-scrubbing');
-      api.restore();
     }
 
-    function onLeave() { if (!down) api.restore(); }
+    function onLeave() { api.hover(null); }
 
     function onKey(e) {
       var big = e.shiftKey ? opts.bigStep : 1;
@@ -162,7 +164,7 @@
     el.addEventListener('pointercancel', onCancel);
     el.addEventListener('pointerleave', onLeave);
     if (opts.keyboard !== false) { el.addEventListener('keydown', onKey); }
-    el.addEventListener('blur', function () { api.restore(); });
+    el.addEventListener('blur', function () { api.hover(null); });
   }
 
   /* ------------------------------------------------------------------ *
@@ -249,6 +251,7 @@
     });
 
     var cells = [];
+    var cellByStep = {};
     var track = h('div', {
       'class': 'mt-dr-track m-scrub',
       tabindex: '0',
@@ -275,6 +278,7 @@
         step.type === 'ban' ? h('span', { 'class': 'mt-dr-cell-slash' }) : null
       );
       cells.push(cell);
+      cellByStep[step.order] = cell;
       track.appendChild(cell);
     });
 
@@ -288,7 +292,7 @@
       track,
       nums,
       h('div', { 'class': 'mt-dr-hint u-dim' },
-        'Drag, hover or use the arrow keys to walk the draft. Home and End jump to the ends.')
+        'Drag or use the arrow keys to walk the draft, and it stays where you let go. Hovering only outlines a step. Home and End jump to the ends.')
     ));
 
     /* ---------- the detail card ---------- */
@@ -466,7 +470,7 @@
       return draft[draft.length - 1];
     }
 
-    function render(order, isPreview) {
+    function render(order) {
       var st = stepAt(order);
       var side = sideOf(st);
       var name = teamName[side];
@@ -484,7 +488,6 @@
 
       track.setAttribute('aria-valuenow', String(order));
       track.setAttribute('aria-valuetext', 'Step ' + order + ' of ' + lastStep + ', ' + st.phase + ', ' + sentence(st, name));
-      track.classList.toggle('is-preview', !!isPreview);
       counterNow.textContent = String(order);
 
       dAction.textContent = (st.type === 'ban' ? 'BAN' : 'PICK') + ' ' + (Hub.teamTag(teamKeyBySide[side]) || '');
@@ -536,28 +539,31 @@
       return Math.round(n);
     }
 
-    function preview(order) {
-      showing = clamp(order);
-      render(showing, showing !== committed);
-    }
-
     function commit(order) {
-      committed = clamp(order);
+      var next = clamp(order);
+      if (next === committed && showing === committed) return;
+      committed = next;
       showing = committed;
-      render(committed, false);
+      render(committed);
     }
 
-    function restore() {
-      showing = committed;
-      render(committed, false);
+    /* the hover preview: an outline on one cell, nothing else. The panel,
+       the counter and the notes all stay on the committed step. */
+    var hovered = null;
+    function hover(order) {
+      var next = order === null || order === undefined ? null : clamp(order);
+      if (next === hovered) return;
+      if (hovered !== null && cellByStep[hovered]) cellByStep[hovered].classList.remove('is-hover');
+      hovered = next;
+      if (hovered !== null && cellByStep[hovered]) cellByStep[hovered].classList.add('is-hover');
+      track.setAttribute('data-preview', hovered === null ? '' : String(hovered));
     }
 
     attachStepScrub(track, {
       last: lastStep,
       committed: function () { return committed; },
-      preview: preview,
       commit: commit,
-      restore: restore
+      hover: hover
     }, opts);
 
     /* cross module highlight: a pick row lights up when another component
@@ -573,7 +579,7 @@
       });
     }
 
-    render(committed, false);
+    render(committed);
     setTimeout(function () { root.classList.add('is-in'); }, 0);
   });
 }());

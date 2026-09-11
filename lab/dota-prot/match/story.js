@@ -109,7 +109,7 @@
         type: 'button',
         'class': 'mt-st-pull',
         'data-fact': f.id,
-        'aria-label': f.label + ', ' + F.num(f.value) + '. Pin the page at minute ' + minute + '.'
+        'aria-label': f.label + ', ' + F.num(f.value) + '. Go to minute ' + minute + '.'
       },
         h('span', { 'class': 'mt-st-pull-value u-tnum' }, F.num(f.value)),
         h('span', { 'class': 'mt-st-pull-label' }, shortLabel || f.label),
@@ -117,7 +117,7 @@
           f.minuteFrom === f.minuteTo ? ('minute ' + f.minuteTo) : ('minutes ' + f.minuteFrom + ' to ' + f.minuteTo))
       );
       btn.addEventListener('click', function () {
-        if (Timeline) { Timeline.pin(minute); }
+        if (Timeline) { Timeline.set(minute); }
       });
       return btn;
     }
@@ -359,7 +359,7 @@
 
     root.appendChild(h('div', { 'class': 'card-footer mt-st-foot' },
       h('span', { 'class': 'u-dim rdy-par-7' },
-        'Every figure in this piece is read from the match record. Click a number to pin the page at that minute.'),
+        'Every figure in this piece is read from the match record. Click a number to move the page to that minute.'),
       h('a', { 'class': 'btn btn-ghost btn-sm', href: '#draft' }, 'The draft')
     ));
 
@@ -441,8 +441,7 @@
         h('span', { 'class': 'mt-st-su-jump-clock u-tnum' }, Timeline ? Timeline.clockAt(minute) : '')
       );
       b.addEventListener('click', function () {
-        if (!Timeline) return;
-        if (Timeline.pinned === minute) Timeline.unpin(); else Timeline.pin(minute);
+        if (Timeline) Timeline.set(minute);
       });
       jumpBtns.push({ el: b, minute: minute });
       jumps.appendChild(b);
@@ -458,12 +457,11 @@
     });
     body.appendChild(jumps);
 
-    function paintJumps(i, pinned) {
+    function paintJumps(i) {
       for (var j = 0; j < jumpBtns.length; j++) {
         var on = jumpBtns[j].minute === i;
         jumpBtns[j].el.classList.toggle('is-on', on);
-        jumpBtns[j].el.setAttribute('aria-pressed', (pinned !== null && pinned === jumpBtns[j].minute) ? 'true' : 'false');
-        jumpBtns[j].el.classList.toggle('is-pinned', pinned !== null && pinned === jumpBtns[j].minute);
+        jumpBtns[j].el.setAttribute('aria-pressed', on ? 'true' : 'false');
       }
     }
 
@@ -516,15 +514,12 @@
       var isFinal = i >= last;
       var clock = (minutes.clockAt && minutes.clockAt[i]) || F.clockFromMinutes(i);
       clockEl.textContent = clock;
-      paintJumps(i, s.pinned === undefined ? null : s.pinned);
+      paintJumps(i);
       var ph = Timeline ? Timeline.phaseAt(i) : null;
       phaseEl.textContent = ph ? ph.label : '';
 
-      stateChip.textContent = s.pinned !== null && s.pinned !== undefined
-        ? 'PINNED'
-        : (isFinal ? 'FINAL' : 'AT ' + clock);
-      stateChip.className = 'chip mt-st-su-state' +
-        (s.pinned !== null && s.pinned !== undefined ? ' chip--gold' : (isFinal ? ' chip--green' : ' chip--outline'));
+      stateChip.textContent = isFinal ? 'FINAL' : 'AT ' + clock;
+      stateChip.className = 'chip mt-st-su-state' + (isFinal ? ' chip--green' : ' chip--outline');
 
       var g = (series.goldAdvantage || [])[i];
       if (typeof g === 'number') {
@@ -565,7 +560,7 @@
     }
 
     if (Timeline && Timeline.subscribe) { Timeline.subscribe(render); }
-    else { render({ index: last, pinned: null }); }
+    else { render({ index: last }); }
     setTimeout(function () { root.classList.add('is-in'); }, 0);
   });
 

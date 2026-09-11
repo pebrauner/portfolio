@@ -43,7 +43,7 @@
   /* timeline chrome */
   --match-cursor: var(--color-rdy-white);
   --match-magnet: var(--color-rdy-gold);
-  --match-pin: var(--color-rdy-light-gold);
+  --match-at: var(--color-rdy-light-gold); /* the reading the page is holding */
   --match-grid: var(--color-rdy-white-10);
 
   /* phase bands: laning 0 to 10, mid 10 to 30, late 30 to the end */
@@ -247,36 +247,96 @@
 .mt-tl-jump-clock { font-size: 9.5px; line-height: 1.1; color: var(--match-label-quiet); }
 .mt-tl-jump:hover { color: var(--text-primary); border-color: var(--color-rdy-white-25); }
 .mt-tl-jump:focus-visible { outline: 2px solid var(--color-rdy-fresh-green); outline-offset: 2px; }
-.mt-tl-jump.is-on { color: var(--text-primary); border-color: var(--color-rdy-white-25); background: var(--color-rdy-white-5); }
-.mt-tl-jump.is-pinned {
+.mt-tl-jump.is-on {
   color: var(--color-rdy-dark-sky);
-  background: var(--match-pin);
-  border-color: var(--match-pin);
+  background: var(--match-at);
+  border-color: var(--match-at);
 }
-.mt-tl-jump.is-pinned .mt-tl-jump-clock { color: var(--color-rdy-dark-sky); }
+.mt-tl-jump.is-on .mt-tl-jump-clock { color: var(--color-rdy-dark-sky); }
 
 @media (max-width: 1279px) {
   .mt-tl-jumps { display: none; }
 }
+/* the transport took the right hand end's spare width, so the hint, which is
+   the least load bearing thing in the head, stands down first */
+@media (max-width: 1599px) {
+  .mt-tl-hint { display: none; }
+}
 
-.mt-tl-pin {
-  display: inline-flex; align-items: center; gap: 6px;
-  height: 26px; padding: 0 10px;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-pill);
+/* interaction-rule-change 2026-09-11: the pin control is replaced by the
+   time lapse transport at the left of the strip. Start, Play or Pause with
+   the clock and a progress bar, End, and a speed toggle. */
+.mt-tl-play {
+  display: flex; align-items: center; gap: 4px;
+  flex: 0 0 auto;
+  font-family: var(--font-sans);
+}
+.mt-tl-pbtn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  height: 30px; padding: 0 8px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
   background: transparent;
   color: var(--text-secondary);
-  font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  font-family: inherit;
+  font-size: 11px; font-weight: 700; letter-spacing: .04em;
   cursor: pointer;
-  transition: color .15s ease, border-color .15s ease, background .15s ease;
+  transition: color .14s ease, border-color .14s ease, background .14s ease;
 }
-.mt-tl-pin:hover { color: var(--text-primary); border-color: var(--color-rdy-white-25); }
-.mt-tl-pin[aria-pressed="true"] {
+.mt-tl-pbtn:hover:not(:disabled) { color: var(--text-primary); border-color: var(--color-rdy-white-25); background: var(--color-rdy-white-5); }
+.mt-tl-pbtn:focus-visible { outline: 2px solid var(--color-rdy-fresh-green); outline-offset: 2px; }
+.mt-tl-pbtn:disabled { opacity: .38; cursor: default; }
+.mt-tl-pbtn .icon { width: 13px; height: 13px; fill: currentColor; }
+.mt-tl-pbtn--edge { width: 30px; padding: 0; }
+
+.mt-tl-pbtn--play {
+  position: relative;
+  overflow: hidden;
+  min-width: 104px; padding: 0 10px;
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+.mt-tl-pbtn-glyph { display: inline-flex; align-items: center; }
+.mt-tl-pbtn-word { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.mt-tl-pbtn-clock {
+  font-size: 11px; font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--match-label-quiet);
+  margin-left: auto;
+}
+/* the progress affordance: one variable, no layout */
+.mt-tl-pbtn-bar {
+  position: absolute; left: 0; bottom: 0; height: 2px;
+  width: calc(var(--p, 0) * 100%);
+  background: var(--color-rdy-fresh-green);
+}
+.mt-tl-pbtn--play[aria-pressed="true"] {
   color: var(--color-rdy-dark-sky);
-  background: var(--match-pin);
-  border-color: var(--match-pin);
+  background: var(--color-rdy-fresh-green);
+  border-color: var(--color-rdy-fresh-green);
 }
-.mt-tl-pin .icon { width: 12px; height: 12px; fill: currentColor; }
+.mt-tl-pbtn--play[aria-pressed="true"] .mt-tl-pbtn-clock { color: color-mix(in srgb, var(--color-rdy-dark-sky) 72%, transparent); }
+.mt-tl-pbtn--play[aria-pressed="true"] .mt-tl-pbtn-bar { background: var(--color-rdy-dark-sky); }
+
+.mt-tl-speed {
+  height: 30px; min-width: 34px; padding: 0 7px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 11px; font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: color .14s ease, border-color .14s ease, background .14s ease;
+}
+.mt-tl-speed:hover { color: var(--text-primary); border-color: var(--color-rdy-white-25); background: var(--color-rdy-white-5); }
+.mt-tl-speed:focus-visible { outline: 2px solid var(--color-rdy-fresh-green); outline-offset: 2px; }
+
+@media (max-width: 1023px) {
+  .mt-tl-pbtn--play { min-width: 0; }
+  .mt-tl-pbtn-word { display: none; }
+}
 
 /* plot */
 .mt-tl-plot {
@@ -371,8 +431,8 @@
   transform: rotate(45deg) scale(1.75);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--match-magnet) 45%, transparent);
 }
-.mt-tl-mark.is-pinned {
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--match-pin) 55%, transparent);
+.mt-tl-mark.is-at {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--match-at) 55%, transparent);
 }
 .mt-tl-mark-label {
   position: absolute; top: 2px;
@@ -421,12 +481,37 @@
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-.mt-tl.is-pinned .mt-tl-cursor-line,
-.mt-tl.is-pinned .mt-tl-cursor-dot { background: var(--match-pin); }
-.mt-tl.is-pinned .mt-tl-cursor-bubble { background: var(--match-pin); }
 .mt-tl.is-captured .mt-tl-cursor-line,
 .mt-tl.is-captured .mt-tl-cursor-dot,
 .mt-tl.is-captured .mt-tl-cursor-bubble { background: var(--match-magnet); }
+
+/* the hover preview: a faint ghost tick on this surface only. It reads the
+   pointer and nothing else; the index does not move until a pointer goes
+   down, a key is pressed, or play is running. */
+.mt-tl-ghost {
+  position: absolute; top: 0; bottom: 0;
+  left: calc(var(--gx, 0) * 100%);
+  width: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+.mt-tl-ghost-line {
+  position: absolute; top: 0; bottom: 0; left: -1px;
+  width: 1px;
+  background: var(--color-rdy-white-25);
+}
+.mt-tl-ghost-clock {
+  position: absolute; bottom: 2px; left: 0;
+  transform: translateX(-50%);
+  padding: 0 5px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--color-rdy-dark-sky) 88%, transparent);
+  border: 1px solid var(--color-rdy-white-25);
+  color: var(--text-secondary);
+  font-size: 10px; font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
 
 /* rubber feedback at the ends */
 .mt-tl-edge {

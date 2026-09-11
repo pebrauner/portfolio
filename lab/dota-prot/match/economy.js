@@ -232,6 +232,11 @@
 
     var svgHost = h('div', { 'class': 'mt-eco-svghost' });
 
+    /* interaction-rule-change 2026-09-11: a hover previews, it never moves
+       the page. The ghost is drawn inside this chart's own SVG and goes away
+       when the pointer leaves; MatchTimeline.index does not hear about it. */
+    var ghost = null;
+
     var cursor = h('div', { 'class': 'm-cursor mt-eco-cursor', style: '--x: 1' },
       h('div', { 'class': 'm-cursor-line' }));
 
@@ -248,7 +253,7 @@
       'class': 'mt-eco-plot',
       tabindex: '0',
       role: 'slider',
-      'aria-label': 'Economy chart, drag to move the match clock',
+      'aria-label': 'Economy chart, drag to move the match clock. It stays where you let go',
       'aria-valuemin': '0',
       'aria-valuemax': String(LAST),
       'aria-valuenow': String(T.index),
@@ -295,8 +300,8 @@
         type: 'button',
         'class': 'mt-eco-phase',
         dataset: { phase: p.key },
-        'aria-label': p.label + ', ' + p.fromClock + ' to ' + p.toClock + '. Pin the timeline at ' + p.toClock + '.',
-        onclick: function () { T.togglePin(Math.min(LAST, p.to)); },
+        'aria-label': p.label + ', ' + p.fromClock + ' to ' + p.toClock + '. Go to ' + p.toClock + '.',
+        onclick: function () { T.set(Math.min(LAST, p.to)); },
         onmouseenter: function () { plot.dataset.phaseHover = p.key; },
         onmouseleave: function () { delete plot.dataset.phaseHover; },
         onfocus: function () { plot.dataset.phaseHover = p.key; },
@@ -321,7 +326,7 @@
     });
 
     var note = h('p', { 'class': 'mt-eco-note' },
-      'Positive is ' + G5.match.dire.name + ', the Dire side. Drag the chart, or press an arrow key, to move every panel on this page to that minute. A moment marker captures the cursor before you release it.');
+      'Positive is ' + G5.match.dire.name + ', the Dire side. Drag the chart, or press an arrow key, to move every panel on this page to that minute, and it stays there when you let go. Hovering only previews the reading. A moment marker captures the cursor before you release it.');
 
     var card = h('section', { 'class': 'card mt-eco', 'data-testid': 'match-economy' },
       h('div', { 'class': 'card-header mt-eco-header' },
@@ -566,6 +571,19 @@
         global.setTimeout(function () { box.classList.remove('is-sweeping'); }, opts.sweepMs + 60);
       }
 
+      /* the hover preview layer, on top of everything this chart draws */
+      var gLine = svg('line', { 'class': 'mt-eco-ghost-line', x1: 0, x2: 0, y1: dataTop - 14, y2: dataBottom });
+      var gBox = svg('rect', { 'class': 'mt-eco-ghost-box', x: 0, y: dataTop - 12, width: 96, height: 30, rx: 4 });
+      var gClock = svg('text', { 'class': 'mt-eco-ghost-clock', x: 0, y: dataTop + 1 }, '');
+      var gValue = svg('text', { 'class': 'mt-eco-ghost-value', x: 0, y: dataTop + 13 }, '');
+      var gDot = svg('circle', { 'class': 'mt-eco-ghost-dot', cx: 0, cy: 0, r: 3.5 });
+      var gGroup = svg('g', {
+        'class': 'mt-eco-ghost', 'data-testid': 'economy-ghost',
+        'aria-hidden': 'true', visibility: 'hidden'
+      }, gLine, gDot, gBox, gClock, gValue);
+      box.appendChild(gGroup);
+      ghost = { g: gGroup, line: gLine, box: gBox, clock: gClock, value: gValue, dot: gDot };
+
       geom = { W: W, H: H, y: y, lo: lo, hi: hi, s: s, dataTop: dataTop, dataBottom: dataBottom };
 
       subtitleEl.textContent = s.title + ', minute by minute. ' +
@@ -602,7 +620,6 @@
     var lastRubber = 0;
     var lastCaptured = null;
     var lastPhase = '';
-    var lastPinned = null;
 
     function setDot(el, f, value, text) {
       el.style.setProperty('--dx', String(clamp01(f)));
@@ -627,15 +644,10 @@
         plot.style.setProperty('--rubber-end', rb > 0 ? String(clamp01(rb / cap)) : '0');
       }
 
-      if (st.pinned !== lastPinned) {
-        lastPinned = st.pinned;
-        card.classList.toggle('is-pinned', st.pinned !== null);
-      }
       card.classList.toggle('is-scrubbing', st.state === 'scrubbing');
+      card.classList.toggle('is-playing', !!st.playing);
 
-      var mood = st.index >= LAST ? 'Final reading'
-        : (st.pinned === st.index ? 'Pinned here'
-          : (st.state === 'scrubbing' ? 'Scrubbing' : 'At this minute'));
+      var mood = st.index >= LAST ? 'Final reading' : 'At ' + M.clockAt[st.index];
       if (mood !== lastMood) { lastMood = mood; roState.textContent = mood; roState.classList.toggle('is-final', st.index >= LAST); }
 
       var capId = st.captured ? st.captured.id : null;
@@ -722,14 +734,44 @@
         fmt.num(Math.abs(adv)) + (leadKey ? ' to ' + nameOf(leadKey) : ', level') +
         ', kills ' + Hub.killsPairText(kills, radiantKey, direKey, { left: radiantKey });
       plot.setAttribute('aria-valuetext', vt);
-      speak(vt, s.state);
+      speak(vt, st.state);
     }
 
     /* ============================================================
        5. Wiring
        ============================================================ */
 
-    T.attachScrubSurface(plot, { hover: true, tap: true, keyboard: true });
+    /* the ghost cursor: this chart's own preview, drawn from the callback and
+       cleared on leave. Nothing outside this SVG changes. */
+    function drawGhost(frac, i) {
+      if (!ghost || !geom) return;
+      if (frac === null) { ghost.g.setAttribute('visibility', 'hidden'); return; }
+      var s = geom.s;
+      var gx = (i / LAST) * geom.W;
+      var adv = s.kind === 'pair' ? S.goldAdvantage[i] : s.values[i];
+      var gy = geom.y(adv);
+      var lead = adv === 0 ? null : (adv > 0 ? direKey : radiantKey);
+      var valueText = adv === 0
+        ? 'level'
+        : fmt.goldSigned(Math.abs(adv)) + ' ' + tagOf(lead);
+      ghost.clock.textContent = M.clockAt[i];
+      ghost.value.textContent = valueText;
+      var boxW = Math.max(76, 7 + valueText.length * 6.1);
+      var bx = gx + 8;
+      if (bx + boxW > geom.W - 2) bx = gx - 8 - boxW;
+      if (bx < 2) bx = 2;
+      ghost.line.setAttribute('x1', String(gx));
+      ghost.line.setAttribute('x2', String(gx));
+      ghost.dot.setAttribute('cx', String(gx));
+      ghost.dot.setAttribute('cy', String(gy));
+      ghost.box.setAttribute('x', String(bx));
+      ghost.box.setAttribute('width', String(boxW));
+      ghost.clock.setAttribute('x', String(bx + 6));
+      ghost.value.setAttribute('x', String(bx + 6));
+      ghost.g.setAttribute('visibility', 'visible');
+    }
+
+    T.attachScrubSurface(plot, { keyboard: true, onPreview: drawGhost });
     T.subscribe(apply);
 
     draw();

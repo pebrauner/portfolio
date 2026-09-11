@@ -22,7 +22,7 @@
   font-size: 12px; font-weight: 700; color: var(--text-secondary);
   white-space: nowrap;
 }
-.mt-wd-clock.is-final { color: var(--match-pin); border-color: color-mix(in srgb, var(--match-pin) 40%, transparent); }
+.mt-wd-clock.is-final { color: var(--match-at); border-color: color-mix(in srgb, var(--match-at) 40%, transparent); }
 
 .mt-wd-body { display: flex; flex-direction: column; gap: 14px; }
 

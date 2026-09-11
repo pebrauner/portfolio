@@ -300,7 +300,7 @@
   z-index: 5;
 }
 .mt-it-cursor .m-cursor-line { opacity: .55; }
-.mt-it-frame.is-pinned .mt-it-cursor .m-cursor-line { background: var(--match-pin); opacity: .9; }
+.mt-it-frame.is-playing .mt-it-cursor .m-cursor-line { background: var(--color-rdy-fresh-green); opacity: .9; }
 
 /* ---------- mount motion ---------- */
 

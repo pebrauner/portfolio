@@ -262,7 +262,7 @@
 }
 .mt-pl-cdot--a { background: var(--mt-pl-a-side); }
 .mt-pl-cdot--b { background: var(--mt-pl-b-side); }
-.mt-pl-plot.is-pinned .m-cursor-line { background: var(--match-pin); }
+.mt-pl-plot.is-playing .m-cursor-line { background: var(--color-rdy-fresh-green); }
 
 .mt-pl-clegend { margin-top: 8px; }
 .mt-pl-swatch { width: 24px; height: 10px; border-radius: 0; background: transparent; position: relative; }

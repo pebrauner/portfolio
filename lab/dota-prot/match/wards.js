@@ -295,7 +295,7 @@
 
       g.addEventListener('mouseenter', function () { hold(w); T.highlightPlayer(w.playerKey); });
       g.addEventListener('mouseleave', function () { release(); T.highlightPlayer(null); });
-      g.addEventListener('click', function () { T.togglePin(indexOf(w.placedSeconds)); hold(w); });
+      g.addEventListener('click', function () { T.set(indexOf(w.placedSeconds)); hold(w); });
 
       marks.push({ ward: w, g: g, circle: circle, d: d, shown: null, circleOn: null, pulse: null });
     });
@@ -461,7 +461,7 @@
       role: 'group',
       'aria-describedby': 'm-wards-caption',
       'aria-label': 'Ward map. Left and right arrows move through the wards on the map, ' +
-        'Enter pins the timeline to the minute a ward was placed.'
+        'Enter goes to the minute a ward was placed.'
     }, mapSvg);
 
     var root = h('section', {
@@ -595,7 +595,7 @@
             type: 'button', 'class': 'mt-wd-event m-hl',
             onclick: function () {
               if (!s.ev) return;
-              T.pin(indexOf(s.ev.seconds));
+              T.set(indexOf(s.ev.seconds));
               hold(s.ev.ward);
             },
             onmouseenter: function () {
@@ -733,7 +733,7 @@
         paintCaption(i, st.state);
       }
       lastState = st.state;
-      root.classList.toggle('is-pinned', st.pinned !== null);
+      root.classList.toggle('is-playing', !!st.playing);
     }
 
     /* ============================================================
@@ -758,7 +758,7 @@
       } else if (key === 'Enter') {
         if (cursorIndex >= 0 && visible[cursorIndex]) {
           e.preventDefault();
-          T.togglePin(indexOf(visible[cursorIndex].ward.placedSeconds));
+          T.set(indexOf(visible[cursorIndex].ward.placedSeconds));
         }
         return;
       } else if (key === 'Escape') {

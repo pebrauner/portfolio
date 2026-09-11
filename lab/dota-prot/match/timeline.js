@@ -18,13 +18,15 @@
    It also widens the mount context so every component receives
    { TI2026, G5, Timeline, Hub } without hub/core.js changing.
 
-   The nine interaction principles this implements are written out
+   The interaction principles this implements are written out
    in the contract. The short version:
      - one array is the whole truth
      - the scrub only moves the index, and the index snaps
-     - tracking is instant, the spring is only the journey home
+     - tracking is instant, and the index stays where you left it
+     - a hover previews, it never moves the page
      - commitment at a distance: magnets capture before release
-     - rubber, not a rail
+     - rubber at the ends, and only the rubber travels back
+     - play is discrete stepping, one reading per tick
      - the visual is the state: one group, one CSS variable
      - tabular numerals, keyboard parity, options with defaults
    ============================================================ */
@@ -51,7 +53,7 @@
     /* Grand Final Game 5 ran 64:22, so OpenDota carries 65 one minute
        readings, indices 0 to 64. G5.minutes.last overrides this. */
     last: 64,
-    home: null,          /* null means "the final reading" */
+    startIndex: null,    /* the index on boot. null means the final reading */
     /* magnet-over-capture: 34 snap points over 64 minutes with one fixed 14px
        radius tiled the axis, so capture became the resting state and a release
        almost always pinned. The radius now scales with the surface and only the
@@ -61,14 +63,13 @@
     magnetRadiusScale: 0.45, /* px of radius per px of one minute on this surface */
     magnetKinds: ['story', 'fight', 'rax', 'roshan', 'aegis', 'ancient', 'firstblood'],
     magnetLead: 1.5,     /* the nearest magnet must be this much closer than the runner up */
-    springStiffness: 58, /* critically damped, so the journey home never overshoots */
     rubberR: 320,        /* drawn = (R * raw) / (R + raw) */
     rubberMax: 56,       /* px, hard ceiling on the drawn overshoot */
+    rubberReturnMs: 200, /* the only thing that travels after a release, and only from past an end */
     tapSlop: 4,          /* px of travel that still counts as a tap */
-    settle: 0.15,        /* index units, when the spring is close enough to stop */
-    maxSpringMs: 1200,   /* the spring is always home inside this */
-    hoverScrub: true,    /* hovering a scrub surface moves the index without pinning */
-    hoverDwell: 120,     /* ms the pointer must settle on a surface before a hover commits */
+    hoverPreview: true,  /* a hover draws a local preview on its own surface and nothing else */
+    tickMs: 400,         /* play at 1x advances one reading every 400ms */
+    speeds: [1, 2, 4],   /* the speed toggle cycles these */
     /* the frame clock. Defaults to requestAnimationFrame; a test harness or a
        headless run can pass its own pair. */
     raf: null,
@@ -205,8 +206,7 @@
   var last = DEFAULTS.last;
   var position = last;     /* continuous, index units, may pass the ends while rubbering */
   var index = last;        /* the snapped reading, always an integer inside [0, last] */
-  var pinned = null;
-  var mode = 'idle';       /* 'idle' | 'scrubbing' | 'springing' */
+  var mode = 'idle';       /* 'idle' | 'scrubbing' | 'returning' | 'playing' */
   var captured = null;     /* the snap point currently held by the magnet */
   var pxPerIndex = 10;     /* from the surface being scrubbed, for the magnet radius in px */
   var rectWidth = 640;
@@ -218,11 +218,14 @@
   var snapIds = {};
 
   var frameQueued = false;
-  var springRaf = 0;
-  var springTarget = 0;
-  var springV = 0;
-  var springStartedAt = 0;
-  var springPrev = 0;
+  var returnRaf = 0;
+
+  /* the time lapse: a discrete stepper, not an animation */
+  var playing = false;
+  var speedIdx = 0;
+  var playTimer = 0;
+  var playAnchorIndex = 0;
+  var playAnchorAt = 0;
 
   function now() { return (global.performance && performance.now) ? performance.now() : Date.now(); }
   function clampIdx(v) { return v < 0 ? 0 : (v > last ? last : v); }
@@ -232,11 +235,6 @@
     if (rm === true || rm === false) return rm;
     if (rm && typeof rm.matches === 'boolean') return rm.matches;
     return false;
-  }
-
-  function homeTarget() {
-    if (pinned !== null) return pinned;
-    return (typeof opts.home === 'number') ? clampIdx(opts.home) : last;
   }
 
   function rubberPx() {
@@ -250,12 +248,13 @@
       index: index,
       position: position,
       fraction: last > 0 ? position / last : 0,
-      pinned: pinned,
       state: mode,
       captured: captured,
       last: last,
       rubberPx: rubberPx(),
-      highlighted: highlighted
+      highlighted: highlighted,
+      playing: playing,
+      speed: speedValue()
     };
   }
 
@@ -311,9 +310,9 @@
     return best;
   }
 
-  function cancelSpring() {
-    if (springRaf) { opts.caf(springRaf); springRaf = 0; }
-    if (mode === 'springing') mode = 'idle';
+  function cancelReturn() {
+    if (returnRaf) { opts.caf(returnRaf); returnRaf = 0; }
+    if (mode === 'returning') mode = 'idle';
   }
 
   /* pointer -> position, with the rubber band past either end */
@@ -335,7 +334,10 @@
   }
 
   function applyPointer(clientX, rect) {
-    cancelSpring();
+    /* a pointer on any scrub surface stops the time lapse: the reader's
+       hand outranks the clock */
+    pause();
+    cancelReturn();
     mode = 'scrubbing';
     position = positionFromPointer(clientX, rect);
     captured = findMagnet();
@@ -343,66 +345,69 @@
     schedule();
   }
 
-  /* the journey home: critically damped, so it never overshoots */
-  function springHome() {
-    var target = homeTarget();
-    if (reduced() || position === target) {
-      cancelSpring();
-      position = target;
-      captured = null;
-      mode = 'idle';
-      recomputeIndex();
-      schedule();
-      return;
-    }
-    captured = null;
-    mode = 'springing';
-    springTarget = target;
-    springV = 0;
-    springStartedAt = now();
-    springPrev = springStartedAt;
-    if (springRaf) opts.caf(springRaf);
-    springRaf = opts.raf(springStep);
+  /* interaction-rule-change 2026-09-11: there is no journey home. On release
+     the index stays exactly where the finger left it, or on the magnet it
+     captured. The only thing that still travels is the rubber band, and only
+     from past an end back to that end. Everything else settles on the frame
+     the pointer went up. */
+
+  function settleHere() {
+    cancelReturn();
+    recomputeIndex();
+    position = index;
+    mode = 'idle';
+    schedule();
   }
 
-  function springStep() {
-    springRaf = 0;
-    var t = now();
-    if (mode !== 'springing') return;
-    var k = opts.springStiffness;
-    var c = 2 * Math.sqrt(k);
-    var remaining = Math.min(0.05, Math.max(0.001, (t - springPrev) / 1000));
-    springPrev = t;
-    while (remaining > 0) {
-      var step = Math.min(1 / 120, remaining);
-      var a = -k * (position - springTarget) - c * springV;
-      springV += a * step;
-      position += springV * step;
-      remaining -= step;
-    }
-    var done = (Math.abs(position - springTarget) < opts.settle && Math.abs(springV) < 1) ||
-      (now() - springStartedAt > opts.maxSpringMs);
-    if (done) {
-      position = springTarget;
-      springV = 0;
+  /* past an end: a short return to the edge, instant under reduced motion */
+  function returnToEdge() {
+    var target = position > last ? last : (position < 0 ? 0 : null);
+    if (target === null) { settleHere(); return; }
+    cancelReturn();
+    captured = null;
+    recomputeIndex();
+    if (reduced() || !(opts.rubberReturnMs > 0)) {
+      position = target;
       mode = 'idle';
       recomputeIndex();
       schedule();
       return;
     }
-    recomputeIndex();
-    schedule();
-    springRaf = opts.raf(springStep);
+    var from = position;
+    var startedAt = now();
+    var ms = opts.rubberReturnMs;
+    mode = 'returning';
+    returnRaf = opts.raf(function stepBack() {
+      returnRaf = 0;
+      if (mode !== 'returning') return;
+      var k = (now() - startedAt) / ms;
+      if (k >= 1) {
+        position = target;
+        mode = 'idle';
+        recomputeIndex();
+        schedule();
+        return;
+      }
+      var e = 1 - Math.pow(1 - k, 3);
+      position = from + (target - from) * e;
+      recomputeIndex();
+      schedule();
+      returnRaf = opts.raf(stepBack);
+    });
   }
 
   /* ---- public state moves ---- */
 
   function set(i, meta) {
-    cancelSpring();
+    meta = meta || {};
+    if (!meta.fromPlay) pause();
+    cancelReturn();
     position = clampIdx(Number(i) || 0);
-    captured = (meta && meta.captured) || null;
-    if (meta && meta.state) mode = meta.state;
+    captured = meta.captured || null;
     recomputeIndex();
+    position = index;
+    if (meta.state) mode = meta.state;
+    else if (mode !== 'playing') mode = 'idle';
     schedule();
     return index;
   }
@@ -412,53 +417,114 @@
     if (isNaN(f)) return index;
     if (f < 0) f = 0;
     if (f > 1) f = 1;
+    meta = meta || {};
+    if (!meta.fromPlay) pause();
     /* the magnet radius is in px, so a chart driving the timeline from its
        own plot box passes that box's width and gets magnets at its own scale */
-    if (meta && typeof meta.width === 'number' && meta.width > 0) {
+    if (typeof meta.width === 'number' && meta.width > 0) {
       rectWidth = meta.width;
       pxPerIndex = meta.width / Math.max(1, last);
     }
-    cancelSpring();
+    cancelReturn();
     position = f * last;
-    mode = (meta && meta.state) || 'scrubbing';
-    captured = (meta && meta.magnets === false) ? null : findMagnet();
+    mode = meta.state || 'scrubbing';
+    captured = (meta.magnets === false) ? null : findMagnet();
     recomputeIndex();
     schedule();
     return index;
   }
 
-  function pin(i) {
-    cancelSpring();
-    pinned = clampIdx(Math.round(Number(i)));
-    position = pinned;
-    captured = null;
-    mode = 'idle';
-    recomputeIndex();
-    schedule();
-    return pinned;
-  }
-
-  function unpin() {
-    if (pinned === null) return null;
-    pinned = null;
-    springHome();
-    return null;
-  }
-
-  function togglePin(i) {
-    var target = clampIdx(Math.round(Number(i)));
-    if (pinned === target) { unpin(); return null; }
-    return pin(target);
-  }
+  /* interaction-rule-change 2026-09-11: pin and unpin are kept as thin
+     aliases so moments.js, wards.js and story.js keep working. There is no
+     pinned state any more: a jump is a jump. */
+  function pin(i) { return set(i); }
+  function unpin() { return null; }
+  function togglePin(i) { return set(i); }
 
   function step(delta) {
-    cancelSpring();
+    pause();
+    cancelReturn();
     captured = null;
     position = clampIdx(Math.round(position) + delta);
     mode = 'idle';
     recomputeIndex();
     schedule();
     return index;
+  }
+
+  /* ---- play, the time lapse ----------------------------------------
+     Discrete stepping, never an animation: one real reading per tick, so
+     every module follows it exactly as it follows a scrub. Reduced motion
+     changes nothing here. The tick is anchored to a timestamp rather than
+     counted, so a throttled timer catches up instead of drifting. */
+
+  function speedValue() {
+    var list = (opts && opts.speeds && opts.speeds.length) ? opts.speeds : DEFAULTS.speeds;
+    return list[speedIdx % list.length];
+  }
+
+  function tickPeriod() {
+    var ms = (opts && opts.tickMs) || DEFAULTS.tickMs;
+    return Math.max(16, ms / speedValue());
+  }
+
+  function stopTimer() {
+    if (playTimer) { global.clearInterval(playTimer); playTimer = 0; }
+  }
+
+  function startTimer() {
+    stopTimer();
+    playAnchorIndex = index;
+    playAnchorAt = now();
+    var period = tickPeriod();
+    playTimer = global.setInterval(playTick, Math.max(16, Math.round(period / 4)));
+  }
+
+  function playTick() {
+    if (!playing) { stopTimer(); return; }
+    var due = Math.floor((now() - playAnchorAt) / tickPeriod());
+    var want = playAnchorIndex + due;
+    if (want >= last) {
+      set(last, { fromPlay: true });
+      pause();
+      return;
+    }
+    if (want !== index) set(want, { fromPlay: true });
+  }
+
+  function play() {
+    if (playing) return true;
+    cancelReturn();
+    /* pressing play on the final reading replays from the first one */
+    if (index >= last) { set(0); }
+    playing = true;
+    mode = 'playing';
+    startTimer();
+    schedule();
+    return true;
+  }
+
+  function pause() {
+    if (!playing) return false;
+    playing = false;
+    stopTimer();
+    if (mode === 'playing') mode = 'idle';
+    schedule();
+    return false;
+  }
+
+  function toggle() { return playing ? pause() : play(); }
+
+  function speed(n) {
+    var list = (opts && opts.speeds && opts.speeds.length) ? opts.speeds : DEFAULTS.speeds;
+    var at = -1, i;
+    if (n === undefined || n === null) at = (speedIdx + 1) % list.length;
+    else for (i = 0; i < list.length; i++) if (list[i] === Number(n)) at = i;
+    if (at < 0) return speedValue();
+    speedIdx = at;
+    if (playing) startTimer();
+    schedule();
+    return speedValue();
   }
 
   function subscribe(fn) {
@@ -673,8 +739,8 @@
           'class': 'mt-tl-jump',
           'aria-pressed': 'false',
           'data-minute': String(j.minute),
-          title: j.title || (j.label + ', ' + j.clock),
-          onclick: function () { togglePin(j.minute); }
+          title: j.title || ('Go to ' + j.label + ', ' + j.clock),
+          onclick: function () { set(j.minute); }
         },
           h('span', { 'class': 'mt-tl-jump-word' }, j.label),
           h('span', { 'class': 'mt-tl-jump-clock u-tnum' }, j.clock || clockAt(j.minute))
@@ -691,10 +757,8 @@
     for (var i = 0; i < els.jumpBtns.length; i++) {
       var j = els.jumpBtns[i];
       var on = j.minute === st.index;
-      var isPinned = st.pinned !== null && st.pinned === j.minute;
       j.el.classList.toggle('is-on', on);
-      j.el.classList.toggle('is-pinned', isPinned);
-      j.el.setAttribute('aria-pressed', isPinned ? 'true' : 'false');
+      j.el.setAttribute('aria-pressed', on ? 'true' : 'false');
     }
   }
 
@@ -737,41 +801,41 @@
   function attachScrubSurface(el, o) {
     if (!el) return function () {};
     o = o || {};
-    var hover = o.hover !== false;
-    var tap = o.tap !== false;
     var down = false, travel = 0, sx = 0, sy = 0, pid = null;
 
-    /* hover-scrub-global: five scrub surfaces all moved the page's clock on
-       hover, so the pointer travelling to a toggle dragged eight other modules
-       with it. A hover now has to settle on the surface before it commits:
-       the dwell timer starts when the pointer enters and is not reset by
-       movement, so a fast traverse never engages while a reader who stops to
-       look gets instant tracking from the first frame after the dwell.
-       A pointerdown engages at once, as does the keyboard. */
-    var dwellMs = typeof o.hoverDwell === 'number' ? o.hoverDwell : opts.hoverDwell;
-    var dwellTimer = 0, engaged = false, lastX = 0, engagedByHover = false;
+    /* interaction-rule-change 2026-09-11: a hover never changes page state.
+       It may draw a PREVIEW on its own surface, which is what onPreview is
+       for: onPreview(fraction, index) while the bare pointer moves over the
+       box, onPreview(null) when it leaves. The global index, every other
+       module and the sidebar stay exactly where they are. Only a pointerdown,
+       a drag, a tap, the keyboard and play move the clock. */
+    var onPreview = typeof o.onPreview === 'function' ? o.onPreview : null;
+    var wantsPreview = o.preview !== false && opts.hoverPreview !== false;
 
     el.classList.add('m-scrub');
 
     function rect() { return el.getBoundingClientRect(); }
     function scrub(e) { applyPointer(e.clientX, rect()); }
 
-    function clearDwell() {
-      if (dwellTimer) { global.clearTimeout(dwellTimer); dwellTimer = 0; }
+    function previewAt(clientX) {
+      if (!onPreview || !wantsPreview) return;
+      var r = rect();
+      var w = Math.max(1, r.width);
+      var t = (clientX - r.left) / w;
+      if (t < 0) t = 0;
+      if (t > 1) t = 1;
+      el.classList.add('is-previewing');
+      onPreview(t, clampIdx(Math.round(t * last)));
     }
 
-    function engage() {
-      dwellTimer = 0;
-      engaged = true;
-      engagedByHover = true;
-      el.classList.add('is-hover-scrub');
-      applyPointer(lastX, rect());
+    function clearPreview() {
+      el.classList.remove('is-previewing');
+      if (onPreview) onPreview(null);
     }
 
     function onDown(e) {
       if (e.button !== undefined && e.button !== 0) return;
-      clearDwell();
-      engaged = true;
+      clearPreview();
       down = true; travel = 0; sx = e.clientX; sy = e.clientY; pid = e.pointerId;
       try { el.setPointerCapture(pid); } catch (err) {}
       el.classList.add('is-scrubbing');
@@ -780,37 +844,28 @@
     }
 
     function onEnter(e) {
-      if (down || !hover || !opts.hoverScrub) return;
-      lastX = e.clientX;
-      clearDwell();
-      if (!dwellMs) { engage(); return; }
-      dwellTimer = global.setTimeout(engage, dwellMs);
+      if (down) return;
+      previewAt(e.clientX);
     }
 
     function onMove(e) {
       if (down) {
         travel = Math.max(travel, Math.abs(e.clientX - sx) + Math.abs(e.clientY - sy));
         scrub(e);
-      } else if (hover && opts.hoverScrub) {
-        lastX = e.clientX;
-        if (engaged) scrub(e);
-        else if (!dwellTimer) { dwellTimer = global.setTimeout(engage, dwellMs); }
+      } else {
+        previewAt(e.clientX);
       }
     }
 
-    function onUp(e) {
+    /* the release: the index stays where the finger left it, or on the
+       magnet it captured. Nothing travels except a stretched rubber band. */
+    function onUp() {
       if (!down) return;
       down = false;
       try { el.releasePointerCapture(pid); } catch (err) {}
       el.classList.remove('is-scrubbing');
-      if (tap && travel < opts.tapSlop) {
-        togglePin(captured ? captured.index : clampIdx(Math.round(position)));
-      } else if (captured) {
-        pin(captured.index);
-      } else {
-        springHome();
-      }
-      engaged = engagedByHover;
+      if (position > last || position < 0) returnToEdge();
+      else settleHere();
       if (typeof o.onRelease === 'function') o.onRelease(snapshotState());
     }
 
@@ -818,16 +873,12 @@
       if (!down) return;
       down = false;
       el.classList.remove('is-scrubbing');
-      springHome();
+      if (position > last || position < 0) returnToEdge();
+      else settleHere();
     }
 
     function onLeave() {
-      clearDwell();
-      el.classList.remove('is-hover-scrub');
-      var wasEngaged = engaged;
-      engaged = false;
-      engagedByHover = false;
-      if (!down && wasEngaged) springHome();
+      clearPreview();
     }
 
     el.addEventListener('pointerdown', onDown);
@@ -840,7 +891,7 @@
     var detachKeys = o.keyboard === false ? null : attachKeys(el);
 
     return function detach() {
-      clearDwell();
+      clearPreview();
       el.removeEventListener('pointerdown', onDown);
       el.removeEventListener('pointerenter', onEnter);
       el.removeEventListener('pointermove', onMove);
@@ -861,8 +912,8 @@
       else if (k === 'ArrowLeft' || k === 'ArrowDown') { step(-big); }
       else if (k === 'Home') { set(0); }
       else if (k === 'End') { set(last); }
-      else if (k === 'Enter' || k === ' ' || k === 'Spacebar') { togglePin(index); }
-      else if (k === 'Escape') { if (pinned !== null) unpin(); else springHome(); }
+      else if (k === 'Enter' || k === ' ' || k === 'Spacebar') { toggle(); }
+      else if (k === 'Escape') { pause(); }
       else if (k === 'PageUp') { step(10); }
       else if (k === 'PageDown') { step(-10); }
       else return;
@@ -967,16 +1018,60 @@
     var momentText = h('span', { 'class': 'mt-tl-moment-text' }, '');
     var moment = h('div', { 'class': 'mt-tl-moment' }, momentTime, momentText);
 
-    var pinBtn = h('button', {
-      type: 'button',
-      'class': 'mt-tl-pin',
-      'aria-pressed': 'false',
-      'data-testid': 'timeline-pin',
-      title: 'Pin the current minute so every panel holds it',
-      onclick: function () { togglePin(index); }
-    }, Hub.icon('M12 2 9.5 8.5 3 9.8l4.7 4.3L6.3 21 12 17.6 17.7 21l-1.4-6.9L21 9.8l-6.5-1.3z'), h('span', {}, 'Pin'));
+    /* interaction-rule-change 2026-09-11: the pin control is gone. In its
+       place, at the left of the strip, a time lapse: Start, Play or Pause,
+       End, and a speed toggle. Play advances one real reading per tick, so
+       every module follows it exactly as it follows a drag. */
 
-    var hint = h('div', { 'class': 'mt-tl-hint' }, 'Drag to scrub, click a moment to pin, Escape to release');
+    var startBtn = h('button', {
+      type: 'button',
+      'class': 'mt-tl-pbtn mt-tl-pbtn--edge',
+      'data-testid': 'timeline-start',
+      'aria-label': 'Go to the first reading',
+      title: 'Start',
+      onclick: function () { set(0); }
+    }, Hub.icon('M7 5h2v14H7zm3 7 8-7v14z'));
+
+    var endBtn = h('button', {
+      type: 'button',
+      'class': 'mt-tl-pbtn mt-tl-pbtn--edge',
+      'data-testid': 'timeline-end',
+      'aria-label': 'Go to the final reading',
+      title: 'End',
+      onclick: function () { set(last); }
+    }, Hub.icon('M15 5h2v14h-2zM6 5l8 7-8 7z'));
+
+    var playGlyph = h('span', { 'class': 'mt-tl-pbtn-glyph' },
+      Hub.icon('M8 5v14l11-7z'));
+    var playWord = h('span', { 'class': 'mt-tl-pbtn-word' }, 'Play');
+    var playClock = h('span', { 'class': 'mt-tl-pbtn-clock u-tnum' }, clockAt(index));
+    var playBtn = h('button', {
+      type: 'button',
+      'class': 'mt-tl-pbtn mt-tl-pbtn--play',
+      'data-testid': 'timeline-play',
+      'aria-pressed': 'false',
+      'aria-label': 'Play the match as a time lapse',
+      title: 'Play the match as a time lapse',
+      onclick: function () { toggle(); }
+    }, playGlyph, playWord, playClock, h('span', { 'class': 'mt-tl-pbtn-bar', 'aria-hidden': 'true' }));
+
+    var speedBtn = h('button', {
+      type: 'button',
+      'class': 'mt-tl-speed u-tnum',
+      'data-testid': 'timeline-speed',
+      'aria-label': 'Playback speed, 1x',
+      title: 'Playback speed',
+      onclick: function () { speed(); }
+    }, '1x');
+
+    var playGroup = h('div', {
+      'class': 'mt-tl-play',
+      role: 'group',
+      'aria-label': 'Time lapse',
+      'data-testid': 'timeline-transport'
+    }, startBtn, playBtn, endBtn, speedBtn);
+
+    var hint = h('div', { 'class': 'mt-tl-hint' }, 'Drag to scrub, hover to preview, Space to play');
 
     /* jump-buttons-no-state: the five landmarks mirrored out of the sidebar
        card, which stops being on screen long before the article ends. Filled
@@ -984,9 +1079,10 @@
     var jumpsEl = h('div', { 'class': 'mt-tl-jumps', role: 'group', 'aria-label': 'Jump to a moment' });
 
     var head = h('div', { 'class': 'mt-tl-head' },
+      playGroup,
       h('div', { 'class': 'mt-tl-clockbox' }, clock, phase),
       h('div', { 'class': 'mt-tl-readout' }, goldStat, killsStat, moment),
-      h('div', { 'class': 'mt-tl-actions' }, jumpsEl, hint, pinBtn));
+      h('div', { 'class': 'mt-tl-actions' }, jumpsEl, hint));
 
     var bands = h('div', { 'class': 'mt-tl-bands' });
     var ticks = h('div', { 'class': 'mt-tl-ticks' });
@@ -1003,7 +1099,17 @@
     var edgeStart = h('div', { 'class': 'mt-tl-edge mt-tl-edge--start' });
     var edgeEnd = h('div', { 'class': 'mt-tl-edge mt-tl-edge--end' });
 
-    var clip = h('div', { 'class': 'mt-tl-clip' }, track, edgeStart, edgeEnd, cursor);
+    /* the hover preview: a faint tick and a clock, drawn on this surface
+       only. It never touches the index. */
+    var ghostClock = h('span', { 'class': 'mt-tl-ghost-clock u-tnum' }, '');
+    var ghost = h('div', {
+      'class': 'mt-tl-ghost',
+      'data-testid': 'timeline-ghost',
+      'aria-hidden': 'true',
+      hidden: true
+    }, h('span', { 'class': 'mt-tl-ghost-line' }), ghostClock);
+
+    var clip = h('div', { 'class': 'mt-tl-clip' }, track, edgeStart, edgeEnd, ghost, cursor);
 
     var plot = h('div', {
       'class': 'mt-tl-plot',
@@ -1028,7 +1134,10 @@
       bubble: cursor.lastChild, clock: clock, phase: phase,
       goldVal: goldVal, goldStat: goldStat, killsVal: killsVal, killsStat: killsStat,
       moment: moment, momentTime: momentTime, momentText: momentText,
-      pinBtn: pinBtn, jumps: jumpsEl, jumpBtns: [], bands: bands, ticks: ticks, marks: marks,
+      playBtn: playBtn, playGlyph: playGlyph, playWord: playWord, playClock: playClock,
+      speedBtn: speedBtn, startBtn: startBtn, endBtn: endBtn,
+      ghost: ghost, ghostClock: ghostClock,
+      jumps: jumpsEl, jumpBtns: [], bands: bands, ticks: ticks, marks: marks,
       edgeStart: edgeStart, edgeEnd: edgeEnd, live: live, spark: spark,
       markEls: {}
     };
@@ -1037,7 +1146,15 @@
     renderTicks();
     renderMarks();
     renderJumps();
-    attachScrubSurface(plot, { hover: true, tap: true, keyboard: true });
+    attachScrubSurface(plot, {
+      keyboard: true,
+      onPreview: function (frac, i) {
+        if (frac === null) { ghost.hidden = true; return; }
+        ghost.hidden = false;
+        ghost.style.setProperty('--gx', String(frac));
+        ghostClock.textContent = clockAt(i);
+      }
+    });
     measureHeight();
     render(snapshotState());
   }
@@ -1153,6 +1270,37 @@
   }
 
   var lastSpoken = '';
+  var lastPlaying = null;
+  var lastSpeed = null;
+
+  var PLAY_D = 'M8 5v14l11-7z';
+  var PAUSE_D = 'M7 5h3.5v14H7zm6.5 0H17v14h-3.5z';
+
+  function paintTransport(st, r) {
+    if (!els || !els.playBtn) return;
+    els.playClock.textContent = r.clock;
+    /* the progress affordance: one variable, no layout */
+    els.playBtn.style.setProperty('--p', String(last > 0 ? clampIdx(st.index) / last : 0));
+
+    if (st.playing !== lastPlaying) {
+      lastPlaying = st.playing;
+      els.playBtn.setAttribute('aria-pressed', st.playing ? 'true' : 'false');
+      els.playBtn.setAttribute('aria-label', st.playing ? 'Pause the time lapse' : 'Play the match as a time lapse');
+      els.playBtn.title = st.playing ? 'Pause the time lapse' : 'Play the match as a time lapse';
+      els.playWord.textContent = st.playing ? 'Pause' : 'Play';
+      els.playGlyph.textContent = '';
+      els.playGlyph.appendChild(Hub.icon(st.playing ? PAUSE_D : PLAY_D));
+    }
+
+    if (st.speed !== lastSpeed) {
+      lastSpeed = st.speed;
+      els.speedBtn.textContent = st.speed + 'x';
+      els.speedBtn.setAttribute('aria-label', 'Playback speed, ' + st.speed + 'x');
+    }
+
+    els.startBtn.disabled = st.index <= 0;
+    els.endBtn.disabled = st.index >= last;
+  }
 
   function render(st) {
     if (!els) return;
@@ -1206,21 +1354,20 @@
       els.moment.classList.remove('is-captured');
     }
 
-    els.root.classList.toggle('is-pinned', st.pinned !== null);
     els.root.classList.toggle('is-captured', !!st.captured);
+    els.root.classList.toggle('is-playing', !!st.playing);
     paintJumps(st);
-    els.pinBtn.setAttribute('aria-pressed', st.pinned !== null ? 'true' : 'false');
-    els.pinBtn.lastChild.textContent = st.pinned !== null ? 'Pinned' : 'Pin';
+    paintTransport(st, r);
 
     for (var id in els.markEls) {
       if (!els.markEls.hasOwnProperty(id)) continue;
       var m = els.markEls[id];
       var s = snapIds[id];
       var isCap = !!(st.captured && st.captured.id === id);
-      var isPin = st.pinned !== null && s && s.index === st.pinned;
+      var isAt = s && s.index === st.index;
       var near = !isCap && s && Math.abs(st.position - s.index) * pxPerIndex <= magnetRadius() * 2.2;
       m.mark.classList.toggle('is-captured', isCap);
-      m.mark.classList.toggle('is-pinned', isPin);
+      m.mark.classList.toggle('is-at', !!isAt);
       m.mark.classList.toggle('is-near', !!near);
       m.label.classList.toggle('is-on', isCap);
     }
@@ -1229,7 +1376,8 @@
     var text = 'Minute ' + st.index + ' of ' + last +
       (r.gold ? ', ' + (r.gold.value === 0 ? 'gold level' : Hub.teamName(r.gold.leaderKey) + ' ahead by ' + fmt.num(r.gold.abs) + ' gold') : '') +
       (r.kills ? ', kills ' + Hub.killsPairText({ radiant: r.kills.radiant, dire: r.kills.dire }, facts().radiantKey, facts().direKey, { left: facts().radiantKey }) : '') +
-      (st.pinned !== null ? ', pinned' : '');
+      (r.isFinal ? ', the final reading' : '') +
+      (st.playing ? ', playing' : '');
     els.plot.setAttribute('aria-valuetext', text);
     if (st.state === 'idle' && text !== lastSpoken) {
       lastSpoken = text;
@@ -1344,15 +1492,17 @@
       });
     }
 
-    var home = (typeof opts.home === 'number') ? clampIdx(opts.home) : last;
-    /* a fresh init is a fresh frame state: drop a pending spring and a
-       pending flush, so swapping the frame clock can never strand one */
-    if (springRaf && opts.caf) { opts.caf(springRaf); }
-    springRaf = 0;
+    var start = (typeof opts.startIndex === 'number') ? clampIdx(opts.startIndex) : last;
+    /* a fresh init is a fresh frame state: drop a pending return, a pending
+       tick and a pending flush, so swapping the frame clock strands none */
+    if (returnRaf && opts.caf) { opts.caf(returnRaf); }
+    returnRaf = 0;
+    stopTimer();
+    playing = false;
+    speedIdx = 0;
     frameQueued = false;
-    position = home;
-    index = home;
-    pinned = null;
+    position = start;
+    index = start;
     captured = null;
     mode = 'idle';
     if (opts.seedSnapPoints !== false) seedSnapPoints();
@@ -1368,11 +1518,11 @@
     get index() { return index; },
     get position() { return position; },
     get fraction() { return last > 0 ? position / last : 0; },
-    get pinned() { return pinned; },
     get state() { return mode; },
     get captured() { return captured; },
     get last() { return last; },
-    get home() { return homeTarget(); },
+    get playing() { return playing; },
+    get speedValue() { return speedValue(); },
     get highlighted() { return highlighted; },
     get options() { return opts; },
     get snapPoints() { return snaps.slice(); },
@@ -1385,7 +1535,12 @@
     pin: pin,
     unpin: unpin,
     togglePin: togglePin,
-    springHome: springHome,
+
+    /* play, the time lapse */
+    play: play,
+    pause: pause,
+    toggle: toggle,
+    speed: speed,
 
     /* wiring */
     subscribe: subscribe,
@@ -1424,7 +1579,7 @@
         els.spark.parentNode.replaceChild(next, els.spark);
         els.spark = next;
       }
-      set(homeTarget());
+      set(clampIdx(index));
       return last;
     }
   };
@@ -1521,9 +1676,9 @@
     mo.observe(page, { childList: true, subtree: true });
   });
 
-  /* Escape releases a pin from anywhere on the page */
+  /* Escape stops the time lapse from anywhere on the page */
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && pinned !== null) { unpin(); }
+    if (e.key === 'Escape' && playing) { pause(); }
   });
 
 })(window);
