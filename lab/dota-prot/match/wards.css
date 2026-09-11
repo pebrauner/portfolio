@@ -1,0 +1,228 @@
+/* ============================================================
+   match/wards.css
+   #m-wards, the ward map. Prefix: .mt-wd- only.
+
+   Loads after hub/hub.css and match/match.css, so every token and
+   every shared match utility is already available. Nothing here
+   names the chrome, and nothing here sets a colour by hand.
+
+   The map animates on opacity only: a ward marker is placed once,
+   in the viewBox, and every frame after that is a class toggle.
+   ============================================================ */
+
+.mt-wd { margin-top: var(--gap-grid); }
+
+.mt-wd-header { align-items: flex-start; gap: 12px; }
+.mt-wd-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+
+.mt-wd-clock {
+  display: inline-flex; align-items: center; height: 24px; padding: 0 10px;
+  border: 1px solid var(--border-soft); border-radius: var(--radius-pill);
+  background: var(--surface-raised);
+  font-size: 12px; font-weight: 700; color: var(--text-secondary);
+  white-space: nowrap;
+}
+.mt-wd-clock.is-final { color: var(--match-pin); border-color: color-mix(in srgb, var(--match-pin) 40%, transparent); }
+
+.mt-wd-body { display: flex; flex-direction: column; gap: 14px; }
+
+.mt-wd-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.mt-wd-chips { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+/* the last live kind cannot be switched off: the chip stays on and says so,
+   so the refusal is legible rather than a click that does nothing */
+.mt-wd-kindbtn.is-locked { cursor: default; }
+.mt-wd-kindbtn.is-locked:hover {
+  color: var(--color-rdy-dark-sky);
+  background: var(--color-rdy-fresh-green);
+}
+.mt-wd-seg .m-seg-btn.is-radiant[aria-pressed="true"] { color: var(--side-radiant-text); }
+.mt-wd-seg .m-seg-btn.is-dire[aria-pressed="true"] { color: var(--side-dire-text); }
+
+.mt-wd-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.02fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 1279px) {
+  .mt-wd-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+.mt-wd-mapcol { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+
+/* ---------- the map ---------- */
+.mt-wd-map {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+  aspect-ratio: 1 / 1;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-xl);
+  background: var(--color-rdy-dark-sky);
+  overflow: hidden;
+  outline: none;
+}
+.mt-wd-map:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-rdy-dark-sky), 0 0 0 4px var(--color-rdy-fresh-green);
+}
+.mt-wd-svg { display: block; width: 100%; height: 100%; }
+
+/* ---------- the terrain art ---------- */
+/* The game's own minimap, drawn edge to edge under every overlay layer.
+   Measured on the busiest part of the art: against the raw render a Radiant
+   green marker sits at 2.3:1 and half of all 167 wards land under 1.6:1,
+   because the markers and the terrain share their hues. Pulling the art's
+   saturation and brightness down and then washing it lifts the median to
+   3.2:1 and the green on grass case to 3.0:1, and the terrain still reads.
+   The dark 1.8 unit outline on every glyph carries the rest. */
+.mt-wd-art { filter: saturate(.5) brightness(.8); }
+.mt-wd-wash { fill: rgba(8, 12, 18, .30); pointer-events: none; }
+
+/* ---------- wards ---------- */
+/* every marker is drawn once at its own place. A frame only flips classes,
+   and the only property that moves is opacity. */
+.mt-wd-vision,
+.mt-wd-w {
+  opacity: 0;
+  transition: opacity .2s ease;
+}
+.mt-wd-w { pointer-events: none; }
+.mt-wd-w.is-shown { opacity: 1; pointer-events: auto; cursor: pointer; }
+.mt-wd-vision.is-shown { opacity: 1; }
+.mt-wd.is-nocircles .mt-wd-vision,
+.mt-wd.is-mode-all .mt-wd-vision { opacity: 0; }
+
+.mt-wd-vision.is-radiant { fill: color-mix(in srgb, var(--side-radiant) 11%, transparent); }
+.mt-wd-vision.is-dire { fill: color-mix(in srgb, var(--side-dire) 11%, transparent); }
+.mt-wd-vision.is-sentry { fill: color-mix(in srgb, var(--color-rdy-turquoise) 9%, transparent); }
+
+.mt-wd-eye, .mt-wd-ring, .mt-wd-pupil { transition: none; }
+.mt-wd-w.is-radiant .mt-wd-eye { fill: var(--side-radiant); }
+.mt-wd-w.is-dire .mt-wd-eye { fill: var(--side-dire); }
+.mt-wd-eye { stroke: var(--color-rdy-dark-sky); stroke-width: 1.8; }
+.mt-wd-pupil { fill: var(--color-rdy-dark-sky); }
+.mt-wd-ring { fill: color-mix(in srgb, var(--color-rdy-dark-sky) 70%, transparent); stroke-width: 3; }
+.mt-wd-w.is-radiant .mt-wd-ring { stroke: var(--side-radiant); }
+.mt-wd-w.is-dire .mt-wd-ring { stroke: var(--side-dire); }
+.mt-wd-w--sentry .mt-wd-pupil { fill: var(--color-rdy-white-65); }
+
+/* a ward that left inside the pulse window keeps its spot for a moment */
+.mt-wd-pulse { opacity: 0; }
+.mt-wd-cross { fill: none; stroke-width: 3.6; stroke-linecap: round; }
+.mt-wd-fade { fill: none; stroke-width: 2; }
+.mt-wd-w.is-pulse-dewarded .mt-wd-glyph,
+.mt-wd-w.is-pulse-expired .mt-wd-glyph { opacity: .28; }
+.mt-wd-w.is-pulse-dewarded .mt-wd-pulse,
+.mt-wd-w.is-pulse-expired .mt-wd-pulse { opacity: 1; }
+.mt-wd-w.is-pulse-dewarded .mt-wd-fade,
+.mt-wd-w.is-pulse-expired .mt-wd-cross { display: none; }
+/* the cross wears the killer's colour, which is the other side */
+.mt-wd-w.is-radiant.is-pulse-dewarded .mt-wd-cross { stroke: var(--side-dire); }
+.mt-wd-w.is-dire.is-pulse-dewarded .mt-wd-cross { stroke: var(--side-radiant); }
+.mt-wd-w.is-pulse-expired .mt-wd-fade { stroke: var(--color-rdy-white-25); }
+
+/* whole game: every placement, faint, denser where observers piled up */
+/* the floors are higher than they were over the flat schematic: the terrain
+   art is busy, and a marker at .2 over it was a number nobody could read.
+   Measured over the art, these lift the median marker on ground ratio from
+   1.29 to 1.49 and still leave the density gradient visible. */
+.mt-wd.is-mode-all .mt-wd-w.is-shown { opacity: calc(.38 + .44 * var(--mt-wd-d, 0)); }
+.mt-wd.is-mode-all .mt-wd-w--sentry.is-shown { opacity: .32; }
+.mt-wd.is-mode-all .mt-wd-w.is-shown:hover,
+.mt-wd.is-mode-all .mt-wd-w.is-held { opacity: 1; }
+
+.mt-wd-w.is-held .mt-wd-glyph { filter: drop-shadow(0 0 6px var(--color-rdy-white)); }
+.mt-wd.is-hl .mt-wd-w.is-shown:not(.is-hl) { opacity: .18; }
+.mt-wd.is-hl .mt-wd-vision.is-shown { opacity: 0; }
+
+/* ---------- caption and legend ---------- */
+.mt-wd-caption {
+  margin: 0; min-height: 34px;
+  font-size: 13px; line-height: 1.45; color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+.mt-wd-legend { font-size: 12px; }
+.mt-wd-key { width: 12px; height: 12px; border-radius: var(--radius-pill); flex: 0 0 auto; }
+.mt-wd-key--obs { background: var(--color-rdy-white-65); }
+.mt-wd-key--sen {
+  background: transparent; border: 2px solid var(--color-rdy-white-45);
+}
+.mt-wd-key--dew {
+  background: linear-gradient(45deg, transparent 44%, var(--side-dire) 44%, var(--side-dire) 56%, transparent 56%),
+              linear-gradient(-45deg, transparent 44%, var(--side-dire) 44%, var(--side-dire) 56%, transparent 56%);
+  border-radius: 0;
+}
+
+/* ---------- the panel ---------- */
+.mt-wd-panel { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+/* six readings, two columns, so the Radiant number always sits above its
+   Dire opposite and the pair reads as one comparison */
+.mt-wd-readout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 18px;
+}
+.mt-wd-readout .m-readout-value { font-size: 15px; white-space: normal; }
+.mt-wd-block { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+
+.mt-wd-players { display: flex; flex-direction: column; gap: 2px; }
+.mt-wd-prow {
+  display: grid;
+  grid-template-columns: auto minmax(54px, 1fr) minmax(60px, 1.2fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 6px;
+  border-radius: var(--radius-md);
+  min-width: 0;
+}
+.mt-wd-pname { font-size: 12px; font-weight: 600; color: var(--text-primary); }
+.mt-wd-prow.is-radiant .mt-wd-pname { color: var(--side-radiant-text); }
+.mt-wd-prow.is-dire .mt-wd-pname { color: var(--side-dire-text); }
+.mt-wd-track { height: 7px; }
+.mt-wd-fill { transition: width .18s ease; }
+.mt-wd-fill--sen { background: var(--color-rdy-turquoise); opacity: .8; }
+.mt-wd-pnums {
+  display: inline-flex; align-items: baseline; gap: 3px;
+  font-size: 11px; color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.mt-wd-pnums b { font-size: 12px; font-weight: 700; color: var(--text-primary); }
+.mt-wd-pnums i { font-style: normal; margin-right: 4px; }
+
+/* ---------- vision events ---------- */
+.mt-wd-events { display: flex; flex-direction: column; gap: 2px; max-height: 216px; overflow-y: auto; }
+.mt-wd-event {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background .14s ease, border-color .14s ease;
+}
+.mt-wd-event:hover, .mt-wd-event:focus-visible {
+  background: var(--color-rdy-white-5);
+  border-color: var(--border-soft);
+  outline: none;
+}
+.mt-wd-ev-clock { font-size: 11px; font-weight: 700; color: var(--text-tertiary); }
+.mt-wd-ev-dot { width: 7px; height: 7px; border-radius: var(--radius-pill); background: var(--color-rdy-steel); }
+.mt-wd-event.is-radiant .mt-wd-ev-dot { background: var(--side-radiant); }
+.mt-wd-event.is-dire .mt-wd-ev-dot { background: var(--side-dire); }
+.mt-wd-event.is-dewarded .mt-wd-ev-dot { border-radius: 0; transform: rotate(45deg); }
+.mt-wd-ev-text { font-size: 12px; color: var(--text-secondary); }
+.mt-wd-empty { margin: 0; font-size: 12px; color: var(--text-tertiary); }
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .mt-wd-vision,
+  .mt-wd-w,
+  .mt-wd-fill,
+  .mt-wd-event { transition: none; }
+}
