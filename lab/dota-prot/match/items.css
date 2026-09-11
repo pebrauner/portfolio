@@ -1,0 +1,329 @@
+/* ============================================================
+   match/items.css
+   #m-items. Prefix: .mt-it-
+   ============================================================ */
+
+.mt-it-header { align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.mt-it-body { display: flex; flex-direction: column; gap: 12px; }
+
+.mt-it-legend { row-gap: 4px; }
+.mt-it-legend-note { color: var(--text-tertiary); }
+
+.mt-it-key {
+  width: 14px; height: 11px; flex: 0 0 auto;
+  border-radius: 2px;
+  background: var(--color-rdy-steel);
+}
+.mt-it-key--owned { background: var(--color-rdy-white-85); }
+.mt-it-key--future { background: var(--color-rdy-white-25); }
+.mt-it-key--spent { background: var(--color-rdy-white-15); box-shadow: inset 0 0 0 1px var(--color-rdy-white-25); }
+.mt-it-key--story { background: var(--color-rdy-gold); }
+.mt-it-key--final { background: var(--color-rdy-white-45); border-bottom: 2px solid var(--color-rdy-fresh-green); border-radius: 2px 2px 0 0; }
+
+.mt-it-consbtn { white-space: nowrap; }
+
+/* ---------- the detail strip ---------- */
+
+.mt-it-detail {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 7px 10px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  box-shadow: inset 0 0 0 1px var(--border-hair);
+}
+.mt-it-detail.is-story { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-rdy-gold) 40%, transparent); }
+
+.mt-it-detail-icon { display: flex; flex: 0 0 auto; width: 30px; height: 22px; }
+.mt-it-detail-icon .mt-it-img { width: 30px; height: 22px; }
+.mt-it-detail-icon .mt-it-chip { width: 30px; height: 22px; font-size: 11px; }
+
+.mt-it-detail-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.mt-it-detail-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; min-width: 0; }
+.mt-it-detail-name { font-size: 13px; font-weight: 800; color: var(--text-primary); }
+.mt-it-detail-meta { font-size: 12px; color: var(--text-secondary); }
+.mt-it-detail-note { font-size: 12px; line-height: 1.35; color: var(--text-tertiary); }
+.mt-it-detail.is-story .mt-it-detail-note { color: var(--color-rdy-light-gold); }
+
+/* ---------- the frame: head, ten rows, one cursor ---------- */
+
+.mt-it-frame {
+  position: relative;
+  --mt-it-name: 152px;
+  --mt-it-end: 78px;
+  --mt-it-gap: 8px;
+  --mt-it-iw: 26px;
+  --mt-it-ih: 19px;
+  --mt-it-cw: 13px;
+  --mt-it-ch: 10px;
+  --mt-it-rowh: 50px;
+}
+
+.mt-it-row {
+  display: grid;
+  grid-template-columns: var(--mt-it-name) minmax(0, 1fr) var(--mt-it-end);
+  column-gap: var(--mt-it-gap);
+  align-items: center;
+}
+
+.mt-it-head { padding-bottom: 6px; }
+.mt-it-headname { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+.mt-it-clock {
+  display: inline-flex; align-items: center;
+  height: 19px; padding: 0 7px;
+  border-radius: var(--radius-pill);
+  background: var(--color-rdy-bright-night);
+  color: var(--text-primary);
+  font-size: 11px; font-weight: 700;
+  white-space: nowrap;
+}
+.mt-it-clock.is-final { background: color-mix(in srgb, var(--color-rdy-gold) 26%, var(--color-rdy-bright-night)); color: var(--color-rdy-light-gold); }
+
+.mt-it-headtrack { position: relative; }
+
+/* ---------- the ruler, the scrub surface ---------- */
+
+.mt-it-ruler {
+  position: relative;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--color-rdy-dark-sky);
+  box-shadow: inset 0 0 0 1px var(--border-hair);
+  overflow: hidden;
+}
+
+.mt-it-bands { position: absolute; inset: 0; }
+.mt-it-band { position: absolute; top: 0; bottom: 0; }
+.mt-it-band--laning { background: var(--phase-laning); }
+.mt-it-band--mid { background: var(--phase-mid); }
+.mt-it-band--late { background: var(--phase-late); }
+.mt-it-band-label {
+  position: absolute; left: 6px; top: 1px;
+  font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--match-label-quiet);
+  white-space: nowrap;
+}
+
+.mt-it-rticks { position: absolute; inset: 0; }
+.mt-it-rtick { position: absolute; top: 12px; height: 6px; width: 1px; background: var(--color-rdy-white-15); }
+.mt-it-rtick--major { height: 8px; background: var(--color-rdy-white-25); }
+.mt-it-rlabel {
+  position: absolute; bottom: 1px; transform: translateX(-50%);
+  font-size: 10.5px; font-weight: 600; color: var(--text-tertiary);
+}
+
+.mt-it-rmarks { position: absolute; left: 0; right: 0; top: 10px; height: 8px; }
+.mt-it-rmark {
+  position: absolute; top: 0;
+  width: 7px; height: 7px; margin-left: -3.5px;
+  border-radius: 2px;
+  background: var(--color-rdy-turquoise);
+  transform: rotate(45deg);
+  transition: transform .14s ease, background .14s ease;
+}
+.mt-it-rmark--fight { background: var(--color-rdy-yellow); }
+.mt-it-rmark--story { background: var(--color-rdy-gold); }
+.mt-it-rmark--roshan { background: var(--color-rdy-gold); }
+.mt-it-rmark--ancient { background: var(--color-rdy-white); }
+.mt-it-rmark--rax { background: var(--color-rdy-light-red); }
+.mt-it-rmark--tormentor,
+.mt-it-rmark--firstblood { background: var(--color-rdy-steel); }
+.mt-it-rmark.is-captured { background: var(--match-magnet); transform: rotate(45deg) scale(1.45); }
+
+/* ---------- rows ---------- */
+
+.mt-it-rows { display: flex; flex-direction: column; }
+
+.mt-it-prow {
+  height: var(--mt-it-rowh);
+  border-top: 1px solid var(--border-hair);
+  border-radius: var(--radius-sm);
+}
+.mt-it-prow:first-child { border-top: 0; }
+
+.mt-it-name { display: flex; align-items: center; gap: 8px; min-width: 0; padding-left: 4px; }
+.mt-it-name .hero-portrait { flex: 0 0 auto; }
+.mt-it-who { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.mt-it-handle { font-size: 12.5px; font-weight: 700; color: var(--text-primary); }
+.mt-it-hero { font-size: 11px; color: var(--text-tertiary); }
+.mt-it-prow.is-radiant .mt-it-handle { color: var(--side-radiant-text); }
+.mt-it-prow.is-dire .mt-it-handle { color: var(--side-dire-text); }
+
+.mt-it-track { position: relative; height: calc(var(--mt-it-rowh) - 6px); min-width: 0; }
+
+.mt-it-lane { position: absolute; left: 0; right: 0; }
+.mt-it-lane--main { top: 1px; height: var(--mt-it-ih); }
+.mt-it-lane--comp { top: calc(var(--mt-it-ih) + 4px); height: var(--mt-it-ch); }
+.mt-it-lane--cons { top: calc(var(--mt-it-ih) + var(--mt-it-ch) + 7px); height: 6px; display: none; }
+.mt-it-lane--ticks { bottom: 0; height: 3px; }
+
+.mt-it-frame.is-cons .mt-it-lane--cons { display: block; }
+.mt-it-frame.is-cons { --mt-it-rowh: 58px; }
+
+.mt-it-item {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  line-height: 0;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: transform .14s ease, opacity .14s ease, filter .14s ease, box-shadow .14s ease;
+}
+.mt-it-item--main { width: var(--mt-it-iw); height: var(--mt-it-ih); }
+.mt-it-item--comp { width: var(--mt-it-cw); height: var(--mt-it-ch); }
+
+/* item-hit-targets: a component buy draws at 10px but must be pointable.
+   A transparent pad centred on the icon raises every target to 24px tall
+   and 18px wide without moving a single icon. The main lane paints and
+   hits above the component lane, so the two pads never fight. */
+.mt-it-item::after {
+  content: '';
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: max(100%, 18px);
+  height: 24px;
+}
+.mt-it-lane--main { z-index: 3; }
+.mt-it-lane--comp { z-index: 2; }
+.mt-it-lane--cons { z-index: 1; }
+
+.mt-it-img {
+  display: block;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  border-radius: 3px;
+  background: var(--surface-raised);
+}
+
+.mt-it-chip {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; height: 100%;
+  border-radius: 3px;
+  background: var(--color-rdy-bright-night);
+  box-shadow: inset 0 0 0 1px var(--border-soft);
+  color: var(--text-secondary);
+  font-size: 9.5px; font-weight: 800; letter-spacing: .02em;
+  line-height: 1;
+}
+/* item-fallback-chips: four component icons have no art in assets/dota2_items.
+   Two letters at 7.5px read as a rendering fault, so the component lane draws
+   a neutral recipe tinted tile instead and the name stays in the tooltip and
+   the accessible name. The main lane keeps its readable two letter code. */
+.mt-it-item--comp .mt-it-chip {
+  font-size: 0;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--color-rdy-gold) 22%, var(--color-rdy-bright-night)),
+    var(--color-rdy-bright-night));
+  box-shadow: inset 0 0 0 1px var(--color-rdy-white-15);
+}
+
+.mt-it-item.is-owned { opacity: 1; filter: none; box-shadow: 0 0 0 1px var(--color-rdy-white-25); }
+.mt-it-item.is-future { opacity: .3; filter: saturate(.25); }
+.mt-it-item.is-spent { opacity: .42; filter: grayscale(1); }
+
+.mt-it-item.is-used.is-owned { box-shadow: 0 0 0 1px var(--color-rdy-turquoise); }
+
+/* the six items actually in the inventory at the whistle, from items.final */
+.mt-it-item.is-final6::after,
+.mt-it-item.is-neutral::after {
+  content: "";
+  position: absolute;
+  left: 1px; right: 1px; bottom: -3px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--color-rdy-fresh-green);
+  opacity: .85;
+}
+.mt-it-item.is-neutral::after { background: var(--color-rdy-turquoise); }
+.mt-it-item.is-future.is-final6::after,
+.mt-it-item.is-future.is-neutral::after { opacity: .35; }
+
+.mt-it-item.is-story { z-index: 3; }
+.mt-it-item.is-story.is-owned {
+  box-shadow: 0 0 0 2px var(--color-rdy-gold), 0 0 10px color-mix(in srgb, var(--color-rdy-gold) 45%, transparent);
+}
+.mt-it-item.is-story.is-future { box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-rdy-gold) 55%, transparent); }
+
+.mt-it-item:hover,
+.mt-it-item:focus-visible {
+  transform: translateY(-3px) scale(1.14);
+  opacity: 1;
+  filter: none;
+  z-index: 6;
+  box-shadow: 0 0 0 2px var(--color-rdy-white), 0 4px 10px #00000066;
+  outline: none;
+}
+
+.mt-it-dot {
+  position: absolute;
+  top: 0; left: 0;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--color-rdy-white-25);
+}
+.mt-it-dot.is-owned { background: var(--color-rdy-white-45); }
+.mt-it-dot.is-future { background: var(--color-rdy-white-10); }
+
+.mt-it-tick { position: absolute; top: 0; width: 1px; height: 3px; background: var(--color-rdy-white-10); }
+.mt-it-tick--main { height: 3px; background: var(--color-rdy-white-25); }
+.mt-it-tick.is-story { background: var(--color-rdy-gold); width: 2px; }
+
+/* ---------- end column ---------- */
+
+.mt-it-end { display: flex; flex-direction: column; gap: 2px; align-items: flex-end; text-align: right; min-width: 0; }
+.mt-it-end .m-sub { white-space: nowrap; }
+
+.mt-it-count {
+  display: inline-flex; align-items: baseline; gap: 4px;
+  font-size: 10.5px; color: var(--text-tertiary);
+  white-space: nowrap;
+}
+.mt-it-count b { font-size: 13px; font-weight: 800; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.mt-it-count i { font-style: normal; }
+.mt-it-count--cons b { font-size: 12px; color: var(--text-secondary); }
+
+/* ---------- the cursor over every track ---------- */
+
+.mt-it-cursorlayer {
+  position: absolute;
+  top: 0; bottom: 0;
+  left: calc(var(--mt-it-name) + var(--mt-it-gap));
+  right: calc(var(--mt-it-end) + var(--mt-it-gap));
+  pointer-events: none;
+  z-index: 5;
+}
+.mt-it-cursor .m-cursor-line { opacity: .55; }
+.mt-it-frame.is-pinned .mt-it-cursor .m-cursor-line { background: var(--match-pin); opacity: .9; }
+
+/* ---------- mount motion ---------- */
+
+@keyframes mt-it-rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.mt-it-frame.is-entering .mt-it-prow {
+  animation: mt-it-rise .42s cubic-bezier(.22, .61, .36, 1) both;
+  animation-delay: calc(var(--mt-it-i, 0) * 34ms);
+}
+
+/* ---------- widths ---------- */
+
+@media (max-width: 1180px) {
+  .mt-it-frame { --mt-it-name: 118px; --mt-it-end: 64px; --mt-it-gap: 6px; }
+  .mt-it-hero { display: none; }
+  .mt-it-name .hero-portrait { width: 32px; height: 18px; }
+  .mt-it-headname .m-sub { display: none; }
+  .mt-it-clock { font-size: 10.5px; padding: 0 6px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mt-it-frame.is-entering .mt-it-prow { animation: none; }
+  .mt-it-item, .mt-it-rmark { transition: none; }
+}

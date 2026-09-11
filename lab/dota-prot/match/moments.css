@@ -1,0 +1,226 @@
+/* match/moments.css
+   Key moments. Prefix: mt-mo-
+   One row geometry for every moment: the time column, the body, and a gold
+   column whose track is the same width on every row, so two bars are
+   comparable by eye. */
+
+/* mount motion, no fill: see draft.css. The card is visible even if the
+   animation never runs. */
+@keyframes mt-mo-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.mt-mo.is-in { animation: mt-mo-in .3s ease; }
+
+.mt-mo .card-body { gap: 14px; }
+.mt-mo-legend { font-size: 12px; }
+
+/* ---------- groups ---------- */
+
+.mt-mo-group { display: flex; flex-direction: column; gap: 8px; }
+.mt-mo-group-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border-hair);
+}
+.mt-mo-group-title { margin: 0; color: var(--text-primary); }
+.mt-mo-group-range { font-size: 12px; }
+.mt-mo-group-count {
+  margin-left: auto;
+  font-size: 12px;
+  padding: 1px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-chip);
+  color: var(--match-label-quiet);
+}
+
+.mt-mo-list { display: flex; flex-direction: column; gap: 6px; }
+
+/* ---------- one moment ---------- */
+
+/* moments-wall: the two plays, lifted out of the ladder */
+.mt-mo-plays { display: flex; flex-direction: column; gap: 8px; }
+.mt-mo-plays-title { margin: 0; color: var(--text-primary); }
+.mt-mo-plays-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 10px;
+}
+.mt-mo-play {
+  position: relative;
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--border-hair);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  color: inherit; font: inherit; text-align: left;
+  cursor: pointer;
+  transition: background .14s ease, border-color .14s ease, transform .14s ease;
+}
+.mt-mo-play:hover { background: var(--surface-card-hover); transform: translateY(-1px); }
+.mt-mo-play:focus-visible { outline: 2px solid var(--color-rdy-turquoise); outline-offset: 2px; }
+.mt-mo-play.is-featured {
+  border-color: color-mix(in srgb, var(--color-rdy-gold) 45%, transparent);
+  background: color-mix(in srgb, var(--color-rdy-gold) 9%, transparent);
+}
+.mt-mo-play.is-pinned { border-color: var(--match-pin); }
+.mt-mo-play.is-near { border-color: var(--color-rdy-white-25); }
+.mt-mo-play-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.mt-mo-play-top .mt-mo-time { font-size: 15px; }
+.mt-mo-play-headline {
+  font-size: 15px; font-weight: 700; line-height: 1.3;
+  color: var(--text-primary);
+}
+.mt-mo-play::before {
+  content: '';
+  position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: var(--color-rdy-steel);
+}
+.mt-mo-play.is-radiant::before { background: var(--side-radiant); }
+.mt-mo-play.is-dire::before { background: var(--side-dire); }
+
+.mt-mo-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 4px 52px minmax(0, 1fr) 92px;
+  align-items: start;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 7px 10px 7px 0;
+  border: 1px solid var(--border-hair);
+  border-radius: var(--radius-lg);
+  background: var(--color-rdy-white-5);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  overflow: hidden;
+  transition: background .14s ease, border-color .14s ease, transform .14s ease;
+}
+.mt-mo-item:hover { background: var(--surface-card-hover); }
+.mt-mo-item:focus-visible { outline: 2px solid var(--color-rdy-turquoise); outline-offset: 2px; }
+.mt-mo-item.is-near { border-color: var(--color-rdy-white-25); background: var(--color-rdy-white-10); }
+.mt-mo-item.is-pinned { border-color: var(--match-pin); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--match-pin) 45%, transparent); }
+.mt-mo-item.is-featured { border-color: color-mix(in srgb, var(--color-rdy-gold) 45%, transparent); background: color-mix(in srgb, var(--color-rdy-gold) 7%, transparent); }
+
+.mt-mo-rail { display: block; height: 100%; min-height: 34px; background: var(--color-rdy-steel); }
+.mt-mo-item.is-radiant .mt-mo-rail { background: var(--side-radiant); }
+.mt-mo-item.is-dire .mt-mo-rail { background: var(--side-dire); }
+
+.mt-mo-time {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  padding-top: 1px;
+  white-space: nowrap;
+}
+.mt-mo-item.is-near .mt-mo-time { color: var(--color-rdy-light-gold); }
+
+.mt-mo-main { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+/* moments-wall: an objective row is one sentence, so its kind, actors and
+   figures run on the same line instead of leaving 350px of air mid row. */
+.mt-mo-item:not(.mt-mo-item--fight) .mt-mo-main {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 14px;
+}
+.mt-mo-item:not(.mt-mo-item--fight) .mt-mo-titleline { flex: 1 1 320px; }
+.mt-mo-item:not(.mt-mo-item--fight) .mt-mo-meta { flex: 0 1 auto; }
+
+.mt-mo-kindrow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.mt-mo-kind {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+.mt-mo-kindrow .hero-portrait { width: 30px; height: 17px; }
+
+.mt-mo-titleline { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; min-width: 0; }
+.mt-mo-titleline .hero-portrait { width: 30px; height: 17px; align-self: center; }
+.mt-mo-titleline .mt-mo-kind { flex: 0 0 auto; }
+
+.mt-mo-headline {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--text-primary);
+}
+.mt-mo-item--fight .mt-mo-headline { font-weight: 700; }
+.mt-mo-item.is-featured .mt-mo-headline { font-size: 16px; }
+
+.mt-mo-meta { display: flex; flex-wrap: wrap; gap: 4px 18px; }
+.mt-mo-meta-item { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.mt-mo-meta-value { font-size: 12px; font-weight: 600; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.mt-mo-meta-value.is-radiant { color: var(--side-radiant-text); }
+.mt-mo-meta-value.is-dire { color: var(--side-dire-text); }
+.mt-mo-meta-item .kills-pair { font-size: 13px; font-weight: 700; }
+
+.mt-mo-dead-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.mt-mo-dead-pics { display: inline-flex; gap: 4px; flex-wrap: wrap; }
+.mt-mo-dead { position: relative; display: inline-block; line-height: 0; }
+.mt-mo-dead .hero-portrait { width: 34px; height: 19px; filter: grayscale(.6) brightness(.85); }
+.mt-mo-dead-x {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-sm);
+  background:
+    linear-gradient(to bottom right, transparent calc(50% - .5px), var(--color-rdy-white-45) 50%, transparent calc(50% + .5px)),
+    linear-gradient(to bottom left, transparent calc(50% - .5px), var(--color-rdy-white-45) 50%, transparent calc(50% + .5px));
+}
+.mt-mo-dead-text { font-size: 11px; }
+
+.mt-mo-story {
+  display: block;
+  margin: 2px 0 0;
+  color: var(--text-secondary);
+  border-left: 2px solid var(--color-rdy-gold);
+  padding-left: 10px;
+}
+.mt-mo-item.is-featured .mt-mo-story { color: var(--text-primary); }
+.mt-mo-note { display: block; margin: 0; font-size: 11px; line-height: 1.4; }
+
+/* ---------- the gold column, identical geometry on every row ---------- */
+
+.mt-mo-goldcol {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 3px;
+  padding-top: 2px;
+}
+/* moments-bar-useless: the row device is the gold line's shape with a dot at
+   this moment's minute, not a scaled length that flattens 28 of 35 rows. */
+.mt-mo-spark { display: block; width: 60px; height: 18px; flex: 0 0 auto; }
+.mt-mo-spark-zero { stroke: var(--color-rdy-white-15); stroke-width: 1; }
+.mt-mo-spark-line {
+  fill: none;
+  stroke: var(--color-rdy-white-45);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+.mt-mo-spark-dot { fill: var(--color-rdy-steel); stroke: var(--surface-card); stroke-width: 1; }
+.mt-mo-spark-dot[data-side="radiant"] { fill: var(--side-radiant); }
+.mt-mo-spark-dot[data-side="dire"] { fill: var(--side-dire); }
+
+.mt-mo-line { font-size: 12px; line-height: 1.35; }
+.mt-mo-goldval { font-size: 12px; font-weight: 700; color: var(--text-secondary); }
+.mt-mo-goldval.is-radiant { color: var(--side-radiant-text); }
+.mt-mo-goldval.is-dire { color: var(--side-dire-text); }
+
+.mt-mo-foot { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+@media (max-width: 1100px) {
+  .mt-mo-item { grid-template-columns: 4px 46px minmax(0, 1fr) 78px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mt-mo.is-in { animation: none; }
+  .mt-mo, .mt-mo-item { transition: none; }
+  .mt-mo { opacity: 1; transform: none; }
+}

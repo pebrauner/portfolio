@@ -1,0 +1,335 @@
+/* match/story.css
+   The editorial column and the three sidebar cards written by story.js.
+   One prefix for the whole file: mt-st-
+     mt-st-      the article
+     mt-st-su-   the sidebar summary at the current index
+     mt-st-se-   the series card
+     mt-st-hg-   hero of the game
+     mt-st-lk-   the rdy.gg links card
+   Sidebar cards live in a 320px rail, so nothing here is wider than 288px of
+   content. */
+
+/* mount motion, no fill mode: if the animation never runs (background tab,
+   print, reduced motion) the card is still at its visible base state. */
+@keyframes mt-st-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.mt-st.is-in, .mt-st-su.is-in, .mt-st-se.is-in, .mt-st-hg.is-in, .mt-st-lk.is-in {
+  animation: mt-st-in .3s ease;
+}
+
+/* ================= the article ================= */
+
+.mt-st-head { padding-bottom: 8px; }
+.mt-st-kicker { align-items: center; gap: 8px; margin-bottom: 10px; }
+.mt-st-league { font-size: 12px; color: var(--text-tertiary); }
+
+/* story-empty-measure: the page's own subject was set at 33px and wrapped to
+   three lines of three words. It now outranks every module heading on the
+   page and reads in two lines at 1440. */
+.mt-st-title {
+  margin: 0 0 12px;
+  color: var(--text-primary);
+  max-width: 20ch;
+  font-size: 36px;
+  line-height: 1.08;
+  letter-spacing: -.015em;
+}
+@media (min-width: 1200px) { .mt-st-title { max-width: 24ch; font-size: 44px; } }
+@media (min-width: 1600px) { .mt-st-title { font-size: 48px; } }
+
+.mt-st-deck {
+  margin: 0 0 12px;
+  color: var(--text-secondary);
+  max-width: var(--width-article, 728px);
+}
+
+.mt-st-byline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-tertiary);
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-hair);
+}
+.mt-st-author { font-weight: 700; color: var(--text-primary); }
+.mt-st-dot { color: var(--color-rdy-white-45); }
+
+/* the pull numbers: every one is a control that pins the page */
+.mt-st-pulls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.mt-st-pull {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  align-items: flex-start;
+  min-width: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--border-soft);
+  border-left: 3px solid var(--color-rdy-gold);
+  border-radius: var(--radius-md);
+  background: var(--color-rdy-white-5);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background .14s ease, border-color .14s ease, transform .14s ease;
+}
+.mt-st-pull:hover { background: var(--surface-card-hover); transform: translateY(-1px); }
+.mt-st-pull:focus-visible { outline: 2px solid var(--color-rdy-turquoise); outline-offset: 2px; }
+.mt-st-pull-value { font-size: 22px; font-weight: 800; line-height: 1.1; color: var(--text-primary); }
+.mt-st-pull-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+.mt-st-pull-min { font-size: 11px; }
+
+/* story-empty-measure: the article keeps its 728px measure and the rail takes
+   the margin that was empty beside it. */
+.mt-st-bodywrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+@media (min-width: 1200px) {
+  .mt-st-bodywrap { grid-template-columns: minmax(0, var(--width-article, 728px)) minmax(180px, 1fr); gap: 28px; }
+}
+.mt-st-rail { min-width: 0; }
+.mt-st-rail-inner {
+  position: sticky;
+  top: calc(var(--match-sticky-stack) + 14px);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.mt-st-rail .mt-st-pull { width: 100%; }
+
+.mt-st-body { display: flex; flex-direction: column; gap: 22px; padding-top: 14px; }
+.mt-st-section { display: flex; flex-direction: column; gap: 8px; }
+.mt-st-h { margin: 0; color: var(--text-primary); }
+.mt-st-p {
+  margin: 0;
+  color: var(--text-secondary);
+  max-width: var(--width-article, 728px);
+  line-height: 1.55;
+}
+.mt-st-note {
+  margin: 0;
+  padding-left: 10px;
+  border-left: 2px solid var(--border-strong);
+  max-width: var(--width-article, 728px);
+}
+.mt-st-figures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  padding: 10px 12px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+}
+.mt-st-figure { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.mt-st-figure-value { font-size: 18px; font-weight: 800; color: var(--text-primary); }
+.mt-st-figure-label { font-size: 11px; }
+
+.mt-st-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+/* ================= sidebar: the summary ================= */
+
+.mt-st-su-body { display: flex; flex-direction: column; gap: 8px; }
+.mt-st-su-clockrow { display: flex; align-items: baseline; gap: 8px; }
+.mt-st-su-clock {
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--text-primary);
+}
+.mt-st-su-phase { color: var(--text-tertiary); }
+.mt-st-su-state { white-space: nowrap; }
+
+.mt-st-su-row {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 8px;
+  align-items: baseline;
+  padding: 4px 0;
+  border-top: 1px solid var(--border-hair);
+}
+.mt-st-su-label { font-size: 12px; color: var(--text-tertiary); }
+.mt-st-su-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.mt-st-su-gold.is-radiant { color: var(--side-radiant-text); }
+.mt-st-su-gold.is-dire { color: var(--side-dire-text); }
+.mt-st-su-kills .kills-pair { font-size: 14px; font-weight: 700; }
+.mt-st-su-moment { font-weight: 400; color: var(--text-secondary); font-size: 12px; line-height: 1.35; display: block; }
+
+.mt-st-su-jumps { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.mt-st-su-jump {
+  display: inline-flex; flex-direction: column; align-items: center;
+  padding: 3px 9px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface-chip);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background .14s ease, color .14s ease, border-color .14s ease;
+}
+.mt-st-su-jump-word { font-size: 11.5px; font-weight: 700; line-height: 1.1; }
+.mt-st-su-jump-clock { font-size: 10px; line-height: 1.15; color: var(--match-label-quiet); }
+/* jump-buttons-no-state: which one am I standing on */
+.mt-st-su-jump.is-on { color: var(--text-primary); border-color: var(--color-rdy-white-25); background: var(--color-rdy-white-10); }
+.mt-st-su-jump.is-pinned {
+  color: var(--color-rdy-dark-sky);
+  background: var(--match-pin);
+  border-color: var(--match-pin);
+}
+.mt-st-su-jump.is-pinned .mt-st-su-jump-clock { color: var(--color-rdy-dark-sky); }
+.mt-st-su-jump:hover { background: var(--surface-card-hover); color: var(--text-primary); }
+.mt-st-su-jump:focus-visible { outline: 2px solid var(--color-rdy-turquoise); outline-offset: 2px; }
+
+/* ================= sidebar: the series ================= */
+
+.mt-st-se-body { display: flex; flex-direction: column; gap: 4px; }
+.mt-st-se-row {
+  display: block;
+  padding: 6px 8px;
+  border: 1px solid var(--border-hair);
+  border-left-width: 3px;
+  border-radius: var(--radius-md);
+  background: var(--color-rdy-white-5);
+  text-decoration: none;
+  color: inherit;
+  transition: background .14s ease;
+}
+a.mt-st-se-row:hover { background: var(--surface-card-hover); }
+.mt-st-se-row.is-radiant { border-left-color: var(--side-radiant); }
+.mt-st-se-row.is-dire { border-left-color: var(--side-dire); }
+.mt-st-se-row.is-here { background: var(--color-rdy-white-10); box-shadow: inset 0 0 0 1px var(--color-rdy-white-15); }
+.mt-st-se-inner { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.mt-st-se-no {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-tertiary);
+  flex: 0 0 auto;
+  width: 20px;
+}
+.mt-st-se-body-col { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.mt-st-se-score .kills-pair { font-size: 13px; font-weight: 700; }
+.mt-st-se-sub { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mt-st-se-here { margin-left: auto; flex: 0 0 auto; }
+.mt-st-se-foot { padding-top: 10px; }
+
+/* ================= sidebar: hero of the game ================= */
+
+.mt-st-hg-body { display: flex; flex-direction: column; gap: 10px; }
+.mt-st-hg-top { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.mt-st-hg-id { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.mt-st-hg-handle { font-size: 16px; font-weight: 800; color: var(--text-primary); }
+.mt-st-hg-real { font-size: 11px; }
+.mt-st-hg-hero { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+.mt-st-hg-hero .hero-portrait { width: 32px; height: 18px; }
+
+.mt-st-hg-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+.mt-st-hg-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 6px 8px;
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  min-width: 0;
+}
+.mt-st-hg-stat-value { font-size: 14px; font-weight: 800; color: var(--text-primary); white-space: nowrap; }
+.mt-st-hg-stat-label { font-size: 11px; }
+.mt-st-hg-rank { margin: -2px 0 0; }
+.mt-st-hg-why { margin: 0; color: var(--text-secondary); }
+
+/* ================= sidebar: links ================= */
+
+.mt-st-lk-body { display: flex; flex-direction: column; gap: 6px; }
+.mt-st-lk-teams { display: flex; flex-direction: column; gap: 4px; }
+.mt-st-lk-team {
+  display: block;
+  padding: 5px 8px;
+  border-radius: var(--radius-md);
+  background: var(--color-rdy-white-5);
+  color: inherit;
+  text-decoration: none;
+  transition: background .14s ease;
+}
+a.mt-st-lk-team:hover { background: var(--surface-card-hover); }
+.mt-st-lk-team.is-flat { opacity: .8; }
+.mt-st-lk-team-inner { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.mt-st-lk-team-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.mt-st-lk-none { display: block; padding: 0 8px 2px; }
+
+.mt-st-lk-side { display: flex; flex-direction: column; gap: 3px; }
+.mt-st-lk-side-label { font-size: 11px; }
+.mt-st-lk-players { display: flex; flex-wrap: wrap; gap: 4px; }
+.mt-st-lk-player {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px 2px 2px;
+  border: 1px solid var(--border-hair);
+  border-radius: var(--radius-pill);
+  background: var(--surface-chip);
+  color: var(--text-secondary);
+  text-decoration: none;
+  max-width: 100%;
+  transition: background .14s ease, color .14s ease;
+}
+a.mt-st-lk-player:hover { background: var(--surface-card-hover); color: var(--text-primary); }
+.mt-st-lk-player .hero-portrait { width: 26px; height: 15px; }
+.mt-st-lk-player-name {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mt-st-lk-more { display: flex; flex-direction: column; gap: 2px; }
+.mt-st-lk-line {
+  display: block;
+  padding: 4px 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-bottom: 1px solid var(--border-hair);
+}
+a.mt-st-lk-line:hover { color: var(--color-rdy-fresh-green); }
+.mt-st-lk-line:last-child { border-bottom: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mt-st.is-in, .mt-st-su.is-in, .mt-st-se.is-in, .mt-st-hg.is-in, .mt-st-lk.is-in { animation: none; }
+  .mt-st, .mt-st-su, .mt-st-se, .mt-st-hg, .mt-st-lk,
+  .mt-st-pull, .mt-st-se-row, .mt-st-lk-team, .mt-st-lk-player, .mt-st-su-jump {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+}

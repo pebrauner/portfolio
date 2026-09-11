@@ -1,0 +1,588 @@
+/* ============================================================
+   rdy.gg TI 2026 Match Analysis prototype - page stylesheet
+   Grand Final Game 5, Team Spirit vs TEAM VISION, 23 Aug 2026.
+
+   Owned by the shell agent. Component agents must NOT edit this
+   file, TI2026_Match_Analysis_rdy_gg.html, match/timeline.js,
+   hub/* or data/*. Component styles live in match/economy.css,
+   scoreboard.css, items.css, players.css, draft.css,
+   moments.css and story.css, each scoped with its own prefix.
+
+   Loads after hub/hub.css, so every token, utility and class in
+   the Hub contract is already available. This file adds:
+     1. match tokens (side aliases, timeline geometry)
+     2. the breadcrumb bar
+     3. the match banner          (.m-bn-*,  rendered by timeline.js)
+     4. the master timeline strip (.mt-tl-*, rendered by timeline.js)
+     5. page grid and sticky offsets
+     6. shared match utilities every component may use (.m-*)
+     7. safety breakpoints and reduced motion
+   ============================================================ */
+
+/* ---------- 1. Match tokens ---------- */
+:root {
+  /* Sides. TEAM VISION are Radiant (green), Team Spirit are Dire (red).
+     These alias the Hub's side tokens so a component never hard codes a
+     hex and never has to remember which org was on which side. */
+  --side-radiant: var(--color-radiant);
+  --side-dire: var(--color-dire);
+  --side-radiant-soft: var(--color-radiant-soft);
+  --side-dire-soft: var(--color-dire-soft);
+  --side-radiant-fill: color-mix(in srgb, var(--color-radiant) 24%, transparent);
+  --side-dire-fill: color-mix(in srgb, var(--color-dire) 24%, transparent);
+  /* the strip sparkline sits on a darker ground than a card, so it carries
+     a stronger fill than a chart inside a card would */
+  --spark-radiant-fill: color-mix(in srgb, var(--color-radiant) 36%, transparent);
+  --spark-dire-fill: color-mix(in srgb, var(--color-dire) 36%, transparent);
+  --side-radiant-line: color-mix(in srgb, var(--color-radiant) 70%, transparent);
+  --side-dire-line: color-mix(in srgb, var(--color-dire) 70%, transparent);
+  /* red text never clears AA at small sizes, so Dire type uses the light red */
+  --side-dire-text: var(--text-dire);
+  --side-radiant-text: var(--color-radiant);
+
+  /* timeline chrome */
+  --match-cursor: var(--color-rdy-white);
+  --match-magnet: var(--color-rdy-gold);
+  --match-pin: var(--color-rdy-light-gold);
+  --match-grid: var(--color-rdy-white-10);
+
+  /* phase bands: laning 0 to 10, mid 10 to 30, late 30 to the end */
+  --phase-laning: color-mix(in srgb, var(--color-rdy-turquoise) 7%, transparent);
+  --phase-mid: color-mix(in srgb, var(--color-rdy-white) 4%, transparent);
+  --phase-late: color-mix(in srgb, var(--color-rdy-gold) 7%, transparent);
+
+  /* Measured by timeline.js from the rendered strip and written back onto
+     the root element. The value here is the pre-measurement fallback, so
+     nothing jumps on first paint. */
+  --match-timeline-h: 104px;
+  /* the match page has no tab bar: the timeline strip is the only sticky
+     chrome, and it sits at top 0 the way the Hub's tab bar does */
+  --match-sticky-stack: var(--match-timeline-h);
+}
+
+/* ---------- 2. Breadcrumb bar ---------- */
+.m-bar {
+  border-bottom: 1px solid var(--border-soft);
+  background:
+    radial-gradient(900px 160px at 10% 0%, color-mix(in srgb, var(--color-rdy-red) 9%, transparent), transparent 70%),
+    radial-gradient(700px 160px at 72% 0%, color-mix(in srgb, var(--color-rdy-fresh-green) 7%, transparent), transparent 70%);
+}
+.m-bar .breadcrumb { margin: 0; padding: 12px 0 11px; }
+
+/* ---------- 3. Match banner ---------- */
+.m-banner-mount { padding-top: var(--gap-grid); }
+
+.m-bn {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-2xl);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-rdy-light-sky) 92%, transparent), var(--color-rdy-light-sky)),
+    var(--color-rdy-light-sky);
+  box-shadow: var(--shadow-card);
+}
+/* two side washes, Radiant on the left, Dire on the right, so the banner
+   carries the same colour logic as every chart below it */
+.m-bn::before,
+.m-bn::after {
+  content: "";
+  position: absolute; top: 0; bottom: 0; width: 38%;
+  pointer-events: none;
+}
+.m-bn::before {
+  left: 0;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--side-radiant) 16%, transparent), transparent 78%);
+}
+.m-bn::after {
+  right: 0;
+  background: linear-gradient(270deg, color-mix(in srgb, var(--side-dire) 18%, transparent), transparent 78%);
+}
+.m-bn-inner { position: relative; z-index: 1; padding: 16px 20px 14px; }
+
+.m-bn-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 12px; }
+.m-bn-title {
+  margin: 0 0 12px;
+  font-size: 20px; font-weight: 700; line-height: 1.2;
+  letter-spacing: -.01em;
+  color: var(--text-primary);
+}
+@media (max-width: 1279px) { .m-bn-title { font-size: 18px; } }
+
+.m-bn-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+}
+
+.m-bn-team { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.m-bn-team--dire { justify-content: flex-end; text-align: right; }
+.m-bn-team--dire .m-bn-names { align-items: flex-end; }
+.m-bn-names { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.m-bn-name {
+  font-size: clamp(20px, 18.3px + .46vw, 30px);
+  font-weight: 800; line-height: 1.1;
+  color: var(--text-primary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.m-bn-sub { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.m-bn-alias { font-size: 12px; color: var(--text-tertiary); }
+.m-bn-team--lost .m-bn-name { color: var(--text-secondary); }
+.m-bn-crest { flex: 0 0 auto; display: grid; place-items: center; }
+.m-bn-crest .team-logo { width: 58px; height: 58px; object-fit: contain; }
+.m-bn-crest .monogram { width: 58px; height: 58px; font-size: 20px; }
+
+.m-bn-centre { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.m-bn-score { font-size: 13px; }
+.m-bn-score .kills-pair { font-size: clamp(22px, 20px + .5vw, 32px); font-weight: 800; }
+.m-bn-score .kp-tag { font-size: 11px; }
+.m-bn-duration {
+  font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.m-bn-foot {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px;
+  margin-top: 14px; padding-top: 12px;
+  border-top: 1px solid var(--border-hair);
+}
+.m-bn-facts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; min-width: 0; }
+.m-bn-fact { display: flex; align-items: baseline; gap: 6px; font-size: 13px; }
+.m-bn-fact-label {
+  font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+.m-bn-fact-value { font-weight: 600; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.m-bn-links { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+
+/* ---------- 4. Master timeline strip ---------- */
+.m-timeline-wrap {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  margin-top: var(--gap-grid);
+  background: color-mix(in srgb, var(--color-rdy-dark-sky) 94%, transparent);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--border-hair);
+  border-bottom: 1px solid var(--border-soft);
+}
+.m-timeline-mount { min-height: 0; }
+.m-timeline-mount:empty::before { min-height: 88px; }
+
+.mt-tl { padding: 8px 0 9px; user-select: none; }
+
+/* head: clock, readout, actions */
+.mt-tl-head {
+  display: flex; align-items: center; gap: 14px;
+  min-width: 0; margin-bottom: 6px;
+}
+.mt-tl-clockbox { display: flex; align-items: baseline; gap: 8px; flex: 0 0 auto; }
+.mt-tl-clock {
+  font-size: 26px; font-weight: 800; line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+.mt-tl-phase {
+  font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.mt-tl-readout {
+  display: flex; align-items: center; gap: 8px 14px; flex-wrap: wrap;
+  min-width: 0; flex: 1 1 auto;
+}
+.mt-tl-stat { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+.mt-tl-stat-label {
+  font-size: 10px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+  color: var(--text-tertiary); white-space: nowrap;
+}
+.mt-tl-stat-value {
+  font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums;
+  color: var(--text-primary); white-space: nowrap;
+}
+.mt-tl-stat-value.is-radiant { color: var(--side-radiant-text); }
+.mt-tl-stat-value.is-dire { color: var(--side-dire-text); }
+.mt-tl-stat .kills-pair { font-size: 15px; font-weight: 700; }
+
+.mt-tl-moment {
+  display: flex; align-items: center; gap: 7px; min-width: 0;
+  max-width: 42ch;
+  padding: 3px 10px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-pill);
+  background: var(--surface-raised);
+  font-size: 12px; color: var(--text-secondary);
+}
+.mt-tl-moment.is-captured {
+  border-color: color-mix(in srgb, var(--match-magnet) 60%, transparent);
+  background: color-mix(in srgb, var(--match-magnet) 14%, var(--surface-raised));
+  color: var(--color-rdy-light-gold);
+}
+.mt-tl-moment-time { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--text-primary); }
+.mt-tl-moment.is-captured .mt-tl-moment-time { color: var(--color-rdy-light-gold); }
+.mt-tl-moment-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.mt-tl-moment:empty { display: none; }
+
+.mt-tl-actions { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; margin-left: auto; }
+.mt-tl-hint {
+  font-size: 11px; color: var(--text-tertiary); white-space: nowrap;
+}
+/* jump-buttons-no-state: the sidebar's five landmarks, mirrored here where
+   they are on screen for the whole article. */
+.mt-tl-jumps { display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; }
+.mt-tl-jump {
+  display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
+  min-width: 54px; height: 30px; padding: 0 8px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  cursor: pointer;
+  transition: color .14s ease, border-color .14s ease, background .14s ease;
+}
+.mt-tl-jump-word { font-size: 10.5px; font-weight: 700; line-height: 1.05; letter-spacing: .02em; }
+.mt-tl-jump-clock { font-size: 9.5px; line-height: 1.1; color: var(--match-label-quiet); }
+.mt-tl-jump:hover { color: var(--text-primary); border-color: var(--color-rdy-white-25); }
+.mt-tl-jump:focus-visible { outline: 2px solid var(--color-rdy-fresh-green); outline-offset: 2px; }
+.mt-tl-jump.is-on { color: var(--text-primary); border-color: var(--color-rdy-white-25); background: var(--color-rdy-white-5); }
+.mt-tl-jump.is-pinned {
+  color: var(--color-rdy-dark-sky);
+  background: var(--match-pin);
+  border-color: var(--match-pin);
+}
+.mt-tl-jump.is-pinned .mt-tl-jump-clock { color: var(--color-rdy-dark-sky); }
+
+@media (max-width: 1279px) {
+  .mt-tl-jumps { display: none; }
+}
+
+.mt-tl-pin {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 26px; padding: 0 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  cursor: pointer;
+  transition: color .15s ease, border-color .15s ease, background .15s ease;
+}
+.mt-tl-pin:hover { color: var(--text-primary); border-color: var(--color-rdy-white-25); }
+.mt-tl-pin[aria-pressed="true"] {
+  color: var(--color-rdy-dark-sky);
+  background: var(--match-pin);
+  border-color: var(--match-pin);
+}
+.mt-tl-pin .icon { width: 12px; height: 12px; fill: currentColor; }
+
+/* plot */
+.mt-tl-plot {
+  position: relative;
+  height: 46px;
+  border-radius: var(--radius-md);
+  cursor: ew-resize;
+  touch-action: none;
+  outline: none;
+}
+.mt-tl-plot:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-rdy-dark-sky), 0 0 0 4px var(--color-rdy-fresh-green);
+}
+.mt-tl-plot.is-scrubbing { cursor: grabbing; }
+
+/* the clip is the rubber band boundary: the track slides inside it and the
+   cursor stays pinned to the edge, which is what makes the end feel elastic */
+.mt-tl-clip {
+  position: absolute; inset: 0;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-rdy-starry-night) 70%, transparent);
+  border: 1px solid var(--border-hair);
+}
+.mt-tl-track {
+  position: absolute; inset: 0;
+  transform: translateX(calc(var(--rubber, 0px) * -1));
+}
+
+.mt-tl-bands { position: absolute; inset: 0; }
+.mt-tl-band { position: absolute; top: 0; bottom: 0; }
+.mt-tl-band--laning { background: var(--phase-laning); }
+.mt-tl-band--mid { background: var(--phase-mid); }
+.mt-tl-band--late { background: var(--phase-late); }
+.mt-tl-band-label {
+  position: absolute; top: 3px; left: 6px;
+  font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--match-label-quiet);
+  pointer-events: none;
+}
+
+.mt-tl-spark { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.mt-tl-zero { stroke: var(--match-grid); stroke-width: 1; }
+
+.mt-tl-ticks { position: absolute; inset: 0; }
+.mt-tl-tick { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--color-rdy-white-5); }
+.mt-tl-tick--major { background: var(--color-rdy-white-10); }
+.mt-tl-tick-label {
+  position: absolute; bottom: 2px;
+  transform: translateX(3px);
+  font-size: 10px; font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--match-label-quiet);
+  pointer-events: none;
+}
+
+/* event markers, the magnets */
+/* M-14: a marker's centre sits on its minute, so a marker at fraction 1 hangs
+   half its width past the clip and the ancient was drawn cut in half. The marks
+   layer is inset by half the widest marker at both ends. The drift against the
+   ticks is 8px at the extremes and zero at the middle, a third of a minute on
+   a 1,391px strip, and no marker is ever clipped. */
+.mt-tl-marks { position: absolute; inset: 0 8px; }
+.mt-tl-mark {
+  position: absolute; bottom: 9px;
+  width: 9px; height: 9px; margin-left: -4.5px;
+  border-radius: 2px;
+  background: var(--color-rdy-steel);
+  border: 1px solid var(--color-rdy-dark-sky);
+  transform: rotate(45deg);
+  transform-origin: center;
+  transition: transform .14s ease, background .14s ease, box-shadow .14s ease;
+}
+/* kind sets the size, the side that gained it sets the colour, and the one
+   featured moment of the game overrides both */
+.mt-tl-mark--fight { background: var(--color-rdy-yellow); width: 11px; height: 11px; margin-left: -5.5px; bottom: 8px; }
+.mt-tl-mark--tower { background: var(--color-rdy-turquoise); }
+.mt-tl-mark--rax { background: var(--color-rdy-light-red); width: 10px; height: 10px; margin-left: -5px; }
+.mt-tl-mark--ancient { background: var(--color-rdy-white); width: 11px; height: 11px; margin-left: -5.5px; }
+.mt-tl-mark--roshan { background: var(--color-rdy-gold); }
+.mt-tl-mark--tormentor { background: var(--color-rdy-steel); width: 7px; height: 7px; margin-left: -3.5px; }
+.mt-tl-mark--firstblood { background: var(--color-rdy-steel); width: 7px; height: 7px; margin-left: -3.5px; }
+.mt-tl-mark--radiant { background: var(--side-radiant); }
+.mt-tl-mark--dire { background: var(--side-dire); }
+.mt-tl-mark--story {
+  background: var(--color-rdy-light-gold);
+  width: 13px; height: 13px; margin-left: -6.5px; bottom: 7px;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-rdy-gold) 35%, transparent);
+}
+.mt-tl-mark.is-near { transform: rotate(45deg) scale(1.3); }
+.mt-tl-mark.is-captured {
+  transform: rotate(45deg) scale(1.75);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--match-magnet) 45%, transparent);
+}
+.mt-tl-mark.is-pinned {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--match-pin) 55%, transparent);
+}
+.mt-tl-mark-label {
+  position: absolute; top: 2px;
+  transform: translateX(-50%);
+  max-width: 168px;
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  background: var(--color-rdy-dark-sky);
+  border: 1px solid color-mix(in srgb, var(--match-magnet) 55%, transparent);
+  color: var(--color-rdy-light-gold);
+  font-size: 10.5px; font-weight: 700;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  opacity: 0;
+  transition: opacity .12s ease;
+  pointer-events: none;
+}
+.mt-tl-mark-label.is-on { opacity: 1; }
+
+/* cursor: one group moved by --x, never re-measured */
+.mt-tl-cursor {
+  position: absolute; top: 0; bottom: 0;
+  left: calc(var(--x, 1) * 100%);
+  width: 0;
+  pointer-events: none;
+  will-change: left;
+}
+.mt-tl-cursor-line {
+  position: absolute; top: 0; bottom: 0; left: -1px;
+  width: 2px;
+  background: var(--match-cursor);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--match-cursor) 45%, transparent);
+}
+.mt-tl-cursor-dot {
+  position: absolute; bottom: -3px; left: -4px;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--match-cursor);
+}
+.mt-tl-cursor-bubble {
+  position: absolute; top: 3px; left: 0;
+  transform: translateX(-50%);
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  background: var(--match-cursor);
+  color: var(--color-rdy-dark-sky);
+  font-size: 10.5px; font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.mt-tl.is-pinned .mt-tl-cursor-line,
+.mt-tl.is-pinned .mt-tl-cursor-dot { background: var(--match-pin); }
+.mt-tl.is-pinned .mt-tl-cursor-bubble { background: var(--match-pin); }
+.mt-tl.is-captured .mt-tl-cursor-line,
+.mt-tl.is-captured .mt-tl-cursor-dot,
+.mt-tl.is-captured .mt-tl-cursor-bubble { background: var(--match-magnet); }
+
+/* rubber feedback at the ends */
+.mt-tl-edge {
+  position: absolute; top: 0; bottom: 0; width: 42px;
+  pointer-events: none;
+  opacity: var(--edge, 0);
+  transition: opacity .1s linear;
+}
+.mt-tl-edge--start { left: 0; background: linear-gradient(90deg, var(--color-rdy-white-25), transparent); }
+.mt-tl-edge--end { right: 0; background: linear-gradient(270deg, var(--color-rdy-white-25), transparent); }
+
+/* ---------- 5. Page grid and sticky offsets ---------- */
+.match-page .page-grid { padding-top: var(--gap-grid); }
+
+/* F05 / M-04: the rail's cards total about 1,750px against a 12,000px article,
+   so a sticky first card bounded by a shrink to fit aside stopped travelling
+   after one screen. Stretch the side column to the grid row height and the
+   sticky readout follows the whole page. */
+.match-page .page-grid { align-items: stretch; }
+.match-page .side-col { align-self: stretch; height: 100%; min-width: 0; }
+
+/* every sticky thing on this page hangs off the timeline strip */
+.match-page .side-col > .mount:first-child {
+  position: sticky;
+  top: calc(var(--match-sticky-stack) + 10px);
+  z-index: 2;
+}
+
+/* SCR1: a box shadow on a <tr> does not paint reliably, so every table row
+   that carries the cross module highlight moves the marker to its first cell. */
+.match-page tr.m-hl.is-hl { box-shadow: none; }
+.match-page tr.m-hl.is-hl > :first-child { box-shadow: inset 2px 0 0 var(--color-rdy-fresh-green); }
+
+/* anchor targets (the Hub links to #draft) clear the sticky strip */
+.match-page [id] { scroll-margin-top: calc(var(--match-sticky-stack) + 12px); }
+
+/* ---------- 6. Shared match utilities ---------- */
+/* Any component may use these. Anything narrower than "every component
+   could want this" belongs in that component's own stylesheet. */
+
+/* hidden wins over any display a component sets, so toggling el.hidden
+   is a safe way to drop a readout the data does not support */
+.match-page [hidden] { display: none !important; }
+
+/* a titled block inside a card, used by several components */
+.m-sub {
+  font-size: 11px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+/* a scrubbable plot box. attachScrubSurface adds .m-scrub for you. */
+.m-scrub { touch-action: none; cursor: ew-resize; outline: none; }
+.m-scrub:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-rdy-dark-sky), 0 0 0 4px var(--color-rdy-fresh-green);
+}
+.m-scrub.is-scrubbing { cursor: grabbing; }
+
+/* the cursor line a chart draws over its own plot, moved by --x only */
+.m-cursor {
+  position: absolute; top: 0; bottom: 0;
+  left: calc(var(--x, 1) * 100%);
+  width: 0; pointer-events: none;
+}
+.m-cursor-line {
+  position: absolute; top: 0; bottom: 0; left: -1px; width: 2px;
+  background: var(--match-cursor);
+  opacity: .85;
+}
+
+/* M-09 / M-10: the smallest labels on the page are content, not decoration.
+   --color-rdy-white-25 at 9.5px composites to about 2:1, so every axis label,
+   band label and chip label under 12px reads this token instead. */
+.match-page { --match-label-quiet: rgba(255, 255, 255, .62); }
+
+/* M-10: the kills pair separator is decorative but it sits in running text. */
+.match-page .kills-pair .kp-sep { color: var(--match-label-quiet); }
+
+/* Principle 7: anything whose digits retype under the pointer is tabular. */
+.mt-tl-moment-text, .mt-eco-moment-text, .m-readout-label, .u-tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* a readout card: label over value, the value is the array at the index */
+.m-readout { display: flex; flex-wrap: wrap; gap: 10px 22px; }
+.m-readout-item { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.m-readout-label {
+  font-size: 10px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+  color: var(--text-tertiary); white-space: nowrap;
+}
+.m-readout-value {
+  font-size: 17px; font-weight: 700; line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary); white-space: nowrap;
+}
+.m-readout-value.is-radiant { color: var(--side-radiant-text); }
+.m-readout-value.is-dire { color: var(--side-dire-text); }
+
+/* a legend swatch row */
+.m-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; }
+.m-legend-item { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+.m-swatch { width: 10px; height: 10px; border-radius: 2px; background: var(--color-rdy-steel); flex: 0 0 auto; }
+.m-swatch--radiant { background: var(--side-radiant); }
+.m-swatch--dire { background: var(--side-dire); }
+
+/* cross module player highlight, driven by MatchTimeline.highlightPlayer */
+.m-hl { transition: background .14s ease, box-shadow .14s ease, opacity .14s ease; }
+.m-hl.is-hl {
+  background: color-mix(in srgb, var(--color-rdy-white) 8%, transparent);
+  box-shadow: inset 2px 0 0 var(--color-rdy-fresh-green);
+}
+.match-page.has-hl .m-hl:not(.is-hl) { opacity: .55; }
+
+/* segmented control, used by charts that toggle a series */
+.m-seg { display: inline-flex; padding: 2px; gap: 2px; border: 1px solid var(--border-soft); border-radius: var(--radius-pill); background: var(--surface-raised); }
+.m-seg-btn {
+  height: 24px; padding: 0 12px;
+  border-radius: var(--radius-pill);
+  background: transparent; color: var(--text-secondary);
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  white-space: nowrap;
+  transition: color .15s ease, background .15s ease;
+}
+.m-seg-btn:hover { color: var(--text-primary); }
+.m-seg-btn[aria-pressed="true"] { background: var(--color-rdy-bright-night); color: var(--text-primary); }
+
+/* a fixed geometry bar, so two rows of the same panel are comparable */
+.m-bar-track {
+  position: relative; height: 8px; border-radius: var(--radius-pill);
+  background: var(--color-rdy-white-5); overflow: hidden;
+}
+.m-bar-fill { position: absolute; top: 0; bottom: 0; left: 0; border-radius: var(--radius-pill); background: var(--color-rdy-steel); }
+.m-bar-fill--radiant { background: var(--side-radiant); }
+.m-bar-fill--dire { background: var(--side-dire); }
+
+/* ---------- 7. Safety breakpoints and reduced motion ---------- */
+@media (max-width: 1279px) {
+  .match-page .page-grid { --width-sidebar: 288px; }
+}
+
+@media (max-width: 1200px) {
+  .m-bn-row { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 12px; }
+  .m-bn-crest .team-logo, .m-bn-crest .monogram { width: 48px; height: 48px; }
+}
+
+/* SAFETY ONLY. Full mobile is a later phase. */
+@media (max-width: 1023px) {
+  .m-bn-row { grid-template-columns: minmax(0, 1fr); justify-items: center; }
+  .m-bn-team--dire { justify-content: flex-start; text-align: left; }
+  .m-bn-team--dire .m-bn-names { align-items: flex-start; }
+  .m-bn-links { margin-left: 0; }
+  .match-page .side-col > .mount:first-child { position: static; }
+  .mt-tl-head { gap: 10px; }
+  .mt-tl-hint { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mt-tl-mark, .mt-tl-mark-label, .mt-tl-edge, .m-hl { transition: none; }
+  .mt-tl-cursor { will-change: auto; }
+}

@@ -1,0 +1,235 @@
+/* ------------------------------------------------------------------
+   match/scoreboard.css  ->  #m-scoreboard
+   Prefix: .mt-sb-
+   Two fixed layout tables, ten columns, identical widths in both
+   modes, so FINAL and AT MM:SS never move a column or resize the card.
+   ------------------------------------------------------------------ */
+
+.mt-sb { position: relative; }
+
+.mt-sb .card-header { align-items: flex-start; }
+
+.mt-sb-modewrap {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
+  text-align: right;
+  /* a fixed reservation, so the title column keeps its width and the
+     header keeps its height when the mode switches */
+  min-width: 152px;
+}
+.mt-sb-mode { font-variant-numeric: tabular-nums; letter-spacing: .04em; }
+.mt-sb-modenote {
+  font-size: 11px; color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+
+/* ---------- table shell ---------- */
+.mt-sb-tablewrap { margin-top: 4px; }
+.mt-sb-tablewrap + .mt-sb-tablewrap { margin-top: 18px; }
+
+.mt-sb-table {
+  table-layout: fixed;
+  width: 100%;
+  font-size: 12px;
+  border-collapse: collapse;
+}
+
+.mt-sb-table th,
+.mt-sb-table td { padding: 5px 5px; vertical-align: middle; }
+
+.mt-sb-table th.mt-sb-th {
+  font-size: 10px; letter-spacing: .06em; line-height: 1.15;
+  color: var(--text-tertiary);
+  border-bottom: 1px solid var(--border-soft);
+  padding-bottom: 6px;
+  vertical-align: bottom;
+  /* two label lines are reserved at every width, so the FINAL and the
+     AT MM:SS header sets are exactly the same height */
+  height: 36px;
+  /* the column widths are fixed, so a long label wraps rather than
+     being cut: nothing on this table is ever clipped */
+  white-space: normal;
+}
+.mt-sb-table th.mt-sb-th--player { padding-left: 2px; }
+
+/* the numeric cells: one line, or a primary over a secondary */
+.mt-sb-num, .mt-sb-teamnum {
+  line-height: 1.15;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.mt-sb-a {
+  display: block;
+  font-size: 12px; font-weight: 600;
+  color: var(--text-primary);
+}
+.mt-sb-b {
+  display: block;
+  font-size: 10.5px; font-weight: 400;
+  color: var(--text-tertiary);
+  margin-top: 1px;
+}
+
+/* the match high in a column, marked once, quietly */
+.mt-sb-num.is-top .mt-sb-a {
+  color: var(--color-rdy-light-gold);
+  box-shadow: inset 0 -2px 0 -1px color-mix(in srgb, var(--color-rdy-gold) 65%, transparent);
+}
+
+/* ---------- player cell ---------- */
+.mt-sb-playercell { padding-left: 2px !important; }
+.mt-sb-pwrap { display: flex; align-items: center; gap: 7px; min-width: 0; }
+
+.mt-sb-pick {
+  flex: 0 0 auto;
+  display: inline-flex; padding: 0; border: 0; background: none;
+  border-radius: 50%;
+  cursor: pointer;
+  outline-offset: 2px;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.mt-sb-pick:hover { transform: translateY(-1px); }
+.mt-sb-pick:hover .avatar,
+.mt-sb-pick:focus-visible .avatar {
+  box-shadow: 0 0 0 2px var(--color-rdy-fresh-green);
+}
+.mt-sb-pick:focus-visible { outline: 2px solid var(--color-rdy-fresh-green); outline-offset: 2px; }
+.mt-sb-pick .avatar { width: 26px; height: 26px; }
+
+.mt-sb-pnames { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 auto; }
+.mt-sb-handle {
+  font-size: 12.5px; font-weight: 700; color: var(--text-primary);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.mt-sb-hero { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.mt-sb-hero .hero-portrait { width: 26px; height: 15px; border-radius: 2px; }
+.mt-sb-heroname {
+  font-size: 10.5px; color: var(--text-tertiary);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.mt-sb-pos {
+  flex: 0 0 auto;
+  font-size: 10px; font-weight: 700; letter-spacing: .04em;
+  color: var(--text-tertiary);
+  background: var(--color-rdy-white-5);
+  border-radius: var(--radius-sm);
+  padding: 1px 4px;
+}
+
+/* ---------- team row ---------- */
+.mt-sb-team td, .mt-sb-team th {
+  background: var(--surface-raised);
+  border-bottom: 1px solid var(--border-soft);
+  padding-top: 7px; padding-bottom: 7px;
+}
+.mt-sb-team--radiant th { box-shadow: inset 2px 0 0 var(--side-radiant); }
+.mt-sb-team--dire th { box-shadow: inset 2px 0 0 var(--side-dire); }
+.mt-sb-twrap { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.mt-sb-crest { display: inline-flex; flex: 0 0 auto; }
+.mt-sb-crest .team-logo, .mt-sb-crest .monogram { width: 22px; height: 22px; }
+.mt-sb-teamnames { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.mt-sb-teamname {
+  font-size: 12.5px; font-weight: 800; color: var(--text-primary);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.mt-sb-teamsub {
+  font-size: 10px; letter-spacing: .05em; text-transform: uppercase;
+  color: var(--text-tertiary); white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.mt-sb-team--radiant .mt-sb-teamsub { color: var(--side-radiant-text); }
+.mt-sb-team--dire .mt-sb-teamsub { color: var(--side-dire-text); }
+.mt-sb-teamnum .mt-sb-a { font-weight: 800; }
+
+/* ---------- rows ---------- */
+.mt-sb-row td, .mt-sb-row th { border-bottom: 1px solid var(--border-hair); }
+.mt-sb-row:last-child td, .mt-sb-row:last-child th { border-bottom: 0; }
+.mt-sb-row:hover td, .mt-sb-row:hover th { background: var(--color-rdy-white-5); }
+.mt-sb-team:hover td, .mt-sb-team:hover th { background: var(--surface-raised); }
+.mt-sb-row.is-hl td, .mt-sb-row.is-hl th { background: color-mix(in srgb, var(--color-rdy-white) 8%, transparent); }
+.mt-sb-row.m-hl.is-hl { box-shadow: none; }
+.mt-sb-row.is-hl th:first-child { box-shadow: inset 2px 0 0 var(--color-rdy-fresh-green); }
+
+/* ---------- items ---------- */
+.mt-sb-itemcell { padding-right: 2px !important; }
+.mt-sb-items {
+  display: grid;
+  grid-template-columns: repeat(4, 18px);
+  gap: 2px;
+  justify-content: end;
+  align-content: center;
+  min-height: 28px; /* two icon rows at every index, so the card never resizes */
+}
+.mt-sb-item {
+  width: 18px; height: 13px;
+  border-radius: 2px;
+  object-fit: cover;
+  background: var(--surface-raised);
+}
+.mt-sb-item--neutral { box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-rdy-gold) 60%, transparent); }
+/* item-fallback-chips: an 18px cell cannot carry a legible letter code, so a
+   missing icon draws a neutral recipe tinted tile. The item name stays in the
+   title and the aria-label, which is where the reading actually happens. */
+.mt-sb-item--text {
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 0;
+  color: transparent;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--color-rdy-gold) 22%, var(--color-rdy-bright-night)),
+    var(--color-rdy-bright-night));
+  box-shadow: inset 0 0 0 1px var(--color-rdy-white-15);
+}
+.mt-sb-more {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 13px;
+  border-radius: 2px;
+  background: var(--color-rdy-white-5);
+  box-shadow: inset 0 0 0 1px var(--border-soft);
+  font-size: 8.5px; font-weight: 700; color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+.mt-sb-teamitems { padding: 0 !important; }
+
+/* ---------- footnote ---------- */
+.mt-sb-foot {
+  margin-top: 12px; padding-top: 10px;
+  border-top: 1px solid var(--border-hair);
+}
+.mt-sb-notes { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.mt-sb-notes li {
+  position: relative;
+  padding-left: 12px;
+  font-size: 11px; line-height: 1.45;
+  color: var(--text-tertiary);
+}
+.mt-sb-notes li::before {
+  content: ""; position: absolute; left: 0; top: 7px;
+  width: 4px; height: 4px; border-radius: 50%;
+  background: var(--color-rdy-white-25);
+}
+
+/* ---------- mode ---------- */
+.mt-sb[data-mode="live"] .mt-sb-table th.mt-sb-th { color: var(--color-rdy-light-gold); }
+.mt-sb[data-mode="live"] .mt-sb-item { filter: none; }
+
+/* ---------- mount motion ---------- */
+.mt-sb-row { animation: mt-sb-in .38s cubic-bezier(.2, .7, .3, 1) both; animation-delay: calc(var(--mt-sb-i, 0) * 28ms); }
+@keyframes mt-sb-in {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ---------- widths that need a little help at 1024 ---------- */
+@media (max-width: 1279px) {
+  .mt-sb-table { font-size: 11.5px; }
+  .mt-sb-table th, .mt-sb-table td { padding: 5px 3px; }
+  .mt-sb-a { font-size: 11.5px; }
+  .mt-sb-handle { font-size: 12px; }
+  .mt-sb-hero .hero-portrait { width: 22px; height: 13px; }
+  .mt-sb-pos { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mt-sb-row { animation: none; }
+  .mt-sb-pick { transition: none; }
+  .mt-sb-pick:hover { transform: none; }
+}
