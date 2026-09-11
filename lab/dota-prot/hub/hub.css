@@ -1,0 +1,733 @@
+/* ============================================================
+   rdy.gg TI 2026 Hub prototype - foundation stylesheet
+   Owned by the shell. Component agents must NOT edit this file.
+   Component styles live in hub/live.css, hub/tournament.css,
+   hub/editorial.css.
+   ============================================================ */
+
+/* ---------- 1. Tokens ---------- */
+:root {
+  /* surfaces */
+  --color-rdy-dark-sky: #010917;
+  --color-rdy-light-sky: #0f1623;
+  --color-rdy-light-sky-hover: #272e3a;
+  --color-rdy-starry-night: #1c212d;
+  --color-rdy-bright-night: #3c4252;
+  --color-rdy-steel: #53606d;
+
+  /* white and tints */
+  --color-rdy-white: #ffffff;
+  --color-rdy-white-85: rgba(255, 255, 255, .85);
+  --color-rdy-white-65: rgba(255, 255, 255, .65);
+  --color-rdy-white-45: rgba(255, 255, 255, .45);
+  --color-rdy-white-25: rgba(255, 255, 255, .25);
+  --color-rdy-white-15: rgba(255, 255, 255, .15);
+  --color-rdy-white-10: rgba(255, 255, 255, .10);
+  --color-rdy-white-5:  rgba(255, 255, 255, .05);
+
+  /* greens */
+  --color-rdy-fresh-green: #00d161;
+  --color-rdy-fresh-green-hover: #17e074;
+  --color-rdy-medium-green: #298d79;
+  --color-rdy-super-dark-green: #0e5e35;
+
+  /* reds, golds, accents */
+  --color-rdy-red: #e62a59;
+  --color-rdy-light-red: #ff7675;
+  --color-rdy-gold: #dfbf77;
+  --color-rdy-light-gold: #f8d99c;
+  --color-rdy-dark-gold: #b88f20;
+  --color-rdy-yellow: #ffb60e;
+  --color-rdy-turquoise: #68d2e6;
+  --color-rdy-rank-1: #d47e00;
+  --color-rdy-rank-2: #b6b7b9;
+  --color-rdy-rank-3: #865c3f;
+
+  /* semantic surfaces */
+  --surface-page: var(--color-rdy-dark-sky);
+  --surface-card: var(--color-rdy-light-sky);
+  --surface-card-hover: var(--color-rdy-light-sky-hover);
+  --surface-raised: var(--color-rdy-starry-night);
+  --surface-chip: var(--color-rdy-bright-night);
+
+  /* semantic text. See hub-contract.md: white/45 measures 4.44:1 on the
+     card surface, just under AA, so TEXT uses --text-tertiary (white .52,
+     5.4:1) while --color-rdy-white-45 stays for borders, icons and rules. */
+  --text-primary: var(--color-rdy-white);
+  --text-secondary: var(--color-rdy-white-65);
+  --text-tertiary: rgba(255, 255, 255, .52);
+
+  /* hairlines */
+  --border-hair: var(--color-rdy-white-5);
+  --border-soft: var(--color-rdy-white-10);
+  --border-strong: var(--color-rdy-white-15);
+
+  /* sides */
+  --color-radiant: var(--color-rdy-fresh-green);
+  --color-radiant-soft: color-mix(in srgb, var(--color-rdy-fresh-green) 16%, transparent);
+  --color-dire: var(--color-rdy-red);
+  --color-dire-soft: color-mix(in srgb, var(--color-rdy-red) 16%, transparent);
+
+  /* Small red type never clears 4.5:1 on the card surface (#e62a59 is
+     4.12:1), so text uses the light red (6.9:1) and the saturated red is
+     kept for fills, bars, hairlines and dots where ratio does not apply. */
+  --text-dire: var(--color-rdy-light-red);
+
+  --color-live: var(--color-rdy-red);
+  --color-win: var(--color-rdy-fresh-green);
+  --color-loss: var(--color-rdy-red);
+
+  /* radii */
+  --radius-sm: .25rem;
+  --radius-md: .375rem;
+  --radius-lg: .5rem;
+  --radius-xl: .75rem;
+  --radius-2xl: 1rem;
+  --radius-pill: 9999px;
+
+  /* shadow */
+  --shadow-card: 0 4px 10px #00000040;
+
+  /* layout */
+  --width-container: 1728px;
+  --width-gutter: 16px;
+  --width-sidebar: 320px;
+  --width-article: 728px;
+  --gap-grid: 16px;
+  --gap-section: 20px;
+  /* The site chrome is the static rdy.gg replica (hub/rdy-header.html). The
+     live header is position: static and scrolls away, so it reserves no
+     sticky space at all and the tab bar is the first thing that sticks.
+     These two stay at 0 so every downstream offset keeps one source. */
+  --height-header: 0px;
+  --height-header-rule: 0px;
+  --height-tabbar: 45px;
+  /* the mini score strip only occupies the stack while it is showing */
+  --height-minibar: 0px;
+  /* one source of truth for everything that sticks under the tab bar */
+  --sticky-stack: calc(var(--height-header) + var(--height-header-rule) + var(--height-tabbar));
+
+  /* type */
+  --font-sans: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+@media (min-width: 1536px) {
+  :root { --width-gutter: 18px; }
+}
+
+:root.has-mini { --height-minibar: 32px; }
+
+/* ---------- 2. Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--surface-page);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+img { max-width: 100%; display: block; }
+svg { display: block; }
+a { color: inherit; text-decoration: none; }
+a:hover { color: var(--color-rdy-fresh-green); }
+button { font: inherit; color: inherit; background: none; border: 0; margin: 0; }
+h1, h2, h3, h4, h5, h6, p, ul, ol, figure { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+table { border-collapse: collapse; width: 100%; }
+
+/* ---------- 2b. Keep this stylesheet out of the site chrome ---------- */
+/* The header and footer are a static replica of the live rdy.gg chrome.
+   hub/rdy-chrome.css carries its own scoped preflight at specificity 0,2,0,
+   so every element reset above already loses inside the two wrappers.
+   Inheritance is the one thing specificity cannot stop: body's 15px / 1.4
+   would reach any chrome element that has no inline font-size, and several
+   chrome icons are sized in em. Reset the inherited text properties to the
+   values the capture was measured against (browser default 16px, normal
+   leading), so the replica renders the same here as on its test page. */
+.rdy-chrome-header,
+.rdy-chrome-footer {
+  font-size: 16px;
+  line-height: normal;
+  letter-spacing: normal;
+  text-align: left;
+  font-variant-numeric: normal;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-rdy-fresh-green);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+::selection { background: var(--color-rdy-super-dark-green); color: var(--color-rdy-white); }
+
+/* thin scrollbars inside scroll regions */
+.scroll-y { overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--color-rdy-bright-night) transparent; }
+.scroll-y::-webkit-scrollbar { width: 8px; }
+.scroll-y::-webkit-scrollbar-thumb { background: var(--color-rdy-bright-night); border-radius: var(--radius-pill); }
+.scroll-y::-webkit-scrollbar-track { background: transparent; }
+
+/* ---------- 3. Type ramp (mirrors rdy.gg) ---------- */
+.rdy-heading-1 { font-size: clamp(32px, 26.85px + 1.373vw, 62px); font-weight: 800; line-height: 1.2; }
+.rdy-heading-2 { font-size: clamp(28px, 24.91px + .8238vw, 46px); font-weight: 800; line-height: 1.2; }
+.rdy-heading-3 { font-size: clamp(22px, 20.28px + .4577vw, 32px); font-weight: 800; line-height: 1.2; }
+.rdy-heading-4 { font-size: clamp(18px, 17.31px + .1831vw, 22px); font-weight: 800; line-height: 1.2; }
+.rdy-heading-5 { font-size: clamp(14px, 13.31px + .1831vw, 18px); font-weight: 800; line-height: 1.2; }
+.rdy-heading-6 { font-size: clamp(13px, 12.49px + .1373vw, 16px); font-weight: 800; line-height: 1.2; }
+
+.rdy-subh-1 { font-size: 22px; font-weight: 600; line-height: 1.2; }
+.rdy-subh-2 { font-size: 18px; font-weight: 600; line-height: 1.2; }
+.rdy-subh-3 { font-size: 16px; font-weight: 600; line-height: 1.2; }
+.rdy-subh-4 { font-size: 14px; font-weight: 600; line-height: 1.2; }
+.rdy-subh-5 { font-size: 12px; font-weight: 600; line-height: 1.2; }
+.rdy-subh-6 { font-size: 11px; font-weight: 600; line-height: 1.2; }
+
+.rdy-par-3 { font-size: 22px; font-weight: 400; line-height: 1.4; }
+.rdy-par-4 { font-size: 18px; font-weight: 400; line-height: 1.4; }
+.rdy-par-5 { font-size: 16px; font-weight: 400; line-height: 1.4; }
+.rdy-par-6 { font-size: 14px; font-weight: 400; line-height: 1.4; }
+.rdy-par-7 { font-size: 12px; font-weight: 400; line-height: 1.4; }
+.rdy-par-article { font-size: clamp(18px, 17.66px + .0915vw, 20px); font-weight: 400; line-height: 1.4; max-width: var(--width-article); }
+.rdy-button-text { font-size: 16px; font-weight: 600; line-height: 1.2; }
+
+/* every number is tabular */
+.u-tnum,
+.hub-table td, .hub-table th,
+.stat-value, .stat-num, .score, .clock,
+[data-numeric] { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+
+/* ---------- 4. Utilities ---------- */
+.u-muted { color: var(--text-secondary); }
+.u-dim { color: var(--text-tertiary); }
+.u-green { color: var(--color-rdy-fresh-green); }
+.u-red { color: var(--text-dire); }
+.u-gold { color: var(--color-rdy-gold); }
+.u-radiant { color: var(--color-radiant); }
+.u-dire { color: var(--text-dire); }
+.u-truncate { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.u-nowrap { white-space: nowrap; }
+.u-center { text-align: center; }
+.u-right { text-align: right; }
+.u-upper { text-transform: uppercase; letter-spacing: .04em; }
+.u-sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+/* Eyebrow labels. Decision 2: headings are not uppercase and not
+   letterspaced, so an uppercase label is a label, never an h3 or h4. */
+.u-label {
+  display: block;
+  font-size: 11px; font-weight: 800; line-height: 1.2;
+  letter-spacing: .04em; text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+.u-mt-0 { margin-top: 0; }
+.u-mt-1 { margin-top: 4px; }
+.u-mt-2 { margin-top: 8px; }
+.u-mt-3 { margin-top: 12px; }
+.u-mt-4 { margin-top: 16px; }
+
+.stack    { display: flex; flex-direction: column; gap: 12px; }
+.stack-sm { display: flex; flex-direction: column; gap: 8px; }
+.stack-lg { display: flex; flex-direction: column; gap: 16px; }
+.cluster  { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.cluster-sm { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.spacer   { flex: 1 1 auto; min-width: 0; }
+
+.divider { height: 1px; background: var(--border-soft); border: 0; margin: 0; }
+
+/* grid rows. minmax(0,*) everywhere so a track can never compute to 0
+   or be forced wider by its content. */
+.row-2-1 { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: var(--gap-grid); }
+.row-1-1 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--gap-grid); }
+.row-1-2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: var(--gap-grid); }
+/* the grid cell stretches, so the card inside stretches with it, otherwise
+   both two-up rows end on a ragged bottom edge */
+.row-2-1 > .mount, .row-1-1 > .mount, .row-1-2 > .mount { display: flex; min-width: 0; }
+.row-2-1 > .mount > .card, .row-1-1 > .mount > .card, .row-1-2 > .mount > .card {
+  flex: 1 1 auto; min-width: 0;
+  display: flex; flex-direction: column;
+}
+.grid-auto-220 { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--gap-grid); }
+.grid-auto-260 { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--gap-grid); }
+.grid-auto-300 { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--gap-grid); }
+
+/* any wide child (table, chart, bracket) scrolls inside itself */
+.scroll-x { overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; scrollbar-color: var(--color-rdy-bright-night) transparent; }
+.scroll-x::-webkit-scrollbar { height: 8px; }
+.scroll-x::-webkit-scrollbar-thumb { background: var(--color-rdy-bright-night); border-radius: var(--radius-pill); }
+
+/* ---------- 5. Container and page grid ---------- */
+.container {
+  width: 100%;
+  max-width: var(--width-container);
+  margin: 0 auto;
+  padding: 0 var(--width-gutter);
+}
+
+.page-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--width-sidebar);
+  gap: var(--gap-grid);
+  align-items: start;
+  padding-bottom: 48px;
+}
+
+.main-col { min-width: 0; }
+
+.side-col {
+  min-width: 0;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-grid);
+  padding-bottom: 8px;
+}
+/* The rail flows with the page. A second scroll region here hid the Follow
+   and Event info cards behind a scrollbar most readers never find, and it
+   trapped the wheel. Only the Today card sticks. */
+.side-col > #m-today {
+  position: sticky;
+  top: calc(var(--sticky-stack) + var(--height-minibar) + 10px);
+  z-index: 2;
+  transition: top .22s ease;
+}
+
+/* ---------- 6. Site chrome ---------- */
+/* The header and footer are the static rdy.gg replica spliced into the
+   shell (hub/rdy-header.html, hub/rdy-footer.html) and are styled only by
+   hub/rdy-chrome.css plus their own inline styles. The prototype's old
+   .app-header / .app-footer rules were deleted with the markup they
+   styled: nothing here may target .rdy-chrome-header or
+   .rdy-chrome-footer, ever. Section 18 keeps this stylesheet's few
+   element-level resets away from those two subtrees. */
+
+.live-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--color-live);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-rdy-red) 60%, transparent);
+  animation: live-pulse 1.8s ease-out infinite;
+  flex: 0 0 auto;
+}
+@keyframes live-pulse {
+  0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-rdy-red) 55%, transparent); }
+  70%  { box-shadow: 0 0 0 7px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+/* ---------- 7. Buttons ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  height: 32px; padding: 0 12px;
+  font-size: 13px; font-weight: 600; line-height: 1;
+  color: var(--color-rdy-white);
+  background: var(--color-rdy-white-5);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+.btn:hover { color: var(--color-rdy-white); background: var(--color-rdy-white-10); border-color: var(--border-strong); }
+.btn-primary { color: var(--color-rdy-dark-sky); background: var(--color-rdy-fresh-green); border-color: transparent; font-weight: 800; }
+.btn-primary:hover { color: var(--color-rdy-dark-sky); background: var(--color-rdy-fresh-green-hover); }
+.btn-ghost { background: transparent; border-color: transparent; color: var(--text-secondary); }
+.btn-ghost:hover { color: var(--color-rdy-white); background: var(--color-rdy-white-5); }
+.btn-sm { height: 26px; padding: 0 9px; font-size: 12px; }
+.btn-lg { height: 40px; padding: 0 18px; font-size: 15px; }
+.btn-block { width: 100%; }
+.btn .icon { width: 1em; height: 1em; fill: currentColor; flex: 0 0 auto; }
+
+/* ---------- 8. Tournament identity bar ---------- */
+.t-bar {
+  border-bottom: 1px solid var(--border-soft);
+  background:
+    radial-gradient(900px 200px at 12% 0%, color-mix(in srgb, var(--color-rdy-fresh-green) 10%, transparent), transparent 70%),
+    radial-gradient(700px 180px at 78% 0%, color-mix(in srgb, var(--color-rdy-gold) 7%, transparent), transparent 70%);
+}
+.t-bar-inner { padding: 14px 0 16px; }
+
+.breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-tertiary); margin-bottom: 10px; }
+.breadcrumb a { color: var(--text-tertiary); }
+.breadcrumb a:hover { color: var(--color-rdy-fresh-green); }
+.breadcrumb .sep { color: var(--color-rdy-white-25); }
+.breadcrumb [aria-current="page"] { color: var(--text-secondary); }
+
+.t-identity-row { display: flex; align-items: flex-end; gap: 20px; min-width: 0; }
+.t-identity { min-width: 0; flex: 1 1 auto; }
+.t-title { color: var(--color-rdy-white); margin-bottom: 4px; }
+.t-subtitle { color: var(--text-secondary); }
+.t-chips { margin-top: 8px; }
+
+.t-meta {
+  flex: 0 0 auto;
+  margin-left: auto;
+  display: flex;
+  align-items: stretch;
+}
+.t-meta-item { padding: 0 16px; border-left: 1px solid var(--border-soft); }
+.t-meta-item:first-child { padding-left: 0; border-left: 0; }
+.t-meta-item:last-child { padding-right: 0; }
+.t-meta-label {
+  display: block;
+  font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: 3px;
+}
+.t-meta-value { display: block; font-size: 16px; font-weight: 600; color: var(--color-rdy-white); white-space: nowrap; }
+
+/* ---------- 9. Tab bar ---------- */
+.tab-bar-wrap {
+  position: sticky;
+  top: calc(var(--height-header) + var(--height-header-rule));
+  z-index: 50;
+  background: color-mix(in srgb, var(--color-rdy-dark-sky) 94%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-soft);
+}
+.tab-bar { display: flex; gap: 2px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.tab-bar::-webkit-scrollbar { display: none; }
+
+.tab-btn {
+  position: relative;
+  display: inline-flex; align-items: center;
+  height: 44px; padding: 0 14px;
+  font-size: 13px; font-weight: 600; letter-spacing: .02em;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color .15s ease;
+}
+.tab-btn::after {
+  content: "";
+  position: absolute; left: 8px; right: 8px; bottom: 0;
+  height: 2px; border-radius: 2px 2px 0 0;
+  background: transparent;
+  transition: background .15s ease;
+}
+.tab-btn:hover { color: var(--color-rdy-white); }
+.tab-btn[aria-selected="true"] { color: var(--color-rdy-white); font-weight: 800; }
+.tab-btn[aria-selected="true"]::after { background: var(--color-rdy-fresh-green); }
+
+.tab-panel { padding-top: var(--gap-grid); }
+.tab-panel[hidden] { display: none !important; }
+
+/* ---------- 9b. Sticky mini score ---------- */
+/* Fixed, not sticky, so it costs no layout while it is away. live.js
+   reveals it with an IntersectionObserver once the live card has gone. */
+.mini-bar {
+  position: fixed;
+  left: 0; right: 0;
+  top: var(--sticky-stack);
+  z-index: 45;
+  pointer-events: none;
+  transform: translateY(-110%);
+  opacity: 0;
+  transition: transform .22s ease, opacity .22s ease;
+}
+.mini-bar.is-on { transform: none; opacity: 1; pointer-events: auto; }
+.mini-bar:empty { display: none; }
+
+/* ---------- 9c. Kills pair ---------- */
+/* The finalists swap sides between games, so a bare radiant-dire pair reads
+   in a different order on every row. Built by Hub.killsPair: one fixed
+   order, a tag on both ends, the same everywhere it is printed. */
+.kills-pair {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0 4px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.25;
+}
+.kills-pair .kp-side { display: inline-flex; align-items: baseline; gap: 3px; }
+.kills-pair .kp-tag { font-weight: 800; letter-spacing: .02em; color: var(--text-tertiary); }
+.kills-pair .kp-num { font-weight: 600; color: var(--text-secondary); }
+.kills-pair .kp-sep { color: var(--color-rdy-white-25); }
+
+/* narrow cells: two lines, tag then number, numbers in one column */
+.kills-pair--stack {
+  display: inline-grid;
+  grid-template-columns: auto auto;
+  gap: 0 6px;
+  justify-content: end;
+}
+.kills-pair--stack .kp-row { display: contents; }
+.kills-pair--stack .kp-tag { text-align: left; }
+.kills-pair--stack .kp-num { text-align: right; }
+
+/* ---------- 10. Card ---------- */
+.card {
+  position: relative;
+  background: var(--surface-card);
+  border: 1px solid var(--border-hair);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+  padding: 16px;
+}
+.card--live::before,
+.card--gold::before,
+.card--accent::before {
+  content: "";
+  position: absolute; top: 0; left: 24px; right: 24px;
+  height: 2px; border-radius: 0 0 2px 2px;
+}
+.card--live::before   { background: linear-gradient(90deg, transparent, var(--color-rdy-red), transparent); }
+.card--gold::before   { background: linear-gradient(90deg, transparent, var(--color-rdy-gold), transparent); }
+.card--accent::before { background: linear-gradient(90deg, transparent, var(--color-rdy-fresh-green), transparent); }
+
+.card-pad-0 { padding: 0; }
+.card-hover:hover { background: var(--surface-card-hover); }
+
+.card-header {
+  display: flex; align-items: center; gap: 12px;
+  min-width: 0;
+  margin-bottom: 14px;
+}
+.card-header .titles { min-width: 0; flex: 1 1 auto; }
+.card-header .title { font-size: 18px; font-weight: 800; line-height: 1.2; color: var(--color-rdy-white); }
+.card-header .subtitle { font-size: 13px; font-weight: 400; line-height: 1.4; color: var(--text-tertiary); margin-top: 2px; }
+.card-header .action { flex: 0 0 auto; margin-left: auto; }
+.card-header .action a { font-size: 12px; font-weight: 600; color: var(--color-rdy-fresh-green); }
+
+.card-body + .card-body { margin-top: 14px; }
+
+.card-footer {
+  margin-top: 14px; padding-top: 12px;
+  border-top: 1px solid var(--border-hair);
+  display: flex; align-items: center; gap: 8px;
+}
+
+/* section rhythm inside a panel */
+.section { margin-bottom: var(--gap-section); }
+.section:last-child { margin-bottom: 0; }
+.section-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 10px; min-width: 0; }
+.section-title { font-size: 18px; font-weight: 800; line-height: 1.2; color: var(--color-rdy-white); }
+.section-sub { font-size: 13px; color: var(--text-tertiary); }
+.section-action { margin-left: auto; font-size: 12px; font-weight: 600; color: var(--color-rdy-fresh-green); }
+
+/* ---------- 11. Chips ---------- */
+.chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  height: 20px; padding: 0 10px;
+  font-size: 12px; font-weight: 600; line-height: 1;
+  text-transform: uppercase; letter-spacing: .03em;
+  color: var(--color-rdy-white);
+  background: var(--surface-chip);
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+}
+.chip--live    { color: var(--color-rdy-white); background: color-mix(in srgb, var(--color-rdy-red) 18%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-rdy-red) 50%, transparent); }
+.chip--gold    { color: var(--color-rdy-light-gold); background: color-mix(in srgb, var(--color-rdy-gold) 14%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-rdy-gold) 40%, transparent); }
+.chip--green   { color: var(--color-rdy-fresh-green); background: color-mix(in srgb, var(--color-rdy-fresh-green) 14%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-rdy-fresh-green) 40%, transparent); }
+.chip--outline { background: transparent; color: var(--text-secondary); box-shadow: inset 0 0 0 1px var(--border-strong); }
+.chip--radiant { color: var(--color-radiant); background: var(--color-radiant-soft); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-rdy-fresh-green) 35%, transparent); }
+.chip--dire    { color: var(--text-dire); background: var(--color-dire-soft); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-rdy-red) 35%, transparent); }
+
+/* filter chips (interactive) */
+.chip-filter {
+  display: inline-flex; align-items: center;
+  height: 26px; padding: 0 12px;
+  font-size: 12px; font-weight: 600; letter-spacing: .02em;
+  color: var(--text-secondary);
+  background: var(--color-rdy-white-5);
+  border: 1px solid var(--border-hair);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+.chip-filter:hover { color: var(--color-rdy-white); background: var(--color-rdy-white-10); }
+.chip-filter[aria-pressed="true"] {
+  color: var(--color-rdy-dark-sky);
+  background: var(--color-rdy-fresh-green);
+  border-color: transparent;
+  font-weight: 800;
+}
+
+/* ---------- 12. Tables ---------- */
+.hub-table { width: 100%; font-size: 13px; }
+.hub-table caption { text-align: left; font-size: 12px; color: var(--text-tertiary); padding-bottom: 8px; }
+.hub-table th {
+  font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--text-tertiary);
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border-soft);
+  white-space: nowrap;
+}
+.hub-table td {
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--border-hair);
+  color: var(--text-secondary);
+  vertical-align: middle;
+}
+.hub-table tbody tr:last-child td { border-bottom: 0; }
+.hub-table tbody tr:hover td { background: var(--color-rdy-white-5); }
+.hub-table .col-num, .hub-table th.col-num { text-align: right; font-variant-numeric: tabular-nums; }
+.hub-table .col-mid, .hub-table th.col-mid { text-align: center; }
+.hub-table .cell-strong { color: var(--color-rdy-white); font-weight: 600; }
+.hub-table--striped tbody tr:nth-child(odd) td { background: var(--surface-raised); }
+.hub-table--compact th { padding: 6px 8px; }
+.hub-table--compact td { padding: 6px 8px; }
+
+/* ---------- 13. Avatars, logos, portraits ---------- */
+.avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: 50% 20%;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-soft);
+  flex: 0 0 auto;
+}
+.avatar--initials {
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800; letter-spacing: .02em;
+  color: var(--color-rdy-white);
+  text-transform: uppercase;
+  user-select: none;
+}
+.avatar-sm { width: 24px; height: 24px; }
+.avatar-sm.avatar--initials { font-size: 11px; letter-spacing: -.02em; }
+.avatar-lg { width: 44px; height: 44px; }
+.avatar-lg.avatar--initials { font-size: 14px; }
+
+.team-logo {
+  width: 28px; height: 28px;
+  object-fit: contain;
+  flex: 0 0 auto;
+}
+.team-logo-lg { width: 40px; height: 40px; }
+.team-logo-sm { width: 20px; height: 20px; }
+
+.monogram {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px;
+  border-radius: var(--radius-md);
+  font-size: 11px; font-weight: 800; letter-spacing: .01em;
+  text-transform: uppercase;
+  color: var(--color-rdy-white);
+  background: var(--surface-chip);
+  border: 1px solid var(--border-soft);
+  flex: 0 0 auto;
+  user-select: none;
+}
+.monogram.team-logo-lg { width: 40px; height: 40px; font-size: 13px; border-radius: var(--radius-lg); }
+.monogram.team-logo-sm { width: 28px; height: 20px; font-size: 11px; letter-spacing: -.02em; border-radius: var(--radius-sm); }
+.monogram.team-logo-lg { letter-spacing: -.02em; }
+
+.hero-portrait {
+  width: 48px; height: 27px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  flex: 0 0 auto;
+}
+.hero-portrait--radiant { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-rdy-fresh-green) 50%, transparent), 0 0 0 1px color-mix(in srgb, var(--color-rdy-fresh-green) 35%, transparent); }
+.hero-portrait--dire { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-rdy-red) 50%, transparent), 0 0 0 1px color-mix(in srgb, var(--color-rdy-red) 35%, transparent); }
+.hero-portrait-lg { width: 64px; height: 36px; }
+.hero-portrait-sm { width: 38px; height: 21px; }
+
+.item-icon {
+  width: 27px; height: 20px;
+  object-fit: cover;
+  border-radius: 2px;
+  background: var(--surface-raised);
+  flex: 0 0 auto;
+}
+
+.img-missing { background: var(--surface-raised); }
+
+/* ---------- 14. Icons ---------- */
+.icon { width: 1em; height: 1em; fill: currentColor; flex: 0 0 auto; }
+.icon-md { font-size: 16px; }
+.icon-lg { font-size: 20px; }
+.icon-xl { font-size: 24px; }
+
+/* ---------- 15. Ad slots (hidden unless body.show-ads) ---------- */
+.ad-slot { display: none; }
+body.show-ads .ad-slot {
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto;
+  background: var(--color-rdy-white-5);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+  color: var(--text-tertiary);
+  font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+}
+.ad-slot--leaderboard { width: 728px; max-width: 100%; height: 90px; }
+.ad-slot--rail { width: 160px; height: 600px; }
+.ad-slot--square { width: 250px; height: 250px; }
+
+/* ---------- 16. Mount placeholders ---------- */
+.mount { min-width: 0; }
+.mount:empty::before { content: "component: " attr(data-mount); }
+.mount:empty::before,
+.mount-placeholder {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 120px; padding: 20px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-xl);
+  color: var(--text-tertiary);
+  font-size: 12px; font-weight: 600; letter-spacing: .06em;
+  text-align: center;
+}
+.mount-error {
+  display: block; padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--color-rdy-red) 50%, transparent);
+  border-radius: var(--radius-xl);
+  background: color-mix(in srgb, var(--color-rdy-red) 8%, transparent);
+  color: var(--color-rdy-light-red);
+  font-size: 12px;
+}
+
+/* ---------- 17. Prototype note strip ---------- */
+/* The required disclosure line. It sits between the page and the replica
+   footer, because the replica footer is rdy.gg's own markup and carries no
+   prototype copy. */
+.proto-note {
+  border-top: 1px solid var(--border-soft);
+  background: var(--color-rdy-light-sky);
+}
+.proto-note-inner {
+  padding: 14px 0 16px;
+  font-size: 12px; line-height: 1.5;
+  color: var(--text-tertiary);
+}
+
+/* ---------- 18. Safety breakpoints ---------- */
+
+/* inner two-column rows stack before the main column gets too narrow */
+@media (max-width: 1200px) {
+  .row-2-1, .row-1-1, .row-1-2 { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* SAFETY ONLY. Full mobile is a later phase: below 1024 the sidebar
+   stacks under the main column so nothing collapses to zero width. */
+@media (max-width: 1023px) {
+  .page-grid { grid-template-columns: minmax(0, 1fr); }
+  .side-col {
+    position: static;
+    max-height: none;
+    overflow: visible;
+    order: 2;
+  }
+  .main-col { order: 1; }
+  .t-identity-row { flex-wrap: wrap; align-items: flex-start; }
+  .t-meta { margin-left: 0; width: 100%; flex-wrap: wrap; row-gap: 10px; }
+  .t-meta-item:nth-child(3) { padding-left: 0; border-left: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+}

@@ -1,0 +1,468 @@
+/* hub/editorial.css
+   Scoped styles for the editorial and sidebar components.
+   Every selector starts from an "ed-" class. Tokens only, no raw hexes
+   except the five brand social tints, which are the platforms' own.
+   Minimum text size anywhere here is 11px (audit F16, F27, F28).
+*/
+
+/* ------------------------------------------------------------------ *
+ * 1. Roots and shared motion
+ * ------------------------------------------------------------------ */
+
+.ed-root,
+.ed-card-side {
+  animation: ed-rise .38s cubic-bezier(.22, .61, .36, 1) both;
+}
+.ed-card-side + .ed-card-side { animation-delay: .06s; }
+
+@keyframes ed-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ed-root,
+  .ed-card-side { animation: none; }
+  .ed-figure .ed-img,
+  .ed-card,
+  .ed-mini { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ *
+ * 2. Section head and text buttons
+ * ------------------------------------------------------------------ */
+
+.ed-head { flex-wrap: wrap; row-gap: 4px; }
+.ed-head-action { margin-left: auto; flex: 0 0 auto; }
+
+.ed-textbtn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 0;
+  font-family: inherit; font-size: 12px; font-weight: 600; line-height: 1.2;
+  color: var(--color-rdy-fresh-green);
+  background: none; border: 0; cursor: pointer;
+  white-space: nowrap;
+  transition: color .15s ease, gap .15s ease;
+}
+.ed-textbtn:hover { color: var(--color-rdy-white); gap: 8px; }
+.ed-textbtn:focus-visible { outline: 2px solid var(--color-rdy-fresh-green); outline-offset: 3px; border-radius: var(--radius-sm); }
+.ed-textbtn--link { text-decoration: none; }
+.ed-textbtn--sm { font-size: 11px; }
+.ed-textbtn-icon { width: 12px; height: 12px; flex: 0 0 auto; }
+.ed-textbtn-icon-l { width: 13px; height: 13px; flex: 0 0 auto; }
+
+/* ------------------------------------------------------------------ *
+ * 3. Photography
+ * ------------------------------------------------------------------ */
+
+.ed-figure {
+  position: relative;
+  margin: 0;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--surface-raised);
+  min-width: 0;
+}
+.ed-figure .ed-img {
+  display: block;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: 50% 35%;
+  transition: transform .45s cubic-bezier(.22, .61, .36, 1);
+}
+.card-hover:hover .ed-figure .ed-img,
+.ed-feature:hover .ed-figure .ed-img { transform: scale(1.03); }
+
+/* the visible honesty line: these are placeholders, not TI 2026 photos
+   (audit F33, V06). Never hidden behind a hover. */
+.ed-credit {
+  position: absolute; left: 6px; bottom: 6px;
+  max-width: calc(100% - 12px);
+  padding: 2px 7px;
+  font-size: 11px; font-weight: 600; line-height: 1.3;
+  color: var(--color-rdy-white);
+  background: color-mix(in srgb, var(--color-rdy-dark-sky) 78%, transparent);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-pill);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.ed-figure--feature { aspect-ratio: 16 / 9; }
+.ed-figure--card    { aspect-ratio: 16 / 9; }
+.ed-figure--thumb   { width: 104px; flex: 0 0 104px; aspect-ratio: 16 / 10; }
+.ed-figure--feed    { aspect-ratio: 16 / 9; margin-top: 8px; }
+
+.ed-figlink {
+  display: block; position: relative;
+  width: 100%; height: 100%;
+  cursor: pointer;
+}
+.ed-figlink:focus-visible {
+  outline: 2px solid var(--color-rdy-fresh-green);
+  outline-offset: -2px;
+}
+.ed-play {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none;
+}
+.ed-figlink:hover .ed-play-icon,
+.ed-figlink:focus-visible .ed-play-icon {
+  background: var(--color-rdy-fresh-green);
+  color: var(--color-rdy-dark-sky);
+  border-color: transparent;
+}
+.ed-play-icon { transition: background .15s ease, color .15s ease, border-color .15s ease; }
+.ed-play-icon {
+  width: 40px; height: 40px;
+  padding: 9px;
+  color: var(--color-rdy-white);
+  background: color-mix(in srgb, var(--color-rdy-dark-sky) 62%, transparent);
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+}
+
+/* ------------------------------------------------------------------ *
+ * 4. Category chips
+ * ------------------------------------------------------------------ */
+
+.ed-cat {
+  background: var(--surface-chip);
+  color: var(--color-rdy-white);
+  box-shadow: inset 0 0 0 1px var(--border-soft);
+}
+.ed-cat--recap      { color: var(--color-rdy-white);         box-shadow: inset 0 0 0 1px var(--border-strong); }
+.ed-cat--analysis   { color: var(--color-rdy-turquoise);     background: color-mix(in srgb, var(--color-rdy-turquoise) 13%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-rdy-turquoise) 42%, transparent); }
+.ed-cat--draft      { color: var(--color-rdy-light-gold);    background: color-mix(in srgb, var(--color-rdy-gold) 13%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-rdy-gold) 42%, transparent); }
+.ed-cat--interview  { color: var(--text-dire);     background: color-mix(in srgb, var(--color-rdy-light-red) 12%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-rdy-light-red) 40%, transparent); }
+.ed-cat--statistics { color: var(--color-rdy-fresh-green);   background: color-mix(in srgb, var(--color-rdy-fresh-green) 13%, transparent);    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-rdy-fresh-green) 40%, transparent); }
+.ed-cat--hot-take   { color: var(--color-rdy-yellow);        background: color-mix(in srgb, var(--color-rdy-yellow) 13%, transparent);  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-rdy-yellow) 42%, transparent); }
+
+.ed-chip-live { gap: 5px; }
+
+/* ------------------------------------------------------------------ *
+ * 5. Filter bars
+ * ------------------------------------------------------------------ */
+
+.ed-filters {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-bottom: 10px;
+}
+.ed-filters--side { margin-bottom: 8px; }
+
+.ed-filter { gap: 6px; }
+.ed-filter-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 17px; height: 15px; padding: 0 4px;
+  font-size: 11px; font-weight: 800; line-height: 1;
+  color: var(--text-secondary);
+  background: var(--color-rdy-white-10);
+  border-radius: var(--radius-pill);
+}
+.ed-filter[aria-pressed="true"] .ed-filter-count {
+  color: var(--color-rdy-dark-sky);
+  background: var(--color-rdy-white-85);
+}
+
+.ed-status {
+  margin: 0 0 12px;
+  font-size: 12px; line-height: 1.4;
+}
+
+/* ------------------------------------------------------------------ *
+ * 6. Featured block (Overview)
+ * ------------------------------------------------------------------ */
+
+.ed-feature-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  gap: var(--gap-grid);
+  align-items: start;
+}
+.ed-feature-side { display: flex; flex-direction: column; gap: var(--gap-grid); min-width: 0; }
+
+@media (max-width: 1200px) {
+  .ed-feature-grid { grid-template-columns: minmax(0, 1fr); }
+  .ed-feature-side { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+}
+
+.ed-feature { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.ed-feature-body { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+
+/* ------------------------------------------------------------------ *
+ * 7. Article cards
+ * ------------------------------------------------------------------ */
+
+.ed-news-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(276px, 1fr));
+  gap: var(--gap-grid);
+  align-items: start;
+}
+
+.ed-card {
+  display: flex; flex-direction: column; gap: 12px;
+  min-width: 0;
+  transition: background .15s ease, transform .18s ease;
+}
+.ed-card[hidden],
+.ed-mini[hidden],
+.ed-feed-item[hidden] { display: none !important; }
+
+.ed-card:hover { transform: translateY(-2px); }
+.ed-card-body { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.ed-card-top { row-gap: 6px; }
+
+.ed-headline {
+  margin: 0;
+  font-size: 17px; font-weight: 800; line-height: 1.25;
+  color: var(--color-rdy-white);
+  overflow-wrap: anywhere;
+}
+.ed-headline--lg { font-size: clamp(20px, 18.6px + .37vw, 26px); }
+.ed-headline--sm { font-size: 14px; line-height: 1.3; }
+
+.ed-dek {
+  margin: 0;
+  font-size: 13px; line-height: 1.45;
+  color: var(--text-secondary);
+}
+.ed-dek--lg { font-size: 15px; line-height: 1.5; }
+
+/* byline row */
+.ed-byline {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+  font-size: 11px; line-height: 1.3;
+  color: var(--text-tertiary);
+}
+.ed-mark {
+  display: inline-flex; align-items: center;
+  height: 16px; padding: 0 5px;
+  font-size: 11px; font-weight: 800; line-height: 1;
+  color: var(--color-rdy-dark-sky);
+  background: var(--color-rdy-fresh-green);
+  border-radius: var(--radius-sm);
+}
+.ed-byline-name { color: var(--text-secondary); font-weight: 600; }
+.ed-sep { color: var(--color-rdy-white-45); }
+.ed-read { display: inline-flex; align-items: center; gap: 4px; }
+.ed-read-icon { width: 12px; height: 12px; color: var(--color-rdy-white-45); }
+
+/* entity row: crests and hero portraits */
+.ed-ents { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
+.ed-ent {
+  display: inline-flex; align-items: center; gap: 5px;
+  max-width: 100%;
+  padding: 2px 8px 2px 3px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-hair);
+  border-radius: var(--radius-pill);
+}
+.ed-ent .hero-portrait { width: 28px; height: 16px; border-radius: var(--radius-sm); }
+.ed-ent .team-logo { width: 18px; height: 18px; }
+/* A crest can be squared off at 18px, a monogram cannot: it carries the
+   team's three letter tag and an 18px box left 16px of content, which
+   clipped NGX (verifier I06). It keeps the 28x20 chip Hub.monogram is
+   designed around, and the disc itself is the darkened team colour that
+   core.js composites, so white on it clears 4.5:1 on every team. */
+.ed-ent .monogram { width: 28px; height: 20px; }
+.ed-ent-label {
+  font-size: 11px; font-weight: 600; line-height: 1.2;
+  color: var(--text-secondary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* read / close disclosure */
+.ed-more { align-self: flex-start; gap: 5px; }
+.ed-more-icon { width: 12px; height: 12px; transition: transform .18s ease; }
+.ed-more[aria-expanded="true"] .ed-more-icon { transform: rotate(90deg); }
+
+.ed-body {
+  border-top: 1px solid var(--border-soft);
+  padding-top: 10px;
+  animation: ed-open .25s ease both;
+}
+.ed-body[hidden] { display: none; }
+@keyframes ed-open { from { opacity: 0; } to { opacity: 1; } }
+
+.ed-p {
+  margin: 0 0 8px;
+  font-size: 13px; line-height: 1.5;
+  color: var(--text-secondary);
+}
+.ed-p:last-child { margin-bottom: 0; }
+
+/* compact article card, used beside the featured piece */
+.ed-mini { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.ed-mini-row { display: flex; gap: 10px; align-items: flex-start; min-width: 0; }
+.ed-mini-text { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1 1 auto; }
+.ed-credit-line {
+  margin: 0;
+  font-size: 11px; line-height: 1.3;
+  color: var(--text-tertiary);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 520px) {
+  .ed-mini-row { flex-direction: column; }
+  .ed-figure--thumb { width: 100%; flex: 0 0 auto; aspect-ratio: 16 / 9; }
+}
+
+/* ------------------------------------------------------------------ *
+ * 8. Sidebar cards
+ * ------------------------------------------------------------------ */
+
+.ed-card-side { min-width: 0; }
+.ed-card-side .card-header { margin-bottom: 12px; }
+.ed-side-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+
+/* Today */
+.ed-today-series {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 10px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-hair);
+  border-radius: var(--radius-lg);
+  margin-bottom: 10px;
+}
+.ed-today-team { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.ed-today-name {
+  flex: 1 1 auto;
+  font-size: 13px; font-weight: 600; line-height: 1.2;
+  color: var(--color-rdy-white);
+  text-decoration: none;
+}
+a.ed-today-name:hover { color: var(--color-rdy-fresh-green); }
+.ed-today-score {
+  flex: 0 0 auto;
+  font-size: 18px; font-weight: 800; line-height: 1;
+  color: var(--color-rdy-white);
+}
+.ed-today-note { margin: 2px 0 0; font-size: 11px; line-height: 1.4; }
+
+.ed-today-table { font-size: 12px; }
+.ed-today-table th, .ed-today-table td { padding: 6px 6px; vertical-align: middle; }
+.ed-today-table th:first-child, .ed-today-table td:first-child { padding-left: 0; }
+.ed-today-table th:last-child, .ed-today-table td:last-child { padding-right: 0; }
+.ed-g-num { color: var(--text-tertiary); font-weight: 600; width: 1%; white-space: nowrap; }
+.ed-g-time { color: var(--text-secondary); width: 1%; white-space: nowrap; }
+.ed-g-result { display: flex; align-items: center; gap: 5px; min-width: 0; }
+.ed-g-result .team-logo { width: 18px; height: 18px; }
+/* a monogram carries a three letter tag, so it keeps its own 28x20 box:
+   squashing it to 18x18 clipped the third letter (verifier I06) */
+.ed-g-result .monogram { width: 28px; height: 20px; }
+.ed-g-winner { font-size: 12px; font-weight: 600; color: var(--color-rdy-white); }
+.ed-g-dur { font-size: 11px; white-space: nowrap; }
+.ed-g-score { width: 1%; white-space: nowrap; color: var(--text-secondary); font-size: 12px; }
+.ed-g-score .kills-pair { font-size: 11px; }
+.ed-g-row.is-live .ed-g-dur { color: var(--text-dire); font-weight: 700; }
+.ed-g-row.is-live th, .ed-g-row.is-live td { background: color-mix(in srgb, var(--color-rdy-red) 7%, transparent); }
+
+/* Feed */
+.ed-feed { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.ed-feed-item {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 10px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-hair);
+  border-radius: var(--radius-lg);
+  min-width: 0;
+  transition: border-color .15s ease, background .15s ease;
+}
+.ed-feed-item:hover { border-color: var(--border-strong); background: var(--surface-card-hover); }
+.ed-feed-head { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.ed-feed-icon { width: 13px; height: 13px; color: var(--color-rdy-white-45); flex: 0 0 auto; }
+.ed-feed-kind {
+  font-size: 11px; font-weight: 800; line-height: 1;
+  text-transform: uppercase; letter-spacing: .04em;
+  color: var(--text-secondary);
+}
+.ed-feed-stamp { font-size: 11px; white-space: nowrap; }
+.ed-feed-text-wrap { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ed-feed-title {
+  font-size: 13px; font-weight: 700; line-height: 1.3;
+  color: var(--color-rdy-white);
+  overflow-wrap: anywhere;
+}
+.ed-feed-text {
+  margin: 0;
+  font-size: 12px; line-height: 1.45;
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.ed-feed-more { margin-top: 10px; }
+
+.ed-quote {
+  margin: 0;
+  padding: 8px 10px;
+  border-left: 3px solid var(--color-rdy-fresh-green);
+  background: var(--color-rdy-white-5);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+.ed-quote-text {
+  margin: 0 0 5px;
+  font-size: 13px; font-weight: 600; line-height: 1.4;
+  color: var(--color-rdy-white);
+}
+.ed-quote-src { margin: 0; font-size: 11px; line-height: 1.3; }
+
+/* Follow */
+.ed-discord { text-decoration: none; }
+.ed-social-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.ed-social-link {
+  display: flex; flex-direction: column; gap: 1px;
+  padding: 7px 9px;
+  min-width: 0;
+  text-decoration: none;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-hair);
+  border-left-width: 3px;
+  border-radius: var(--radius-md);
+  transition: background .15s ease, border-color .15s ease, transform .15s ease;
+}
+.ed-social-link:last-child { grid-column: 1 / -1; }
+.ed-social-link:hover { background: var(--surface-card-hover); border-color: var(--border-strong); transform: translateX(2px); }
+.ed-social-label { font-size: 12px; font-weight: 700; line-height: 1.2; color: var(--color-rdy-white); }
+.ed-social-at {
+  font-size: 11px; line-height: 1.2; color: var(--text-tertiary);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ed-social-link--x  { border-left-color: var(--color-rdy-white-45); }
+.ed-social-link--ig { border-left-color: #e1306c; }
+.ed-social-link--yt { border-left-color: #ff0000; }
+.ed-social-link--tt { border-left-color: var(--color-rdy-turquoise); }
+.ed-social-link--fb { border-left-color: #1877f2; }
+
+/* Event info */
+.ed-info-table { font-size: 12px; }
+.ed-info-table th, .ed-info-table td { padding: 6px 0; vertical-align: top; }
+.ed-info-key {
+  width: 40%;
+  font-size: 12px; font-weight: 600; line-height: 1.35;
+  color: var(--text-tertiary);
+  text-align: left; text-transform: none; letter-spacing: 0;
+  border-bottom: 1px solid var(--border-hair);
+  white-space: nowrap;
+}
+.ed-info-val {
+  font-size: 12px; font-weight: 600; line-height: 1.35;
+  color: var(--color-rdy-white);
+  overflow-wrap: anywhere;
+}
+.ed-info-table tr:last-child th,
+.ed-info-table tr:last-child td { border-bottom: 0; }
+.ed-info-note { margin: 10px 0 0; font-size: 11px; line-height: 1.45; }
+.ed-info-note + .ed-info-note { margin-top: 6px; }
+
+/* ------------------------------------------------------------------ *
+ * 9. Safety breakpoint
+ * The sidebar stacks under main below 1024px. Sidebar cards then have a
+ * full-width column to work with, so the feed and follow grids relax.
+ * ------------------------------------------------------------------ */
+
+@media (max-width: 1023px) {
+  .ed-social-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .ed-social-link:last-child { grid-column: auto; }
+  .ed-feed { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+}

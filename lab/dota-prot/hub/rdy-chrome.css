@@ -1,0 +1,340 @@
+/* ============================================================================
+   rdy-chrome.css
+   Support stylesheet for the static rdy.gg header/footer replicas
+   (hub/rdy-header.html, hub/rdy-footer.html).
+
+   Captured 2026-09-10 from https://rdy.gg/en/dota2 and /en/dota2/tournaments
+   at 1440x900, logged out. Chrome/Blink.
+
+   Everything here is scoped under .rdy-chrome-header / .rdy-chrome-footer so it
+   cannot leak into the rest of the prototype, and nothing in the fragments
+   depends on any rdy.gg CSS bundle.
+
+   Required companion: Source Sans 3 (weights 400 and 600 are the only ones the
+   chrome actually renders text at).
+   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700;800&display=swap">
+   ============================================================================ */
+
+
+/* ----------------------------------------------------------------------------
+   1. THE FLUID ROOT SCALE  (--rdy-rem)
+
+   rdy.gg does not use a fixed 16px root. Its html font-size is fluid, so every
+   rem-based box in the chrome (heights, padding, gaps, radii, icon sizes)
+   scales with the viewport. The live declaration is:
+
+       html { font-size: calc(var(--fluid-base) * 1rem + var(--fluid-coefficient) * 1vw) }
+
+   with --fluid-font-from / --fluid-font-to / --fluid-vw-from / --fluid-vw-to
+   swapped by max-width media queries. Resolved, that is:
+
+       <= 479px    12px @ 1px    ->  16px @ 479px
+       480..1440   14px @ 479px  ->  16px @ 1440px    (root 16.00px at 1440)
+       1441..2400  16px @ 1440px ->  20px @ 2400px    (root 18.00px at 1920)
+       >= 2401px   20px flat
+
+   A wrapper div cannot redefine rem, so the replica expresses that same curve
+   as a custom property and every length in the fragments is written as
+   calc(<n> * var(--rdy-rem)). The px form below is deliberate: it does NOT
+   depend on the host page's own html font-size, so the chrome renders
+   identically whether the prototype's root is 16px or something else.
+
+   Verified against the live site: 15.1342px @1024, 16.0000px @1440,
+   18.0000px @1920 (vw is the full window width including the scrollbar).
+   ---------------------------------------------------------------------------- */
+
+.rdy-chrome-header,
+.rdy-chrome-footer {
+  --rdy-rem: calc(13.003125px + 0.2081165vw);      /* 480px - 1440px */
+
+  /* Height of the whole header block (56 + 64 + 1px hairline at 1440).
+     Exposed so a sticky/offset layout can reserve the right space. */
+  --rdy-chrome-header-height: calc(7.5 * var(--rdy-rem) + 1px);
+
+  font-family: "Source Sans 3", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+@media (max-width: 479px) {
+  .rdy-chrome-header,
+  .rdy-chrome-footer { --rdy-rem: calc(11.9916315px + 0.83682vw); }
+}
+@media (min-width: 1441px) {
+  .rdy-chrome-header,
+  .rdy-chrome-footer { --rdy-rem: calc(10px + 0.4166667vw); }
+}
+@media (min-width: 2401px) {
+  .rdy-chrome-header,
+  .rdy-chrome-footer { --rdy-rem: 20px; }
+}
+
+/* Font sizes are NOT rem-based on rdy.gg. Each type token is its own clamp()
+   expressed in vw, so they are written inline in the fragments verbatim:
+     font-size-10       10px
+     font-size-12       12px
+     font-size-14       clamp(12px, 11.66px + 0.0915vw, 14px)   -> 12.98px @1440
+     font-size-16       clamp(13px, 12.49px + 0.1373vw, 16px)   -> 14.47px @1440
+     font-size-18       clamp(14px, 13.31px + 0.1831vw, 18px)   -> 15.95px @1440
+     font-size-22       clamp(18px, 17.31px + 0.1831vw, 22px)   -> 19.95px @1440
+   Those need no rule here; they are already on the elements. */
+
+
+/* ----------------------------------------------------------------------------
+   2. SCOPED PREFLIGHT
+
+   rdy.gg runs Tailwind v4, whose preflight is the baseline every inline style
+   in the fragments was diffed against (a property was only inlined when it
+   differed from this). Reproducing it scoped keeps the fragments small and
+   makes them immune to the prototype's own element selectors. The doubled
+   class raises specificity to 0,2,0 so ordinary host rules lose; inline styles
+   on the fragments beat everything here anyway.
+   ---------------------------------------------------------------------------- */
+
+.rdy-chrome-header.rdy-chrome-header,
+.rdy-chrome-footer.rdy-chrome-footer,
+.rdy-chrome-header.rdy-chrome-header *,
+.rdy-chrome-header.rdy-chrome-header *::before,
+.rdy-chrome-header.rdy-chrome-header *::after,
+.rdy-chrome-footer.rdy-chrome-footer *,
+.rdy-chrome-footer.rdy-chrome-footer *::before,
+.rdy-chrome-footer.rdy-chrome-footer *::after {
+  box-sizing: border-box;
+  border: 0 solid;
+  margin: 0;
+  padding: 0;
+}
+
+.rdy-chrome-header.rdy-chrome-header h1, .rdy-chrome-header.rdy-chrome-header h2,
+.rdy-chrome-header.rdy-chrome-header h3, .rdy-chrome-header.rdy-chrome-header h4,
+.rdy-chrome-header.rdy-chrome-header h5, .rdy-chrome-header.rdy-chrome-header h6,
+.rdy-chrome-footer.rdy-chrome-footer h1, .rdy-chrome-footer.rdy-chrome-footer h2,
+.rdy-chrome-footer.rdy-chrome-footer h3, .rdy-chrome-footer.rdy-chrome-footer h4,
+.rdy-chrome-footer.rdy-chrome-footer h5, .rdy-chrome-footer.rdy-chrome-footer h6 {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.rdy-chrome-header.rdy-chrome-header a,
+.rdy-chrome-footer.rdy-chrome-footer a {
+  color: inherit;
+  -webkit-text-decoration: inherit;
+  text-decoration: inherit;
+}
+
+.rdy-chrome-header.rdy-chrome-header b, .rdy-chrome-header.rdy-chrome-header strong,
+.rdy-chrome-footer.rdy-chrome-footer b, .rdy-chrome-footer.rdy-chrome-footer strong {
+  font-weight: bolder;
+}
+
+.rdy-chrome-header.rdy-chrome-header small,
+.rdy-chrome-footer.rdy-chrome-footer small { font-size: 80%; }
+
+.rdy-chrome-header.rdy-chrome-header ol, .rdy-chrome-header.rdy-chrome-header ul,
+.rdy-chrome-header.rdy-chrome-header menu,
+.rdy-chrome-footer.rdy-chrome-footer ol, .rdy-chrome-footer.rdy-chrome-footer ul,
+.rdy-chrome-footer.rdy-chrome-footer menu {
+  list-style: none;
+}
+
+.rdy-chrome-header.rdy-chrome-header img, .rdy-chrome-header.rdy-chrome-header svg,
+.rdy-chrome-header.rdy-chrome-header video, .rdy-chrome-header.rdy-chrome-header canvas,
+.rdy-chrome-header.rdy-chrome-header iframe, .rdy-chrome-header.rdy-chrome-header embed,
+.rdy-chrome-header.rdy-chrome-header object,
+.rdy-chrome-footer.rdy-chrome-footer img, .rdy-chrome-footer.rdy-chrome-footer svg,
+.rdy-chrome-footer.rdy-chrome-footer video, .rdy-chrome-footer.rdy-chrome-footer canvas,
+.rdy-chrome-footer.rdy-chrome-footer iframe, .rdy-chrome-footer.rdy-chrome-footer embed,
+.rdy-chrome-footer.rdy-chrome-footer object {
+  display: block;
+  vertical-align: middle;
+}
+
+.rdy-chrome-header.rdy-chrome-header img, .rdy-chrome-header.rdy-chrome-header video,
+.rdy-chrome-footer.rdy-chrome-footer img, .rdy-chrome-footer.rdy-chrome-footer video {
+  max-width: 100%;
+  height: auto;
+}
+
+.rdy-chrome-header.rdy-chrome-header button, .rdy-chrome-header.rdy-chrome-header input,
+.rdy-chrome-header.rdy-chrome-header select, .rdy-chrome-header.rdy-chrome-header textarea,
+.rdy-chrome-footer.rdy-chrome-footer button, .rdy-chrome-footer.rdy-chrome-footer input,
+.rdy-chrome-footer.rdy-chrome-footer select, .rdy-chrome-footer.rdy-chrome-footer textarea {
+  font: inherit;
+  font-feature-settings: inherit;
+  font-variation-settings: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  opacity: 1;
+  background-color: transparent;
+  border-radius: 0;
+  appearance: button;
+}
+
+.rdy-chrome-header.rdy-chrome-header ::placeholder,
+.rdy-chrome-footer.rdy-chrome-footer ::placeholder {
+  opacity: 1;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.rdy-chrome-header.rdy-chrome-header p,
+.rdy-chrome-footer.rdy-chrome-footer p,
+.rdy-chrome-footer.rdy-chrome-footer h3 {
+  overflow-wrap: break-word;
+}
+
+/* Focus rings: the live site relies on the UA ring; keep it off the static
+   replica so a stray tab never draws a box the real site would not. */
+.rdy-chrome-header.rdy-chrome-header :focus,
+.rdy-chrome-footer.rdy-chrome-footer :focus { outline: none; }
+
+
+/* ----------------------------------------------------------------------------
+   2b. THE ONE REAL BREAKPOINT IN RANGE  (Tailwind 2xl)
+
+   Between 1024 and 1920 the chrome does not reflow: no column stacking, no
+   nav collapse, the same elements are visible throughout (the mobile burger,
+   the mobile menu and the mobile logo link are display:none from sm/lg up and
+   were dropped from the capture entirely).
+
+   The only thing that changes is Tailwind's 2xl variant, which the header uses
+   twice:
+       header row    "flex gap-3 2xl:gap-6"        0.75rem -> 1.5rem
+       nav list      "flex items-center gap-1 2xl:gap-2"  0.25rem -> 0.5rem
+
+   The nav gap is the visible one: at 1920 it moves every nav item after the
+   first by 4.5px per gap (the "Tournaments" label sits at x=398.1 rather than
+   380.1). The capture was taken at 1440 where 2xl is off, so the rule is
+   reinstated here.
+
+   Threshold: Tailwind emits @media (width >= 96rem). Inside a media query rem
+   resolves against the INITIAL font size (16px), not rdy.gg's fluid root, so
+   the switch is at a flat 1536px. !important is required because the captured
+   gap lives in an inline style.
+
+   xl:max-w-screen-2xl (the 96rem container cap) needs no media query: below
+   xl the cap would be 96 x the fluid root, which is always wider than the
+   viewport in that range, so applying it unconditionally is equivalent.
+   ---------------------------------------------------------------------------- */
+
+@media (min-width: 1536px) {
+  .rdy-chrome-header .rdyc-navlist { gap: calc(0.5 * var(--rdy-rem)) !important; }
+  .rdy-chrome-header .rdyc-hdr-row { gap: calc(1.5 * var(--rdy-rem)) !important; }
+}
+
+
+/* ----------------------------------------------------------------------------
+   3. POSITIONING
+
+   The live header is NOT sticky: <header data-testid="app-header"> computes to
+   position: static, z-index auto, and it scrolls away with the page. The
+   replica matches that by default.
+
+   If the prototype wants a sticky top chrome, add .rdy-chrome-sticky alongside
+   .rdy-chrome-header and offset your content by var(--rdy-chrome-header-height)
+   (which already tracks the fluid scale). This is an addition, not a replica
+   of live behaviour.
+   ---------------------------------------------------------------------------- */
+
+.rdy-chrome-header.rdy-chrome-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+
+/* ----------------------------------------------------------------------------
+   4. HOVER STATES
+
+   Read off the live Tailwind utilities on each element. Inline styles cannot
+   carry :hover, so the hooks below are the only extra classes added to the
+   fragments (rdyc-*). Colours are the sRGB conversion of rdy.gg's oklch tokens.
+   Transitions use the live durations (150ms) where the site declares one.
+   ---------------------------------------------------------------------------- */
+
+/* Game switcher links: transition-all duration-150, no hover utility on the
+   live element. Left inert on purpose. */
+.rdy-chrome-header .rdyc-sw {
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Header nav items: span is text-white/65 hover:text-white */
+.rdy-chrome-header .rdyc-nav {
+  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+@media (hover: hover) {
+  .rdy-chrome-header a:hover > .rdyc-nav,
+  .rdy-chrome-header button:hover > .rdyc-nav {
+    color: rgb(255, 255, 255);
+  }
+  .rdy-chrome-header a:hover > .rdyc-nav svg,
+  .rdy-chrome-header button:hover > .rdyc-nav svg {
+    fill: rgb(255, 255, 255);
+  }
+}
+
+/* Discord link: group, icon span goes opacity-70 -> group-hover:opacity-100 */
+.rdy-chrome-header .rdyc-discord-icon {
+  transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+@media (hover: hover) {
+  .rdy-chrome-header .rdyc-discord:hover .rdyc-discord-icon { opacity: 1; }
+}
+
+/* Search + locale buttons: heim-hover (brightness 110%) hover:scale-98
+   hover:bg-white/15 transition-all duration-150 */
+.rdy-chrome-header .rdyc-iconbtn {
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+@media (hover: hover) {
+  .rdy-chrome-header .rdyc-iconbtn:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    filter: brightness(110%);
+    scale: 98%;
+  }
+}
+
+/* Log In / Sign Up / Subscribe: rdy-btn-*-states -> box-shadow on hover */
+.rdy-chrome-header .rdyc-btn,
+.rdy-chrome-footer .rdyc-btn {
+  transition: box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+@media (hover: hover) {
+  .rdy-chrome-header .rdyc-btn:hover,
+  .rdy-chrome-footer .rdyc-btn:hover {
+    box-shadow: 0 4px 20px rgba(6, 199, 101, 0.15);   /* --rdy-btn-hover-shadow #06c76526 */
+  }
+}
+
+/* Footer column links: text-white hover:text-white/65, transition-colors 150 */
+.rdy-chrome-footer .rdyc-flink {
+  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+@media (hover: hover) {
+  .rdy-chrome-footer .rdyc-flink:hover { color: rgba(255, 255, 255, 0.65); }
+}
+
+/* Footer game buttons: transition-opacity hover:opacity-80 */
+.rdy-chrome-footer .rdyc-fgame {
+  transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+@media (hover: hover) {
+  .rdy-chrome-footer .rdyc-fgame:hover { opacity: 0.8; }
+}
+
+/* Footer social buttons: hover:scale-110 transition-all duration-150 */
+.rdy-chrome-footer .rdyc-fsocial {
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+@media (hover: hover) {
+  .rdy-chrome-footer .rdyc-fsocial:hover { scale: 110%; }
+}
+
+
+/* ----------------------------------------------------------------------------
+   5. PSEUDO-ELEMENTS
+
+   None. Every element in both subtrees was checked with
+   getComputedStyle(el, '::before') / '::after' and no generated content exists
+   anywhere in the live header or footer, so there is nothing to emulate.
+   ---------------------------------------------------------------------------- */
