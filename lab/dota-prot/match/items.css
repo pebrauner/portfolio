@@ -330,3 +330,124 @@
   .mt-it-frame.is-entering .mt-it-prow { animation: none; }
   .mt-it-item, .mt-it-rmark { transition: none; }
 }
+
+/* ============================================================
+   PHASE 4, item 3: the final inventories strip.
+   Three sets, three frames. Every empty slot is drawn, so the fixed
+   capacities (six, three, one plus its enhancement) read at a glance.
+   ============================================================ */
+
+.mt-it-finals {
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-hair);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mt-it-finhead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+}
+.mt-it-fintitle {
+  margin: 0;
+  font-size: 13px; font-weight: 800; letter-spacing: .02em;
+  color: var(--text-primary);
+}
+.mt-it-finlegend { row-gap: 4px; }
+
+.mt-it-fkey {
+  width: 14px; height: 11px; flex: 0 0 auto;
+  border-radius: 2px;
+  background: var(--color-rdy-white-45);
+}
+.mt-it-fkey--main { background: var(--color-rdy-white-85); }
+.mt-it-fkey--pack { background: var(--color-rdy-white-25); box-shadow: inset 0 0 0 1px var(--color-rdy-white-25); }
+.mt-it-fkey--neutral { background: transparent; box-shadow: inset 0 0 0 1px var(--color-rdy-turquoise); }
+.mt-it-fkey--empty { background: transparent; box-shadow: inset 0 0 0 1px var(--color-rdy-white-15); }
+
+.mt-it-fingrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(436px, 1fr));
+  gap: 6px 16px;
+}
+
+.mt-it-fincard {
+  display: grid;
+  grid-template-columns: minmax(0, 104px) minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 5px 6px;
+  border-radius: var(--radius-sm);
+  min-width: 0;
+}
+.mt-it-fincard.is-hl { background: var(--color-rdy-white-5); }
+.mt-it-fincard.m-hl.is-hl { box-shadow: inset 2px 0 0 var(--color-rdy-fresh-green); }
+
+.mt-it-finwho { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.mt-it-finwho .hero-portrait { flex: 0 0 auto; width: 30px; height: 17px; }
+.mt-it-fincard.is-radiant .mt-it-handle { color: var(--side-radiant-text); }
+.mt-it-fincard.is-dire .mt-it-handle { color: var(--side-dire-text); }
+
+.mt-it-finslots {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  min-width: 0;
+}
+
+.mt-it-finset { display: inline-flex; align-items: center; gap: 2px; }
+.mt-it-finset--pack { padding: 2px; border-radius: 4px; box-shadow: inset 0 0 0 1px var(--color-rdy-white-10); }
+.mt-it-finset--neutral {
+  padding: 2px; border-radius: 4px; gap: 5px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-rdy-turquoise) 45%, transparent);
+}
+
+.mt-it-slot {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: 0 0 auto;
+  width: 26px; height: 19px;
+  border-radius: 3px;
+  background: var(--surface-raised);
+  box-shadow: 0 0 0 1px var(--color-rdy-white-25);
+  overflow: hidden;
+}
+.mt-it-slot .mt-it-img { width: 100%; height: 100%; }
+.mt-it-slot .mt-it-chip { width: 100%; height: 100%; font-size: 8.5px; }
+
+.mt-it-slot--pack { width: 21px; height: 15px; opacity: .62; box-shadow: 0 0 0 1px var(--color-rdy-white-15); }
+.mt-it-slot--pack:hover { opacity: 1; }
+.mt-it-slot--neutral { box-shadow: 0 0 0 1px var(--color-rdy-turquoise); }
+
+.mt-it-slot.is-empty {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--color-rdy-white-10);
+}
+
+.mt-it-enh {
+  display: inline-flex; align-items: center;
+  height: 17px; padding: 0 6px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--color-rdy-turquoise) 16%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-rdy-turquoise) 40%, transparent);
+  color: var(--text-secondary);
+  font-size: 11px; font-weight: 600; white-space: nowrap;
+}
+
+.mt-it-fincap {
+  margin: 0;
+  min-height: 30px;
+  font-size: 11px; line-height: 1.4; color: var(--text-tertiary);
+}
+.mt-it-fincap.is-item { color: var(--text-secondary); }
+
+@media (max-width: 1180px) {
+  .mt-it-fingrid { grid-template-columns: minmax(0, 1fr); }
+  .mt-it-fincard { grid-template-columns: minmax(0, 92px) minmax(0, 1fr); gap: 8px; }
+  .mt-it-fincard .mt-it-hero { display: none; }
+}

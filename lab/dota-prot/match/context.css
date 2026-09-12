@@ -1,0 +1,194 @@
+/* ============================================================
+   match/context.css
+   #m-h2h and #m-form. Prefix: .mt-cx-
+
+   One row component serves both cards, the way rdy.gg's own result
+   rows do: a date and league column, the bodies in the middle, a
+   small meta column on the right, and the whole row is the link.
+   Tier and BO chips have no rule here because the snapshot carries
+   neither field, so neither is drawn.
+   ============================================================ */
+
+.mt-cx-body { display: flex; flex-direction: column; gap: 12px; }
+
+.mt-cx-teamline {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+.mt-cx-vs { padding: 0 4px; }
+
+.mt-cx-actions { justify-content: flex-end; }
+.mt-cx-serieslink { white-space: nowrap; text-decoration: none; }
+
+/* ---------- the rows ---------- */
+
+.mt-cx-rows {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--surface-raised);
+}
+
+.mt-cx-row {
+  display: grid;
+  grid-template-columns: minmax(0, 124px) minmax(0, 1fr) minmax(0, 52px);
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-top: 1px solid var(--border-hair);
+  color: var(--text-primary);
+  text-decoration: none;
+  min-width: 0;
+  transition: background .14s ease;
+}
+.mt-cx-row:first-child { border-top: 0; }
+a.mt-cx-row:hover { background: var(--color-rdy-white-5); }
+a.mt-cx-row:focus-visible { outline: 2px solid var(--color-rdy-fresh-green); outline-offset: -2px; }
+
+.mt-cx-when { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.mt-cx-date { font-size: 12px; font-weight: 700; color: var(--text-primary); white-space: nowrap; }
+.mt-cx-league {
+  font-size: 11px; color: var(--text-tertiary);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.mt-cx-bodies {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.mt-cx-bodies--form {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.mt-cx-side { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.mt-cx-side--right { flex-direction: row-reverse; text-align: right; }
+.mt-cx-side.is-loser { opacity: .55; }
+.mt-cx-side.is-winner .mt-cx-tname { font-weight: 800; color: var(--text-primary); }
+
+.mt-cx-side .team-logo, .mt-cx-side .monogram { width: 20px; height: 20px; flex: 0 0 auto; }
+
+.mt-cx-mono {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: 0 0 auto;
+  width: 20px; height: 20px;
+  border-radius: var(--radius-sm);
+  background: var(--color-rdy-bright-night);
+  box-shadow: inset 0 0 0 1px var(--border-hair);
+  font-size: 11px; font-weight: 800; line-height: 1;
+  color: var(--text-tertiary);
+}
+
+.mt-cx-tname {
+  font-size: 12.5px; font-weight: 600; color: var(--text-secondary);
+  min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.mt-cx-score {
+  display: inline-flex; align-items: baseline; gap: 3px;
+  font-size: 14px; font-weight: 800;
+  white-space: nowrap;
+}
+.mt-cx-score b { font-weight: 800; }
+.mt-cx-score b.is-winner { color: var(--color-rdy-light-gold); }
+.mt-cx-score b.is-loser { color: var(--text-tertiary); }
+.mt-cx-score i { font-style: normal; color: var(--text-tertiary); font-weight: 400; }
+.mt-cx-score.is-unknown { min-width: 14px; }
+
+.mt-cx-wl {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: 0 0 auto;
+  min-width: 22px; height: 19px; padding: 0 6px;
+  border-radius: var(--radius-sm);
+  font-size: 11px; font-weight: 800; line-height: 1;
+}
+.mt-cx-wl.is-w {
+  color: var(--color-rdy-fresh-green);
+  background: color-mix(in srgb, var(--color-rdy-fresh-green) 14%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-rdy-fresh-green) 40%, transparent);
+}
+.mt-cx-wl.is-l {
+  color: var(--text-tertiary);
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--border-strong);
+}
+
+.mt-cx-dur {
+  font-size: 11.5px; color: var(--text-tertiary);
+  text-align: right; white-space: nowrap;
+}
+
+/* ---------- the two form columns ---------- */
+
+.mt-cx-cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 14px;
+}
+.mt-cx-col { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.mt-cx-coltitle {
+  display: flex; align-items: center; gap: 7px;
+  margin: 0;
+  font-size: 12.5px; font-weight: 700; color: var(--text-secondary);
+  min-width: 0;
+}
+.mt-cx-coltitle .team-logo, .mt-cx-coltitle .monogram, .mt-cx-coltitle .mt-cx-mono {
+  width: 20px; height: 20px; flex: 0 0 auto;
+}
+.mt-cx-tally { margin: 0; font-size: 11px; color: var(--text-tertiary); }
+
+/* ---------- links, captions, empty state ---------- */
+
+.mt-cx-link { color: inherit; text-decoration: none; }
+.mt-cx-link:hover { color: var(--color-rdy-fresh-green); text-decoration: underline; }
+.mt-cx-link:focus-visible { outline: 2px solid var(--color-rdy-fresh-green); outline-offset: 2px; border-radius: 2px; }
+.mt-cx-tname.mt-cx-link { color: var(--text-secondary); }
+
+.mt-cx-foot {
+  padding-top: 10px;
+  border-top: 1px solid var(--border-hair);
+  display: flex; flex-direction: column; gap: 6px;
+}
+.mt-cx-lead { margin: 0; font-size: 11.5px; line-height: 1.45; color: var(--text-secondary); }
+
+.mt-cx-notes { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.mt-cx-notes li {
+  position: relative;
+  padding-left: 12px;
+  font-size: 11px; line-height: 1.45;
+  color: var(--text-tertiary);
+}
+.mt-cx-notes li::before {
+  content: ""; position: absolute; left: 0; top: 7px;
+  width: 4px; height: 4px; border-radius: 50%;
+  background: var(--color-rdy-white-25);
+}
+
+.mt-cx-sources { margin: 0; font-size: 11px; color: var(--text-tertiary); line-height: 1.5; word-break: break-word; }
+.mt-cx-sources .m-sub { margin-right: 2px; }
+.mt-cx-srctext { color: var(--text-tertiary); }
+
+.mt-cx-empty {
+  padding: 10px 12px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  display: flex; flex-direction: column; gap: 6px;
+}
+.mt-cx-emptylead { margin: 0; font-size: 12px; color: var(--text-secondary); }
+
+/* ---------- narrow ---------- */
+
+@media (max-width: 1279px) {
+  .mt-cx-row { grid-template-columns: minmax(0, 104px) minmax(0, 1fr) minmax(0, 46px); gap: 8px; padding: 7px 8px; }
+  .mt-cx-tname { font-size: 12px; }
+  .mt-cx-score { font-size: 13px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mt-cx-row { transition: none; }
+}

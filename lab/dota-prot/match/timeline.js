@@ -112,6 +112,20 @@
     return { radiant: sideTeam('radiant').key, dire: sideTeam('dire').key };
   }
 
+  /* Phase 4. data/ti2026.js carries no rdy.gg id for Team Spirit, so every
+     game record reads match.dire.rdyTeamId === null for them. The id is in
+     data/series-context.js, which was built for exactly this. Record first,
+     context second, null third: no id is ever guessed. */
+  function rdyTeamId(key) {
+    if (!key) return null;
+    var m = MATCH();
+    if (m.radiant && m.radiant.key === key && m.radiant.rdyTeamId) return m.radiant.rdyTeamId;
+    if (m.dire && m.dire.key === key && m.dire.rdyTeamId) return m.dire.rdyTeamId;
+    var ctx = global.SERIES_CONTEXT;
+    if (ctx && ctx.teams && ctx.teams[key] && ctx.teams[key].rdyTeamId) return ctx.teams[key].rdyTeamId;
+    return null;
+  }
+
   /* A dense array indexed by minute, built from any of:
        [{ minute, value }]   [{ minute, radiant, dire }]   [n, n, n, ...]
      Returns null when the series is not in the data. */
@@ -1121,7 +1135,8 @@
       'data-testid': 'timeline-plot',
       tabindex: '0',
       role: 'slider',
-      'aria-label': 'Match minute. Grand Final Game 5, ' + f.radiant.name + ' against ' + f.dire.name,
+      'aria-label': 'Match minute. ' + f.stage + ' Game ' + f.game + ', ' +
+        f.radiant.name + ' against ' + f.dire.name,
       'aria-valuemin': '0',
       'aria-valuemax': String(last),
       'aria-valuenow': String(index),
@@ -1162,6 +1177,17 @@
     });
     measureHeight();
     render(snapshotState());
+    /* Phase 4: the strip is now 140px and every sticky offset hangs off the
+       measurement, so a stale number is a visible misalignment. Three passes
+       settle it: the next frame (after this subtree is laid out), the next
+       task (after the other mounts have run and m-summary has mirrored its
+       jumps into the head), and the web font landing, which is the one thing
+       that can change the head's height after everything else is final. */
+    if (global.requestAnimationFrame) global.requestAnimationFrame(measureHeight);
+    global.setTimeout(measureHeight, 0);
+    if (document.fonts && document.fonts.ready && document.fonts.ready.then) {
+      document.fonts.ready.then(measureHeight);
+    }
   }
 
   /* the same gold advantage array the economy chart draws, in miniature,
@@ -1401,8 +1427,11 @@
     var crest = h('div', { 'class': 'm-bn-crest' }, Hub.teamCrest(key, 'lg'));
     var alias = t.nameNote ? h('span', { 'class': 'm-bn-alias' }, t.nameNote) : null;
 
+    var teamHref = Hub.link.team(rdyTeamId(key));
+    var label = t.name || Hub.teamName(key);
     var names = h('div', { 'class': 'm-bn-names' },
-      h('div', { 'class': 'm-bn-name' }, t.name || Hub.teamName(key)),
+      h('div', { 'class': 'm-bn-name' },
+        teamHref ? Hub.extLink(teamHref, { 'class': 'm-bn-name-link' }, label) : label),
       h('div', { 'class': 'm-bn-sub' },
         h('span', { 'class': 'chip chip--' + side }, side === 'radiant' ? 'Radiant' : 'Dire'),
         won === true ? h('span', { 'class': 'chip chip--gold' }, 'Winner') : null,
@@ -1464,8 +1493,12 @@
       fact('Patch', f.patch),
       fact('Match', f.matchId ? String(f.matchId) : null));
 
+    var ser = (MATCH().series || {});
+    var seriesHref = Hub.link.series(ser.seriesRdyId ||
+      (global.GAME_INDEX && global.GAME_INDEX.seriesRdyId) || null);
     var links = h('div', { 'class': 'm-bn-links' },
       h('a', { 'class': 'btn btn-ghost btn-sm', href: 'TI2026_Hub_Prototype_rdy_gg.html' }, 'Back to the Hub'),
+      seriesHref ? Hub.extLink(seriesHref, { 'class': 'btn btn-ghost btn-sm' }, 'Series on rdy.gg') : null,
       Hub.extLink('https://www.twitch.tv/dota2ti', { 'class': 'btn btn-primary btn-sm' }, 'Watch on Twitch'));
 
     mount.appendChild(h('div', { 'class': 'm-bn', 'data-testid': 'match-overview' },
@@ -1520,9 +1553,43 @@
     return MatchTimeline;
   }
 
+  /* ------------------------------------------------------------
+     6b. reset: the map switcher swapped window.G5
+     ------------------------------------------------------------
+     Every reader of the old game must be dropped before the new one is
+     rendered, or a stale subscriber paints game 5's numbers onto game 2.
+     reset drops the wiring (subscribers, highlight subscribers, snap points,
+     mirrored jumps, the memoised series, the built strip) and then runs
+     init against whatever window.G5 now is. It does NOT rebuild the DOM:
+     Hub.remountAll() re-runs m-timeline and m-banner like every other
+     mount, which is what rebuilds the strip and the banner. Call order is
+     therefore: set window.G5, reset, Hub.remountAll. */
+  function reset(o) {
+    o = o || {};
+    subs = [];
+    hlSubs = [];
+    if (highlighted !== null) {
+      highlighted = null;
+      if (document.body) document.body.classList.remove('has-hl');
+    }
+    snaps = [];
+    snapIds = {};
+    pendingJumps = null;
+    els = null;
+    lastSpoken = '';
+    lastPlaying = null;
+    lastSpeed = null;
+    cache = {};
+    if (o.last === undefined) o.last = resolveLast();
+    if (o.startIndex === undefined) o.startIndex = o.last;
+    init(o);
+    return MatchTimeline;
+  }
+
   var MatchTimeline = {
     version: '1.0.0',
     init: init,
+    reset: reset,
 
     /* state */
     get index() { return index; },
@@ -1577,6 +1644,7 @@
     sides: sides,
 
     /* test and data hooks */
+    measure: measureHeight,
     secondsAt: secondsAt,
     seedSnapPoints: seedSnapPoints,
     refresh: function () {

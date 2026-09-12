@@ -63,6 +63,13 @@
   var N = function (v) { return fmt.num(v); };
   var ONE = function (v) { return (Math.round(v * 10) / 10).toFixed(1); };
 
+  /* Phase 4 item 4. A player's handle becomes a link only when the record
+     carries an rdy.gg id; otherwise it stays plain text. No id is guessed. */
+  function playerNode(p) {
+    var href = (p && Hub.link && Hub.link.player) ? Hub.link.player(p.rdyPlayerId) : null;
+    return href ? Hub.extLink(href, { 'class': 'm-xlink' }, p.handle) : (p ? p.handle : '');
+  }
+
   /* the six radar axes, clockwise from the top */
   var RADAR_AXES = [
     { id: 'kills', label: 'Kills', get: function (f) { return f.kills; }, print: String },
@@ -227,11 +234,18 @@
     mount.appendChild(root);
 
     /* ---------- wiring ---------- */
-    document.addEventListener(opts.selectEvent, function (ev) {
+    /* Phase 4 remount: this listener sits on document, outside the mount's
+       own subtree, so it survives a rebuild and would stack one copy per
+       game switch. Registering the undo with the Hub keeps exactly one. */
+    function onSelectEvent(ev) {
       var d = (ev && ev.detail) || {};
       if (!d.key || !byKey[d.key]) return;
       select(d.key, d.slot);
-    });
+    }
+    document.addEventListener(opts.selectEvent, onSelectEvent);
+    if (Hub.onUnmount) {
+      Hub.onUnmount(function () { document.removeEventListener(opts.selectEvent, onSelectEvent); });
+    }
 
     var paintedIndex = null;
     var stopSub = Timeline.subscribe(function (s) {
@@ -854,10 +868,12 @@
           onmouseleave: function () { if (opts.crossHighlight) Timeline.highlightPlayer(null); }
         },
           rank,
-          Hub.heroImg(p.hero, { side: p.side, size: 'sm', alt: p.heroDisplay }),
+          Hub.heroLink(p.hero, { 'class': 'm-herolink', title: p.heroDisplay + ' on rdy.gg' },
+            Hub.heroImg(p.hero, { side: p.side, size: 'sm', alt: p.heroDisplay })),
           h('span', { 'class': 'mt-pl-dname' },
-            h('span', { 'class': 'mt-pl-dhandle' }, p.handle),
-            h('span', { 'class': 'mt-pl-dhero' }, p.heroDisplay)),
+            h('span', { 'class': 'mt-pl-dhandle' }, playerNode(p)),
+            h('span', { 'class': 'mt-pl-dhero' },
+              Hub.heroLink(p.hero, { 'class': 'm-herolink' }, p.heroDisplay))),
           h('span', { 'class': 'm-bar-track mt-pl-dtrack' }, fill),
           val
         );
@@ -950,8 +966,10 @@
             h('span', { 'class': 'mt-pl-hotg-handle' },
               link ? Hub.extLink(link, { 'class': 'mt-pl-hotg-link' }, hg.handle) : hg.handle),
             h('span', { 'class': 'mt-pl-hotg-hero' },
-              Hub.heroImg(hg.hero, { side: p ? p.side : 'dire', size: 'sm', alt: hg.heroDisplay }),
-              h('span', null, hg.heroDisplay + ', ' + hg.realName))
+              Hub.heroLink(hg.hero, { 'class': 'm-herolink', title: hg.heroDisplay + ' on rdy.gg' },
+                Hub.heroImg(hg.hero, { side: p ? p.side : 'dire', size: 'sm', alt: hg.heroDisplay }),
+                h('span', null, hg.heroDisplay)),
+              h('span', null, ', ' + hg.realName))
           ),
           h('span', { 'class': 'mt-pl-hotg-stats' }, stats.map(function (s) {
             return h('span', { 'class': 'mt-pl-hotg-stat' },

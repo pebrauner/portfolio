@@ -54,7 +54,14 @@
   /* Measured by timeline.js from the rendered strip and written back onto
      the root element. The value here is the pre-measurement fallback, so
      nothing jumps on first paint. */
-  --match-timeline-h: 104px;
+  --match-timeline-h: 140px;
+  /* Phase 4, 2026-09-11: the scrub track was 46px, too thin to read the
+     spark, the phase bands and twenty markers at once. Every length in the
+     strip is derived from these three, so the strip can be retuned in one
+     place and every sticky offset follows. */
+  --match-track-h: 76px;
+  --match-strip-pad-top: 10px;
+  --match-strip-pad-bottom: 12px;
   /* the match page has no tab bar: the timeline strip is the only sticky
      chrome, and it sits at top 0 the way the Hub's tab bar does */
   --match-sticky-stack: var(--match-timeline-h);
@@ -68,6 +75,132 @@
     radial-gradient(700px 160px at 72% 0%, color-mix(in srgb, var(--color-rdy-fresh-green) 7%, transparent), transparent 70%);
 }
 .m-bar .breadcrumb { margin: 0; padding: 12px 0 11px; }
+
+/* ---------- 2b. Series header and the map switcher ----------
+   rdy.gg's own identity block, reproduced above our banner: tournament,
+   series time, format chip, both teams, then one row of the series score
+   card, the odds PLACEHOLDER at rdy.gg's 192x128 footprint and the five map
+   tiles at their 90px width. Rendered by match/app.js. */
+.m-serieshead-mount { padding-top: var(--gap-grid); }
+
+.m-sh { display: flex; flex-direction: column; gap: 14px; }
+
+.m-sh-id {
+  display: flex; flex-direction: column; align-items: center; gap: 7px;
+  text-align: center;
+}
+.m-sh-tournament {
+  font-size: 15px; font-weight: 700; letter-spacing: .01em;
+  color: var(--text-primary);
+}
+a.m-sh-tournament:hover { color: var(--color-rdy-fresh-green); }
+.m-sh-time { font-size: 12.5px; color: var(--text-tertiary); }
+.m-sh-chips { display: flex; align-items: center; gap: 6px; }
+
+.m-sh-teams { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; justify-content: center; }
+.m-sh-team {
+  display: inline-flex; align-items: center; gap: 8px;
+  color: var(--text-primary);
+  font-size: 15px; font-weight: 700;
+}
+a.m-sh-team:hover { color: var(--color-rdy-fresh-green); }
+.m-sh-team-name { white-space: nowrap; }
+.m-sh-vs {
+  font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.m-sh-row {
+  display: flex; align-items: stretch; gap: var(--gap-grid);
+  flex-wrap: wrap;
+}
+
+/* the score card, rdy.gg's one block of brand green on the page */
+.m-sh-score {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  flex: 1 1 380px; min-width: 0;
+  height: 128px; padding: 0 22px;
+  box-sizing: border-box;
+  border-radius: var(--radius-xl);
+  background: var(--color-rdy-fresh-green);
+  color: var(--color-rdy-dark-sky);
+  text-decoration: none;
+}
+a.m-sh-score:hover { background: var(--color-rdy-fresh-green-hover); color: var(--color-rdy-dark-sky); }
+.m-sh-score:focus-visible { outline: 2px solid var(--color-rdy-white); outline-offset: 2px; }
+.m-sh-score-side {
+  display: flex; align-items: center; gap: 9px;
+  flex: 1 1 0; min-width: 0;
+}
+.m-sh-score-side--right { justify-content: flex-end; }
+.m-sh-score-name {
+  font-size: 14px; font-weight: 800; line-height: 1.15;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.m-sh-score-nums { display: flex; align-items: baseline; gap: 8px; flex: 0 0 auto; }
+.m-sh-score-num { font-size: 34px; font-weight: 800; line-height: 1; }
+.m-sh-score-sep { font-size: 26px; font-weight: 800; opacity: .55; }
+
+.m-sh-odds { align-self: stretch; height: 128px; }
+
+/* the five tiles, rdy.gg's 90px pattern */
+.m-sh-tabs {
+  display: flex; align-items: stretch; gap: 6px;
+  flex: 0 0 auto;
+  padding: 6px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-xl);
+  background: var(--color-rdy-white-5);
+}
+.m-sh-tab {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+  width: 90px; height: 116px; padding: 8px 4px;
+  box-sizing: border-box;
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  cursor: pointer;
+  transition: color .14s ease, background .14s ease, border-color .14s ease;
+}
+.m-sh-tab:hover { color: var(--text-primary); background: var(--color-rdy-white-5); }
+.m-sh-tab:focus-visible { outline: 2px solid var(--color-rdy-fresh-green); outline-offset: 2px; }
+.m-sh-tab.is-on {
+  color: var(--text-primary);
+  background: var(--color-rdy-bright-night);
+  border-color: var(--color-rdy-white-25);
+}
+.m-sh-tab-label {
+  font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+.m-sh-tab.is-on .m-sh-tab-label { color: var(--color-rdy-light-gold); }
+.m-sh-tab-logo { display: flex; align-items: center; justify-content: center; height: 20px; }
+.m-sh-tab-score { text-align: center; line-height: 1.15; }
+.m-sh-tab-score .kills-pair { font-size: 13px; font-weight: 700; gap: 3px; justify-content: center; flex-wrap: wrap; }
+.m-sh-tab-score .kp-tag { font-size: 9px; }
+.m-sh-tab-score .kp-num { color: inherit; }
+.m-sh-tab-dur {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 11px; color: var(--text-tertiary);
+}
+.m-sh-tab-dur .icon { width: 11px; height: 11px; }
+
+@media (max-width: 1279px) {
+  .m-sh-tab { width: 82px; }
+}
+@media (max-width: 1023px) {
+  .m-sh-row { flex-direction: column; align-items: stretch; }
+  .m-sh-odds { align-self: center; }
+  .m-sh-tabs { overflow-x: auto; }
+}
+
+/* while a game file is in flight the tiles stay live and the article dims,
+   so a click on a 300KB game never looks ignored */
+.is-loading-game .m-sh-tab { cursor: progress; }
+.is-loading-game .page-grid,
+.is-loading-game .m-banner-mount { opacity: .55; transition: opacity .12s linear; }
 
 /* ---------- 3. Match banner ---------- */
 .m-banner-mount { padding-top: var(--gap-grid); }
@@ -156,6 +289,8 @@
 }
 .m-bn-fact-value { font-weight: 600; color: var(--text-primary); font-variant-numeric: tabular-nums; }
 .m-bn-links { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.m-bn-name-link { color: inherit; text-decoration: none; }
+.m-bn-name-link:hover { color: var(--color-rdy-fresh-green); }
 
 /* ---------- 4. Master timeline strip ---------- */
 .m-timeline-wrap {
@@ -169,14 +304,16 @@
   border-bottom: 1px solid var(--border-soft);
 }
 .m-timeline-mount { min-height: 0; }
-.m-timeline-mount:empty::before { min-height: 88px; }
+.m-timeline-mount:empty::before { min-height: 118px; }
 
-.mt-tl { padding: 8px 0 9px; user-select: none; }
+.mt-tl { padding: var(--match-strip-pad-top) 0 var(--match-strip-pad-bottom); user-select: none; }
 
 /* head: clock, readout, actions */
 .mt-tl-head {
   display: flex; align-items: center; gap: 14px;
-  min-width: 0; margin-bottom: 6px;
+  min-width: 0; margin-bottom: 8px;
+  /* one line, never two: the strip must not grow past 150px */
+  flex-wrap: nowrap;
 }
 .mt-tl-clockbox { display: flex; align-items: baseline; gap: 8px; flex: 0 0 auto; }
 .mt-tl-clock {
@@ -190,7 +327,8 @@
 }
 
 .mt-tl-readout {
-  display: flex; align-items: center; gap: 8px 14px; flex-wrap: wrap;
+  display: flex; align-items: center; gap: 8px 14px; flex-wrap: nowrap;
+  overflow: hidden;
   min-width: 0; flex: 1 1 auto;
 }
 .mt-tl-stat { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
@@ -233,6 +371,7 @@
    they are on screen for the whole article. */
 .mt-tl-jumps { display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; }
 .mt-tl-jump {
+  min-height: 32px;
   display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
   min-width: 54px; height: 30px; padding: 0 8px;
   border: 1px solid var(--border-soft);
@@ -254,8 +393,18 @@
 }
 .mt-tl-jump.is-on .mt-tl-jump-clock { color: var(--color-rdy-dark-sky); }
 
+/* P4R2-06: the five landmarks used to be dropped below 1280, which left the
+   strip's own jumps unreachable at 1024 while the head still had room. They
+   stay, in a compact form: the clock line stands down (it is still in every
+   button's title and aria-label, and the strip's own readout shows the
+   clock), the label keeps its word, and the box shrinks to the word. The
+   head is flex-wrap:nowrap and the readout is the flexible item, so the
+   strip never grows a third line. */
 @media (max-width: 1279px) {
-  .mt-tl-jumps { display: none; }
+  .mt-tl-jumps { gap: 3px; }
+  .mt-tl-jump { min-width: 0; height: 26px; min-height: 26px; padding: 0 6px; }
+  .mt-tl-jump-word { font-size: 10px; letter-spacing: .01em; }
+  .mt-tl-jump-clock { display: none; }
 }
 /* the transport took the right hand end's spare width, so the hint, which is
    the least load bearing thing in the head, stands down first */
@@ -273,7 +422,7 @@
 }
 .mt-tl-pbtn {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  height: 30px; padding: 0 8px;
+  height: 32px; padding: 0 8px;
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-md);
   background: transparent;
@@ -287,7 +436,7 @@
 .mt-tl-pbtn:focus-visible { outline: 2px solid var(--color-rdy-fresh-green); outline-offset: 2px; }
 .mt-tl-pbtn:disabled { opacity: .38; cursor: default; }
 .mt-tl-pbtn .icon { width: 13px; height: 13px; fill: currentColor; }
-.mt-tl-pbtn--edge { width: 30px; padding: 0; }
+.mt-tl-pbtn--edge { width: 32px; padding: 0; }
 
 .mt-tl-pbtn--play {
   position: relative;
@@ -319,7 +468,7 @@
 .mt-tl-pbtn--play[aria-pressed="true"] .mt-tl-pbtn-bar { background: var(--color-rdy-dark-sky); }
 
 .mt-tl-speed {
-  height: 30px; min-width: 34px; padding: 0 7px;
+  height: 32px; min-width: 36px; padding: 0 7px;
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-md);
   background: transparent;
@@ -341,7 +490,7 @@
 /* plot */
 .mt-tl-plot {
   position: relative;
-  height: 46px;
+  height: var(--match-track-h);
   border-radius: var(--radius-md);
   cursor: ew-resize;
   touch-action: none;
@@ -372,8 +521,8 @@
 .mt-tl-band--mid { background: var(--phase-mid); }
 .mt-tl-band--late { background: var(--phase-late); }
 .mt-tl-band-label {
-  position: absolute; top: 3px; left: 6px;
-  font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  position: absolute; top: 5px; left: 8px;
+  font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
   color: var(--match-label-quiet);
   pointer-events: none;
 }
@@ -385,9 +534,9 @@
 .mt-tl-tick { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--color-rdy-white-5); }
 .mt-tl-tick--major { background: var(--color-rdy-white-10); }
 .mt-tl-tick-label {
-  position: absolute; bottom: 2px;
-  transform: translateX(3px);
-  font-size: 10px; font-weight: 600;
+  position: absolute; bottom: 4px;
+  transform: translateX(4px);
+  font-size: 10.5px; font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--match-label-quiet);
   pointer-events: none;
@@ -399,10 +548,10 @@
    layer is inset by half the widest marker at both ends. The drift against the
    ticks is 8px at the extremes and zero at the middle, a third of a minute on
    a 1,391px strip, and no marker is ever clipped. */
-.mt-tl-marks { position: absolute; inset: 0 8px; }
+.mt-tl-marks { position: absolute; inset: 0 9px; }
 .mt-tl-mark {
-  position: absolute; bottom: 9px;
-  width: 9px; height: 9px; margin-left: -4.5px;
+  position: absolute; bottom: 15px;
+  width: 11px; height: 11px; margin-left: -5.5px;
   border-radius: 2px;
   background: var(--color-rdy-steel);
   border: 1px solid var(--color-rdy-dark-sky);
@@ -412,25 +561,25 @@
 }
 /* kind sets the size, the side that gained it sets the colour, and the one
    featured moment of the game overrides both */
-.mt-tl-mark--fight { background: var(--color-rdy-yellow); width: 11px; height: 11px; margin-left: -5.5px; bottom: 8px; }
+.mt-tl-mark--fight { background: var(--color-rdy-yellow); width: 13px; height: 13px; margin-left: -6.5px; bottom: 14px; }
 .mt-tl-mark--tower { background: var(--color-rdy-turquoise); }
-.mt-tl-mark--rax { background: var(--color-rdy-light-red); width: 10px; height: 10px; margin-left: -5px; }
-.mt-tl-mark--ancient { background: var(--color-rdy-white); width: 11px; height: 11px; margin-left: -5.5px; }
+.mt-tl-mark--rax { background: var(--color-rdy-light-red); width: 12px; height: 12px; margin-left: -6px; }
+.mt-tl-mark--ancient { background: var(--color-rdy-white); width: 13px; height: 13px; margin-left: -6.5px; }
 .mt-tl-mark--roshan { background: var(--color-rdy-gold); }
-.mt-tl-mark--tormentor { background: var(--color-rdy-steel); width: 7px; height: 7px; margin-left: -3.5px; }
+.mt-tl-mark--tormentor { background: var(--color-rdy-steel); width: 9px; height: 9px; margin-left: -4.5px; }
 /* the courier is its own object, so it never reads as a Tormentor: a round
    pip instead of the tormentor diamond */
 .mt-tl-mark--courier {
   background: var(--color-rdy-steel);
-  width: 7px; height: 7px; margin-left: -3.5px;
+  width: 9px; height: 9px; margin-left: -4.5px;
   border-radius: 50%;
 }
-.mt-tl-mark--firstblood { background: var(--color-rdy-steel); width: 7px; height: 7px; margin-left: -3.5px; }
+.mt-tl-mark--firstblood { background: var(--color-rdy-steel); width: 9px; height: 9px; margin-left: -4.5px; }
 .mt-tl-mark--radiant { background: var(--side-radiant); }
 .mt-tl-mark--dire { background: var(--side-dire); }
 .mt-tl-mark--swing {
   background: var(--color-rdy-light-gold);
-  width: 13px; height: 13px; margin-left: -6.5px; bottom: 7px;
+  width: 15px; height: 15px; margin-left: -7.5px; bottom: 13px;
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-rdy-gold) 35%, transparent);
 }
 .mt-tl-mark.is-near { transform: rotate(45deg) scale(1.3); }
@@ -442,10 +591,10 @@
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--match-at) 55%, transparent);
 }
 .mt-tl-mark-label {
-  position: absolute; top: 2px;
+  position: absolute; top: 6px;
   transform: translateX(-50%);
-  max-width: 168px;
-  padding: 1px 7px;
+  max-width: 196px;
+  padding: 2px 8px;
   border-radius: var(--radius-pill);
   background: var(--color-rdy-dark-sky);
   border: 1px solid color-mix(in srgb, var(--match-magnet) 55%, transparent);
@@ -467,24 +616,24 @@
   will-change: left;
 }
 .mt-tl-cursor-line {
-  position: absolute; top: 0; bottom: 0; left: -1px;
-  width: 2px;
+  position: absolute; top: 0; bottom: 0; left: -1.5px;
+  width: 3px;
   background: var(--match-cursor);
   box-shadow: 0 0 8px color-mix(in srgb, var(--match-cursor) 45%, transparent);
 }
 .mt-tl-cursor-dot {
-  position: absolute; bottom: -3px; left: -4px;
-  width: 8px; height: 8px; border-radius: 50%;
+  position: absolute; bottom: -5px; left: -5px;
+  width: 10px; height: 10px; border-radius: 50%;
   background: var(--match-cursor);
 }
 .mt-tl-cursor-bubble {
-  position: absolute; top: 3px; left: 0;
+  position: absolute; top: 5px; left: 0;
   transform: translateX(-50%);
-  padding: 1px 7px;
+  padding: 2px 9px;
   border-radius: var(--radius-pill);
   background: var(--match-cursor);
   color: var(--color-rdy-dark-sky);
-  font-size: 10.5px; font-weight: 800;
+  font-size: 11.5px; font-weight: 800;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -508,7 +657,7 @@
   background: var(--color-rdy-white-25);
 }
 .mt-tl-ghost-clock {
-  position: absolute; bottom: 2px; left: 0;
+  position: absolute; bottom: 4px; left: 0;
   transform: translateX(-50%);
   padding: 0 5px;
   border-radius: var(--radius-pill);
@@ -547,6 +696,42 @@
   z-index: 2;
 }
 
+/* P4-04. The rail placeholder says the 160x600 slot is sticky, and on
+   rdy.gg's own page it is: the right rail runs `position: sticky; top: 4`
+   and is the only sticky element in their page body
+   (rdy-match-page-notes.md line 166). Here the summary card above it is
+   already sticky, so the slot sticks UNDER the summary rather than on top
+   of it: --match-rail-top is the summary's own sticky top plus its measured
+   height plus the rail gap, written by match/app.js and re-measured
+   whenever the summary resizes or the map switches. The fallback in the
+   var() is the bare strip offset, which is what a page with no summary
+   card would want. Scoped to .match-page, so the Hub's own rail is not
+   touched by this rule. */
+/* P4R2-04: the leaderboard placeholder names rdy.gg's 728x90 footprint and
+   is capped at max-width:100%, so under 1280 the main column draws it
+   narrower than the size it states. match/app.js measures the box and writes
+   the drawn pair into this caption, which stays empty while the slot is at
+   its full footprint. The slot stacks its label over the caption here rather
+   than in hub.css, so the Hub's own leaderboard is untouched. */
+.match-page .ad-slot--leaderboard { flex-direction: column; gap: 3px; }
+.m-slot-actual {
+  font-size: 9.5px; font-weight: 600; letter-spacing: .05em;
+  color: var(--text-tertiary); opacity: .8;
+  font-variant-numeric: tabular-nums;
+}
+
+.match-page .side-col > .ad-slot--rail {
+  position: sticky;
+  top: var(--match-rail-top, calc(var(--match-sticky-stack) + 10px));
+  z-index: 1;
+  flex: 0 0 auto;
+  /* P4R2-02: the slot is the LAST child of the column. A sticky box travels
+     down over whatever follows it, so with nothing after it there is nothing
+     left to cover. The column is stretched to the main column's height, so
+     the empty space under the last card is the slot's sticky travel. The
+     fill is opaque in hub.css as a second guard. */
+}
+
 /* SCR1: a box shadow on a <tr> does not paint reliably, so every table row
    that carries the cross module highlight moves the marker to its first cell. */
 .match-page tr.m-hl.is-hl { box-shadow: none; }
@@ -554,6 +739,25 @@
 
 /* anchor targets (the Hub links to #draft) clear the sticky strip */
 .match-page [id] { scroll-margin-top: calc(var(--match-sticky-stack) + 12px); }
+
+/* ---------- 5b. Hero cross links ----------
+   Phase 4 item 4. A hero portrait or a hero name may be an anchor to that
+   hero's page on rdy.gg. The anchor is transparent: it inherits colour and
+   lays out as the inline box the module already expected, so no module's
+   layout changes when a name becomes a link. It is NEVER emitted inside a
+   <button>, which is why the draft stepper's own tiles and the moments rows
+   stay plain; that exception is recorded in the contract. */
+.m-herolink,
+.m-xlink {
+  display: inline-flex; align-items: center; gap: inherit;
+  color: inherit; text-decoration: none;
+  border-radius: var(--radius-sm);
+}
+.m-herolink:hover,
+.m-xlink:hover { color: var(--color-rdy-fresh-green); }
+.m-herolink:hover .hero-portrait { outline: 1px solid var(--color-rdy-fresh-green); }
+.m-herolink:focus-visible,
+.m-xlink:focus-visible { outline: 2px solid var(--color-rdy-fresh-green); outline-offset: 2px; }
 
 /* ---------- 6. Shared match utilities ---------- */
 /* Any component may use these. Anything narrower than "every component
@@ -670,6 +874,9 @@
   .m-bn-team--dire .m-bn-names { align-items: flex-start; }
   .m-bn-links { margin-left: 0; }
   .match-page .side-col > .mount:first-child { position: static; }
+  /* nothing in a stacked single column sticks, the rail placeholder least
+     of all: it would pin 600px of dashed box over the article */
+  .match-page .side-col > .ad-slot--rail { position: static; }
   .mt-tl-head { gap: 10px; }
   .mt-tl-hint { display: none; }
 }

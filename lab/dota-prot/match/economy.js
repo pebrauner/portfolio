@@ -794,10 +794,16 @@
         draw();
       });
     }
+    /* Phase 4 remount: the observer and the window listener outlive this
+       mount's subtree, so both register their undo with the Hub. Without it
+       a five game switch leaves five observers watching five detached plots. */
     if (global.ResizeObserver) {
-      new global.ResizeObserver(onResize).observe(plot);
+      var ro = new global.ResizeObserver(onResize);
+      ro.observe(plot);
+      if (Hub.onUnmount) Hub.onUnmount(function () { ro.disconnect(); });
     } else {
       global.addEventListener('resize', onResize);
+      if (Hub.onUnmount) Hub.onUnmount(function () { global.removeEventListener('resize', onResize); });
     }
   });
 

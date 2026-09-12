@@ -77,29 +77,6 @@
     og: 'og.png'
   };
 
-  /* Slug used for rdy.gg hero routes: Valve internal name -> display slug.
-     Only the names that differ need an entry. */
-  var HERO_ROUTE_SLUG = {
-    antimage: 'anti-mage',
-    doom_bringer: 'doom',
-    furion: 'natures-prophet',
-    magnataur: 'magnus',
-    necrolyte: 'necrophos',
-    nevermore: 'shadow-fiend',
-    obsidian_destroyer: 'outworld-destroyer',
-    queenofpain: 'queen-of-pain',
-    rattletrap: 'clockwerk',
-    shredder: 'timbersaw',
-    skeleton_king: 'wraith-king',
-    treant: 'treant-protector',
-    vengefulspirit: 'vengeful-spirit',
-    wisp: 'io',
-    zuus: 'zeus',
-    centaur: 'centaur-warrunner',
-    largo: 'largo',
-    kez: 'kez'
-  };
-
   /* ---------- tiny helpers ---------- */
 
   function isNil(v) { return v === null || v === undefined; }
@@ -593,13 +570,35 @@
     liveMatch: function (id) { return id ? RDY + '/matches/' + id : null; },
     team: function (id) { return id ? RDY + '/teams/' + id : null; },
     player: function (id) { return id ? RDY + '/players/' + id : null; },
+    /* P4R2-01, verified live 2026-09-11: an rdy.gg hero route IS the Valve
+       internal name with underscores turned into hyphens. /heroes/nevermore,
+       /rattletrap, /doom-bringer, /wisp, /furion and /centaur all resolve;
+       the display spellings /shadow-fiend, /clockwerk, /doom, /io,
+       /natures-prophet and /centaur-warrunner all 404. The old display-slug
+       map did the translation backwards, so no exception table is kept:
+       every name goes through the one rule. */
     hero: function (slugOrInternal) {
       if (!slugOrInternal) return null;
-      var n = String(slugOrInternal).toLowerCase();
-      var slug = HERO_ROUTE_SLUG[n] || n.replace(/_/g, '-');
-      return RDY + '/heroes/' + slug;
+      return RDY + '/heroes/' + String(slugOrInternal).toLowerCase().replace(/_/g, '-');
     },
     tournament: function (id) { return id ? RDY + '/tournaments/' + id : null; },
+    /* Phase 4: a finished SERIES lives on the same /results/ route as a match.
+       Kept as its own name so a call site reads what it means. */
+    series: function (id) { return id ? RDY + '/results/' + id : null; },
+    /* Phase 4 fix P4-02: one map of a finished series. rdy.gg has no route
+       keyed by the OpenDota match id, so /results/<matchId> falls through to
+       the generic results listing. The map is selected by the series id plus
+       ?mapTab=N, confirmed live and recorded in
+       .claude/dota-work/rdy-match-page-notes.md lines 3 to 7 and 56.
+       rdy.gg's own tabs do not rewrite the query after the first load, so
+       ?mapTab=N is honoured on initial navigation only, which is exactly how
+       an outbound link uses it. Without a map number this is link.series. */
+    seriesMap: function (id, mapNumber) {
+      if (!id) return null;
+      var n = Number(mapNumber);
+      if (!n || n < 1) return RDY + '/results/' + id;
+      return RDY + '/results/' + id + '?mapTab=' + n;
+    },
     news: function (slug) { return slug ? RDY + '/news/' + slug : RDY + '/news'; },
     section: function (path) { return path ? RDY + '/' + path : RDY; }
   };
@@ -611,6 +610,16 @@
     if (!href) return h.apply(null, [ 'span', attrs ].concat(kids));
     var a = Object.assign({}, attrs || {}, { href: href, target: '_blank', rel: 'noopener' });
     return h.apply(null, [ 'a', a ].concat(kids));
+  }
+
+  /* Phase 4 link helper: any hero portrait or hero name may become a link to
+     that hero's rdy.gg page. Degrades to a span when the internal name is
+     missing, and NEVER emits an anchor inside an interactive control: that is
+     the caller's job to avoid, because an <a> inside a <button> is invalid. */
+  function heroLink(internalName, attrs /*, children */) {
+    var kids = Array.prototype.slice.call(arguments, 2);
+    var href = internalName ? link.hero(internalName) : null;
+    return extLink.apply(null, [ href, attrs ].concat(kids));
   }
 
   /* ---------- mount registry ---------- */
@@ -648,6 +657,37 @@
     var nodes = document.querySelectorAll('[data-mount]');
     for (var i = 0; i < nodes.length; i++) { mountOne(nodes[i]); }
     mounted = true;
+  }
+
+  /* ---------- Phase 4: remount, for the map switcher ----------
+     A component that wires anything OUTSIDE its own mount subtree (a listener
+     on document or window, an observer, a subscription owned by another
+     module) registers the undo here while it renders. remountAll runs every
+     registered undo, then re-runs every mount function against whatever the
+     data globals now hold. mountAll is untouched: a first boot registers
+     nothing to undo, so the two are the same call on a cold page. */
+  var teardowns = [];
+
+  function onUnmount(fn) {
+    if (typeof fn === 'function') teardowns.push(fn);
+    return fn;
+  }
+
+  function runTeardowns() {
+    var list = teardowns;
+    teardowns = [];
+    for (var i = list.length - 1; i >= 0; i--) {
+      try { list[i](); } catch (err) {
+        if (global.console && console.error) console.error('[Hub] teardown failed', err);
+      }
+    }
+    return list.length;
+  }
+
+  function remountAll() {
+    var undone = runTeardowns();
+    mountAll();
+    return undone;
   }
 
   /* ---------- tabs ---------- */
@@ -740,6 +780,9 @@
     version: '1.0.0',
     register: register,
     mountAll: mountAll,
+    remountAll: remountAll,
+    onUnmount: onUnmount,
+    get mounted() { return mounted; },
     h: h,
     frag: frag,
     svg: svg,
@@ -770,6 +813,7 @@
     avatar: avatar,
     link: link,
     extLink: extLink,
+    heroLink: heroLink,
     tabs: tabs,
     get data() { return data(); },
     get snapshot() { return snapshot(); }

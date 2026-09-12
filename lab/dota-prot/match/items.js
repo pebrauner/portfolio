@@ -13,6 +13,14 @@
    (argmax of cost, earliest second on a tie), and says so. The old storyItem
    and storyNote fields are gone from the payload, and with them the magnet the
    Lotus Orb used to register on the master strip.
+
+   PHASE 4, item 3: the final inventories strip under the tracks.
+   items.final stopped being a flat six array and became the whole inventory
+   the way the client splits it: main[6], backpack[3], neutral[2]. The strip
+   draws all three sets with their own frames, keeps every empty slot visible
+   so the fixed capacities read, and prints the neutral enhancement as a text
+   chip because the item folder carries no art for those. items.finalFlat is
+   the old six array and is what the track's final six marker still reads.
    ============================================================ */
 (function (global) {
   'use strict';
@@ -40,7 +48,9 @@
     compHNarrow: 8,
     showConsumables: false,
     tickEvery: 5,
-    labelEvery: 10
+    labelEvery: 10,
+    finalStrip: true,    /* the final inventories under the tracks */
+    testid: 'match-items'
   };
 
   function clamp01(v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
@@ -49,8 +59,18 @@
   }
 
   Hub.register('m-items', function (mount, ctx) {
-    var G5 = ctx.G5 || {};
-    var T = ctx.Timeline;
+    /* the record is read at call time, never at file load: the game switcher
+       re-mounts this module against a different window.GAMES entry */
+    var G5 = ctx.G5 || global.G5 || {};
+    var T = ctx.Timeline || global.MatchTimeline;
+
+    /* idempotent re-mount: the previous render's subscriptions and listeners
+       are torn down before anything new is built */
+    if (typeof mount.__mtItTeardown === 'function') {
+      try { mount.__mtItTeardown(); } catch (err) { /* a dead subscription is not fatal */ }
+      mount.__mtItTeardown = null;
+    }
+    mount.textContent = '';
     if (!T || !G5.players || !G5.minutes) return;
 
     var opts = {};
@@ -200,6 +220,8 @@
         h('div', { 'class': 'action' }, consBtn)),
       h('div', { 'class': 'card-body mt-it-body' }, legend, detail, frame));
 
+    card.setAttribute('data-testid', opts.testid);
+
     mount.textContent = '';
     mount.appendChild(card);
 
@@ -209,11 +231,21 @@
 
     var rows = [];
 
-    /* the real inventory at the whistle, so the track can mark it */
+    /* the real inventory at the whistle, so the track can mark it.
+       items.final is an object since Phase 4: main[6] is the six slots and
+       items.finalFlat is the same six kept for a pre Phase 4 reader. Read
+       main first, fall back to finalFlat, so the track renders against
+       either payload. */
+    function mainSix(p) {
+      var f = p.items.final;
+      if (f && f.main) return f.main;
+      return p.items.finalFlat || [];
+    }
+
     var finalSets = {};
     G5.players.forEach(function (p) {
       var set = {};
-      (p.items.final || []).forEach(function (it) { if (it) set[it] = true; });
+      mainSix(p).forEach(function (it) { if (it) set[it] = true; });
       finalSets[p.key] = set;
     });
 
@@ -325,6 +357,159 @@
         endCell: endCell
       });
     });
+
+    /* ============================================================
+       3b. PHASE 4, item 3: the final inventories.
+
+       Three sets, three frames, every empty slot drawn so the fixed
+       capacities read at a glance: main six, backpack three dimmed, and
+       the neutral slot with its own frame. The neutral enhancement has no
+       art in the item folder, so it prints as a text chip and is never
+       icon checked; items.final.neutralIcons[1] is null by design.
+
+       Nothing here is focusable. Ten players times eleven slots would be
+       110 new tab stops for a read only strip, so each card carries one
+       screen reader sentence with the whole inventory in text and the
+       icons keep their name tooltips and a caption line on hover.
+       ============================================================ */
+
+    var finCap = null;
+    var finCapRule = '';
+    var finCards = [];
+
+    function slotNode(name, display, icon, kind) {
+      var cls = 'mt-it-slot mt-it-slot--' + kind;
+      if (!name) {
+        return h('span', { 'class': cls + ' is-empty', 'aria-hidden': 'true' });
+      }
+      var label = display || name;
+      var inner = icon
+        ? h('img', { 'class': 'mt-it-img', src: encodeURI(icon), alt: '', loading: 'lazy', decoding: 'async' })
+        : h('span', { 'class': 'mt-it-chip' }, String(label).replace(/[^A-Za-z]/g, '').slice(0, 2).toUpperCase());
+      return h('span', { 'class': cls, title: label, 'aria-hidden': 'true' }, inner);
+    }
+
+    function kindWord(kind) {
+      if (kind === 'pack') return 'backpack';
+      if (kind === 'neutral') return 'neutral slot';
+      return 'main slot';
+    }
+
+    function buildFinalStrip() {
+      var legendRow = h('div', { 'class': 'm-legend mt-it-finlegend' },
+        h('span', { 'class': 'm-legend-item' }, h('span', { 'class': 'mt-it-fkey mt-it-fkey--main' }), 'Main slots'),
+        h('span', { 'class': 'm-legend-item' }, h('span', { 'class': 'mt-it-fkey mt-it-fkey--pack' }), 'Backpack'),
+        h('span', { 'class': 'm-legend-item' }, h('span', { 'class': 'mt-it-fkey mt-it-fkey--neutral' }), 'Neutral'),
+        h('span', { 'class': 'm-legend-item' }, h('span', { 'class': 'mt-it-fkey mt-it-fkey--empty' }), 'Empty slot'));
+
+      var grid = h('div', { 'class': 'mt-it-fingrid' });
+
+      G5.players.forEach(function (p) {
+        var f = p.items.final || {};
+        var caps = f.slots || { main: 6, backpack: 3, neutral: 2 };
+        var sideCls = p.side === 'radiant' ? 'radiant' : 'dire';
+
+        var main = f.main || p.items.finalFlat || [];
+        var mainDisp = f.mainDisplay || p.items.finalDisplay || [];
+        var mainIcons = f.mainIcons || p.items.finalIcons || [];
+        var pack = f.backpack || [];
+        var packDisp = f.backpackDisplay || [];
+        var packIcons = f.backpackIcons || [];
+        var neut = f.neutral || [p.items.neutral || null, p.items.neutralEnhancement || null];
+        var neutDisp = f.neutralDisplay || [p.items.neutralDisplay || null, p.items.neutralEnhancementDisplay || null];
+        var neutIcons = f.neutralIcons || [p.items.neutralIcon || null, null];
+
+        var setMain = h('span', { 'class': 'mt-it-finset mt-it-finset--main' });
+        var i;
+        for (i = 0; i < caps.main; i++) {
+          setMain.appendChild(slotNode(main[i], mainDisp[i], mainIcons[i], 'main'));
+        }
+
+        var setPack = h('span', { 'class': 'mt-it-finset mt-it-finset--pack' });
+        for (i = 0; i < caps.backpack; i++) {
+          setPack.appendChild(slotNode(pack[i], packDisp[i], packIcons[i], 'pack'));
+        }
+
+        var setNeut = h('span', { 'class': 'mt-it-finset mt-it-finset--neutral' },
+          slotNode(neut[0], neutDisp[0], neutIcons[0], 'neutral'));
+        if (neut[1]) {
+          setNeut.appendChild(h('span', {
+            'class': 'mt-it-enh',
+            title: neutDisp[1] + ', a neutral enhancement. The item folder carries no art for these.'
+          }, neutDisp[1]));
+        }
+
+        var slots = h('div', { 'class': 'mt-it-finslots' }, setMain, setPack, setNeut);
+
+        /* the whole inventory in text, the reading a pointer gets from the
+           tooltips and a keyboard reader would otherwise never get */
+        var said = [];
+        for (i = 0; i < caps.main; i++) if (main[i]) said.push(mainDisp[i] || main[i]);
+        var packSaid = [];
+        for (i = 0; i < caps.backpack; i++) if (pack[i]) packSaid.push(packDisp[i] || pack[i]);
+        var sentence = p.handle + ', ' + p.heroDisplay + '. Main slots: ' +
+          (said.length ? said.join(', ') : 'none') + '. Backpack: ' +
+          (packSaid.length ? packSaid.join(', ') : 'empty') + '. Neutral: ' +
+          (neut[0] ? (neutDisp[0] || neut[0]) : 'none') +
+          (neut[1] ? ', with the ' + neutDisp[1] + ' enhancement' : '') + '.';
+
+        var portrait = p.portrait
+          ? h('img', { 'class': 'hero-portrait hero-portrait-sm hero-portrait--' + sideCls, src: encodeURI(p.portrait), alt: '', loading: 'lazy' })
+          : Hub.heroImg(p.hero, { side: sideCls, size: 'sm', alt: '' });
+
+        var who = h('div', { 'class': 'mt-it-finwho' },
+          portrait,
+          h('span', { 'class': 'mt-it-who' },
+            h('span', { 'class': 'mt-it-handle u-truncate' }, p.handle),
+            h('span', { 'class': 'mt-it-hero u-truncate' }, p.heroDisplay)));
+
+        var cardEl = h('div', {
+          'class': 'mt-it-fincard m-hl is-' + sideCls,
+          dataset: { playerKey: p.key },
+          'data-testid': 'player-card'
+        }, who, slots, h('p', { 'class': 'u-sr-only' }, sentence));
+
+        /* hover and focus caption: the same reading the tooltip carries,
+           printed where it can be read without a pointer hovering */
+        cardEl.addEventListener('mouseover', function (e) {
+          var t = e.target;
+          while (t && t !== cardEl && !(t.classList && t.classList.contains('mt-it-slot'))) t = t.parentNode;
+          if (!t || t === cardEl || t.classList.contains('is-empty')) return;
+          var kind = t.classList.contains('mt-it-slot--pack') ? 'pack'
+            : (t.classList.contains('mt-it-slot--neutral') ? 'neutral' : 'main');
+          setFinCap(t.getAttribute('title') + ', ' + p.handle + ', ' + kindWord(kind) + '.');
+        });
+        cardEl.addEventListener('mouseleave', function () { setFinCap(null); });
+        cardEl.addEventListener('mouseenter', function () { T.highlightPlayer(p.key); });
+        cardEl.addEventListener('mouseleave', function () { T.highlightPlayer(null); });
+
+        grid.appendChild(cardEl);
+        finCards.push({ player: p, el: cardEl });
+      });
+
+      finCapRule = 'The six main slots, the three backpack slots and the neutral slot as OpenDota publishes them ' +
+        'at the final whistle. An empty frame is an empty slot. A neutral enhancement has no art in the item ' +
+        'folder, so it prints as a text chip.';
+      finCap = h('p', { 'class': 'mt-it-fincap' }, finCapRule);
+
+      return h('div', { 'class': 'mt-it-finals', 'data-testid': 'final-items' },
+        h('div', { 'class': 'mt-it-finhead' },
+          h('h3', { 'class': 'mt-it-fintitle' }, 'Final inventories'),
+          legendRow),
+        grid,
+        finCap);
+    }
+
+    function setFinCap(text) {
+      if (!finCap) return;
+      var s = text || finCapRule;
+      if (finCap.textContent !== s) finCap.textContent = s;
+      finCap.classList.toggle('is-item', !!text);
+    }
+
+    if (opts.finalStrip) {
+      card.querySelector('.mt-it-body').appendChild(buildFinalStrip());
+    }
 
     /* ============================================================
        items-keyboard-unreachable: a roving tabindex per track.
@@ -576,12 +761,15 @@
        ============================================================ */
 
     T.attachScrubSurface(ruler, { keyboard: true });
-    T.onHighlight(function (key) {
+    var stopHl = T.onHighlight(function (key) {
       for (var r = 0; r < rows.length; r++) {
         rows[r].row.classList.toggle('is-hl', !!key && rows[r].player.key === key);
       }
+      for (var c = 0; c < finCards.length; c++) {
+        finCards[c].el.classList.toggle('is-hl', !!key && finCards[c].player.key === key);
+      }
     });
-    T.subscribe(apply);
+    var stopSub = T.subscribe(apply);
 
     layout();
     paintDetail(T.index);
@@ -595,21 +783,37 @@
        wired, so one missing does not lose the pass. */
     var raf = 0, lastW = rows.length ? rows[0].track.clientWidth : 0;
     function onResize() {
-      if (raf) global.cancelAnimationFrame(raf);
-      raf = global.requestAnimationFrame(function () {
+      if (raf) global.clearTimeout(raf);
+      /* a timer, not requestAnimationFrame: a hidden or background tab
+         never runs a frame callback, so a width change that arrives while
+         the page is not being painted would leave the lanes measured
+         against the old track and drawn past the column. The timer runs
+         either way and the pass is idempotent. */
+      raf = global.setTimeout(function () {
         raf = 0;
         var w = rows.length ? rows[0].track.clientWidth : 0;
         if (Math.abs(w - lastW) < 2) return;
         lastW = w;
         layout();
-      });
+      }, 16);
     }
+    var ro = null;
     if (global.ResizeObserver) {
-      new global.ResizeObserver(onResize).observe(frame);
+      ro = new global.ResizeObserver(onResize);
+      ro.observe(frame);
     }
     global.addEventListener('resize', onResize);
     /* one deferred pass: fonts and lazy portraits can change the track width */
-    global.setTimeout(layout, 120);
+    var deferred = global.setTimeout(layout, 120);
+
+    mount.__mtItTeardown = function () {
+      if (typeof stopSub === 'function') stopSub();
+      if (typeof stopHl === 'function') stopHl();
+      if (ro) ro.disconnect();
+      global.removeEventListener('resize', onResize);
+      if (raf) global.clearTimeout(raf);
+      global.clearTimeout(deferred);
+    };
   });
 
 }(window));

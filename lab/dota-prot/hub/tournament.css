@@ -296,10 +296,21 @@
   align-items: stretch;
 }
 
+/* The connector layer is sized by CSS, never by the pixel width the script
+   measured. The script still writes the viewBox, so the paths keep their
+   measured coordinate space, but the box itself can only ever be as wide and
+   as tall as the column grid it sits in. Before this, the width and height
+   attributes held the last measurement, and a viewport that shrank before the
+   layer got a rendering frame left a box wider than its container: an absolute
+   child adds its overflow to the document, so the page scrolled sideways.
+   Measured at 1024: layer width 1023 at left 33 gave documentElement
+   scrollWidth 1056 against clientWidth 1009. */
 .tour-br-links {
   position: absolute;
   left: 0;
   top: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
   z-index: 0;
   overflow: visible;

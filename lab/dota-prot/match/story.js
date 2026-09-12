@@ -62,6 +62,18 @@
     };
   }
 
+  /* P4-02. rdy.gg addresses a finished Bo5 by its SERIES id, never by an
+     OpenDota match id: /en/dota2/results/<matchId> falls through to the
+     generic results listing. The record carries the series id first, the
+     game index second, and a missing pair degrades to no link at all
+     rather than to a wrong one. Source: rdy-match-page-notes.md. */
+  function seriesRdyIdOf(match) {
+    var ser = (match && match.series) || {};
+    if (ser.seriesRdyId) return ser.seriesRdyId;
+    var idx = window.GAME_INDEX;
+    return (idx && idx.seriesRdyId) || null;
+  }
+
   /* ================================================================== *
    * 1. m-summary, the sidebar readout. One index, rendered.
    * ================================================================== */
@@ -272,6 +284,9 @@
     var match = G5.match || {};
     var S = sideNames(G5);
     var leftKey = opts.leftTeamKey || S.radiantKey;
+    /* P4-02: every outbound row is the SERIES route plus a map number.
+       rdy.gg publishes no route keyed by an OpenDota match id. */
+    var seriesRdyId = seriesRdyIdOf(match);
 
     var root = h('section', { 'class': 'card mt-st-se', 'data-testid': 'series-games' });
     mount.appendChild(root);
@@ -308,7 +323,7 @@
         ),
         g.isThisGame ? h('span', { 'class': 'chip chip--gold mt-st-se-here' }, 'HERE') : null
       );
-      var href = Hub.link.match(g.matchId);
+      var href = Hub.link.seriesMap(seriesRdyId, g.game);
       var rowEl = Hub.extLink(href, {
         'class': 'mt-st-se-row' + (g.isThisGame ? ' is-here' : '') +
           ' is-' + (g.winner === S.direKey ? 'dire' : 'radiant'),
@@ -459,7 +474,15 @@
     var teams = h('div', { 'class': 'mt-st-lk-teams' });
     [match.radiant, match.dire].forEach(function (t) {
       if (!t) return;
-      var url = Hub.link.team(t.rdyTeamId);
+      /* Phase 4: data/ti2026.js carries no rdy.gg id for Team Spirit, so the
+         record's rdyTeamId is null for them in every game. The id is in
+         data/series-context.js. Record first, context second, null third. */
+      var rdyId = t.rdyTeamId;
+      if (!rdyId && window.SERIES_CONTEXT && window.SERIES_CONTEXT.teams &&
+          window.SERIES_CONTEXT.teams[t.key]) {
+        rdyId = window.SERIES_CONTEXT.teams[t.key].rdyTeamId || null;
+      }
+      var url = Hub.link.team(rdyId);
       var inner = h('span', { 'class': 'mt-st-lk-team-inner' },
         Hub.teamCrest(t.key, 'sm'),
         h('span', { 'class': 'mt-st-lk-team-name' }, t.name),
@@ -517,8 +540,25 @@
     /* the match itself and the rest of the prototype */
     body.appendChild(h('div', { 'class': 'm-sub' }, 'More'));
     var more = h('div', { 'class': 'mt-st-lk-more' });
-    var matchUrl = Hub.link.match(match.id);
-    if (matchUrl) { more.appendChild(Hub.extLink(matchUrl, { 'class': 'mt-st-lk-line' }, 'Match ' + match.id + ' on rdy.gg')); }
+    var ser = match.series || {};
+    var rdySeriesId = seriesRdyIdOf(match);
+    /* P4-02: this game on rdy.gg is the series route plus its map number,
+       not the OpenDota match id. The match id keeps its own line, pointed
+       at OpenDota, which is the only site that answers to it. */
+    var mapUrl = Hub.link.seriesMap(rdySeriesId, ser.game);
+    if (mapUrl && ser.game) {
+      more.appendChild(Hub.extLink(mapUrl, { 'class': 'mt-st-lk-line' },
+        'Map ' + ser.game + ' of this series on rdy.gg'));
+    }
+    var seriesUrl = Hub.link.series(rdySeriesId);
+    if (seriesUrl) { more.appendChild(Hub.extLink(seriesUrl, { 'class': 'mt-st-lk-line' }, 'The series on rdy.gg')); }
+    if (match.id) {
+      more.appendChild(Hub.extLink('https://www.opendota.com/matches/' + match.id,
+        { 'class': 'mt-st-lk-line' }, 'Match ' + match.id + ' on OpenDota'));
+    }
+    var tourUrl = Hub.link.tournament(ser.tournamentRdyId ||
+      (window.GAME_INDEX && window.GAME_INDEX.tournamentRdyId) || null);
+    if (tourUrl) { more.appendChild(Hub.extLink(tourUrl, { 'class': 'mt-st-lk-line' }, 'The International 2026 on rdy.gg')); }
     more.appendChild(h('a', { 'class': 'mt-st-lk-line', href: 'TI2026_Hub_Prototype_rdy_gg.html' }, 'The International 2026 hub'));
     more.appendChild(h('a', { 'class': 'mt-st-lk-line', href: 'TI2026_Player_Guide_rdy_gg.html' }, 'Player guide'));
     more.appendChild(h('a', { 'class': 'mt-st-lk-line', href: 'index.html' }, 'All Dota 2 prototypes'));

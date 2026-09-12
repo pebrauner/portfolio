@@ -549,17 +549,29 @@
       dAction.className = 'chip mt-dr-action chip--' + side + ' is-' + st.type;
       dPhase.textContent = st.phase;
       dStep.textContent = 'Step ' + order + ' of ' + lastStep;
-      dHero.textContent = st.heroDisplay;
+      /* Phase 4 item 4: the detail panel is the one place in this stepper
+         that is not itself a control, so it is the one place a hero may be
+         a link. Every tile above it is a <button> and an anchor inside a
+         button is invalid markup that would also steal the step gesture. */
+      dHero.textContent = '';
+      dHero.appendChild(Hub.heroLink(st.hero,
+        { 'class': 'm-herolink', title: st.heroDisplay + ' on rdy.gg' }, st.heroDisplay));
 
       dPortrait.textContent = '';
-      dPortrait.appendChild(Hub.heroImg(st.hero, { side: side, size: 'lg', alt: st.heroDisplay }));
+      dPortrait.appendChild(Hub.heroLink(st.hero,
+        { 'class': 'm-herolink', title: st.heroDisplay + ' on rdy.gg', tabindex: '-1', 'aria-hidden': 'true' },
+        Hub.heroImg(st.hero, { side: side, size: 'lg', alt: st.heroDisplay })));
       dPortrait.classList.toggle('is-ban', st.type === 'ban');
 
       dPlayer.textContent = '';
       dPlayer.setAttribute('data-player-key', st.playerKey || '');
       if (st.type === 'pick' && st.playerHandle) {
         dPlayer.appendChild(h('span', { 'class': 'mt-dr-detail-for u-dim' }, 'for'));
-        dPlayer.appendChild(h('span', { 'class': 'mt-dr-detail-handle' }, st.playerHandle));
+        var pRow = null, pl = G5.players || [];
+        for (var pi = 0; pi < pl.length; pi++) if (pl[pi].key === st.playerKey) { pRow = pl[pi]; break; }
+        var pHref = (pRow && Hub.link.player) ? Hub.link.player(pRow.rdyPlayerId) : null;
+        dPlayer.appendChild(h('span', { 'class': 'mt-dr-detail-handle' },
+          pHref ? Hub.extLink(pHref, { 'class': 'm-xlink' }, st.playerHandle) : st.playerHandle));
         if (st.pos) dPlayer.appendChild(h('span', { 'class': 'mt-dr-detail-pos u-dim' }, 'position ' + st.pos));
         dPlayer.appendChild(h('span', { 'class': 'mt-dr-detail-team u-dim' }, name));
       } else {

@@ -547,9 +547,12 @@
       if (!base.width || !base.height) { return; }
       var w = Math.round(base.width);
       var hgt = Math.round(base.height);
+      /* viewBox only. The box is sized to the container by tournament.css, so
+         a measurement taken before a resize can never leave a layer wider than
+         its column grid and push the whole page sideways. With
+         preserveAspectRatio="none" a stale viewBox only scales the lines until
+         the next redraw. */
       layer.setAttribute('viewBox', '0 0 ' + w + ' ' + hgt);
-      layer.setAttribute('width', String(w));
-      layer.setAttribute('height', String(hgt));
       while (layer.firstChild) { layer.removeChild(layer.firstChild); }
       pairs.forEach(function (p) {
         var a = p.from.getBoundingClientRect();

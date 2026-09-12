@@ -5,7 +5,12 @@
    modes, so FINAL and AT MM:SS never move a column or resize the card.
    ------------------------------------------------------------------ */
 
-.mt-sb { position: relative; }
+.mt-sb {
+  position: relative;
+  /* the one breakpoint flag the script reads, so the collapsed columns and
+     the nodes that move out of them are decided by the same media query */
+  --mt-sb-collapsed: 0;
+}
 
 .mt-sb .card-header { align-items: flex-start; }
 
@@ -188,6 +193,173 @@
   font-variant-numeric: tabular-nums;
 }
 .mt-sb-teamitems { padding: 0 !important; }
+.mt-sb-teamextra { padding: 0 !important; }
+
+/* the backpack count, a chip and not an icon: the three slots themselves
+   are drawn in full in the purchases card, which has the room */
+.mt-sb-pack {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 13px;
+  border-radius: 2px;
+  background: var(--color-rdy-white-5);
+  box-shadow: inset 0 0 0 1px var(--color-rdy-white-25);
+  font-size: 8.5px; font-weight: 800; letter-spacing: .02em;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- talents and Aghanim's (Phase 4) ---------- */
+
+.mt-sb-extracell { vertical-align: middle; }
+.mt-sb-extracell .mt-sb-talwrap { float: none; }
+
+/* the host inside the items cell, empty and inert above 1280 */
+.mt-sb-itemextra { display: none; }
+
+.mt-sb-talwrap { position: relative; display: inline-flex; }
+
+.mt-sb-tal {
+  display: inline-flex; align-items: center;
+  padding: 3px 4px; margin: 0;
+  border: 0; border-radius: var(--radius-sm);
+  background: var(--color-rdy-white-5);
+  box-shadow: inset 0 0 0 1px var(--border-hair);
+  cursor: pointer;
+  transition: background .14s ease, box-shadow .14s ease;
+}
+.mt-sb-tal:hover { background: var(--color-rdy-white-10); }
+.mt-sb-tal:focus-visible { outline: 2px solid var(--color-rdy-fresh-green); outline-offset: 2px; }
+.mt-sb-tal[aria-expanded="true"] { box-shadow: inset 0 0 0 1px var(--color-rdy-white-45); }
+
+.mt-sb-talglyph { display: inline-flex; gap: 2px; }
+
+/* one tier: two cells, the side taken first is filled */
+.mt-sb-tier { display: inline-flex; flex-direction: column; gap: 1px; }
+.mt-sb-half {
+  display: block;
+  width: 8px; height: 5px;
+  border-radius: 1px;
+  background: var(--color-rdy-white-10);
+  box-shadow: inset 0 0 0 1px var(--color-rdy-white-15);
+}
+.mt-sb-tier.is-l .mt-sb-half--l,
+.mt-sb-tier.is-r .mt-sb-half--r {
+  background: var(--color-rdy-light-gold);
+  box-shadow: none;
+}
+.mt-sb-tier.is-unreached .mt-sb-half { background: transparent; box-shadow: inset 0 0 0 1px var(--color-rdy-white-10); }
+.mt-sb-tier.is-unlogged .mt-sb-half { background: var(--color-rdy-white-5); box-shadow: inset 0 0 0 1px var(--color-rdy-white-25); }
+
+/* the panel: plain text in the document, shown by [hidden] only */
+.mt-sb-talpanel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 20;
+  width: 300px;
+  max-width: 78vw;
+  padding: 10px 11px;
+  border-radius: var(--radius-lg);
+  background: var(--color-rdy-bright-night);
+  box-shadow: inset 0 0 0 1px var(--border-strong), 0 10px 26px #00000073;
+  text-align: left;
+  white-space: normal;
+  font-variant-numeric: normal;
+}
+.mt-sb-talhead {
+  margin: 0 0 6px;
+  font-size: 11.5px; font-weight: 800; color: var(--text-primary);
+}
+.mt-sb-tallist { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.mt-sb-talrow {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  gap: 7px;
+  align-items: start;
+}
+.mt-sb-talrow.is-quiet { opacity: .72; }
+.mt-sb-tallvl {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 17px;
+  border-radius: var(--radius-pill);
+  background: var(--color-rdy-white-5);
+  box-shadow: inset 0 0 0 1px var(--border-hair);
+  font-size: 11px; font-weight: 700; color: var(--text-secondary);
+}
+.mt-sb-talopts { display: grid; gap: 3px; min-width: 0; }
+.mt-sb-talopt {
+  display: flex; align-items: baseline; gap: 6px;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--color-rdy-white-5);
+  font-size: 11px; line-height: 1.35; color: var(--text-tertiary);
+}
+.mt-sb-taltext { min-width: 0; }
+.mt-sb-talopt.is-chosen {
+  background: color-mix(in srgb, var(--color-rdy-gold) 16%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-rdy-gold) 42%, transparent);
+  color: var(--text-primary);
+  font-weight: 700;
+}
+.mt-sb-talopt.is-also { box-shadow: inset 0 0 0 1px var(--color-rdy-white-15); color: var(--text-secondary); }
+.mt-sb-talopt.is-novalue .mt-sb-taltext::after {
+  content: " \00b7 no value published";
+  color: var(--text-tertiary);
+  font-weight: 400;
+}
+.mt-sb-talopt.is-missing { font-style: normal; color: var(--text-tertiary); }
+.mt-sb-taltag {
+  flex: 0 0 auto;
+  font-style: normal; font-size: 11px; font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--color-rdy-light-gold);
+}
+.mt-sb-taltag--late { color: var(--text-tertiary); font-weight: 600; }
+.mt-sb-talnote {
+  grid-column: 2;
+  font-size: 11px; line-height: 1.35; color: var(--text-tertiary);
+}
+.mt-sb-talcount {
+  margin: 8px 0 0;
+  font-size: 11px; color: var(--text-secondary);
+}
+.mt-sb-talrule {
+  margin: 4px 0 0;
+  padding-top: 6px;
+  border-top: 1px solid var(--border-hair);
+  font-size: 11px; line-height: 1.4; color: var(--text-tertiary);
+}
+
+/* Aghanim's: two chips, both always drawn, so an absence reads as an
+   absence and never as missing data */
+.mt-sb-aghs { display: inline-flex; flex-direction: column; gap: 3px; align-items: stretch; }
+.mt-sb-agh {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 15px; padding: 0 6px;
+  border-radius: var(--radius-pill);
+  font-size: 11px; font-weight: 700; line-height: 1;
+  white-space: nowrap;
+}
+.mt-sb-agh.is-on {
+  color: var(--color-rdy-light-gold);
+  background: color-mix(in srgb, var(--color-rdy-gold) 16%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-rdy-gold) 42%, transparent);
+}
+.mt-sb-agh.is-off {
+  color: var(--text-tertiary);
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--border-hair);
+}
+
+/* ---------- cross links ---------- */
+.mt-sb-link { color: inherit; text-decoration: none; }
+.mt-sb-link:hover { color: var(--color-rdy-fresh-green); text-decoration: underline; }
+.mt-sb-link:focus-visible { outline: 2px solid var(--color-rdy-fresh-green); outline-offset: 2px; border-radius: 2px; }
+a.mt-sb-handle { display: block; }
+a.mt-sb-heroname { display: block; }
+
+/* the payload's own rule sentence, printed once under the tables */
+.mt-sb-notes li.mt-sb-rule { color: var(--text-tertiary); }
 
 /* ---------- footnote ---------- */
 .mt-sb-foot {
@@ -218,7 +390,10 @@
   to { opacity: 1; transform: none; }
 }
 
-/* ---------- widths that need a little help at 1024 ---------- */
+/* ---------- widths that need a little help at 1024 ----------
+   The two Phase 4 columns collapse to zero width and the JS moves their
+   one node each into the items cell, which takes the width back. The
+   colgroup is still twelve cols, so no cell index ever shifts. */
 @media (max-width: 1279px) {
   .mt-sb-table { font-size: 11.5px; }
   .mt-sb-table th, .mt-sb-table td { padding: 5px 3px; }
@@ -226,6 +401,39 @@
   .mt-sb-handle { font-size: 12px; }
   .mt-sb-hero .hero-portrait { width: 22px; height: 13px; }
   .mt-sb-pos { display: none; }
+
+  .mt-sb { --mt-sb-collapsed: 1; }
+  .mt-sb-col--talents, .mt-sb-col--aghs { width: 0 !important; }
+  .mt-sb-col--items { width: 20.5% !important; }
+
+  /* P4R2-03: with TALENTS and AGHANIM'S collapsed to zero the two labels
+     either side of them met, and the header read as one run-on word. The
+     healing column gives back two of the thirteen and a half points the two
+     collapsed columns freed, which clears its own label, its letters are
+     tracked in a little tighter, and the items header takes a left gutter
+     so the two surviving labels are never flush against each other. */
+  .mt-sb-col--c9 { width: 8.5% !important; }
+  .mt-sb-table th.mt-sb-th { letter-spacing: .03em; }
+  .mt-sb-table th.mt-sb-th--items { padding-left: 8px; }
+
+  .mt-sb-th--talents, .mt-sb-th--aghs,
+  .mt-sb-extracell, .mt-sb-teamextra {
+    padding: 0 !important;
+    overflow: hidden;
+    font-size: 0;
+    color: transparent;
+  }
+
+  .mt-sb-itemextra {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  .mt-sb-itemcell { vertical-align: middle; }
+  .mt-sb-aghs { flex-direction: row; gap: 3px; }
+  .mt-sb-agh { height: 14px; padding: 0 5px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -654,20 +654,44 @@ table { border-collapse: collapse; width: 100%; }
 .icon-lg { font-size: 20px; }
 .icon-xl { font-size: 24px; }
 
-/* ---------- 15. Ad slots (hidden unless body.show-ads) ---------- */
-.ad-slot { display: none; }
-body.show-ads .ad-slot {
+/* ---------- 15. Ad slots ----------
+   Phase 4, 2026-09-11: the body.show-ads gate is gone. A slot is always
+   drawn, as a labelled dashed placeholder that says in words what would sit
+   there. This prototype carries no ads and no odds; it shows where the money
+   layer lands on rdy.gg's own page so the analysis layer can be judged with
+   that space accounted for. The text is the slot's own child, so a slot
+   declares itself and this file never types one. */
+/* P4R2-02: the fill is OPAQUE. The match page's rail slot is sticky, so a
+   translucent tint let the cards it travels over read straight through the
+   dashed frame. The page surface is painted first and the white 5% tint is
+   laid on top as an image, so the slot looks exactly as it did over the page
+   ground and nothing behind it can show through. */
+.ad-slot {
   display: flex; align-items: center; justify-content: center;
   margin: 0 auto;
-  background: var(--color-rdy-white-5);
+  padding: 8px 10px;
+  box-sizing: border-box;
+  background-color: var(--surface-page);
+  background-image: linear-gradient(var(--color-rdy-white-5), var(--color-rdy-white-5));
   border: 1px dashed var(--border-strong);
   border-radius: var(--radius-md);
   color: var(--text-tertiary);
-  font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+  font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+  line-height: 1.35; text-align: center; text-wrap: balance;
 }
-.ad-slot--leaderboard { width: 728px; max-width: 100%; height: 90px; }
-.ad-slot--rail { width: 160px; height: 600px; }
+/* P4R2-07: .ad-slot resets margin to 0 auto and it is declared after the
+   .u-mt-* utilities, so a leaderboard carrying u-mt-3 still landed flush
+   under whatever sits above it. The block margin is restored here, off the
+   grid gap token, and the auto inline margin that centres the slot is left
+   alone. */
+.ad-slot--leaderboard {
+  width: 728px; max-width: 100%; height: 90px;
+  margin-block: calc(var(--gap-grid) * .75);
+}
+.ad-slot--rail { width: 160px; height: 600px; max-width: 100%; }
 .ad-slot--square { width: 250px; height: 250px; }
+/* the odds card rdy.gg runs beside its score card, to the pixel */
+.ad-slot--odds { width: 192px; height: 128px; flex: 0 0 auto; }
 
 /* ---------- 16. Mount placeholders ---------- */
 .mount { min-width: 0; }
