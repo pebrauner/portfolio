@@ -111,6 +111,7 @@
 <!-- ============ tab nav ============ -->
 <div class="tab-bar-wrap">
   <div class="container">
+   <div class="tab-bar-row">
     <div class="tab-bar" role="tablist" aria-label="Tournament sections" data-testid="tab-bar">
       <button type="button" class="tab-btn" role="tab" id="tab-overview"  data-tab="overview"  aria-controls="panel-overview"  aria-selected="true">Overview</button>
       <button type="button" class="tab-btn" role="tab" id="tab-schedule"  data-tab="schedule"  aria-controls="panel-schedule"  aria-selected="false" tabindex="-1">Schedule</button>
@@ -119,6 +120,10 @@
       <button type="button" class="tab-btn" role="tab" id="tab-drafts"    data-tab="drafts"    aria-controls="panel-drafts"    aria-selected="false" tabindex="-1">Drafts</button>
       <button type="button" class="tab-btn" role="tab" id="tab-news"      data-tab="news"      aria-controls="panel-news"      aria-selected="false" tabindex="-1">News</button>
     </div>
+    <!-- Compact | Detailed. Built by Hub.densitySwitch so the two words live in
+         one place and both prototype pages read the same control. -->
+    <div class="mount tab-bar-tools" id="m-density" data-mount="m-density"></div>
+   </div>
   </div>
 </div>
 

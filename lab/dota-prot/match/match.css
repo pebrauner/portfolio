@@ -885,3 +885,342 @@ a.m-sh-score:hover { background: var(--color-rdy-fresh-green-hover); color: var(
   .mt-tl-mark, .mt-tl-mark-label, .mt-tl-edge, .m-hl { transition: none; }
   .mt-tl-cursor { will-change: auto; }
 }
+
+/* ============================================================
+   20. COMPACT  (2026-09-12)
+   ------------------------------------------------------------
+   Pedro: "we have too much information on the screen. Let's do a compact
+   version, maintaining the value, but less details."
+
+   COMPACT is the default and the shipped state of this page. Every rule in
+   this block is scoped to body.is-compact or to a class an expander owns, so
+   DETAILED is the page exactly as it was built, minus nothing. Nothing here
+   deletes a figure: what it hides is inside a panel whose button says what it
+   holds and how many, or behind an info tip beside the label it explains.
+
+   The one thing this block may NOT do is move a number out of reach. Every
+   reading on this page is on screen, one expander click away, or one info tip
+   click away. Never more than two.
+   ============================================================ */
+
+/* ---------- 20.1 the density control, in the series header row ---------- */
+.m-sh-density {
+  display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  padding: 0 2px;
+}
+.m-sh-density-label {
+  font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+@media (max-width: 1023px) {
+  .m-sh-density { align-items: stretch; }
+  .m-sh-density .m-density { justify-content: center; }
+}
+
+/* ---------- 20.2 the header block: series header and banner read as one ---------- */
+body.is-compact .m-banner-mount { padding-top: 8px; }
+body.is-compact .m-bn-inner { padding: 12px 20px; }
+body.is-compact .m-bn-title { margin-top: 6px; }
+body.is-compact .m-bn-foot { margin-top: 10px; padding-top: 10px; }
+
+/* the fact strip, as one muted line */
+.m-bn-factline {
+  display: flex; flex-wrap: wrap; align-items: baseline;
+  gap: 3px 18px;
+  margin: 10px 0 0;
+  font-size: 12.5px; line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+.m-bn-factbit { display: inline-flex; align-items: baseline; gap: 6px; min-width: 0; }
+.m-bn-factbit-label {
+  font-size: 10px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+.m-bn-factbit-value { color: var(--text-secondary); }
+.m-bn-winchip { letter-spacing: .04em; }
+
+/* ---------- 20.3 card rhythm ---------- */
+body.is-compact .stack-lg { gap: 12px; }
+body.is-compact .card-header { margin-bottom: 10px; }
+body.is-compact .mt-eco .card-header .subtitle,
+body.is-compact .mt-sb .card-header .subtitle,
+body.is-compact .mt-it .card-header .subtitle,
+body.is-compact .mt-wd .card-header .subtitle,
+body.is-compact .mt-mo .card-header .subtitle,
+body.is-compact .mt-dr .card-header .subtitle,
+body.is-compact .mt-pl .card-header .subtitle { display: none; }
+body.is-compact .card-footer { margin-top: 10px; padding-top: 8px; }
+body.is-compact .mt-mo-foot,
+body.is-compact .mt-dr-foot { display: none; }
+
+/* ---------- 20.4 Economy ---------- */
+.mt-eco-more { display: flex; flex-direction: column; gap: 12px; }
+.mt-eco-ro-grid--more { margin-top: 0; }
+body.is-compact .mt-eco-plot { height: 250px; min-height: 0; }
+body.is-compact .mt-eco-readout { align-self: start; }
+/* DENS-1, 2026-09-12: the legend was deleted in compact, and it is the only
+   place the three marker colours on the gold chart and on the sticky strip
+   are decoded. A key is not detail, so it stays on screen and is tightened
+   instead. */
+body.is-compact .mt-eco-legend { font-size: 11px; gap: 4px 12px; }
+body.is-compact .mt-eco-legend .m-legend-item { font-size: 11px; gap: 5px; }
+body.is-compact .mt-eco-legend .m-swatch { width: 8px; height: 8px; }
+body.is-compact .mt-eco-moment-label { margin-top: 8px; }
+
+/* ---------- 20.5 Scoreboard: the six columns compact leaves out ----------
+   A11Y-1, 2026-09-12. These six used to be collapsed with width:0,
+   font-size:0 and color:transparent, which hides them from the eye and from
+   nobody else: eighty-odd cells stayed in the accessibility tree, in
+   find-in-page and in copy, so the row a screen reader read was not the row
+   on screen. They are taken out of the render instead, the <col> and its
+   cells together, which is the only way a table cell stops being announced.
+   The colgroup is still twelve entries in the markup and the JS still
+   stamps and paints all twelve, so no cell index ever shifts; the six that
+   stay are given the whole width below, so the table still fills its card
+   at every step. */
+.mt-sb.is-cols-min .mt-sb-table col[data-col="lhdn"],
+.mt-sb.is-cols-min .mt-sb-table col[data-col="c7"],
+.mt-sb.is-cols-min .mt-sb-table col[data-col="c8"],
+.mt-sb.is-cols-min .mt-sb-table col[data-col="c9"],
+.mt-sb.is-cols-min .mt-sb-table col[data-col="talents"],
+.mt-sb.is-cols-min .mt-sb-table col[data-col="aghs"],
+.mt-sb.is-cols-min .mt-sb-table th[data-col="lhdn"],
+.mt-sb.is-cols-min .mt-sb-table td[data-col="lhdn"],
+.mt-sb.is-cols-min .mt-sb-table th[data-col="c7"],
+.mt-sb.is-cols-min .mt-sb-table td[data-col="c7"],
+.mt-sb.is-cols-min .mt-sb-table th[data-col="c8"],
+.mt-sb.is-cols-min .mt-sb-table td[data-col="c8"],
+.mt-sb.is-cols-min .mt-sb-table th[data-col="c9"],
+.mt-sb.is-cols-min .mt-sb-table td[data-col="c9"],
+.mt-sb.is-cols-min .mt-sb-table th[data-col="talents"],
+.mt-sb.is-cols-min .mt-sb-table td[data-col="talents"],
+.mt-sb.is-cols-min .mt-sb-table th[data-col="aghs"],
+.mt-sb.is-cols-min .mt-sb-table td[data-col="aghs"] { display: none !important; }
+
+/* the width the six give back goes to the six that stay */
+.mt-sb.is-cols-min .mt-sb-table col[data-col="player"] { width: 31% !important; }
+.mt-sb.is-cols-min .mt-sb-table col[data-col="lvl"]    { width: 7% !important; }
+.mt-sb.is-cols-min .mt-sb-table col[data-col="kda"]    { width: 14% !important; }
+.mt-sb.is-cols-min .mt-sb-table col[data-col="rates"]  { width: 14% !important; }
+.mt-sb.is-cols-min .mt-sb-table col[data-col="gold"]   { width: 13% !important; }
+.mt-sb.is-cols-min .mt-sb-table col[data-col="items"]  { width: 21% !important; }
+
+body.is-compact .mt-sb-table th,
+body.is-compact .mt-sb-table td { padding-top: 4px; padding-bottom: 4px; }
+body.is-compact .mt-sb-tablewrap + .mt-sb-tablewrap { margin-top: 8px; }
+
+/* ---------- 20.6 Purchases ---------- */
+.mt-it-lanewrap { display: block; }
+body.is-compact .mt-it-finhead { margin-bottom: 6px; }
+body.is-compact .mt-it-fincard { padding: 7px 9px; }
+body.is-compact .mt-it-fingrid { gap: 7px; }
+body.is-compact .mt-it-fincap { margin-top: 6px; }
+
+/* ---------- 20.7 Vision ---------- */
+.mt-wd-aliveline {
+  display: flex; align-items: center; flex-wrap: wrap;
+  gap: 8px 12px;
+}
+.mt-wd-aliveline .mt-wd-readout--main { flex: 1 1 auto; margin: 0; }
+.mt-wd-more { display: flex; flex-direction: column; gap: 12px; }
+body.is-compact .mt-wd-grid { grid-template-columns: minmax(0, 1fr); }
+body.is-compact .mt-wd-map { max-width: 400px; margin-inline: auto; }
+body.is-compact .mt-wd-caption { margin-top: 6px; }
+
+/* ---------- 20.8 Fights and objectives ---------- */
+.mt-mo-clist { display: flex; flex-direction: column; }
+.mt-mo-crow {
+  display: grid;
+  grid-template-columns: 52px 88px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit; font-size: 13px; line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+  transition: background .12s ease, border-color .12s ease, color .12s ease;
+}
+.mt-mo-crow + .mt-mo-crow { border-top-color: var(--border-hair); border-top-left-radius: 0; border-top-right-radius: 0; }
+.mt-mo-crow:hover { background: var(--color-rdy-white-5); color: var(--text-primary); }
+.mt-mo-crow:focus-visible { outline: 2px solid var(--color-rdy-fresh-green); outline-offset: -2px; }
+.mt-mo-crow.is-near { background: var(--color-rdy-white-5); border-color: var(--border-soft); color: var(--text-primary); }
+.mt-mo-crow.is-at { border-color: var(--color-rdy-fresh-green); }
+.mt-mo-crow.is-featured .mt-mo-crow-kind { color: var(--color-rdy-light-gold); }
+.mt-mo-crow-time { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--text-tertiary); }
+.mt-mo-crow-kind {
+  font-size: 10px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+  color: var(--text-tertiary);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.mt-mo-crow-headline { min-width: 0; }
+.mt-mo-crow-gold { font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+.mt-mo-crow.is-radiant { box-shadow: inset 2px 0 0 var(--color-rdy-fresh-green); }
+.mt-mo-crow.is-dire { box-shadow: inset 2px 0 0 var(--color-rdy-red); }
+
+/* one reading at a time: the short list OR the full ladder */
+.mt-mo.is-all-open .mt-mo-clist { display: none; }
+.mt-mo-full { display: flex; flex-direction: column; gap: 14px; }
+
+/* the biggest swing card at half the height it had */
+body.is-compact .mt-mo-plays-grid { gap: 8px; }
+body.is-compact .mt-mo-play { padding: 8px 10px; }
+body.is-compact .mt-mo-play-headline { font-size: 13px; line-height: 1.35; }
+body.is-compact .mt-mo-plays-title { margin-bottom: 6px; }
+body.is-compact .mt-mo-plays .mt-mo-dead-row { display: none; }
+
+/* ---------- 20.9 Draft ---------- */
+.mt-dr-stepwrap { display: flex; flex-direction: column; gap: 12px; }
+body.is-compact .mt-dr-teams { gap: 12px; }
+body.is-compact .mt-dr-team-head { margin-bottom: 6px; }
+body.is-compact .mt-dr-pick { padding: 3px 6px; }
+body.is-compact .mt-dr-picks { gap: 3px; }
+body.is-compact .mt-dr-bans { gap: 4px; }
+body.is-compact .mt-dr-ban { padding: 2px 6px; }
+body.is-compact .mt-dr-team .m-sub { margin: 6px 0 3px; }
+
+/* ---------- 20.10 Player comparison ---------- */
+.mt-pl-more { display: flex; flex-direction: column; gap: 14px; }
+body.is-compact .mt-pl-caption { display: none; }
+/* six rows by default, the other eight with the rest of the detail */
+body.is-compact .mt-pl:not(.is-all-open) .mt-pl-browlist > .mt-pl-brow:nth-child(n + 7) { display: none; }
+body.is-compact .mt-pl:not(.is-all-open) .mt-pl-bnote { display: none; }
+body.is-compact .mt-pl-brow { padding-top: 2px; padding-bottom: 2px; }
+
+/* ---------- 20.11 Head to head and recent form ---------- */
+body.is-compact .mt-cx-teamline { margin: 0 0 6px; }
+body.is-compact .mt-cx-coltitle { margin-bottom: 6px; }
+body.is-compact .mt-cx-tally { margin-top: 6px; }
+
+/* ---------- 20.12 The rail ---------- */
+.mt-st-su-jumphead { display: flex; align-items: center; gap: 6px; margin-top: 10px; }
+.mt-st-hg-exp { margin-top: 10px; }
+.mt-st-hg .card-header .title { display: flex; align-items: center; gap: 6px; min-width: 0; }
+
+/* ---------- 20.13 an info tip, inside a heading or an action ---------- */
+.mt-mo-plays-title { display: flex; align-items: center; gap: 6px; }
+.mt-eco-header .action { display: flex; align-items: center; gap: 8px; }
+
+/* ---------- 20.14 second pass on the compact budget ---------- */
+
+/* Vision: the map is the module, and 340 still reads every ward */
+body.is-compact .mt-wd-map { max-width: 340px; }
+body.is-compact .mt-wd-body { gap: 8px; }
+body.is-compact .mt-wd-grid { gap: 8px; }
+
+/* Purchases: ten inventory cards on two columns, tighter */
+body.is-compact .mt-it-fincard { padding: 5px 8px; gap: 6px; }
+body.is-compact .mt-it-fingrid { gap: 6px; }
+body.is-compact .mt-it-finwho .hero-portrait { width: 34px; height: 20px; }
+body.is-compact .mt-it-slot { width: 22px; height: 17px; }
+
+/* Fights: the short rows and the swing card */
+body.is-compact .mt-mo-crow { padding: 3px 8px; font-size: 12.5px; }
+body.is-compact .mt-mo-play { padding: 6px 9px; }
+body.is-compact .mt-mo-play-headline { font-size: 12.5px; }
+body.is-compact .mt-mo .card-body.stack { gap: 10px; }
+
+/* Draft: the board rows */
+body.is-compact .mt-dr-pick { padding: 2px 6px; gap: 7px; }
+body.is-compact .mt-dr-pick .hero-portrait { width: 38px; height: 22px; }
+body.is-compact .mt-dr-pick-hero { font-size: 12.5px; line-height: 1.25; }
+body.is-compact .mt-dr-pick-player { font-size: 11px; line-height: 1.25; }
+body.is-compact .mt-dr-ban-img { width: 26px; height: 15px; }
+body.is-compact .mt-dr-ban { font-size: 11px; }
+body.is-compact .mt-dr .card-body.stack { gap: 10px; }
+
+/* Scoreboard: twelve rows across two tables */
+body.is-compact .mt-sb-table th,
+body.is-compact .mt-sb-table td { padding-top: 2px; padding-bottom: 2px; }
+body.is-compact .mt-sb-hero .hero-portrait { width: 30px; height: 17px; }
+body.is-compact .mt-sb-pick .avatar { width: 24px; height: 24px; }
+body.is-compact .mt-sb-itemslot { width: 20px; height: 15px; }
+
+/* Head to head and recent form: shorter rows, the rules behind one 'i' */
+.mt-cx-ruleline { display: flex; align-items: center; gap: 6px; margin: 0; }
+body.is-compact .mt-cx-row,
+body.is-compact .mt-cx-rows > * { padding-top: 3px; padding-bottom: 3px; }
+body.is-compact .mt-cx-rows .hero-portrait,
+body.is-compact .mt-cx-rows .team-logo,
+body.is-compact .mt-cx-rows .monogram { width: 22px; height: 22px; }
+body.is-compact .mt-cx-foot { margin-top: 8px; padding-top: 8px; }
+
+/* Player comparison: the radar column is the radar */
+body.is-compact .mt-pl-top { align-items: start; }
+body.is-compact .mt-pl .card-body,
+body.is-compact .mt-pl-sidecol { gap: 10px; }
+
+/* ---------- 20.15 third pass: the last two modules over budget ---------- */
+
+/* Fights: the swing card at half the height it had */
+body.is-compact .mt-mo-play { padding: 5px 9px; gap: 3px; }
+body.is-compact .mt-mo-play-top { gap: 6px; }
+body.is-compact .mt-mo-play .mt-mo-time { font-size: 12px; }
+body.is-compact .mt-mo-play-headline {
+  font-size: 12.5px; line-height: 1.3;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+body.is-compact .mt-mo-play .mt-mo-play-meta,
+body.is-compact .mt-mo-play .mt-mo-meta,
+body.is-compact .mt-mo-play .mt-mo-spark { display: none; }
+body.is-compact .mt-mo-crow { padding: 2px 8px; }
+
+/* Draft: the board is picks, bans and the order badges, nothing else */
+body.is-compact .mt-dr-pick { padding: 1px 6px; }
+body.is-compact .mt-dr-pick .hero-portrait { width: 34px; height: 20px; }
+body.is-compact .mt-dr-pick-hero { font-size: 12px; }
+body.is-compact .mt-dr-pick-player { font-size: 10.5px; }
+body.is-compact .mt-dr-picks { gap: 2px; }
+body.is-compact .mt-dr-ban { padding: 1px 5px; font-size: 10.5px; }
+body.is-compact .mt-dr-ban-img { width: 22px; height: 13px; }
+body.is-compact .mt-dr-bans { gap: 3px; }
+body.is-compact .mt-dr-team .m-sub {
+  margin: 5px 0 2px;
+  font-size: 9.5px; line-height: 1.2;
+}
+
+/* ============================================================
+   21. FIX PASS ON THE COMPACT DEFAULT, 2026-09-12
+   Controls that looked live but drove nothing now sit with the thing they
+   drive, the two rules that only compact needs get an info affordance, and
+   the one datum compact could not reach comes back on the fact line.
+   ============================================================ */
+
+/* ---------- 21.1 Fights and objectives: one head per reading ---------- */
+
+/* the short list says what it holds and why, and hands the rule to an 'i' */
+.mt-mo-chead {
+  display: flex; align-items: center; flex-wrap: wrap;
+  gap: 6px 10px;
+  margin-bottom: 2px;
+}
+.mt-mo-chead-label {
+  font-size: 10px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+.mt-mo-chead-count { font-size: 11.5px; font-variant-numeric: tabular-nums; }
+
+/* the filter belongs to the ladder it filters, so it travels into the panel */
+.mt-mo-fullhead { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
+
+/* one reading at a time, head included */
+.mt-mo.is-all-open .mt-mo-chead { display: none; }
+
+/* ---------- 21.2 Purchases: the consumables chip joins the lanes ---------- */
+.mt-it-lanehead { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
+
+/* ---------- 21.3 The rail: five landmarks, printed once ---------- */
+/* the sticky strip carries the same five jumps and never scrolls away, so in
+   compact the summary keeps only the label and the rule behind its 'i' */
+body.is-compact .mt-st-su-jumps { display: none; }
+
+/* ---------- 21.4 The rail: ten player pages behind their own count ---------- */
+.mt-st-lk-playersexp { margin-top: 2px; }
+.mt-st-lk-playersexp .m-expander-panel { padding-top: 6px; }

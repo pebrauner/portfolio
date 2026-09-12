@@ -694,3 +694,330 @@
   .mini-meta { display: none; }
   .mini-jump { display: none; }
 }
+
+/* ==========================================================================
+   COMPACT (2026-09-12)
+   Pedro: "too much information on the screen. Let's do a compact version,
+   maintaining the value, but less details."
+
+   Everything below is additive and scoped either to body.is-compact or to the
+   new compact-only blocks. DETAILED restores the surfaces exactly as they were
+   before this section existed, because nothing above was edited.
+   ========================================================================== */
+
+/* ---------- the switch, at the right end of the tab bar ---------- */
+
+.tab-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.tab-bar-row > .tab-bar { flex: 1 1 auto; }
+.tab-bar-tools {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  padding: 5px 0;
+}
+
+@media (max-width: 599px) {
+  .tab-bar-row { gap: 8px; }
+  .tab-bar-tools .m-density-btn { padding: 0 8px; }
+}
+
+/* ---------- cards in a two-up row take their own height in compact ----------
+   .row-2-1 and .row-1-1 stretch both cards to the taller one. That is right
+   when the two carry the same weight; in compact one side is deliberately a
+   three line summary and the other is a chart, so a stretched summary card
+   would be 500px of empty panel. */
+
+body.is-compact .row-2-1 > .mount,
+body.is-compact .row-1-1 > .mount { align-self: start; }
+body.is-compact .row-2-1 > .mount > .card,
+body.is-compact .row-1-1 > .mount > .card { height: auto; }
+
+/* ---------- 1. live card ---------- */
+
+.live-gbar-exp { margin-top: 8px; padding-top: 8px; }
+.live-gbar-more { display: grid; gap: 2px; }
+.live-gbar-more .live-gbar-swing { margin-top: 0; }
+
+body.is-compact .live-card .live-strip-art .hero-portrait { height: 34px; }
+body.is-compact .live-pipsrow { padding-top: 8px; margin-top: 8px; }
+body.is-compact .live-gbar { padding-top: 10px; margin-top: 8px; }
+
+/* ---------- 2. gold graph ---------- */
+
+.live-gg-keywrap { display: block; }
+.live-gg-keywrap .live-gg-keys { margin-top: 0; }
+
+/* ---------- 3. objectives ---------- */
+
+.live-obj-sum {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 4px 10px;
+}
+.live-obj-sumitem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  line-height: 20px;
+}
+.live-obj-sumitem--rosh { grid-column: 1 / -1; }
+.live-obj-sumitem .team-logo,
+.live-obj-sumitem .monogram { width: 18px; height: 18px; flex: 0 0 auto; }
+.live-obj-sumico {
+  color: var(--color-rdy-gold);
+  font-size: 16px;
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+.live-obj-sumabbr {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .03em;
+  color: var(--color-rdy-white);
+  flex: 0 0 auto;
+}
+.live-obj-sumnum {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--color-rdy-white);
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+.live-obj-sumitem--rosh .live-obj-sumnum { margin-left: 0; }
+.live-obj-sumlab { font-size: 11px; flex: 0 0 auto; }
+.live-obj-sumaegis { font-size: 11px; min-width: 0; margin-left: auto; text-align: right; }
+.live-obj-sumitem--rosh .chip { flex: 0 0 auto; }
+.live-obj-more .live-obj-grid { margin-top: 0; }
+
+/* the compact objectives card is a strip: no subtitle, tighter frame */
+body.is-compact .live-obj-card .card-header { margin-bottom: 8px; }
+body.is-compact .live-obj-card .card-header .title { font-size: 15px; }
+/* C3: the subtitle shortens in compact, it is never deleted */
+.live-obj-sub { display: inline-flex; align-items: baseline; gap: 4px; }
+body.is-compact .live-obj-card .card-header .subtitle { font-size: 11px; }
+body.is-compact .live-obj-card .m-expander { margin-top: 8px; padding-top: 8px; }
+body.is-compact .live-obj-card .m-expander-btn { height: 26px; }
+
+/* ---------- 4. scoreboard ---------- */
+
+body.is-compact .live-sb-table:not(.has-extra) .live-sb-c-extra { display: none; }
+body.is-compact .live-sb-table:not(.has-extra) { min-width: 460px; }
+body.is-compact .live-sb-table:not(.has-extra) th:nth-child(1),
+body.is-compact .live-sb-table:not(.has-extra) td:nth-child(1) { width: 23%; }
+body.is-compact .live-sb-table:not(.has-extra) th:nth-child(2),
+body.is-compact .live-sb-table:not(.has-extra) td:nth-child(2) { width: 24%; }
+body.is-compact .live-sb-table:not(.has-extra) th:nth-child(3),
+body.is-compact .live-sb-table:not(.has-extra) td:nth-child(3) { width: 5%; }
+body.is-compact .live-sb-table:not(.has-extra) th:nth-child(4),
+body.is-compact .live-sb-table:not(.has-extra) td:nth-child(4) { width: 11%; }
+body.is-compact .live-sb-table:not(.has-extra) th:nth-child(7),
+body.is-compact .live-sb-table:not(.has-extra) td:nth-child(7) { width: 10%; }
+body.is-compact .live-sb-table:not(.has-extra) th:nth-child(8),
+body.is-compact .live-sb-table:not(.has-extra) td:nth-child(8) { width: 27%; }
+
+body.is-compact .live-sb-head { padding-top: 8px; padding-bottom: 8px; }
+body.is-compact .live-sb-head .team-logo,
+body.is-compact .live-sb-head .monogram { width: 32px; height: 32px; }
+body.is-compact .live-sb-sumv { font-size: 17px; }
+body.is-compact .live-sb-table th,
+body.is-compact .live-sb-table td { padding-top: 4px; padding-bottom: 4px; }
+body.is-compact .live-sb-readout { padding: 5px 10px; min-height: 24px; }
+
+/* ---------- 5. live feed ---------- */
+
+.live-ev-action { gap: 6px; }
+
+/* the cut point is owned by live.js (COMPACT_ROWS plus the flagged row), which
+   marks the rows it leaves out; this rule only reacts to that mark (T2) */
+body.is-compact .live-evlist:not(.is-all) .live-ev.is-compact-hidden { display: none; }
+body.is-compact .live-evlist:not(.is-all) .live-ev-facts,
+body.is-compact .live-evlist:not(.is-all) .live-ev-type,
+body.is-compact .live-evlist:not(.is-all) .live-ev-team { display: none; }
+body.is-compact .live-evlist:not(.is-all) .live-ev { padding-top: 4px; padding-bottom: 4px; }
+body.is-compact .live-evlist:not(.is-all) .live-ev-body {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+body.is-compact .live-evlist:not(.is-all) .live-ev-top {
+  margin-bottom: 0;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+}
+body.is-compact .live-evlist:not(.is-all) .live-ev-head {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+body.is-compact .live-evlist:not(.is-all) .live-ev-ico { align-self: center; }
+
+/* ---------- 6. compact draft board ---------- */
+
+.live-dfc {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+}
+.live-dfc-side { min-width: 0; }
+.live-dfc-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  row-gap: 4px;
+}
+.live-dfc-name {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--color-rdy-white);
+  min-width: 0;
+}
+.live-dfc-picks,
+.live-dfc-bans { list-style: none; margin: 0; padding: 0; }
+.live-dfc-picks { display: flex; flex-direction: column; gap: 3px; }
+.live-dfc-pick { padding: 3px 5px; }
+.live-dfc-pick .hero-portrait { width: 36px; height: 21px; }
+.live-dfc-pick .live-dt-hero { font-size: 12px; }
+.live-dfc-banlab { margin: 8px 0 4px; }
+.live-dfc-bans { display: flex; flex-wrap: wrap; gap: 3px; }
+.live-dfc-ban { padding: 2px; border-left-width: 0; }
+.live-dfc-ban .hero-portrait { width: 36px; height: 21px; }
+.live-dfc-ban .live-dt-order { font-size: 9px; }
+
+@media (max-width: 599px) {
+  .live-dfc { grid-template-columns: minmax(0, 1fr); }
+  .live-obj-sum { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* --------------------------------------------------------------------------
+   COMPACT, second pass: the frame, not the content.
+   Every rule below takes air out of a container. No figure, no row and no
+   label is hidden here that was not already behind an expander.
+   -------------------------------------------------------------------------- */
+
+body.is-compact .stack-lg { gap: 12px; }
+body.is-compact .main-col > .tab-panel .card { padding: 12px; }
+body.is-compact .main-col .card-header { margin-bottom: 10px; }
+body.is-compact .m-expander--footer { margin-top: 8px; padding-top: 8px; }
+
+/* live card */
+body.is-compact .live-card .card-header { margin-bottom: 8px; }
+body.is-compact .live-top { padding-bottom: 10px; }
+body.is-compact .live-pipsrow { padding: 2px 0 8px; }
+body.is-compact .live-pip { padding: 4px 4px; gap: 2px; }
+body.is-compact .live-card .live-strip-art .hero-portrait { height: 30px; }
+body.is-compact .live-strips { padding-top: 10px; }
+body.is-compact .live-gbar-exp { margin-top: 6px; padding-top: 6px; }
+
+/* gold graph: the plot keeps its aspect, the card stops running the width */
+body.is-compact .live-gg-wrap { max-width: 560px; margin-left: auto; margin-right: auto; }
+
+/* objectives: the compact card is a strip */
+body.is-compact .live-obj-card { padding: 10px 12px; }
+body.is-compact .live-obj-card .card-header { margin-bottom: 6px; }
+body.is-compact .live-obj-sumitem { line-height: 18px; }
+body.is-compact .live-obj-card .m-expander--footer { margin-top: 5px; padding-top: 5px; }
+body.is-compact .live-obj-card .m-expander-btn { height: 24px; }
+
+/* scoreboard: six item slots on one line, and the hover readout only when the
+   extra columns are open. Every slot still carries its item name as its own
+   aria-label and title, so nothing is unreachable without the readout. */
+body.is-compact .live-sb-table:not(.has-extra) .live-items-grid {
+  grid-template-columns: repeat(6, 22px);
+}
+body.is-compact .live-sb-table:not(.has-extra) .live-item { width: 22px; height: 17px; }
+body.is-compact .live-sb-table:not(.has-extra) .live-item .item-icon { width: 22px; height: 17px; }
+body.is-compact .live-sb-table:not(.has-extra) .live-items-side { flex-direction: row; width: auto; gap: 2px; }
+body.is-compact .live-sb-table:not(.has-extra) .live-agh-wrap { width: auto; flex-wrap: nowrap; }
+body.is-compact .live-sb-table:not(.has-extra) th,
+body.is-compact .live-sb-table:not(.has-extra) td { padding-top: 3px; padding-bottom: 3px; }
+body.is-compact .live-sb-team:has(.live-sb-table:not(.has-extra)) .live-sb-readout { display: none; }
+body.is-compact .live-sb-head { padding-top: 6px; padding-bottom: 6px; }
+body.is-compact .live-sb-head .team-logo,
+body.is-compact .live-sb-head .monogram { width: 28px; height: 28px; }
+body.is-compact .live-sb-sumv { font-size: 16px; }
+
+/* live feed: one line means one line */
+body.is-compact .live-evlist:not(.is-all) .live-ev {
+  padding: 3px 8px 3px 0;
+  grid-template-columns: 3px 20px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+body.is-compact .live-evlist:not(.is-all) .live-ev-ico { width: 20px; height: 20px; font-size: 12px; }
+body.is-compact .live-evlist:not(.is-all) .live-ev-time { font-size: 12px; }
+body.is-compact .live-evlist:not(.is-all) .live-ev-head { font-size: 12px; line-height: 18px; }
+
+/* compact draft board */
+body.is-compact .live-dfc-pick { padding: 2px 5px; }
+body.is-compact .live-dfc-picks { gap: 2px; }
+body.is-compact .live-dfc-pick .hero-portrait { width: 32px; height: 18px; }
+body.is-compact .live-dfc-ban .hero-portrait { width: 30px; height: 17px; }
+body.is-compact .live-dfc-banlab { margin: 6px 0 3px; }
+body.is-compact .live-dfc-head { margin-bottom: 6px; }
+
+/* --------------------------------------------------------------------------
+   COMPACT, third pass: measured at 1440 against the targets in the brief.
+   Still frame only; no figure and no label leaves the page here.
+   -------------------------------------------------------------------------- */
+
+/* live card */
+body.is-compact .live-card .live-team-crest .team-logo,
+body.is-compact .live-card .live-team-crest .monogram { width: 36px; height: 36px; }
+body.is-compact .live-pip { padding: 3px 4px; }
+body.is-compact .live-card .live-strip-art .hero-portrait { height: 28px; }
+body.is-compact .live-strips { padding-top: 8px; }
+body.is-compact .live-gbar-exp { margin-top: 4px; padding-top: 4px; }
+body.is-compact .live-gbar-exp .m-expander-btn { height: 24px; }
+
+/* objectives */
+body.is-compact .live-obj-card { padding: 10px 12px; }
+body.is-compact .live-obj-card .card-header .title { font-size: 14px; line-height: 16px; }
+body.is-compact .live-obj-card .m-expander-btn { height: 22px; }
+
+/* scoreboard: the player cell reads on one line while the rate columns are shut */
+body.is-compact .live-sb-table:not(.has-extra) .live-sb-pname {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 6px;
+}
+body.is-compact .live-sb-table:not(.has-extra) .live-sb-player .avatar { width: 22px; height: 22px; }
+body.is-compact .live-sb-table:not(.has-extra) .live-sb-handle { font-size: 12px; }
+body.is-compact .live-sb-table:not(.has-extra) .live-sb-hero .hero-portrait { height: 20px; }
+body.is-compact .live-sb-head { padding-top: 5px; padding-bottom: 5px; }
+
+/* compact draft board */
+body.is-compact .live-dfc-pick .live-dt-hero { line-height: 14px; }
+body.is-compact .live-dfc-pick .live-dt-sub { line-height: 13px; }
+body.is-compact .live-dfc-pick .hero-portrait { width: 30px; height: 17px; }
+body.is-compact .live-dfc-ban .hero-portrait { width: 26px; height: 15px; }
+body.is-compact .live-dfc-bans { gap: 2px; }
+
+/* last 4px: the compact objectives strip has to clear 120px at 1440 */
+body.is-compact .live-obj-card { padding: 8px 12px; }
+body.is-compact .live-obj-sumitem { line-height: 17px; }
+
+/* the generic compact card padding above is one class heavier than the two
+   rules that tighten the objectives strip, so they are restated at its weight */
+body.is-compact .main-col .live-obj-card.card { padding: 8px 12px; }
+
+/* --------------------------------------------------------------------------
+   COMPACT, fix pass (2026-09-12): D1 on the Drafts tab.
+   -------------------------------------------------------------------------- */
+
+.live-drafts-rest { display: block; }
+.live-drafts-rest .live-drafts-nav { margin-top: 4px; }

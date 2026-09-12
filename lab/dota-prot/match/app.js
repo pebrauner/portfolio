@@ -519,12 +519,22 @@
     }
     if (!current) current = bootRow();
 
+    /* COMPACT, 2026-09-12: the page's one density control, in the header row
+       beside the game tiles. It is built by hub/core.js, never typed here, so
+       both prototype pages carry the same two words and the same contract. */
+    var densityBox = (Hub.densitySwitch)
+      ? h('div', { 'class': 'm-sh-density' },
+          h('span', { 'class': 'm-sub m-sh-density-label' }, 'View'),
+          Hub.densitySwitch({ label: 'Information density on this match page' }))
+      : null;
+
     var section = h('section', { 'class': 'm-sh', 'data-testid': 'series-header' },
       identityBlock(),
       h('div', { 'class': 'm-sh-row' },
         scoreCard(),
         oddsPlaceholder(),
-        tabStrip()));
+        tabStrip(),
+        densityBox));
 
     mount.appendChild(section);
     paintTabs(current ? current.game : null);

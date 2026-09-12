@@ -693,6 +693,131 @@ table { border-collapse: collapse; width: 100%; }
 /* the odds card rdy.gg runs beside its score card, to the pixel */
 .ad-slot--odds { width: 192px; height: 128px; flex: 0 0 auto; }
 
+/* ---------- 15b. Density, expanders, info tips ----------
+   Pedro, 2026-09-12: less on screen, nothing lost. COMPACT is the default
+   body state; DETAILED is the one switch that forces every expander open.
+   Built by Hub.densitySwitch / Hub.expander / Hub.infoTip in hub/core.js, so
+   every module gets the same control and no page types the words itself. */
+
+/* the global switch: two segments, the on one reads as pressed */
+.m-density {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  background: var(--color-rdy-white-5);
+  border: 1px solid var(--border-hair);
+  border-radius: var(--radius-pill);
+  flex: 0 0 auto;
+}
+.m-density-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 22px; padding: 0 10px;
+  font-family: var(--font-sans);
+  font-size: 12px; font-weight: 600; line-height: 1; letter-spacing: .02em;
+  color: var(--text-secondary);
+  background: transparent;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .15s ease, color .15s ease;
+}
+.m-density-btn:hover { color: var(--color-rdy-white); background: var(--color-rdy-white-5); }
+.m-density-btn[aria-pressed="true"] {
+  color: var(--color-rdy-dark-sky);
+  background: var(--color-rdy-fresh-green);
+  font-weight: 800;
+}
+.m-density-btn[aria-pressed="true"]:hover { color: var(--color-rdy-dark-sky); background: var(--color-rdy-fresh-green-hover); }
+
+/* the expander: a button that says what it opens and how many, and a panel
+   that carries the hidden attribute while it is closed */
+.m-expander { display: block; min-width: 0; }
+
+.m-expander-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 26px; padding: 0 10px;
+  font-family: var(--font-sans);
+  font-size: 12px; font-weight: 600; line-height: 1; letter-spacing: .01em;
+  font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1;
+  color: var(--text-secondary);
+  background: var(--color-rdy-white-5);
+  border: 1px solid var(--border-hair);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  white-space: nowrap;
+  max-width: 100%;
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+.m-expander-btn:hover { color: var(--color-rdy-white); background: var(--color-rdy-white-10); border-color: var(--border-soft); }
+.m-expander-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+/* the caret is drawn, not typed: no glyph in the markup and nothing to read
+   out, because the button's own words already say what it does */
+.m-expander-caret {
+  width: 7px; height: 7px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+  flex: 0 0 auto;
+  transition: transform .18s ease;
+}
+.m-expander-btn.is-open .m-expander-caret { transform: translateY(1px) rotate(-135deg); }
+
+/* DETAILED owns the state while it is on, so the button stops inviting a
+   click and says so to a screen reader through aria-disabled */
+.m-expander-btn.is-locked {
+  cursor: default;
+  color: var(--text-tertiary);
+  background: transparent;
+  border-color: var(--border-hair);
+}
+.m-expander-btn.is-locked:hover { color: var(--text-tertiary); background: transparent; border-color: var(--border-hair); }
+
+.m-expander-panel { margin-top: 10px; min-width: 0; }
+.m-expander-panel[hidden] { display: none !important; }
+
+/* an expander that closes a card out: the button sits on the card's bottom
+   rule rather than floating under the last row */
+.m-expander--footer { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-hair); }
+.m-expander--center { text-align: center; }
+.m-expander--block .m-expander-btn { width: 100%; justify-content: center; }
+
+/* info tip: a rule caption that is one click away instead of always on */
+.m-infotip { display: inline; }
+.m-infotip-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 15px; height: 15px;
+  margin-left: 4px;
+  vertical-align: baseline;
+  font-family: var(--font-sans);
+  font-size: 10px; font-weight: 800; line-height: 1;
+  font-style: italic;
+  color: var(--text-tertiary);
+  background: var(--color-rdy-white-5);
+  border: 1px solid var(--border-soft);
+  border-radius: 50%;
+  cursor: pointer;
+  flex: 0 0 auto;
+  transition: color .15s ease, background .15s ease, border-color .15s ease;
+}
+.m-infotip-btn:hover { color: var(--color-rdy-white); background: var(--color-rdy-white-10); border-color: var(--border-strong); }
+.m-infotip-btn.is-on { color: var(--color-rdy-dark-sky); background: var(--color-rdy-fresh-green); border-color: transparent; }
+.m-infotip-caption {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px; font-weight: 400; line-height: 1.4;
+  font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1;
+  color: var(--text-tertiary);
+}
+.m-infotip-caption[hidden] { display: none !important; }
+
+/* mode hooks, for the few places where a whole element belongs to one mode.
+   Never use these to hide a number that has no other way back: detail lives
+   in an expander so it is reachable in both modes. */
+body.is-compact .u-when-detailed { display: none !important; }
+body.is-detailed .u-when-compact { display: none !important; }
+
 /* ---------- 16. Mount placeholders ---------- */
 .mount { min-width: 0; }
 .mount:empty::before { content: "component: " attr(data-mount); }

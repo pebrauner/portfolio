@@ -278,8 +278,25 @@
      the shared footer: the file's own caveats and its own sources.
      Printed, not paraphrased.
      ------------------------------------------------------------ */
+  /* COMPACT, 2026-09-12: the lead sentence and the caveats are the rules
+     these rows are read under, not the rows. They go behind one 'i' beside
+     the source line, which stays: a source is a credit, not a detail. */
   function footer(d, o, lead) {
     var kids = [];
+    var ruleBits = [];
+    if (lead) ruleBits.push(lead);
+
+    if (o.showCaveats && d.SC && d.SC.caveats && d.SC.caveats.length) {
+      d.SC.caveats.forEach(function (c) { ruleBits.push(c); });
+    }
+
+    if (ruleBits.length && Hub.infoTip) {
+      kids.push(h('p', { 'class': 'mt-cx-ruleline' },
+        h('span', { 'class': 'm-sub' }, 'How to read these rows'),
+        Hub.infoTip(ruleBits.join(' '), { label: 'How to read these rows' })));
+      return h('div', { 'class': 'mt-cx-foot' }, kids, sourceLine(d, o));
+    }
+
     if (lead) kids.push(h('p', { 'class': 'mt-cx-lead' }, lead));
 
     if (o.showCaveats && d.SC && d.SC.caveats && d.SC.caveats.length) {
@@ -288,19 +305,23 @@
       kids.push(ul);
     }
 
-    if (o.showSources && d.SC && d.SC.sources && d.SC.sources.length) {
-      var row = h('p', { 'class': 'mt-cx-sources' }, h('span', { 'class': 'm-sub' }, 'Source'));
-      d.SC.sources.forEach(function (src, i) {
-        var isUrl = /^https?:\/\//i.test(src);
-        row.appendChild(h('span', { 'class': 'mt-cx-sep', 'aria-hidden': 'true' }, i === 0 ? ' ' : ', '));
-        row.appendChild(isUrl
-          ? Hub.extLink(src, { 'class': 'mt-cx-link' }, src.replace(/^https?:\/\//i, ''))
-          : h('span', { 'class': 'mt-cx-srctext' }, src));
-      });
-      kids.push(row);
-    }
+    var src = sourceLine(d, o);
+    if (src) kids.push(src);
 
     return h('div', { 'class': 'mt-cx-foot' }, kids);
+  }
+
+  function sourceLine(d, o) {
+    if (!(o.showSources && d.SC && d.SC.sources && d.SC.sources.length)) return null;
+    var row = h('p', { 'class': 'mt-cx-sources' }, h('span', { 'class': 'm-sub' }, 'Source'));
+    d.SC.sources.forEach(function (src, i) {
+      var isUrl = /^https?:\/\//i.test(src);
+      row.appendChild(h('span', { 'class': 'mt-cx-sep', 'aria-hidden': 'true' }, i === 0 ? ' ' : ', '));
+      row.appendChild(isUrl
+        ? Hub.extLink(src, { 'class': 'mt-cx-link' }, src.replace(/^https?:\/\//i, ''))
+        : h('span', { 'class': 'mt-cx-srctext' }, src));
+    });
+    return row;
   }
 
   function emptyState(d, what) {

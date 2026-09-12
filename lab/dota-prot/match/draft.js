@@ -338,13 +338,27 @@
       nums.appendChild(h('span', { 'class': 'mt-dr-num', 'data-step': String(step.order) }, String(step.order)));
     });
 
-    body.appendChild(h('div', { 'class': 'mt-dr-stepper' },
+    /* COMPACT, 2026-09-12: the board is the default reading and the stepper is
+       the detail. Both are built; the panel holds the stepper, the step detail
+       card and the event count lines, in that order. */
+    var stepperEl = h('div', { 'class': 'mt-dr-stepper' },
       bandRow,
       track,
       nums,
       h('div', { 'class': 'mt-dr-hint u-dim' },
         'Drag or use the arrow keys to walk the draft, and it stays where you let go. Hovering only outlines a step. Home and End jump to the ends.')
-    ));
+    );
+    var stepWrap = h('div', { 'class': 'mt-dr-stepwrap' }, stepperEl);
+
+    var stepExp = Hub.expander({
+      id: 'mt-dr-step',
+      count: lastStep,
+      className: 'mt-dr-exp',
+      label: function (n) { return 'Step through the draft, ' + n + ' steps'; },
+      hideLabel: 'Hide the stepper',
+      content: stepWrap
+    });
+    if (Hub.onUnmount) Hub.onUnmount(stepExp.destroy);
 
     /* ---------- the detail card ---------- */
 
@@ -371,7 +385,7 @@
       ),
       dLive
     );
-    body.appendChild(detail);
+    stepWrap.appendChild(detail);
 
     /* ---------- the two lineups ---------- */
 
@@ -468,10 +482,12 @@
       );
     }
 
+    /* the board first, the stepper behind its own button */
     body.appendChild(h('div', { 'class': 'mt-dr-teams' },
       teamPanel('radiant'),
       teamPanel('dire')
     ));
+    body.appendChild(stepExp.root);
 
     /* ---------- rule D: the event count lines ---------- */
 
@@ -496,7 +512,7 @@
         noteRows[st.order] = row;
         noteList.appendChild(row);
       });
-      body.appendChild(h('div', { 'class': 'mt-dr-notes-wrap' },
+      stepWrap.appendChild(h('div', { 'class': 'mt-dr-notes-wrap' },
         h('div', { 'class': 'm-sub' }, 'At The International 2026'),
         h('p', { 'class': 'mt-dr-notes-source u-dim rdy-par-7' },
           'Pick and ban counts for the heroes in this draft that reach a TI 2026 top ten list, ' +

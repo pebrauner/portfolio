@@ -164,7 +164,7 @@
       'class': 'mt-it-ruler',
       tabindex: '0',
       role: 'slider',
-      'aria-label': 'Item timeline, drag to move the match clock',
+      'aria-label': 'Item timeline, click or use the arrow keys to move the match clock',
       'aria-valuemin': '0',
       'aria-valuemax': String(LAST),
       'aria-valuenow': String(T.index),
@@ -212,13 +212,39 @@
     var frame = h('div', { 'class': 'mt-it-frame' + (opts.showConsumables ? ' is-cons' : '') },
       head, rowsWrap, cursorLayer);
 
+    /* COMPACT, 2026-09-12: the ten final inventories are the headline; the
+       lane by lane purchase timeline is the detail. The lanes are built and
+       painted either way, so the clock still drives them the moment the panel
+       opens, and clicking a buy still jumps the clock. They were never a drag
+       surface, and they stay a click-to-jump surface. */
+    var laneExp = Hub.expander({
+      id: 'mt-it-lanes',
+      count: G5.players.length,
+      className: 'mt-it-laneexp',
+      label: function (n) { return 'Show purchase timeline for ' + n + ' players'; },
+      hideLabel: 'Hide purchase timeline',
+      /* COMP-2, 2026-09-12: the Consumables chip only ever changed the lanes,
+         so it travels into the panel that holds them instead of flipping its
+         pressed state above a closed expander it cannot touch. */
+      content: h('div', { 'class': 'mt-it-lanewrap' },
+        h('div', { 'class': 'mt-it-lanehead' }, consBtn), legend, detail, frame)
+    });
+    if (Hub.onUnmount) Hub.onUnmount(laneExp.destroy);
+
+    /* COMP-4, 2026-09-12: compact hides the card subtitle, and this one names
+       a derived visual state, so it gets an 'i' beside the title. */
+    var IT_RULE = 'Every buy on the match clock. Items in full colour are the ones held at the minute the timeline is on.';
+    var ruleTip = Hub.infoTip
+      ? Hub.infoTip(IT_RULE, { id: 'mt-it-rule', label: 'How the colours are read' })
+      : null;
+
     var card = h('section', { 'class': 'card mt-it', 'data-testid': 'match-items' },
       h('div', { 'class': 'card-header mt-it-header' },
         h('div', { 'class': 'titles' },
           h('h2', { 'class': 'title' }, 'Purchases'),
-          h('div', { 'class': 'subtitle' }, 'Every buy on the match clock. Items in full colour are the ones held at the minute the timeline is on.')),
-        h('div', { 'class': 'action' }, consBtn)),
-      h('div', { 'class': 'card-body mt-it-body' }, legend, detail, frame));
+          h('div', { 'class': 'subtitle' }, IT_RULE)),
+        h('div', { 'class': 'action' }, ruleTip)),
+      h('div', { 'class': 'card-body mt-it-body' }, laneExp.root));
 
     card.setAttribute('data-testid', opts.testid);
 
@@ -508,7 +534,8 @@
     }
 
     if (opts.finalStrip) {
-      card.querySelector('.mt-it-body').appendChild(buildFinalStrip());
+      /* COMPACT: the inventories lead the card and the lanes follow them */
+      card.querySelector('.mt-it-body').insertBefore(buildFinalStrip(), laneExp.root);
     }
 
     /* ============================================================
@@ -760,7 +787,10 @@
        7. Wiring
        ============================================================ */
 
-    T.attachScrubSurface(ruler, { keyboard: true });
+    /* COMPACT, 2026-09-12: the lanes are no longer a drag surface. The ruler
+       above them keeps its clock binding as a click-to-jump, with the arrow
+       keys still walking it; only the master strip and the economy chart drag. */
+    (T.attachJumpSurface || T.attachScrubSurface).call(T, ruler, { keyboard: true });
     var stopHl = T.onHighlight(function (key) {
       for (var r = 0; r < rows.length; r++) {
         rows[r].row.classList.toggle('is-hl', !!key && rows[r].player.key === key);
@@ -806,6 +836,18 @@
     /* one deferred pass: fonts and lazy portraits can change the track width */
     var deferred = global.setTimeout(layout, 120);
 
+    /* COMPACT, 2026-09-12: a lane is PLACED against its measured track, and a
+       closed panel measures zero. Every reveal re-measures, so the first sight
+       of the lanes is already positioned; the ResizeObserver above only sees a
+       box once it has one. The expander's own onclick runs before this, so the
+       panel is already open when the pass runs. */
+    function relayout() {
+      lastW = rows.length ? rows[0].track.clientWidth : 0;
+      layout();
+    }
+    laneExp.button.addEventListener('click', relayout);
+    var stopItDensity = Hub.density.subscribe(relayout);
+
     mount.__mtItTeardown = function () {
       if (typeof stopSub === 'function') stopSub();
       if (typeof stopHl === 'function') stopHl();
@@ -813,6 +855,7 @@
       global.removeEventListener('resize', onResize);
       if (raf) global.clearTimeout(raf);
       global.clearTimeout(deferred);
+      if (typeof stopItDensity === 'function') stopItDensity();
     };
   });
 

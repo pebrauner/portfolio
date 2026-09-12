@@ -358,6 +358,29 @@ a.ed-today-name:hover { color: var(--color-rdy-fresh-green); }
 .ed-g-row.is-live .ed-g-dur { color: var(--text-dire); font-weight: 700; }
 .ed-g-row.is-live th, .ed-g-row.is-live td { background: color-mix(in srgb, var(--color-rdy-red) 7%, transparent); }
 
+/* D1, 2026-09-12: the game still running, on its own line, so the rail no
+   longer repeats the five row table the live card already prints. The
+   finished games keep the table, inside the expander under this line. */
+.ed-today-live {
+  display: flex; align-items: center; flex-wrap: wrap;
+  gap: 6px 8px;
+  padding: 8px 0;
+  font-size: 12px;
+  border-bottom: 1px solid var(--border-hair);
+  background: color-mix(in srgb, var(--color-rdy-red) 7%, transparent);
+  border-radius: var(--radius-sm);
+  padding-inline: 8px;
+}
+.ed-today-live-g { color: var(--text-tertiary); font-weight: 600; }
+.ed-today-live-time { font-size: 11px; }
+.ed-today-live-clock {
+  font-size: 11px; font-weight: 700; white-space: nowrap;
+  color: var(--text-dire);
+}
+.ed-today-live-kills { margin-left: auto; font-size: 11px; }
+.ed-today-exp { margin-top: 8px; }
+.ed-today-exp .ed-today-table { margin-top: 6px; }
+
 /* Feed */
 .ed-feed { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .ed-feed-item {
@@ -466,3 +489,67 @@ a.ed-today-name:hover { color: var(--color-rdy-fresh-green); }
   .ed-social-link:last-child { grid-column: auto; }
   .ed-feed { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
 }
+
+/* ==========================================================================
+   COMPACT (2026-09-12)
+   Additive, scoped to body.is-compact. DETAILED is the surface as it was.
+   ========================================================================== */
+
+/* One featured piece and two cards. The third is built, kept in the DOM and
+   revealed by the global switch; the whole run stays on the News tab. */
+body.is-compact .ed-feature { gap: 10px; }
+body.is-compact .ed-feature-body { gap: 8px; }
+body.is-compact .ed-figure--feature { aspect-ratio: 2 / 1; }
+body.is-compact .ed-mini-row { gap: 10px; }
+body.is-compact .ed-root .section-head { margin-bottom: 10px; }
+
+/* rail */
+body.is-compact .ed-feed-more { margin-top: 8px; }
+
+/* --------------------------------------------------------------------------
+   COMPACT, second pass: the frame only.
+   -------------------------------------------------------------------------- */
+
+body.is-compact .ed-figure--feature { aspect-ratio: 21 / 9; }
+body.is-compact .ed-headline--lg { font-size: 21px; }
+body.is-compact .ed-dek--lg { font-size: 14px; line-height: 1.45; }
+body.is-compact .ed-root .section { margin-bottom: 0; }
+body.is-compact .side-col .card { padding: 12px; }
+
+/* --------------------------------------------------------------------------
+   COMPACT, third pass: measured at 1440 against the targets in the brief.
+   -------------------------------------------------------------------------- */
+
+body.is-compact .ed-figure--feature { aspect-ratio: 12 / 5; }
+body.is-compact .ed-feature-body { gap: 6px; }
+body.is-compact .ed-headline--lg { font-size: 20px; }
+
+/* --------------------------------------------------------------------------
+   COMPACT, fix pass (2026-09-12): C2, T1, D1 on the editorial modules.
+   Every rule here is frame only. Nothing is hidden that a labelled button
+   with a count does not reveal.
+   -------------------------------------------------------------------------- */
+
+/* C2: the featured overflow is an expander in the side column now, not a
+   display:none card. The panel lays its cards out like the column above it. */
+.ed-featured-exp { margin-top: 0; padding-top: 0; border-top: 0; }
+.ed-feature-more { display: flex; flex-direction: column; gap: var(--gap-grid); min-width: 0; }
+@media (max-width: 1200px) {
+  .ed-feature-more { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+}
+
+/* T1: the feed control is a Hub.expander, and its panel is the rest of the
+   feed, so the two lists have to read as one list. */
+.ed-feed-exp { margin-top: 10px; padding-top: 0; border-top: 0; }
+.ed-feed-exp .m-expander-panel { padding-top: 10px; }
+.ed-feed--more { margin: 0; }
+body.is-compact .ed-feed-exp { margin-top: 8px; }
+
+/* D1: News tab, six cards then the rest in the panel. */
+.ed-news-exp { margin-top: var(--gap-grid); padding-top: 0; border-top: 0; }
+.ed-news-exp .m-expander-panel { padding-top: var(--gap-grid); }
+.ed-news-grid--more { margin: 0; }
+
+/* D1: Event info, three facts then the rest. */
+.ed-info-exp { margin-top: 8px; padding-top: 8px; }
+.ed-info-more .ed-info-table--more { margin-top: 0; }

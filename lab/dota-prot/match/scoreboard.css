@@ -403,7 +403,16 @@ a.mt-sb-heroname { display: block; }
   .mt-sb-pos { display: none; }
 
   .mt-sb { --mt-sb-collapsed: 1; }
-  .mt-sb-col--talents, .mt-sb-col--aghs { width: 0 !important; }
+  /* A11Y-1, 2026-09-12: the two columns whose contents have already moved
+     into the items cell are taken out of the render, the <col> and its cells
+     together, rather than collapsed to zero width with transparent text: a
+     zero-width cell is still read aloud and still copied. The ten columns
+     that stay sum to a hundred on their own, and applyCollapse() reads the
+     breakpoint off --mt-sb-collapsed rather than off a measured width, so
+     the node move either side of 1280 is untouched. */
+  .mt-sb-col--talents, .mt-sb-col--aghs,
+  .mt-sb-th--talents, .mt-sb-th--aghs,
+  .mt-sb-extracell, .mt-sb-teamextra { display: none !important; }
   .mt-sb-col--items { width: 20.5% !important; }
 
   /* P4R2-03: with TALENTS and AGHANIM'S collapsed to zero the two labels
@@ -415,14 +424,6 @@ a.mt-sb-heroname { display: block; }
   .mt-sb-col--c9 { width: 8.5% !important; }
   .mt-sb-table th.mt-sb-th { letter-spacing: .03em; }
   .mt-sb-table th.mt-sb-th--items { padding-left: 8px; }
-
-  .mt-sb-th--talents, .mt-sb-th--aghs,
-  .mt-sb-extracell, .mt-sb-teamextra {
-    padding: 0 !important;
-    overflow: hidden;
-    font-size: 0;
-    color: transparent;
-  }
 
   .mt-sb-itemextra {
     display: flex;

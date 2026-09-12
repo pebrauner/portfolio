@@ -1013,3 +1013,142 @@ a.tour-pl-handle:hover { color: var(--color-rdy-fresh-green); }
   .tour-games-win { width: var(--w, 0%); }
   .tour-pulse { animation: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-rdy-red) 25%, transparent); }
 }
+
+/* ==========================================================================
+   COMPACT (2026-09-12)
+   Additive. Everything is scoped to body.is-compact or to the new compact-only
+   blocks, so DETAILED renders the tournament surfaces exactly as before.
+   ========================================================================== */
+
+/* ---------- standings snapshot ---------- */
+
+.tour-snap-zones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin: 0 0 8px;
+  font-size: 11px;
+  line-height: 16px;
+}
+.tour-snap-zone { display: inline-flex; align-items: center; gap: 5px; }
+.tour-snap-zone .tour-zone-dot { margin: 0; }
+.tour-snap-zonenum { font-size: 12px; font-weight: 800; color: var(--color-rdy-white); }
+.tour-snap-zonelab { font-size: 11px; }
+.tour-snap-zones .tour-dot-sep { margin-right: 3px; color: var(--color-rdy-white-25); }
+
+.tour-snap-key {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+.tour-snap-exp { margin-top: 0; padding-top: 0; border-top: 0; }
+
+/* the rows past the eighth, and the zone bands the summary line replaces */
+body.is-compact .tour-snap-table:not(.is-all) .tour-snap-row--rest { display: none; }
+body.is-compact .tour-snap-table:not(.is-all) .tour-zone-row { display: none; }
+body.is-compact .tour-snap-table td { padding-top: 3px; padding-bottom: 3px; }
+body.is-compact .tour-snap-table .tour-snap-row { line-height: 20px; }
+body.is-compact .tour-card .card-header { padding-bottom: 8px; }
+body.is-compact .tour-snap-body { padding-top: 6px; padding-bottom: 6px; }
+body.is-compact .tour-snap-more { padding-top: 6px; padding-bottom: 8px; }
+
+/* ---------- bracket ----------
+   Pedro's brief keeps the picture and takes the air out of it. Nothing is
+   removed from the drawing: the paddings, the column gaps and the connector
+   gaps shrink, so every series card and every line is still on screen. */
+
+.tour-bracket-foot { display: block; }
+.tour-bracket-exp { margin: 0; }
+.tour-legend--panel { padding: 10px 0 0; }
+
+body.is-compact .tour-bracket-body { gap: 12px; }
+body.is-compact .tour-bracket-card .card-header { padding-bottom: 8px; }
+body.is-compact .tour-lane-head { margin-bottom: 6px; }
+body.is-compact .tour-lane + .tour-lane { padding-top: 10px; }
+body.is-compact .tour-br-cols { gap: 16px; }
+body.is-compact .tour-br-col-head { min-height: 28px; margin-bottom: 5px; }
+body.is-compact .tour-lane--lower .tour-br-col-head { min-height: 42px; }
+body.is-compact .tour-br-col-body { gap: 6px; }
+body.is-compact .tour-sr { padding: 3px 7px; }
+body.is-compact .tour-series-foot { padding-top: 2px; padding-bottom: 2px; }
+body.is-compact .tour-series-out { padding-top: 2px; padding-bottom: 2px; }
+body.is-compact .tour-gf { padding-top: 10px; padding-bottom: 10px; }
+body.is-compact .tour-gf-routes { margin-top: 6px; }
+body.is-compact .tour-bracket-foot { padding-top: 6px; padding-bottom: 6px; }
+
+/* --------------------------------------------------------------------------
+   COMPACT, second pass: the frame only.
+   -------------------------------------------------------------------------- */
+
+/* standings snapshot */
+body.is-compact .tour-snap-table td { padding-top: 2px; padding-bottom: 2px; }
+body.is-compact .tour-snap-table th { padding-top: 4px; padding-bottom: 4px; }
+body.is-compact .tour-snap-row .team-logo,
+body.is-compact .tour-snap-row .monogram { width: 18px; height: 18px; }
+body.is-compact .tour-snap-body { padding-top: 2px; padding-bottom: 0; }
+body.is-compact .tour-snap-zones { margin-bottom: 6px; }
+body.is-compact .tour-snap-more { margin-top: 8px; padding-top: 8px; }
+body.is-compact #m-standings-snapshot .card-header { margin-bottom: 6px; }
+body.is-compact #m-standings-snapshot .card-header .subtitle { font-size: 11px; line-height: 1.3; }
+body.is-compact #m-standings-snapshot .card-header .title { font-size: 15px; }
+
+/* bracket */
+body.is-compact .tour-bracket-card .card-header .title { font-size: 15px; }
+body.is-compact .tour-bracket-card .card-header .subtitle { font-size: 11px; }
+body.is-compact .tour-bracket-body { gap: 10px; }
+body.is-compact .tour-sr { padding: 2px 6px; }
+body.is-compact .tour-sr-name,
+body.is-compact .tour-sr-score { font-size: 11px; }
+body.is-compact .tour-br-col-body { gap: 5px; }
+body.is-compact .tour-lane + .tour-lane { padding-top: 8px; }
+body.is-compact .tour-gf { padding-top: 8px; padding-bottom: 8px; }
+body.is-compact .tour-bracket-foot { margin-top: 8px; padding-top: 8px; }
+
+/* --------------------------------------------------------------------------
+   COMPACT, third pass: measured at 1440 against the targets in the brief.
+   -------------------------------------------------------------------------- */
+
+/* standings snapshot: the footer expander is the footer, not a second one */
+body.is-compact .tour-snap-exp { margin-top: 0; padding-top: 0; border-top: 0; }
+body.is-compact .tour-snap-exp .m-expander-btn { height: 24px; }
+body.is-compact .tour-snap-table td { padding-top: 1px; padding-bottom: 1px; }
+body.is-compact .tour-snap-team { line-height: 20px; }
+body.is-compact .tour-snap-more { margin-top: 6px; padding-top: 6px; }
+body.is-compact #m-standings-snapshot .card-header .subtitle { font-size: 10px; }
+
+/* bracket */
+body.is-compact .tour-series-foot { padding-top: 1px; padding-bottom: 1px; font-size: 10px; }
+body.is-compact .tour-series-out { padding-top: 1px; padding-bottom: 1px; }
+body.is-compact .tour-gf-routes { margin-top: 4px; }
+body.is-compact .tour-bracket-exp .m-expander-btn { height: 24px; }
+
+/* last few pixels: the compact snapshot has to clear 380px at 1440 */
+body.is-compact #m-standings-snapshot .card { padding: 10px 12px; }
+
+/* --------------------------------------------------------------------------
+   COMPACT, fix pass (2026-09-12): D1 on Schedule, Standings and Teams.
+   -------------------------------------------------------------------------- */
+
+/* Schedule: the current Swiss round leads, the earlier rounds are a panel. */
+.tour-sched-restwrap { margin-top: 0; }
+.tour-sched-exp { margin-top: 0; padding-top: 0; border-top: 0; }
+.tour-sched-rest { display: block; }
+.tour-sched-rest .tour-day:first-child { padding-top: 0; }
+body.is-compact .tour-sched-exp .m-expander-btn { height: 24px; }
+
+/* Standings: the per round opponent cells are the detail. The cut point is
+   the has-rounds class, which tournament.js owns; this rule only reacts. */
+.tour-standings-table:not(.has-rounds) .tour-c-round { display: none; }
+.tour-rounds-more { margin-top: 0; }
+.tour-rounds-exp { margin-top: 0; padding-top: 0; border-top: 0; }
+.tour-rounds-key { padding: 8px 0 0; border-top: 0; }
+body.is-compact .tour-rounds-exp .m-expander-btn { height: 24px; }
+
+/* Teams: sixteen collapsed cards, one expander over all of them. */
+.tour-teams-exp { margin-top: 0; padding-top: 0; border-top: 0; }
+.tour-teams-exp .m-expander-panel { padding-top: 8px; }
+body.is-compact .tour-teams-exp .m-expander-btn { height: 24px; }

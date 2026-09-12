@@ -922,6 +922,34 @@
     };
   }
 
+  /* ---- attachJumpSurface: the same box, click to jump, no drag ----
+     COMPACT, 2026-09-12. Pedro: too many competing scrub surfaces. Only the
+     master strip and the economy chart stay draggable. Every other plot keeps
+     its clock binding as a JUMP: one click moves the page to that minute and
+     it stays there, the arrow keys still walk it, and no hover and no drag
+     ever moves the index. Same release contract, one gesture fewer. */
+  function attachJumpSurface(el, o) {
+    if (!el) return function () {};
+    o = o || {};
+    el.classList.add('m-jump');
+
+    function onClick(e) {
+      if (e.button !== undefined && e.button !== 0) return;
+      applyPointer(e.clientX, el.getBoundingClientRect());
+      settleHere();
+      if (typeof o.onRelease === 'function') o.onRelease(snapshotState());
+    }
+
+    el.addEventListener('click', onClick);
+    var detachKeys = o.keyboard === false ? null : attachKeys(el);
+
+    return function detach() {
+      el.removeEventListener('click', onClick);
+      if (detachKeys) detachKeys();
+      el.classList.remove('m-jump');
+    };
+  }
+
   /* keyboard parity, principle 8 */
   function attachKeys(el) {
     function onKey(e) {
@@ -1455,11 +1483,19 @@
     var f = facts();
     var winnerName = f.seriesWinnerKey ? Hub.teamName(f.seriesWinnerKey) : null;
 
+    /* COMPACT: the crest row below is dropped in compact, so the winner tag
+       it carried moves up here, where it is one chip beside the stage. */
+    var bannerWinner = f.winnerKey ? Hub.teamName(f.winnerKey) : null;
+
     var chips = h('div', { 'class': 'm-bn-chips' },
       h('span', { 'class': 'chip chip--gold' }, f.stage),
       h('span', { 'class': 'chip chip--outline' }, fmt.bo(f.bo)),
       h('span', { 'class': 'chip chip--outline' }, 'Game ' + f.game),
-      h('span', { 'class': 'chip' }, 'Final'));
+      h('span', { 'class': 'chip' }, 'Final'),
+      bannerWinner
+        ? h('span', { 'class': 'chip chip--gold m-bn-winchip', 'data-testid': 'winner-tag' },
+            'Winner ' + bannerWinner)
+        : null);
 
     /* M-07: the page's <h1> is the match itself, and it is the first and only
        heading of its level in document order. NO NARRATIVE RULE, 2026-09-11:
@@ -1485,13 +1521,42 @@
     var row = h('div', { 'class': 'm-bn-row' },
       teamBlock('radiant', f), centre, teamBlock('dire', f));
 
-    var facts_ = h('div', { 'class': 'm-bn-facts' },
-      f.seriesScore && winnerName ? fact('Series', winnerName + ' ' + f.seriesScore) : null,
-      fact('Date', f.dateLabel),
-      fact('Venue', f.venue),
-      fact('Mode', f.gameMode),
-      fact('Patch', f.patch),
-      fact('Match', f.matchId ? String(f.matchId) : null));
+    var factPairs = [
+      ['Series', f.seriesScore && winnerName ? winnerName + ' ' + f.seriesScore : null],
+      ['Date', f.dateLabel],
+      ['Venue', f.venue],
+      ['Mode', f.gameMode],
+      ['Patch', f.patch],
+      ['Match', f.matchId ? String(f.matchId) : null]
+    ];
+
+    var facts_ = h('div', { 'class': 'm-bn-facts u-when-detailed' },
+      factPairs.map(function (pair) { return fact(pair[0], pair[1]); }));
+
+    /* COMPACT: the same six readings as ONE muted line. Nothing is dropped and
+       nothing is typed: the line is templated over the pairs the grid uses. */
+    var factLineBits = [];
+    factPairs.forEach(function (pair) {
+      if (pair[1] === null || pair[1] === undefined || pair[1] === '') return;
+      factLineBits.push(h('span', { 'class': 'm-bn-factbit' },
+        h('span', { 'class': 'm-bn-factbit-label' }, pair[0]),
+        h('span', { 'class': 'm-bn-factbit-value u-tnum' }, String(pair[1]))));
+    });
+    /* COMP-3, 2026-09-12: a team's nameNote lived only in the crest row, which
+       compact drops, and it was the one reading the compact page could not
+       reach at all. It joins the fact line, labelled with the team's own tag,
+       templated over the record so a second note would print too. */
+    [ f.radiant, f.dire ].forEach(function (t) {
+      if (!t || !t.nameNote) return;
+      factLineBits.push(h('span', { 'class': 'm-bn-factbit' },
+        h('span', { 'class': 'm-bn-factbit-label' }, t.tag || t.name),
+        h('span', { 'class': 'm-bn-factbit-value' }, String(t.nameNote))));
+    });
+
+    var factLine = h('p', {
+      'class': 'm-bn-factline u-when-compact u-dim',
+      'data-testid': 'match-factline'
+    }, factLineBits);
 
     var ser = (MATCH().series || {});
     var seriesHref = Hub.link.series(ser.seriesRdyId ||
@@ -1501,9 +1566,14 @@
       seriesHref ? Hub.extLink(seriesHref, { 'class': 'btn btn-ghost btn-sm' }, 'Series on rdy.gg') : null,
       Hub.extLink('https://www.twitch.tv/dota2ti', { 'class': 'btn btn-primary btn-sm' }, 'Watch on Twitch'));
 
+    /* COMPACT: the crest row repeats the two teams the series header already
+       draws, and the h1 above already carries the winner, the kill score and
+       the duration, so it is the block that goes. DETAILED brings it back. */
+    row.classList.add('u-when-detailed');
+
     mount.appendChild(h('div', { 'class': 'm-bn', 'data-testid': 'match-overview' },
       h('div', { 'class': 'm-bn-inner' },
-        chips, title, row,
+        chips, title, row, factLine,
         h('div', { 'class': 'm-bn-foot' }, facts_, links))));
   }
 
@@ -1622,6 +1692,7 @@
     /* wiring */
     subscribe: subscribe,
     attachScrubSurface: attachScrubSurface,
+    attachJumpSurface: attachJumpSurface,
     addSnapPoints: addSnapPoints,
     clearSnapPoints: clearSnapPoints,
     snapAtOrBefore: snapAtOrBefore,

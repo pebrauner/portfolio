@@ -199,6 +199,21 @@
     }
     var radarChip = h('span', { 'class': 'chip chip--outline mt-pl-radarclock u-tnum' }, '');
 
+    /* COMPACT, 2026-09-12: the radar and the first six bars are the headline
+       reading for the two selected players. The gold chart, the ten player
+       damage panel and the rest of the stat rows are the detail. */
+    var allExp = Hub.expander({
+      id: 'mt-pl-all',
+      count: players.length,
+      className: 'mt-pl-exp',
+      label: function (n) { return 'Show all ' + n + ', with the gold chart and every stat row'; },
+      hideLabel: 'Show fewer',
+      /* hotg is this card's own copy of the top performer, which the rail
+         already carries at full size, so it travels with the detail */
+      content: h('div', { 'class': 'mt-pl-more' }, chart.el, damage.el, hotg)
+    });
+    if (Hub.onUnmount) Hub.onUnmount(allExp.destroy);
+
     var root = h('section', {
       'class': 'card mt-pl',
       'data-testid': opts.testid
@@ -220,18 +235,27 @@
       h('div', { 'class': 'mt-pl-top' },
         h('div', { 'class': 'mt-pl-radarcol' },
           h('div', { 'class': 'mt-pl-radarhead' },
-            h('span', { 'class': 'm-sub' }, 'Radar'), radarChip),
-          radar.el,
-          h('p', { 'class': 'mt-pl-caption' },
-            'Each axis runs from zero to the match high in that stat, so a full vertex means nobody did more. The faint outline is the same player at the final whistle.'),
-          hotg),
+            h('span', { 'class': 'm-sub' }, 'Radar'),
+            /* COMPACT: the scale rule moves beside the label it explains */
+            Hub.infoTip
+              ? Hub.infoTip('Pick any two of the ten. Every axis and every bar runs from zero to the highest figure anyone posted in this game, so a full vertex means nobody did more. The faint outline is the same player at the final whistle.',
+                  { id: 'mt-pl-radarrule', label: 'How to read and scale the radar' })
+              : null,
+            radarChip),
+          radar.el),
         h('div', { 'class': 'mt-pl-sidecol' }, headline.el, bars.el)
       ),
-      chart.el,
-      damage.el
+      allExp.root
     );
 
     mount.appendChild(root);
+
+    /* COMPACT: the bar list is trimmed by CSS while the panel is closed, so
+       the class and the panel can never disagree about what is on screen */
+    function syncAll() { root.classList.toggle('is-all-open', allExp.isOpen()); }
+    allExp.button.addEventListener('click', syncAll);
+    var stopPlDensity = Hub.density.subscribe(syncAll);
+    syncAll();
 
     /* ---------- wiring ---------- */
     /* Phase 4 remount: this listener sits on document, outside the mount's
@@ -276,6 +300,7 @@
       if (stopSub) stopSub();
       if (stopHl) stopHl();
       if (stopCursor) stopCursor();
+      if (stopPlDensity) stopPlDensity();
       if (chart.detach) chart.detach();
     });
 
@@ -745,7 +770,7 @@
           h('span', { 'class': 'mt-pl-legbadge mt-pl-legbadge--b' }, 'B'),
           h('span', { 'class': 'm-swatch mt-pl-swatch mt-pl-swatch--b' }),
           h('span', { 'class': 'mt-pl-legname mt-pl-legname--b' }, '')),
-        h('span', { 'class': 'm-legend-item mt-pl-leghint' }, 'Drag the plot, or use the arrow keys. It stays where you let go.')
+        h('span', { 'class': 'm-legend-item mt-pl-leghint' }, 'Click the plot, or use the arrow keys. It stays where you put it.')
       );
 
       var hint = h('span', { 'class': 'mt-pl-chint u-tnum' }, '');
@@ -760,7 +785,13 @@
         srLive
       );
 
-      var detach = Timeline.attachScrubSurface(plot, { keyboard: true });
+      /* COMPACT, 2026-09-12: one drag surface per page plus the economy chart.
+         This plot keeps its clock binding as a click-to-jump: a click moves
+         the page to that minute and it stays there, the arrow keys still walk
+         it, and no hover and no drag move the index. */
+      var detach = Timeline.attachJumpSurface
+        ? Timeline.attachJumpSurface(plot, { keyboard: true })
+        : Timeline.attachScrubSurface(plot, { keyboard: true });
       /* M-06: silent unless focus is inside this chart card */
       var speak = Timeline.quietLive ? Timeline.quietLive(srLive, el)
         : function (t) { srLive.textContent = t; };

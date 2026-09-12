@@ -198,15 +198,22 @@
     var standings = gs.standings || [];
 
     /* The Overview shows the shape of the table, not the whole table: the
-       Standings tab is where all 16 rows live. */
+       Standings tab is where all 16 rows live.
+       COMPACT (2026-09-12): every row is still built, in order, in one tbody.
+       The rows past the eighth carry a class that compact hides until the
+       reader asks for them, so 'Show all 16' is an expansion in place and not
+       a second trip to another tab. The zone bands that used to interrupt the
+       table are one summary line above it. */
     var TOP = 8;
-    var shown = standings.slice(0, TOP);
+    var shown = standings;
 
     var card = h('div', { 'class': 'card tour-card', 'data-testid': 'standings-snapshot' });
 
+    var titleEl = h('h2', { 'class': 'title' }, 'Group Stage, top ' + TOP);
+
     card.appendChild(h('div', { 'class': 'card-header' },
       h('div', { 'class': 'titles' },
-        h('h2', { 'class': 'title' }, 'Group Stage, top ' + TOP),
+        titleEl,
         h('div', { 'class': 'subtitle' },
           gs.system + ' system, ' + gs.roundsCount + ' rounds of ' + gs.seriesLength + ', ' + roundsSpan(gs))),
       h('div', { 'class': 'action' },
@@ -214,6 +221,27 @@
           type: 'button', 'class': 'btn btn-sm',
           onclick: function () { Hub.tabs.activate('standings', { scroll: true }); }
         }, 'Full standings', chevron()))));
+
+    /* one line, built from the same outcome counts the bands used to print */
+    var zoneOrder = [];
+    var zoneTotals = {};
+    var zoneLabels = {};
+    standings.forEach(function (row) {
+      if (zoneTotals[row.outcome] === undefined) {
+        zoneTotals[row.outcome] = 0;
+        zoneLabels[row.outcome] = row.outcomeLabel;
+        zoneOrder.push(row.outcome);
+      }
+      zoneTotals[row.outcome] += 1;
+    });
+
+    var zoneSummary = h('p', { 'class': 'tour-snap-zones' }, zoneOrder.map(function (key, i) {
+      return h('span', { 'class': 'tour-snap-zone tour-zone--' + key },
+        i ? h('span', { 'class': 'tour-dot-sep' }, '\u00b7') : null,
+        h('span', { 'class': 'tour-zone-dot' }),
+        h('span', { 'class': 'tour-snap-zonenum u-tnum' }, String(zoneTotals[key])),
+        h('span', { 'class': 'tour-snap-zonelab u-dim' }, zoneLabels[key]));
+    }));
 
     var table = h('table', { 'class': 'hub-table hub-table--compact tour-snap-table' },
       h('thead', null, h('tr', null,
@@ -230,7 +258,9 @@
     standings.forEach(function (row) { zoneCount[row.outcome] = (zoneCount[row.outcome] || 0) + 1; });
     shown.forEach(function (row) { zoneShown[row.outcome] = (zoneShown[row.outcome] || 0) + 1; });
 
+    var rank = 0;
     shown.forEach(function (row) {
+      rank += 1;
       if (row.outcome !== currentOutcome) {
         currentOutcome = row.outcome;
         body = h('tbody', { 'class': 'tour-zone-group tour-zone--' + row.outcome });
@@ -265,7 +295,10 @@
         }, r.result);
       });
 
-      body.appendChild(h('tr', { 'class': 'tour-snap-row' + (alive ? ' is-alive' : ''), 'data-team-id': row.teamKey },
+      body.appendChild(h('tr', {
+        'class': 'tour-snap-row' + (alive ? ' is-alive' : '') + (rank > TOP ? ' tour-snap-row--rest' : ''),
+        'data-team-id': row.teamKey
+      },
         h('td', { 'class': 'col-num tour-c-rank' }, h('span', { 'class': 'tour-rank' }, row.rank)),
         h('td', { 'class': 'cell-strong' },
           h('span', { 'class': 'tour-snap-team' },
@@ -281,18 +314,45 @@
     });
 
     var snapScroll = h('div', { 'class': 'scroll-x tour-scroll' }, table);
-    card.appendChild(h('div', { 'class': 'card-body tour-snap-body' }, snapScroll));
+    card.appendChild(h('div', { 'class': 'card-body tour-snap-body' }, zoneSummary, snapScroll));
     scrollHint(snapScroll, 'Scroll sideways for the full row');
 
-    card.appendChild(h('div', { 'class': 'card-footer tour-snap-more' },
-      h('span', { 'class': 'tour-legend-item' }, h('span', { 'class': 'tour-form-pill is-w' }, 'W'), 'series won'),
-      h('span', { 'class': 'tour-legend-item' }, h('span', { 'class': 'tour-form-pill is-l' }, 'L'), 'series lost'),
-      h('span', { 'class': 'tour-legend-item' }, h('span', { 'class': 'tour-form-pill is-none' }, '-'), 'no series that round'),
-      h('span', { 'class': 'spacer' }),
-      h('button', {
-        type: 'button', 'class': 'btn btn-sm btn-primary',
-        onclick: function () { Hub.tabs.activate('standings', { scroll: true }); }
-      }, 'Show all ' + standings.length, chevron())));
+    /* the W / L / no series key travels with the rows it explains */
+    var restCount = Math.max(0, standings.length - TOP);
+    var moreExp = Hub.expander({
+      id: 'tour-snap-rest',
+      count: standings.length,
+      label: function (n) { return 'Show all ' + n + ' teams'; },
+      hideLabel: function (n) { return 'Show the top ' + TOP + ' of ' + n; },
+      className: 'm-expander--footer tour-snap-exp',
+      content: function () {
+        return h('div', { 'class': 'tour-snap-key' },
+          h('span', { 'class': 'tour-legend-item' }, h('span', { 'class': 'tour-form-pill is-w' }, 'W'), 'series won'),
+          h('span', { 'class': 'tour-legend-item' }, h('span', { 'class': 'tour-form-pill is-l' }, 'L'), 'series lost'),
+          h('span', { 'class': 'tour-legend-item' }, h('span', { 'class': 'tour-form-pill is-none' }, '-'), 'no series that round'),
+          h('span', { 'class': 'spacer' }),
+          h('button', {
+            type: 'button', 'class': 'btn btn-sm',
+            onclick: function () { Hub.tabs.activate('standings', { scroll: true }); }
+          }, 'Open the Standings tab', chevron()));
+      }
+    });
+
+    function syncRows() {
+      var all = moreExp.isOpen();
+      table.classList.toggle('is-all', all);
+      /* the heading counts what is on screen, so an expanded table is never
+         still calling itself the top eight */
+      titleEl.textContent = all
+        ? 'Group Stage, all ' + standings.length
+        : 'Group Stage, top ' + TOP;
+    }
+    moreExp.button.addEventListener('click', syncRows);
+    Hub.onUnmount(Hub.density.subscribe(syncRows));
+    Hub.onUnmount(moreExp.destroy);
+    syncRows();
+
+    if (restCount) { card.appendChild(h('div', { 'class': 'card-footer tour-snap-more' }, moreExp.root)); }
 
     mount.appendChild(card);
   });
@@ -522,11 +582,26 @@
     }
 
     card.appendChild(bodyEl);
-    card.appendChild(h('div', { 'class': 'card-footer tour-legend' },
-      h('span', { 'class': 'tour-legend-item' }, h('span', { 'class': 'tour-legend-line is-win', 'aria-hidden': 'true' }), 'winner advances'),
-      h('span', { 'class': 'tour-legend-item' }, h('span', { 'class': 'tour-out tour-legend-out' }, 'TAG'), 'that team is eliminated from the event'),
-      h('span', { 'class': 'tour-legend-item' }, h('span', { 'class': 'chip chip--live' }, 'Live'), 'series in progress'),
-      h('p', { 'class': 'tour-note u-dim' }, 'Teams that dropped from the Upper Bracket enter where each Lower Bracket column says they do. Connector lines are drawn between series inside the same bracket.')));
+
+    /* The bracket is the tournament's one picture, so it stays whole. What
+       compact takes off it is the three line key and the connector note. */
+    var LEGEND_ROWS = 3;
+    var legendExp = Hub.expander({
+      id: 'tour-bracket-key',
+      count: LEGEND_ROWS,
+      label: function (n) { return 'Show the ' + n + ' bracket key lines'; },
+      hideLabel: 'Show fewer',
+      className: 'tour-bracket-exp',
+      content: function () {
+        return h('div', { 'class': 'tour-legend tour-legend--panel' },
+          h('span', { 'class': 'tour-legend-item' }, h('span', { 'class': 'tour-legend-line is-win', 'aria-hidden': 'true' }), 'winner advances'),
+          h('span', { 'class': 'tour-legend-item' }, h('span', { 'class': 'tour-out tour-legend-out' }, 'TAG'), 'that team is eliminated from the event'),
+          h('span', { 'class': 'tour-legend-item' }, h('span', { 'class': 'chip chip--live' }, 'Live'), 'series in progress'),
+          h('p', { 'class': 'tour-note u-dim' }, 'Teams that dropped from the Upper Bracket enter where each Lower Bracket column says they do. Connector lines are drawn between series inside the same bracket.'));
+      }
+    });
+    Hub.onUnmount(legendExp.destroy);
+    card.appendChild(h('div', { 'class': 'card-footer tour-bracket-foot' }, legendExp.root));
 
     mount.appendChild(card);
   });
@@ -673,10 +748,38 @@
       ],
       rule: gsMeta.advancement
     });
-    (gs.rounds || []).forEach(function (round) {
+    /* COMPACT (2026-09-12, D1): the Schedule tab was the densest module on the
+       prototype, 3,399px of it, and five Swiss rounds of eight series each were
+       the bulk. The phase summary chips and the last round stay on screen; the
+       earlier rounds keep every row, one labelled panel away. */
+    var gsRounds = (gs.rounds || []).slice();
+    var gsLast = gsRounds.length ? gsRounds[gsRounds.length - 1] : null;
+    var gsRest = gsRounds.slice(0, Math.max(0, gsRounds.length - 1));
+    var gsRestSeries = 0;
+    gsRest.forEach(function (r) { gsRestSeries += (r.series || []).length; });
+
+    function gsBlock(round) {
       var rows = (round.series || []).map(function (s) { return matchRow({ series: s }); });
-      gsCard.appendChild(groupBlock(round.round, fmt.date(round.date) + ', ' + rows.length + ' series', rows, false));
-    });
+      return groupBlock(round.round, fmt.date(round.date) + ', ' + rows.length + ' series', rows, false);
+    }
+
+    if (gsRest.length) {
+      var gsExp = Hub.expander({
+        id: 'tour-sched-gs-rest',
+        count: gsRest.length,
+        label: function (n) { return 'Show the other ' + n + ' rounds, ' + gsRestSeries + ' series'; },
+        hideLabel: function (n) { return 'Hide the other ' + n + ' rounds'; },
+        className: 'm-expander--footer tour-sched-exp',
+        content: function () {
+          return h('div', { 'class': 'tour-sched-rest' }, gsRest.map(gsBlock));
+        }
+      });
+      Hub.onUnmount(gsExp.destroy);
+      if (gsLast) { gsCard.appendChild(gsBlock(gsLast)); }
+      gsCard.appendChild(h('div', { 'class': 'card-footer tour-sched-restwrap' }, gsExp.root));
+    } else {
+      gsRounds.forEach(function (round) { gsCard.appendChild(gsBlock(round)); });
+    }
     wrap.appendChild(gsCard);
 
     /* ---- Elimination Round ---- */
@@ -846,11 +949,40 @@
     card.appendChild(stBody);
     scrollHint(stScroll, 'Scroll sideways for every round');
 
+    /* COMPACT (2026-09-12, D1): rank, team, W-L and the game record are the
+       headline. The one opponent-and-score cell per Swiss round is the detail,
+       and it is what makes this table scroll sideways, so it opens on request.
+       The cut point is the class on the table, set here and nowhere else (T2):
+       the stylesheet only reacts to it. */
+    if (rounds.length) {
+      var roundsExp = Hub.expander({
+        id: 'tour-standings-rounds',
+        count: rounds.length,
+        label: function (n) { return 'Show ' + n + ' round columns'; },
+        hideLabel: function (n) { return 'Hide ' + n + ' round columns'; },
+        className: 'm-expander--footer tour-rounds-exp',
+        /* the key for the cells the panel switches on travels with them */
+        content: function () {
+          return h('div', { 'class': 'tour-legend tour-rounds-key' },
+            h('span', { 'class': 'tour-legend-item' },
+              h('span', { 'class': 'tour-rr is-w' },
+                h('span', { 'class': 'tour-rr-op' }, ttag('spirit')),
+                h('span', { 'class': 'tour-rr-score' }, 'W 2-0')),
+              'opponent and series score, one cell per round'));
+        }
+      });
+      var syncRounds = function () { table.classList.toggle('has-rounds', roundsExp.isOpen()); };
+      roundsExp.button.addEventListener('click', syncRounds);
+      Hub.onUnmount(Hub.density.subscribe(syncRounds));
+      Hub.onUnmount(roundsExp.destroy);
+      syncRounds();
+      card.appendChild(h('div', { 'class': 'card-footer tour-rounds-more' }, roundsExp.root));
+    }
+
     card.appendChild(h('div', { 'class': 'card-footer tour-legend' },
       h('span', { 'class': 'tour-legend-item' }, h('span', { 'class': 'tour-zone-dot tour-zone--main_event' }), 'top 3, straight to the Main Event'),
       h('span', { 'class': 'tour-legend-item' }, h('span', { 'class': 'tour-zone-dot tour-zone--elimination_round' }), 'ranks 4 to 13, Elimination Round'),
       h('span', { 'class': 'tour-legend-item' }, h('span', { 'class': 'tour-zone-dot tour-zone--eliminated' }), 'bottom 3, out of the event'),
-      h('span', { 'class': 'tour-legend-item' }, h('span', { 'class': 'tour-rr is-w' }, h('span', { 'class': 'tour-rr-op' }, ttag('spirit')), h('span', { 'class': 'tour-rr-score' }, 'W 2-0')), 'opponent and series score'),
       h('p', { 'class': 'tour-note u-dim' }, DERIVED_NOTE),
       gs.tiebreakNote ? h('p', { 'class': 'tour-note u-dim' }, gs.tiebreakNote) : null));
     wrap.appendChild(card);
@@ -936,17 +1068,47 @@
 
     var wrap = h('div', { 'class': 'tour-teams', 'data-testid': 'teams' });
 
+    /* COMPACT (2026-09-12, D1): a team card is its crest, name, tag, region and
+       status. The roster, the run through the event and the rdy.gg link are the
+       detail: every card keeps its own head button, and one expander opens or
+       closes all sixteen at once. The long caption that explains where the
+       positions come from travels inside that panel rather than sitting above
+       sixteen collapsed cards. */
+    var bodies = [];
+    var toggles = [];
+
+    var rosterExp = Hub.expander({
+      id: 'tour-teams-rosters',
+      count: teams.length,
+      label: function (n) { return 'Show rosters for ' + n + ' teams'; },
+      hideLabel: function (n) { return 'Hide rosters for ' + n + ' teams'; },
+      className: 'm-expander--footer tour-teams-exp',
+      content: function () {
+        return h('p', { 'class': 'tour-note u-dim' },
+          'Status is as of the frozen moment, Grand Final game ' + ((ctx.GF5 || {}).game || '') +
+          '. Roster positions are shown where the data has them, and outside the two finalists they are inferred rather than official. A player with no photo on file renders as initials on the team colour.');
+      }
+    });
+
+    function syncRosters() {
+      var open = rosterExp.isOpen();
+      for (var i = 0; i < bodies.length; i++) {
+        bodies[i].hidden = !open;
+        toggles[i].setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+    }
+    rosterExp.button.addEventListener('click', syncRosters);
+    Hub.onUnmount(Hub.density.subscribe(syncRosters));
+    Hub.onUnmount(rosterExp.destroy);
+
     wrap.appendChild(h('section', { 'class': 'card tour-card tour-teams-head' },
       h('div', { 'class': 'card-header' },
         h('div', { 'class': 'titles' },
-          h('h2', { 'class': 'title' }, 'The 16 teams'),
+          h('h2', { 'class': 'title' }, 'The ' + teams.length + ' teams'),
           h('div', { 'class': 'subtitle' },
             Object.keys(regions).length + ' regions, ' + fmtx.directInvites + ' direct invites and ' +
             fmtx.qualifierSlots + ' qualifier slots'))),
-      h('div', { 'class': 'card-body tour-teams-note' },
-        h('p', { 'class': 'tour-note u-dim' },
-          'Status is as of the frozen moment, Grand Final game ' + ((ctx.GF5 || {}).game || '') +
-          '. Roster positions are shown where the data has them, and outside the two finalists they are inferred rather than official. A player with no photo on file renders as initials on the team colour.'))));
+      h('div', { 'class': 'card-body tour-teams-note' }, rosterExp.root)));
 
     var grid = h('div', { 'class': 'tour-team-grid' });
 
@@ -954,7 +1116,7 @@
       var alive = String(t.placement || '') === 'grand final';
       var place = placementText(t.placement);
       var rosterId = 'tour-roster-' + t.key;
-      var open = alive;
+      var open = rosterExp.isOpen();
 
       var body = h('div', { 'class': 'tour-team-body', id: rosterId, hidden: !open });
 
@@ -1031,6 +1193,8 @@
         toggle.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
         body.hidden = isOpen;
       });
+      bodies.push(body);
+      toggles.push(toggle);
 
       var card = h('article', {
         'class': 'card tour-card tour-team-card' + (alive ? ' is-alive' : ''),

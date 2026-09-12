@@ -329,13 +329,19 @@
     var liveNote = h('span', { 'class': 'mt-sb-modenote' }, '');
     var srLive = h('p', { 'class': 'u-sr-only', 'aria-live': 'polite' }, '');
 
+    /* COMP-4, 2026-09-12: compact hides the card subtitle, so the rule it
+       carried moves behind an 'i' beside the title rather than off the page. */
+    var SB_RULE = 'Every row reads the same minute as the timeline. Scrub the strip and the table follows.';
+    var ruleTip = Hub.infoTip
+      ? Hub.infoTip(SB_RULE, { id: 'mt-sb-rule', label: 'What the table is reading' })
+      : null;
+
     var header = h('div', { 'class': 'card-header' },
       h('div', { 'class': 'titles' },
         h('h2', { 'class': 'title' }, 'Scoreboard'),
-        h('div', { 'class': 'subtitle' },
-          'Every row reads the same minute as the timeline. Scrub the strip and the table follows.')
+        h('div', { 'class': 'subtitle' }, SB_RULE)
       ),
-      h('div', { 'class': 'action mt-sb-modewrap' }, modeChip, liveNote)
+      h('div', { 'class': 'action mt-sb-modewrap' }, ruleTip, modeChip, liveNote)
     );
 
     /* ---- the two tables ---- */
@@ -346,11 +352,60 @@
 
     var footNote = buildFootnote();
 
+    /* ------------------------------------------------------------
+       COMPACT, 2026-09-12. The default table is PLAYER, LVL, K/D/A,
+       GPM/XPM, NET and ITEMS. LH/DN, HERO DMG, TOWER DMG, HEALING,
+       TALENTS and AGHANIM'S are still built, still painted and still in
+       the DOM; compact zeroes their columns the same way the 1024 reflow
+       zeroes two of them, and the expander gives them their width back.
+       The rule notes ride in the same panel, because they are the notes
+       that explain those columns.
+       ------------------------------------------------------------ */
+    var MINIMAL_COLS = ['lhdn', 'c7', 'c8', 'c9', 'talents', 'aghs'];
+
+    /* one stable hook per cell, stamped positionally so a body cell can never
+       disagree with the <col> above it */
+    function stampCols(wrap) {
+      var i, k;
+      var cols = wrap.querySelectorAll('col');
+      for (i = 0; i < cols.length && i < COLS.length; i++) {
+        cols[i].setAttribute('data-col', COLS[i].id);
+      }
+      var trs = wrap.querySelectorAll('tr');
+      for (i = 0; i < trs.length; i++) {
+        var cells = trs[i].children;
+        for (k = 0; k < cells.length && k < COLS.length; k++) {
+          cells[k].setAttribute('data-col', COLS[k].id);
+        }
+      }
+    }
+    stampCols(tables[0].wrap);
+    stampCols(tables[1].wrap);
+
+    var colsExp = Hub.expander({
+      id: 'mt-sb-cols',
+      count: MINIMAL_COLS.length,
+      className: 'm-expander--footer mt-sb-colsexp',
+      label: function (n) { return 'More columns, ' + n + ' hidden'; },
+      hideLabel: 'Fewer columns',
+      content: footNote
+    });
+    if (Hub.onUnmount) Hub.onUnmount(colsExp.destroy);
+
     var root = h('section', {
-      'class': 'card mt-sb',
+      'class': 'card mt-sb is-cols-min',
       'data-testid': opts.testid,
       'data-mode': 'final'
-    }, header, tables[0].wrap, tables[1].wrap, footNote, srLive);
+    }, header, tables[0].wrap, tables[1].wrap, colsExp.root, srLive);
+
+    /* the table is wide when the panel is open, narrow when it is not, in
+       both densities: the expander owns one state and the class mirrors it */
+    function syncCols() { root.classList.toggle('is-cols-min', !colsExp.isOpen()); }
+    /* the expander's own onclick was registered first, so its state is already
+       flipped when this runs: no timer, no frame where the two disagree */
+    colsExp.button.addEventListener('click', syncCols);
+    var stopColsDensity = Hub.density.subscribe(syncCols);
+    syncCols();
 
     mount.appendChild(root);
     /* M-06: silent unless focus is inside the scoreboard and the clock is idle */
@@ -445,6 +500,7 @@
     function teardown() {
       if (stopSub) { stopSub(); stopSub = null; }
       if (stopHl) { stopHl(); stopHl = null; }
+      if (stopColsDensity) { stopColsDensity(); stopColsDensity = null; }
       if (mq) {
         if (mq.removeEventListener) mq.removeEventListener('change', onMq);
         else if (mq.removeListener) mq.removeListener(onMq);

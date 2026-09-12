@@ -483,6 +483,12 @@
 
   function articleCard(a) {
     var parts = bodyBlock(a, 'news');
+    /* COMPACT (2026-09-12, D1): the dek comes off the card face and rides at
+       the top of the piece instead, so the card's own 'Read the piece' button
+       still reaches it. Detailed keeps it above the fold and drops the echo. */
+    parts.body.insertBefore(
+      h('p', { 'class': 'ed-p ed-dek-echo u-when-compact' }, a.dek),
+      parts.body.firstChild);
     return h('article', {
       'class': 'card card-hover ed-card',
       'data-testid': 'card-article',
@@ -492,7 +498,7 @@
       h('div', { 'class': 'ed-card-body' },
         h('div', { 'class': 'cluster-sm ed-card-top' }, catChip(a), a.live ? liveChip() : null),
         h('h3', { 'class': 'ed-headline' }, a.headline),
-        h('p', { 'class': 'ed-dek' }, a.dek),
+        h('p', { 'class': 'ed-dek u-when-detailed' }, a.dek),
         entsFor(a),
         byline(a),
         parts.button,
@@ -545,10 +551,35 @@
    * 5. Mount: m-editorial-featured (Overview)
    * ------------------------------------------------------------------ */
 
+  /* COMPACT (2026-09-12): one featured piece and two cards.
+     C2, 2026-09-12: the overflow card used to carry u-when-detailed, so
+     compact hid it with display:none and said nothing about it. A card that
+     leaves a list has to announce itself, with a count, like every other
+     compact cut on the page, so the overflow sits in a Hub.expander now. */
+  var FEATURED_COMPACT = 2;
+
   Hub.register('m-editorial-featured', function (mount, ctx) {
     var list = articles(ctx.TI2026, ctx.GF5);
     var lead = list[0];
     var rest = list.slice(1, 4);
+    var shown = rest.slice(0, FEATURED_COMPACT);
+    var overflow = rest.slice(FEATURED_COMPACT);
+
+    var sideKids = shown.map(compactCard);
+    if (overflow.length) {
+      var moreExp = Hub.expander({
+        id: 'ed-featured-more',
+        count: overflow.length,
+        label: function (n) { return 'Show ' + n + ' more from the desk'; },
+        hideLabel: 'Show fewer',
+        className: 'm-expander--footer ed-featured-exp',
+        content: function () {
+          return h('div', { 'class': 'ed-feature-more' }, overflow.map(compactCard));
+        }
+      });
+      Hub.onUnmount(moreExp.destroy);
+      sideKids.push(moreExp.root);
+    }
 
     var section = h('section', { 'class': 'section ed-root', 'data-testid': 'editorial-featured' },
       sectionHead(
@@ -559,8 +590,7 @@
         })),
       h('div', { 'class': 'ed-feature-grid' },
         featuredCard(lead),
-        h('div', { 'class': 'ed-feature-side' },
-          rest.map(function (a) { return compactCard(a); })))
+        h('div', { 'class': 'ed-feature-side' }, sideKids))
     );
     mount.appendChild(section);
   });
@@ -575,32 +605,57 @@
     var counts = {};
     list.forEach(function (a) { counts[a.catSlug] = (counts[a.catSlug] || 0) + 1; });
 
+    /* COMPACT (2026-09-12, D1): the News tab built all ten cards at full height
+       with no cut at all, 1,909px of it. Six cards lead; the rest keep every
+       word, one labelled panel away. The dek is the line that goes in compact,
+       and it is the one line the piece repeats in its own body. */
+    var NEWS_COMPACT = 6;
+
     var grid = h('div', { 'class': 'ed-news-grid' });
-    var cards = list.map(function (a) {
+    var more = h('div', { 'class': 'ed-news-grid ed-news-grid--more' });
+    var cards = list.map(function (a, i) {
       var el = articleCard(a);
-      grid.appendChild(el);
-      return { el: el, cat: a.catSlug };
+      (i < NEWS_COMPACT ? grid : more).appendChild(el);
+      return { el: el, cat: a.catSlug, rest: i >= NEWS_COMPACT };
     });
 
     var status = h('p', { 'class': 'ed-status u-dim', role: 'status', 'aria-live': 'polite' },
       'Showing ' + list.length + ' of ' + list.length + ' pieces');
 
     var chips = [];
+    var cat = 'all';
+
+    var newsExp = list.length > NEWS_COMPACT ? Hub.expander({
+      id: 'ed-news-all',
+      count: list.length,
+      label: function (n) { return 'Show all ' + n + ' pieces'; },
+      hideLabel: function (n) { return 'Show the first ' + NEWS_COMPACT + ' of ' + n; },
+      className: 'm-expander--footer ed-news-exp',
+      content: function () { return more; }
+    }) : null;
 
     function apply(catSlug) {
-      var shown = 0;
+      cat = catSlug;
+      var visible = 0;
+      var open = newsExp ? newsExp.isOpen() : true;
       cards.forEach(function (c) {
         var on = (catSlug === 'all' || c.cat === catSlug);
         c.el.hidden = !on;
-        if (on) { shown++; }
+        if (on && (open || !c.rest)) { visible++; }
       });
       chips.forEach(function (b) {
         b.setAttribute('aria-pressed', b.getAttribute('data-cat') === catSlug ? 'true' : 'false');
       });
       var label = CATEGORIES.filter(function (c) { return slug(c) === catSlug; })[0];
       status.textContent = catSlug === 'all'
-        ? 'Showing ' + shown + ' of ' + list.length + ' pieces'
-        : 'Showing ' + shown + ' of ' + list.length + ' pieces, filtered to ' + label;
+        ? 'Showing ' + visible + ' of ' + list.length + ' pieces'
+        : 'Showing ' + visible + ' of ' + list.length + ' pieces, filtered to ' + label;
+    }
+
+    if (newsExp) {
+      newsExp.button.addEventListener('click', function () { apply(cat); });
+      Hub.onUnmount(Hub.density.subscribe(function () { apply(cat); }));
+      Hub.onUnmount(newsExp.destroy);
     }
 
     function chip(label, catSlug, n) {
@@ -627,8 +682,10 @@
           'rdy.gg Dota 2 news', icon(ICON.arrow, 'ed-textbtn-icon'))),
       bar,
       status,
-      grid
+      grid,
+      newsExp ? newsExp.root : null
     );
+    apply('all');
     mount.appendChild(section);
   });
 
@@ -657,9 +714,13 @@
       h('p', { 'class': 'ed-today-note u-dim' }, GF5.seriesNote)
     );
 
-    var rows = games.map(function (g) {
+    function isLive(g) { return g.status !== 'final'; }
+    var liveGames = games.filter(isLive);
+    var finGames = games.filter(function (g) { return !isLive(g); });
+
+    function row(g) {
       var time = shanghaiTime(g.startTimeUtc);
-      var live = g.status !== 'final';
+      var live = isLive(g);
       var cells = [
         h('th', { scope: 'row', 'class': 'ed-g-num u-tnum' }, 'G' + g.game),
         h('td', { 'class': 'ed-g-time u-tnum' }, time || '')
@@ -683,17 +744,59 @@
           Hub.killsPair(g.killScore, g.radiant, g.dire, { stack: true })));
       }
       return h('tr', { 'class': live ? 'ed-g-row is-live' : 'ed-g-row' }, cells);
-    });
+    }
 
-    var table = h('table', { 'class': 'hub-table hub-table--compact ed-today-table' },
-      h('caption', { 'class': 'u-sr-only' }, 'Grand final games today, Shanghai local time'),
-      h('thead', null, h('tr', null,
-        h('th', { scope: 'col' }, 'Game'),
-        h('th', { scope: 'col' }, 'Start'),
-        h('th', { scope: 'col' }, 'Result'),
-        h('th', { scope: 'col', 'class': 'col-num' }, 'Kills'))),
-      h('tbody', null, rows)
-    );
+    function gameTable(list, caption) {
+      return h('table', { 'class': 'hub-table hub-table--compact ed-today-table' },
+        h('caption', { 'class': 'u-sr-only' }, caption),
+        h('thead', null, h('tr', null,
+          h('th', { scope: 'col' }, 'Game'),
+          h('th', { scope: 'col' }, 'Start'),
+          h('th', { scope: 'col' }, 'Result'),
+          h('th', { scope: 'col', 'class': 'col-num' }, 'Kills'))),
+        h('tbody', null, list.map(row))
+      );
+    }
+
+    /* ------------------------------------------------------------
+       D1, 2026-09-12. Overview printed the five games twice: the live
+       card's game by game strip, which carries the pips and the kills
+       pairs, and this table immediately to its right. The strip is the
+       primary, so the rail gives up the copy: the game still running is a
+       line of its own, and the games already decided are behind an
+       expander that counts them. Detailed forces that panel open, so the
+       five rows are all on screen there, as before. Which games are live
+       is read off status, never listed here.
+       ------------------------------------------------------------ */
+    function liveLine(g) {
+      var time = shanghaiTime(g.startTimeUtc);
+      return h('div', { 'class': 'ed-today-live', 'data-testid': 'today-live' },
+        h('span', { 'class': 'ed-today-live-g u-tnum' }, 'G' + g.game),
+        h('span', { 'class': 'ed-today-live-time u-tnum u-dim' }, time || ''),
+        liveChip(),
+        h('span', { 'class': 'ed-today-live-clock u-tnum' }, GF5.frozenAt.clock),
+        Hub.killsPair({ radiant: GF5.score[radiantKey], dire: GF5.score[direKey] },
+          radiantKey, direKey, { className: 'ed-today-live-kills' })
+      );
+    }
+
+    var bodyKids;
+    if (liveGames.length && finGames.length) {
+      var finExp = Hub.expander({
+        id: 'ed-today-finished',
+        count: finGames.length,
+        className: 'm-expander--footer ed-today-exp',
+        label: function (n) { return 'Show ' + n + ' finished games'; },
+        hideLabel: function (n) { return 'Hide the ' + n + ' finished games'; },
+        content: function () {
+          return gameTable(finGames, 'Grand final games already decided today, Shanghai local time');
+        }
+      });
+      Hub.onUnmount(finExp.destroy);
+      bodyKids = [head, liveGames.map(liveLine), finExp.root];
+    } else {
+      bodyKids = [head, gameTable(games, 'Grand final games today, Shanghai local time')];
+    }
 
     var card = h('div', { 'class': 'card card--live ed-card-side', 'data-testid': 'event-card' },
       /* No narrative rule, round 2 (audit N-R2-01). The chip used to read
@@ -706,7 +809,7 @@
         GF5.live
           ? h('span', { 'class': 'chip chip--live' }, 'In progress')
           : h('span', { 'class': 'chip chip--outline' }, 'Final')),
-      h('div', { 'class': 'card-body' }, head, table),
+      h('div', { 'class': 'card-body' }, bodyKids),
       h('div', { 'class': 'card-footer ed-side-actions' },
         textButton('Full schedule', function () {
           Hub.tabs.activate('schedule', { focus: true, hash: true, scroll: true });
@@ -821,6 +924,7 @@
     }
 
     var list = h('ul', { 'class': 'ed-feed' });
+    var listMore = h('ul', { 'class': 'ed-feed ed-feed--more' });
     var nodes = items.map(function (it) {
       var media = it.img
         ? figure(it.img, 'ed-figure--feed', false, it.kind === 'video' && it.href
@@ -863,7 +967,9 @@
 
     function apply(next) {
       kind = next;
-      expanded = false;
+      /* a new filter starts collapsed again; in DETAILED the expander is
+         locked open and close() is a no-op, which is the documented rule */
+      feedExp.close();
       chips.forEach(function (b) {
         b.setAttribute('aria-pressed', b.getAttribute('data-kind') === kind ? 'true' : 'false');
       });
@@ -884,38 +990,52 @@
       }));
 
     /* The rail used to run 1,800px of feed against a 6,000px main column.
-       Four items, then the rest on request. */
-    var SHOWN = 4;
-    var expanded = false;
+       T1, 2026-09-12: the 'Show all N' control was hand rolled, so it carried
+       aria-expanded with no aria-controls, it was not locked while the global
+       switch said Detailed, and it collapsed to a different cap in each mode.
+       It is a Hub.expander now: one cap constant, a real panel to point at,
+       and the detailed lock every other expander on the page has. */
+    var FEED_COMPACT = 3;
     var kind = 'all';
 
     function paint() {
+      var open = feedExp.isOpen();
       var seen = 0, shown = 0;
       nodes.forEach(function (n) {
         var match = (kind === 'all' || n.kind === kind);
         if (match) { seen++; }
-        var on = match && (expanded || seen <= SHOWN);
-        n.el.hidden = !on;
-        if (on) { shown++; }
+        var lead = match && seen <= FEED_COMPACT;
+        /* appended in list order every pass, so the lead list and the panel
+           can never fall out of the order the items were built in */
+        (lead ? list : listMore).appendChild(n.el);
+        n.el.hidden = !match;
+        if (match && (lead || open)) { shown++; }
       });
       status.textContent = shown + ' of ' + seen + ' items';
-      more.hidden = seen <= SHOWN;
-      moreLabel.textContent = expanded ? 'Show fewer' : 'Show all ' + seen;
-      more.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+      feedExp.root.hidden = seen <= FEED_COMPACT;
+      feedExp.setCount(seen);
     }
 
-    var moreLabel = h('span', null, 'Show all');
-    var more = h('button', {
-      type: 'button', 'class': 'btn btn-sm btn-block ed-feed-more',
-      'aria-expanded': 'false',
-      onclick: function () { expanded = !expanded; paint(); }
-    }, moreLabel, icon(ICON.arrow, 'ed-textbtn-icon'));
+    var feedExp = Hub.expander({
+      id: 'ed-feed-all',
+      count: items.length,
+      /* L2, 2026-09-12: the only expander label on the page with no noun on
+         it. It now names what the status line under the card calls them. */
+      label: function (n) { return 'Show all ' + n + ' feed items'; },
+      hideLabel: function (n) { return 'Show the newest ' + FEED_COMPACT + ' of ' + n; },
+      className: 'm-expander--footer ed-feed-exp',
+      content: function () { return listMore; }
+    });
+    feedExp.button.addEventListener('click', paint);
+    Hub.onUnmount(Hub.density.subscribe(paint));
+    Hub.onUnmount(feedExp.destroy);
 
     var card = h('div', { 'class': 'card ed-card-side', 'data-testid': 'feed' },
       cardHead('On site', 'From the floor and the rdy.gg desk'),
-      h('div', { 'class': 'card-body' }, bar, status, list, more)
+      h('div', { 'class': 'card-body' }, bar, status, list, feedExp.root)
     );
     paint();
+
     mount.appendChild(card);
   });
 
@@ -977,32 +1097,56 @@
       ['Peak viewers so far', F.num(v.peakViewers)]
     ].filter(function (r) { return r[1] !== null && r[1] !== undefined && r[1] !== ''; });
 
-    var table = h('table', { 'class': 'hub-table hub-table--compact ed-info-table' },
-      h('caption', { 'class': 'u-sr-only' }, 'Key facts for ' + ev.name),
-      h('tbody', null, rows.map(function (r) {
-        return h('tr', null,
-          h('th', { scope: 'row', 'class': 'ed-info-key' }, r[0]),
-          h('td', { 'class': 'ed-info-val' }, r[1]));
-      }))
-    );
+    /* COMPACT (2026-09-12, D1): the card ran to 501px, nine facts and two
+       footnotes. The edition, the dates and the city lead; the rest of the
+       table and both footnotes are one labelled panel away. */
+    var INFO_COMPACT = 3;
+
+    function infoTable(list, cls) {
+      return h('table', { 'class': 'hub-table hub-table--compact ed-info-table' + (cls ? ' ' + cls : '') },
+        h('caption', { 'class': 'u-sr-only' }, 'Key facts for ' + ev.name),
+        h('tbody', null, list.map(function (r) {
+          return h('tr', null,
+            h('th', { scope: 'row', 'class': 'ed-info-key' }, r[0]),
+            h('td', { 'class': 'ed-info-val' }, r[1]));
+        })));
+    }
+
+    var table = infoTable(rows.slice(0, INFO_COMPACT));
+    var restRows = rows.slice(INFO_COMPACT);
+
+    var infoExp = restRows.length ? Hub.expander({
+      id: 'ed-event-facts',
+      count: restRows.length,
+      label: function (n) { return 'Show ' + n + ' more event facts'; },
+      hideLabel: function (n) { return 'Hide ' + n + ' event facts'; },
+      className: 'm-expander--footer ed-info-exp',
+      content: function () {
+        return h('div', { 'class': 'ed-info-more' },
+          infoTable(restRows, 'ed-info-table--more'),
+          h('p', { 'class': 'ed-info-note u-dim' },
+            'Published prize pool totals differ, so rdy.gg prints the range safe figure and never a per team amount. ' +
+            'No Battle Pass: the pool is a ' + F.num(ev.prizePoolBase) + ' base from ' + ev.organiser + ' plus supporter bundle sales.'),
+          v.source ? h('p', { 'class': 'ed-info-note u-dim' },
+            'Viewership from ' + v.source + '. The peak was set before the grand final, so it holds at the ' +
+            'frozen moment. Averages, hours watched and broadcast hours are whole event aggregates and ' +
+            'cannot be final while game ' + (GF5.game || '') + ' is still running, so they are ' +
+            'not printed here.') : null);
+      }
+    }) : null;
+    if (infoExp) { Hub.onUnmount(infoExp.destroy); }
 
     var card = h('div', { 'class': 'card ed-card-side', 'data-testid': 'competition-info' },
       cardHead('Event info', ev.timezone),
       h('div', { 'class': 'card-body' },
         table,
-        h('p', { 'class': 'ed-info-note u-dim' },
-          'Published prize pool totals differ, so rdy.gg prints the range safe figure and never a per team amount. ' +
-          'No Battle Pass: the pool is a ' + F.num(ev.prizePoolBase) + ' base from ' + ev.organiser + ' plus supporter bundle sales.'),
         /* No narrative rule, round 2 (audit N-R2-06). The footnote used to end
            with event.viewership.allTimeRank, a cross-year ranking against TI
            2021 and TI 2019 that no rule in either contract produces. The peak
            figure and its source stay; the ranking is gone, and the field is no
-           longer emitted by build_ti2026.py. */
-        v.source ? h('p', { 'class': 'ed-info-note u-dim' },
-          'Viewership from ' + v.source + '. The peak was set before the grand final, so it holds at the ' +
-          'frozen moment. Averages, hours watched and broadcast hours are whole event aggregates and ' +
-          'cannot be final while game ' + (GF5.game || '') + ' is still running, so they are ' +
-          'not printed here.') : null)
+           longer emitted by build_ti2026.py. Both footnotes now live inside
+           the expander panel above, with the rows they annotate. */
+        infoExp ? infoExp.root : null)
     );
     mount.appendChild(card);
   });

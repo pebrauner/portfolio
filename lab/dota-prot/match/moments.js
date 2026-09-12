@@ -205,27 +205,31 @@
       return b;
     }
 
+    /* COMP-1, 2026-09-12: the filter drives the grouped ladder and nothing
+       else, so it is built here and mounted inside the ladder's own panel.
+       In the compact default it is not on screen at all, because the short
+       list it sat above never obeyed it. */
+    var segEl = h('div', { 'class': 'm-seg', role: 'group', 'aria-label': 'Filter moments' },
+      segBtn('majors', 'Fights and majors', MAJOR_RULE),
+      segBtn('all', 'All'),
+      segBtn('fights', 'Fights'),
+      segBtn('objectives', 'Objectives'));
+
     root.appendChild(h('div', { 'class': 'card-header' },
       h('div', { 'class': 'titles' },
         h('h2', { 'class': 'title rdy-heading-5' }, 'Fights and objectives'),
         h('div', { 'class': 'subtitle' },
           nFights + ' teamfights and ' + nObjectives + ' objectives, in the order they happened.')
-      ),
-      h('div', { 'class': 'action' },
-        h('div', { 'class': 'm-seg', role: 'group', 'aria-label': 'Filter moments' },
-          segBtn('majors', 'Fights and majors', MAJOR_RULE),
-          segBtn('all', 'All'),
-          segBtn('fights', 'Fights'),
-          segBtn('objectives', 'Objectives')
-        )
       )
     ));
 
     var body = h('div', { 'class': 'card-body stack' });
     root.appendChild(body);
 
-    /* the legend says what the shared bar is, so no bar is read as a swing */
-    body.appendChild(h('div', { 'class': 'm-legend mt-mo-legend' },
+    /* the legend says what the shared bar is, so no bar is read as a swing.
+       COMPACT, 2026-09-12: it belongs to the full ladder, so it travels with
+       it into the panel instead of sitting above a list that has no bars. */
+    var legendEl = h('div', { 'class': 'm-legend mt-mo-legend' },
       h('span', { 'class': 'm-legend-item' },
         h('span', { 'class': 'm-swatch m-swatch--radiant' }), teamName.radiant + ' ahead'),
       h('span', { 'class': 'm-legend-item' },
@@ -234,7 +238,7 @@
         'Every row carries the same gold line with a dot at its own minute, on one scale up to ' + F.num(maxAbs) + ' gold. ' +
         'A fight is won by the side with the positive gold delta inside the fight window, which is the only thing "win" means here.'),
       h('span', { 'class': 'm-legend-item u-dim' }, MAJOR_RULE)
-    ));
+    );
 
     /* ---------- the items ---------- */
 
@@ -471,9 +475,15 @@
       var feat = featuredItems();
       if (!feat.length) return;
       var wrap = h('div', { 'class': 'mt-mo-plays', 'data-testid': 'match-overview' });
-      wrap.appendChild(h('h3', { 'class': 'mt-mo-plays-title rdy-subh-5' }, 'Biggest swing'));
       var rule = swingRule();
-      if (rule) { wrap.appendChild(h('p', { 'class': 'mt-mo-plays-rule u-dim rdy-par-7' }, rule)); }
+      /* COMPACT: the rule that PRODUCED this card is one click away beside the
+         label it explains, instead of two always on lines above it. */
+      wrap.appendChild(h('h3', { 'class': 'mt-mo-plays-title rdy-subh-5' },
+        h('span', null, 'Biggest swing'),
+        (rule && Hub.infoTip)
+          ? Hub.infoTip(rule, { id: 'mt-mo-swingrule', label: 'How the biggest swing is chosen' })
+          : null));
+      if (rule && !Hub.infoTip) { wrap.appendChild(h('p', { 'class': 'mt-mo-plays-rule u-dim rdy-par-7' }, rule)); }
       var grid = h('div', { 'class': 'mt-mo-plays-grid' });
       feat.forEach(function (it) {
         var card = h('button', {
@@ -503,6 +513,100 @@
       body.appendChild(wrap);
     }());
 
+    /* ============================================================
+       COMPACT, 2026-09-12. The default list is the moments that decide a
+       game: every teamfight, plus first blood, Roshan, the Aegis, every
+       barracks and the ancient. One line each, no portraits and no
+       sparkline: the clock, the headline the record already carries, and
+       the signed gold line at that minute. The full grouped ladder below
+       is unchanged and one click away.
+
+       DENS-2, 2026-09-12. Fifteen of those rows was still fifteen sentences,
+       the loudest card left in the compact view. The list drops to the one
+       fight the record flags as the biggest swing plus the objectives that
+       end a game: every Roshan, every barracks and the ancient. The other
+       twenty-seven, first blood and the six remaining teamfights among them,
+       are in the same panel as before, behind a label that counts them.
+       Nothing is filtered by hand: featured is the record's own argmax and
+       the three types are read off it.
+       ============================================================ */
+    var COMPACT_TYPES = { roshan: 1, barracks: 1, ancient: 1 };
+    function isCompactRow(it) {
+      return (it.kind === 'fight' && it.featured) || COMPACT_TYPES[it.type] === 1;
+    }
+
+    var compactItems = items.filter(isCompactRow);
+    var compactRows = [];
+
+    function buildCompactRow(it) {
+      var sideCls = it.side ? ' is-' + it.side : '';
+      var el = h('button', {
+        type: 'button',
+        'class': 'mt-mo-crow' + sideCls + (it.featured ? ' is-featured' : ''),
+        'data-index': String(it.index),
+        'data-moment-id': it.id,
+        'data-testid': 'match-row',
+        'aria-label': it.clock + '. ' + endStop(it.headline) + ' Go to this minute.'
+      },
+        h('span', { 'class': 'mt-mo-crow-time u-tnum' }, it.clock),
+        h('span', { 'class': 'mt-mo-crow-kind' }, TYPE_LABEL[it.type] || 'Moment'),
+        h('span', { 'class': 'mt-mo-crow-headline u-truncate' }, it.headline),
+        h('span', { 'class': 'mt-mo-crow-gold' }, goldText(it.index))
+      );
+      el.addEventListener('click', function () {
+        if (Timeline) Timeline.set(it.index);
+      });
+      compactRows.push({ item: it, el: el });
+      return el;
+    }
+
+    var compactList = h('div', {
+      'class': 'mt-mo-clist',
+      'data-testid': 'moments-compact'
+    }, compactItems.map(buildCompactRow));
+
+    /* COMP-6, 2026-09-12: the rule that picks these rows out of the record was
+       a source comment and a legend line inside a panel the reader has not
+       opened. It is now stated where the list is, behind one 'i', with both
+       counts read off the arrays. */
+    var COMPACT_RULE = compactItems.length + ' of ' + items.length +
+      ': the fight the record flags as the biggest gold swing, plus every Roshan, ' +
+      'every barracks and the ancient. ' +
+      'The full ladder and its filter are in the panel below.';
+    body.appendChild(h('div', { 'class': 'mt-mo-chead' },
+      h('span', { 'class': 'mt-mo-chead-label' }, 'Fights and majors'),
+      h('span', { 'class': 'mt-mo-chead-count u-tnum u-dim' },
+        compactItems.length + ' of ' + items.length),
+      Hub.infoTip
+        ? Hub.infoTip(COMPACT_RULE, { id: 'mt-mo-crule', label: 'Which moments this list holds' })
+        : null));
+    body.appendChild(compactList);
+
+    /* the full ladder, in its own panel. Built eagerly so the clock keeps
+       painting it, hidden while the panel is closed. The filter rides with
+       it, because it is the only thing the filter moves. */
+    var fullWrap = h('div', { 'class': 'mt-mo-full' },
+      h('div', { 'class': 'mt-mo-fullhead' }, segEl), legendEl);
+
+    var allExp = Hub.expander({
+      id: 'mt-mo-all',
+      count: items.length,
+      className: 'mt-mo-exp',
+      label: function (n) { return 'Show all ' + n + ' fights and objectives'; },
+      hideLabel: 'Show fewer',
+      content: fullWrap
+    });
+    if (Hub.onUnmount) Hub.onUnmount(allExp.destroy);
+    body.appendChild(allExp.root);
+
+    /* the compact list and the full ladder are two readings of one record, so
+       only one of them is on screen at a time */
+    function syncList() { root.classList.toggle('is-all-open', allExp.isOpen()); }
+    allExp.button.addEventListener('click', syncList);
+    var stopMoDensity = Hub.density.subscribe(syncList);
+    if (Hub.onUnmount) Hub.onUnmount(function () { stopMoDensity(); });
+    syncList();
+
     groups.forEach(function (grp) {
       if (!grp.items.length) return;
       var countEl = h('span', { 'class': 'mt-mo-group-count u-tnum u-dim' }, String(grp.items.length));
@@ -520,7 +624,7 @@
       var section = h('div', { 'class': 'mt-mo-group', 'data-phase': grp.key }, head, list);
       grp.countEl = countEl;
       grp.sectionEl = section;
-      body.appendChild(section);
+      fullWrap.appendChild(section);
     });
 
     root.appendChild(h('div', { 'class': 'card-footer mt-mo-foot' },
@@ -610,6 +714,21 @@
         var pc = playCards[k];
         pc.el.classList.toggle('is-at', pc.item.index === index);
         pc.el.classList.toggle('is-near', !!best && best.item === pc.item);
+      }
+      /* COMPACT: the short list follows the clock on its own scale, because
+         it holds fewer rows than the ladder and the nearest row differs */
+      var cBest = null, cBestD = Infinity;
+      for (var c = 0; c < compactRows.length; c++) {
+        var cd = Math.abs(compactRows[c].item.index - index);
+        if (cd < cBestD) { cBestD = cd; cBest = compactRows[c]; }
+      }
+      for (var n = 0; n < compactRows.length; n++) {
+        var cr = compactRows[n];
+        var cNear = cr === cBest;
+        cr.el.classList.toggle('is-near', cNear);
+        cr.el.classList.toggle('is-at', cr.item.index === index);
+        if (cNear) { cr.el.setAttribute('aria-current', 'true'); }
+        else { cr.el.removeAttribute('aria-current'); }
       }
       lastNear = best;
     }

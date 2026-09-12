@@ -761,6 +761,314 @@
     activate: function () { /* replaced by init */ }
   };
 
+  /* ---------- density (compact | detailed) ----------
+     Pedro, 2026-09-12: "we have too much information on the screen. Let's do
+     a compact version, maintaining the value, but less details."
+
+     COMPACT is the default and the shipped state. Every module keeps its
+     headline value on screen and moves the rest behind Hub.expander, which
+     says in words what it reveals and how many. DETAILED is one switch that
+     forces every expander open at once. Nothing is ever deleted: every number
+     that was on the page stays reachable in at most two clicks.
+
+     The mode lives on <body> as is-compact / is-detailed so CSS can react
+     without a subscription, and in localStorage under 'dota-prot-density'.
+     Storage is optional: a private window that throws on getItem simply
+     starts compact every time. */
+
+  var DENSITY_KEY = 'dota-prot-density';
+  var DENSITY_DEFAULT = 'compact';
+  var DENSITY_MODES = { compact: true, detailed: true };
+  var densityMode = DENSITY_DEFAULT;
+  var densitySubs = [];
+  var densityBooted = false;
+
+  function densityStored() {
+    try {
+      var v = global.localStorage ? global.localStorage.getItem(DENSITY_KEY) : null;
+      return v && DENSITY_MODES[v] ? v : null;
+    } catch (e) { return null; }
+  }
+
+  function densityStore(mode) {
+    try { if (global.localStorage) global.localStorage.setItem(DENSITY_KEY, mode); } catch (e) { /* storage off */ }
+  }
+
+  function densityApplyClasses() {
+    var b = document.body;
+    if (!b) return;
+    b.classList.toggle('is-compact', densityMode === 'compact');
+    b.classList.toggle('is-detailed', densityMode === 'detailed');
+  }
+
+  function densityNotify() {
+    var list = densitySubs.slice();
+    for (var i = 0; i < list.length; i++) {
+      try { list[i](densityMode); } catch (err) {
+        if (global.console && console.error) console.error('[Hub] density subscriber failed', err);
+      }
+    }
+  }
+
+  /* set(mode, opts). opts.persist === false writes nothing to storage (used by
+     a test or a one-off preview). opts.silent === true skips subscribers. */
+  function densitySet(mode, opts) {
+    opts = opts || {};
+    var next = DENSITY_MODES[mode] ? mode : DENSITY_DEFAULT;
+    var changed = next !== densityMode;
+    densityMode = next;
+    densityApplyClasses();
+    if (opts.persist !== false) densityStore(next);
+    if (!opts.silent && (changed || opts.force)) densityNotify();
+    return densityMode;
+  }
+
+  /* Runs before mountAll so the first paint is already in the right mode and
+     no component has to re-render itself on boot. Safe to call twice. */
+  function densityInit() {
+    densityMode = densityStored() || DENSITY_DEFAULT;
+    densityApplyClasses();
+    densityBooted = true;
+    densityNotify();
+    return densityMode;
+  }
+
+  var density = {
+    KEY: DENSITY_KEY,
+    DEFAULT: DENSITY_DEFAULT,
+    get: function () { return densityMode; },
+    set: densitySet,
+    toggle: function () { return densitySet(densityMode === 'compact' ? 'detailed' : 'compact'); },
+    isCompact: function () { return densityMode === 'compact'; },
+    isDetailed: function () { return densityMode === 'detailed'; },
+    init: densityInit,
+    get booted() { return densityBooted; },
+    /* subscribe(fn) -> unsubscribe. fn receives the new mode. */
+    subscribe: function (fn) {
+      if (typeof fn !== 'function') return function () {};
+      densitySubs.push(fn);
+      return function () {
+        var i = densitySubs.indexOf(fn);
+        if (i >= 0) densitySubs.splice(i, 1);
+      };
+    }
+  };
+
+  /* A subscription owned by a detached node is dead weight: every helper below
+     drops its own when its root leaves the document. */
+  function densityBind(root, fn) {
+    var off = density.subscribe(function (mode) {
+      if (root && root.isConnected === false) { off(); return; }
+      fn(mode);
+    });
+    return off;
+  }
+
+  /* ---------- densitySwitch(): the one global control ----------
+     Two buttons, aria-pressed, arrow keys between them. A page places it in
+     its own toolbar; there is never more than one per page, but several
+     instances stay in sync because they all read Hub.density. */
+
+  function densitySwitch(attrs) {
+    attrs = attrs || {};
+    var a = {};
+    for (var k in attrs) {
+      if (!Object.prototype.hasOwnProperty.call(attrs, k)) continue;
+      if (k === 'class' || k === 'className' || k === 'label') continue;
+      a[k] = attrs[k];
+    }
+    a['class'] = 'm-density' + (attrs.className || attrs['class'] ? ' ' + (attrs.className || attrs['class']) : '');
+    a.role = 'group';
+    a['aria-label'] = attrs.label || 'Information density';
+
+    var btns = [];
+    function makeBtn(mode, text) {
+      var b = h('button', {
+        type: 'button',
+        'class': 'm-density-btn',
+        'data-density': mode,
+        text: text,
+        onclick: function () { density.set(mode); }
+      });
+      btns.push(b);
+      return b;
+    }
+    /* Copy written here, not in the markup: the control is built, never typed
+       into a page, so both pages read the same two words. */
+    var root = h('div', a, makeBtn('compact', 'Compact'), makeBtn('detailed', 'Detailed'));
+
+    root.addEventListener('keydown', function (ev) {
+      var i = btns.indexOf(document.activeElement);
+      if (i < 0) return;
+      var next = -1;
+      if (ev.key === 'ArrowRight' || ev.key === 'ArrowDown') next = (i + 1) % btns.length;
+      else if (ev.key === 'ArrowLeft' || ev.key === 'ArrowUp') next = (i - 1 + btns.length) % btns.length;
+      else if (ev.key === 'Home') next = 0;
+      else if (ev.key === 'End') next = btns.length - 1;
+      if (next < 0) return;
+      ev.preventDefault();
+      btns[next].focus();
+      btns[next].click();
+    });
+
+    function paint() {
+      for (var i = 0; i < btns.length; i++) {
+        var on = btns[i].getAttribute('data-density') === densityMode;
+        btns[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+        btns[i].classList.toggle('is-on', on);
+      }
+    }
+    paint();
+    densityBind(root, paint);
+    root.refresh = paint;
+    return root;
+  }
+
+  /* ---------- expander(): the compact convention ----------
+     A labelled button that says what it reveals and how many, plus a panel
+     that carries the hidden attribute while it is closed.
+
+       Hub.expander({
+         id: 'objectives',                          // optional, one is made
+         count: list.length,
+         label: function (n) { return 'Show all ' + n + ' objectives'; },
+         hideLabel: 'Show fewer',                   // string or fn(count)
+         content: function () { return buildTable(); },   // element or fn
+         defaultOpen: false,
+         forceOpenWhenDetailed: true
+       })
+       -> { root, button, panel, open(), close(), toggle(), isOpen(), setCount(n), destroy() }
+
+     In DETAILED the panel is forced open, the button reads the hide label and
+     goes aria-disabled: the global switch owns the state while that mode is
+     on. Back in COMPACT the expander returns to whatever the reader left it.
+     The content function runs once, the first time the panel is shown. */
+
+  var expanderSeq = 0;
+
+  function expander(opts) {
+    opts = opts || {};
+    var id = opts.id || ('m-exp-' + (++expanderSeq));
+    var panelId = id + '-panel';
+    var btnId = id + '-btn';
+    var lockWhenDetailed = opts.forceOpenWhenDetailed !== false;
+    var ownOpen = !!opts.defaultOpen;
+    var count = isNil(opts.count) ? null : opts.count;
+    var filled = false;
+
+    function labelText(which) {
+      var v = which === 'hide'
+        ? (isNil(opts.hideLabel) ? 'Show fewer' : opts.hideLabel)
+        : (isNil(opts.label) ? 'Show more' : opts.label);
+      return typeof v === 'function' ? String(v(count)) : String(v);
+    }
+
+    var labelEl = h('span', { 'class': 'm-expander-label' });
+    var caret = h('span', { 'class': 'm-expander-caret', 'aria-hidden': 'true' });
+    var button = h('button', {
+      type: 'button',
+      id: btnId,
+      'class': 'm-expander-btn',
+      'aria-controls': panelId,
+      'aria-expanded': 'false',
+      onclick: function () {
+        if (isLocked()) return;
+        ownOpen = !ownOpen;
+        paint();
+      }
+    }, labelEl, caret);
+
+    var panel = h('div', { id: panelId, 'class': 'm-expander-panel', role: 'group', 'aria-labelledby': btnId });
+    panel.hidden = true;
+
+    var root = h('div', { 'class': 'm-expander' + (opts.className ? ' ' + opts.className : ''), 'data-expander': id }, button, panel);
+
+    function isLocked() { return lockWhenDetailed && densityMode === 'detailed'; }
+    function effectiveOpen() { return isLocked() || ownOpen; }
+
+    function fill() {
+      if (filled) return;
+      filled = true;
+      var c = opts.content;
+      var node = typeof c === 'function' ? c(panel) : c;
+      if (node && node !== panel) appendChildren(panel, [ node ]);
+    }
+
+    function paint() {
+      var open = effectiveOpen();
+      var locked = isLocked();
+      if (open) fill();
+      panel.hidden = !open;
+      button.setAttribute('aria-expanded', open ? 'true' : 'false');
+      labelEl.textContent = labelText(open ? 'hide' : 'show');
+      button.classList.toggle('is-open', open);
+      button.classList.toggle('is-locked', locked);
+      if (locked) { button.setAttribute('aria-disabled', 'true'); }
+      else { button.removeAttribute('aria-disabled'); }
+      root.classList.toggle('is-open', open);
+    }
+
+    paint();
+    var off = densityBind(root, paint);
+
+    return {
+      root: root,
+      button: button,
+      panel: panel,
+      id: id,
+      open: function () { ownOpen = true; paint(); },
+      close: function () { ownOpen = false; paint(); },
+      toggle: function () { ownOpen = !ownOpen; paint(); },
+      isOpen: effectiveOpen,
+      isLocked: isLocked,
+      /* the count is data, so a component that re-reads its data relabels
+         the button instead of rebuilding the expander */
+      setCount: function (n) { count = isNil(n) ? null : n; paint(); },
+      refresh: paint,
+      destroy: off
+    };
+  }
+
+  /* ---------- infoTip(): a rule caption that is not always on screen ----------
+     A derived label earns one line of explanation, but that line does not have
+     to sit under it forever. infoTip parks it behind a small 'i' that toggles
+     the caption inline, with the same aria-expanded contract as an expander.
+     Returns the wrapper element, with .button and .caption on it. */
+
+  var infoSeq = 0;
+
+  function infoTip(text, opts) {
+    opts = opts || {};
+    var id = opts.id || ('m-info-' + (++infoSeq));
+    var capId = id + '-caption';
+    var open = !!opts.defaultOpen;
+
+    var caption = h('span', { id: capId, 'class': 'm-infotip-caption', text: text || '' });
+    caption.hidden = !open;
+
+    var button = h('button', {
+      type: 'button',
+      'class': 'm-infotip-btn',
+      'aria-controls': capId,
+      'aria-expanded': open ? 'true' : 'false',
+      'aria-label': opts.label || 'How this is worked out',
+      title: text || null,
+      text: 'i'
+    });
+    button.addEventListener('click', function () {
+      open = !open;
+      caption.hidden = !open;
+      button.setAttribute('aria-expanded', open ? 'true' : 'false');
+      button.classList.toggle('is-on', open);
+    });
+
+    var root = h('span', { 'class': 'm-infotip' + (opts.className ? ' ' + opts.className : '') }, button, caption);
+    root.button = button;
+    root.caption = caption;
+    root.isOpen = function () { return open; };
+    return root;
+  }
+
   /* ---------- delegated image error handler (no inline onerror) ---------- */
 
   function installImageGuard() {
@@ -777,7 +1085,7 @@
   /* ---------- public API ---------- */
 
   var Hub = {
-    version: '1.0.0',
+    version: '1.1.0',
     register: register,
     mountAll: mountAll,
     remountAll: remountAll,
@@ -815,6 +1123,10 @@
     extLink: extLink,
     heroLink: heroLink,
     tabs: tabs,
+    density: density,
+    densitySwitch: densitySwitch,
+    expander: expander,
+    infoTip: infoTip,
     get data() { return data(); },
     get snapshot() { return snapshot(); }
   };
@@ -824,6 +1136,9 @@
   function boot() {
     installImageGuard();
     buildTeamIndex();
+    /* before mountAll, so the first paint is already compact and no component
+       has to correct itself after it has drawn */
+    densityInit();
     tabs.init();
     mountAll();
   }

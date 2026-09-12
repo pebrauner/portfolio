@@ -282,10 +282,18 @@
     var roMomentText = h('span', { 'class': 'mt-eco-moment-text' }, '');
     var roMoment = h('div', { 'class': 'mt-eco-moment' }, roMomentTime, roMomentText);
 
+    /* COMPACT, 2026-09-12: the headline reading is the clock, the advantage
+       and the kills. The four supporting figures stay built and stay painted;
+       they simply move into the phase breakdown panel, so a reader who opens
+       it sees the same live numbers, not a second copy of them. */
+    var roGridMain = h('div', { 'class': 'm-readout mt-eco-ro-grid mt-eco-ro-grid--main' },
+      roClock.item, roAdv.item, roKills.item);
+    var roGridMore = h('div', { 'class': 'm-readout mt-eco-ro-grid mt-eco-ro-grid--more' },
+      roR.item, roD.item, roTowers.item, roDelta.item);
+
     var readout = h('div', { 'class': 'mt-eco-readout', 'data-testid': 'economy-readout' },
       h('div', { 'class': 'mt-eco-ro-head' }, roPhase, roState),
-      h('div', { 'class': 'm-readout mt-eco-ro-grid' },
-        roClock.item, roAdv.item, roR.item, roD.item, roKills.item, roTowers.item, roDelta.item),
+      roGridMain,
       h('div', { 'class': 'm-sub mt-eco-moment-label' }, 'Last moment'),
       roMoment);
 
@@ -325,20 +333,44 @@
       phasesWrap.appendChild(tile);
     });
 
-    var note = h('p', { 'class': 'mt-eco-note' },
-      'Positive is ' + G5.match.dire.name + ', the Dire side. Drag the chart, or press an arrow key, to move every panel on this page to that minute, and it stays there when you let go. Hovering only previews the reading. A moment marker captures the cursor before you release it.');
+    var noteText = 'Positive is ' + G5.match.dire.name + ', the Dire side. Drag the chart, or press an arrow key, to move every panel on this page to that minute, and it stays there when you let go. Hovering only previews the reading. A moment marker captures the cursor before you release it.';
+
+    /* the reading rule is one click away instead of four lines under the chart */
+    var noteTip = Hub.infoTip
+      ? Hub.infoTip(noteText, { id: id + '-note', label: 'How to read this chart' })
+      : h('p', { 'class': 'mt-eco-note' }, noteText);
+
+    /* COMPACT: the five phase tiles and the four supporting readings are the
+       breakdown. One button, one count, nothing deleted. */
+    var phaseCount = (G5.phases || []).length;
+    /* COMP-5, 2026-09-12: the panel carries the four supporting readings as
+       well as the phase rows, so the label counts both halves of what it
+       hides. Both counts are read off the arrays that build them. */
+    var roMoreCount = roGridMore.children.length;
+    var phaseExp = Hub.expander({
+      id: id + '-phases',
+      count: phaseCount,
+      className: 'mt-eco-exp',
+      label: function (n) {
+        return 'Show ' + roMoreCount + ' more readings and ' + n + ' phase rows';
+      },
+      hideLabel: function (n) {
+        return 'Hide the ' + roMoreCount + ' readings and ' + n + ' phase rows';
+      },
+      content: h('div', { 'class': 'mt-eco-more' }, roGridMore, phasesWrap)
+    });
+    if (Hub.onUnmount) Hub.onUnmount(phaseExp.destroy);
 
     var card = h('section', { 'class': 'card mt-eco', 'data-testid': 'match-economy' },
       h('div', { 'class': 'card-header mt-eco-header' },
         h('div', { 'class': 'titles' },
           h('h2', { 'class': 'title' }, 'Economy'),
           h('div', { 'class': 'subtitle mt-eco-subtitle' }, '')),
-        h('div', { 'class': 'action' }, seg)),
+        h('div', { 'class': 'action' }, seg, noteTip)),
       h('div', { 'class': 'card-body mt-eco-body' },
         legend,
         h('div', { 'class': 'mt-eco-main' }, plot, readout),
-        phasesWrap,
-        note,
+        phaseExp.root,
         live));
 
     var subtitleEl = card.querySelector('.mt-eco-subtitle');

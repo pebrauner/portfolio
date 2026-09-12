@@ -159,10 +159,27 @@
       return b;
     }
 
+    var jumpRules = [];
     stops.forEach(function (f) {
       if (opts.jumpIds && opts.jumpIds.indexOf(f.id) === -1) return;
-      jumpButton(f.label, f.minute, f.rule || (f.label + ', minute ' + f.minute + '.'));
+      var rule = f.rule || (f.label + ', minute ' + f.minute + '.');
+      jumpRules.push(rule);
+      jumpButton(f.label, f.minute, rule);
     });
+
+    /* COMPACT, 2026-09-12: the five rules that define the landmarks are one
+       click away beside the row of jumps, not five lines under it. */
+    /* DENS-2, 2026-09-12: the sticky master strip prints the same five jumps
+       and never scrolls away, so compact drops this row of buttons and keeps
+       the label plus the rules behind its 'i'. The strip is told so here. */
+    var LANDMARK_LEAD = 'The same five jumps are on the sticky strip at the top of the page. ';
+    var jumpHead = h('div', { 'class': 'mt-st-su-jumphead' },
+      h('span', { 'class': 'm-sub' }, 'Landmarks'),
+      (jumpRules.length && Hub.infoTip)
+        ? Hub.infoTip(LANDMARK_LEAD + jumpRules.join(' '),
+            { id: 'mt-st-su-landmarks', label: 'How these landmarks are chosen' })
+        : null);
+    body.appendChild(jumpHead);
     body.appendChild(jumps);
 
     function paintJumps(i) {
@@ -366,11 +383,19 @@
     var side = player ? player.side : (tp.teamKey === S.direKey ? 'dire' : 'radiant');
     var ranking = tp.ranking || [];
 
+    /* COMPACT, 2026-09-12: the formula and the rule that produced this card
+       sit behind one 'i' beside the label they explain. */
+    var tpTip = Hub.infoTip
+      ? Hub.infoTip('points = ' + tp.formula + (tp.rule ? '. ' + tp.rule : ''),
+          { id: 'mt-st-hg-rule', label: 'How the top performer is worked out' })
+      : null;
+
     root.appendChild(h('div', { 'class': 'card-header' },
       h('div', { 'class': 'titles' },
         h('h2', { 'class': 'title rdy-heading-6' },
-          'Top performer' + ((player && player.handle) ? ': ' + player.handle : '')),
-        h('div', { 'class': 'subtitle' }, 'points = ' + tp.formula))
+          h('span', null, 'Top performer' + ((player && player.handle) ? ': ' + player.handle : '')),
+          tpTip),
+        h('div', { 'class': 'subtitle u-when-detailed' }, 'points = ' + tp.formula))
     ));
 
     var body = h('div', { 'class': 'card-body mt-st-hg-body m-hl', 'data-player-key': tp.playerKey, 'data-player-id': String(tp.rdyPlayerId || '') });
@@ -421,12 +446,19 @@
         }
         listEl.appendChild(rowEl);
       });
-      body.appendChild(h('div', { 'class': 'mt-st-hg-rank-wrap' },
-        h('div', { 'class': 'm-sub' }, 'All ten, by the same formula'),
-        listEl));
+      var rankExp = Hub.expander({
+        id: 'mt-st-hg-rank',
+        count: ranking.length,
+        className: 'm-expander--block mt-st-hg-exp',
+        label: function (n) { return 'Show all ' + n + ', by the same formula'; },
+        hideLabel: 'Show fewer',
+        content: h('div', { 'class': 'mt-st-hg-rank-wrap' }, listEl)
+      });
+      if (Hub.onUnmount) Hub.onUnmount(rankExp.destroy);
+      body.appendChild(rankExp.root);
     }
 
-    body.appendChild(h('p', { 'class': 'mt-st-hg-why rdy-par-6' }, tp.rule));
+    body.appendChild(h('p', { 'class': 'mt-st-hg-why rdy-par-6 u-when-detailed' }, tp.rule));
 
     var link = Hub.link.player(tp.rdyPlayerId);
     if (link) {
@@ -499,8 +531,12 @@
     });
     body.appendChild(teams);
 
-    /* players, grouped by side */
-    body.appendChild(h('div', { 'class': 'm-sub' }, 'Players'));
+    /* players, grouped by side.
+       DENS-3, 2026-09-12: ten player links made this the tallest card in the
+       rail, taller than every card carrying match data, and the density pass
+       had never touched it. They now sit behind a counted expander; the two
+       team links and the series links stay on screen. */
+    var playersWrap = h('div', { 'class': 'mt-st-lk-playerswrap' });
     ['radiant', 'dire'].forEach(function (side) {
       var list = (G5.players || []).filter(function (p) { return p.side === side; });
       if (!list.length) return;
@@ -522,11 +558,25 @@
         }
         wrap.appendChild(el);
       });
-      body.appendChild(h('div', { 'class': 'mt-st-lk-side' },
+      playersWrap.appendChild(h('div', { 'class': 'mt-st-lk-side' },
         h('span', { 'class': 'mt-st-lk-side-label u-dim' },
           side === 'radiant' ? S.radiant : S.dire),
         wrap));
     });
+
+    var nPlayers = (G5.players || []).length;
+    if (nPlayers) {
+      var playersExp = Hub.expander({
+        id: 'mt-st-lk-players',
+        count: nPlayers,
+        className: 'mt-st-lk-playersexp',
+        label: function (n) { return 'Show ' + n + ' player pages'; },
+        hideLabel: function (n) { return 'Hide the ' + n + ' player pages'; },
+        content: playersWrap
+      });
+      if (Hub.onUnmount) Hub.onUnmount(playersExp.destroy);
+      body.appendChild(playersExp.root);
+    }
 
     if (Timeline && Timeline.onHighlight) {
       Timeline.onHighlight(function (key) {

@@ -137,6 +137,18 @@
   }
 
   /* ======================================================================
+     0. m-density : the one Compact | Detailed switch, in the tab bar
+     Pedro, 2026-09-12: "too much information on the screen". COMPACT is the
+     default and the shipped state; DETAILED forces every expander on the page
+     open at once. Both words are written by Hub.densitySwitch, never typed
+     into the markup, so the hub and the match page read the same control.
+     ====================================================================== */
+
+  Hub.register('m-density', function (mount) {
+    mount.appendChild(Hub.densitySwitch());
+  });
+
+  /* ======================================================================
      1. m-live : the live match card
      ====================================================================== */
 
@@ -256,12 +268,32 @@
       ? 'Gold level at ' + GF5.frozenAt.clock
       : lead.name + ' ' + plusNum(adv.value) + ' at ' + GF5.frozenAt.clock;
 
-    var callout = h('div', { 'class': 'live-gbar-callout' },
-      h('p', { 'class': 'live-gbar-now rdy-par-6 u-tnum' }, nowLine),
-      swing ? h('p', { 'class': 'live-gbar-swing rdy-par-7 u-tnum' },
-        'Biggest swing ' + swing.fromClock + ' to ' + swing.toClock + ': ' +
-        plusNum(swing.value) + ' to ' + swing.teamName) : null,
-      swing ? ruleNote(swing.rule) : null);
+    /* Compact keeps the reading at the freeze on screen. The swing window and
+       the rule that produced it are one click away, never deleted. */
+    var calloutKids = [h('p', { 'class': 'live-gbar-now rdy-par-6 u-tnum' }, nowLine)];
+    if (swing) {
+      var swingExp = Hub.expander({
+        id: 'live-gold-moments',
+        count: 1,
+        /* L1, 2026-09-12: the old label, 'Show gold moments', named a
+           category and carried no count while the panel holds exactly one
+           derived figure. The label now names that one thing, so a reader
+           knows a headline number is behind the button. */
+        label: 'Show the biggest swing window',
+        hideLabel: 'Hide the biggest swing window',
+        className: 'm-expander--footer live-gbar-exp',
+        content: function () {
+          return h('div', { 'class': 'live-gbar-more' },
+            h('p', { 'class': 'live-gbar-swing rdy-par-7 u-tnum' },
+              'Biggest swing ' + swing.fromClock + ' to ' + swing.toClock + ': ' +
+              plusNum(swing.value) + ' to ' + swing.teamName),
+            ruleNote(swing.rule));
+        }
+      });
+      Hub.onUnmount(swingExp.destroy);
+      calloutKids.push(swingExp.root);
+    }
+    var callout = h('div', { 'class': 'live-gbar-callout' }, calloutKids);
 
     var ticks = [-SCALE, -SCALE / 2, 0, SCALE / 2, SCALE];
     var bar = h('div', { 'class': 'live-gbar', 'data-testid': 'gold-bar' },
@@ -432,12 +464,26 @@
         h('span', { 'class': 'live-key-swatch' }), 'Gold difference'),
       h('span', { 'class': 'u-dim rdy-par-7' }, 'Scale +/- ' + fmt.gold(niceMax)));
 
-    var keyList = h('ol', { 'class': 'live-gg-keys' }, markers.map(function (mk, i) {
-      return h('li', { 'class': 'live-gg-keyitem' },
-        h('span', { 'class': 'live-gg-keynum live-gg-mk--' + mk.kind }, String(i + 1)),
-        h('span', { 'class': 'live-gg-keytime u-tnum u-dim' }, fmt.clock(mk.seconds)),
-        h('span', { 'class': 'live-gg-keytext' }, mk.label));
-    }));
+    /* The chart keeps every marker on it. The written list of what each
+       number is, and the rule that generated the set, open on request. */
+    var keysExp = Hub.expander({
+      id: 'live-gg-moments',
+      count: markers.length,
+      label: function (n) { return 'Show all ' + n + ' marked moments'; },
+      hideLabel: 'Show fewer',
+      className: 'm-expander--footer',
+      content: function () {
+        return h('div', { 'class': 'live-gg-keywrap' },
+          h('ol', { 'class': 'live-gg-keys' }, markers.map(function (mk, i) {
+            return h('li', { 'class': 'live-gg-keyitem' },
+              h('span', { 'class': 'live-gg-keynum live-gg-mk--' + mk.kind }, String(i + 1)),
+              h('span', { 'class': 'live-gg-keytime u-tnum u-dim' }, fmt.clock(mk.seconds)),
+              h('span', { 'class': 'live-gg-keytext' }, mk.label));
+          })),
+          ruleNote(rules.markers));
+      }
+    });
+    Hub.onUnmount(keysExp.destroy);
 
     mount.appendChild(card({
       testid: 'gold-graph',
@@ -447,9 +493,7 @@
     }, [
       legend,
       h('div', { 'class': 'live-gg-wrap' }, chart),
-      h('div', { 'class': 'u-label live-sub-label' }, 'Marked moments'),
-      keyList,
-      ruleNote(rules.markers)
+      keysExp.root
     ]));
   });
 
@@ -543,13 +587,65 @@
       h('span', { 'class': 'live-key' }, h('span', { 'class': 'live-tdot live-tdot--down live-tdot--key' }), 'Destroyed'),
       h('span', { 'class': 'u-dim rdy-par-7' }, 'T1 to T3 towers, Mel and Rng barracks, 4 tier four, A ancient'));
 
+    /* COMPACT: one line per side (buildings still standing out of eleven),
+       then one line for Roshan and the Aegis. The dot matrix, its key and the
+       full Roshan list are the same nodes as before, one click away. */
+    function sumLine(side) {
+      var t = GF5.towerStatus[side];
+      var team = teamOf(GF5, side);
+      return h('li', { 'class': 'live-obj-sumitem live-obj-sumitem--' + side },
+        Hub.teamCrest(team.key, 'sm'),
+        h('span', { 'class': 'live-obj-sumabbr' }, abbr(team.key)),
+        h('span', { 'class': 'live-obj-sumnum u-tnum' }, String(standing(t))),
+        h('span', { 'class': 'live-obj-sumlab u-dim' }, 'of 11 up'));
+    }
+
+    var roshLine = h('li', { 'class': 'live-obj-sumitem live-obj-sumitem--rosh' },
+      h('span', { 'class': 'live-obj-sumico' }, ico(ICON.gem)),
+      h('span', { 'class': 'live-obj-sumabbr' }, 'Roshan'),
+      h('span', { 'class': 'chip chip--outline' }, r.state === 'dead' ? 'Dead' : 'Alive'),
+      h('span', { 'class': 'live-obj-sumaegis u-dim u-truncate u-tnum' },
+        'Aegis ' + r.aegisHolder + ' to ' + r.aegisExpiresClock));
+
+    var objExp = Hub.expander({
+      id: 'live-objectives-map',
+      count: 1,
+      label: 'Show tower map',
+      hideLabel: 'Hide tower map',
+      className: 'm-expander--footer',
+      content: function () {
+        return h('div', { 'class': 'live-obj-more' },
+          h('div', { 'class': 'live-obj-grid' }, matrix('radiant'), matrix('dire')),
+          legend, rosh);
+      }
+    });
+    Hub.onUnmount(objExp.destroy);
+
+    /* C3, 2026-09-12: compact used to delete this subtitle outright, which
+       left '6 of 11 up' with nothing saying what was counted or when. The
+       line now shortens instead of vanishing, and the full sentence rides in
+       an infoTip next to it so it is one click away in either mode. */
+    var objSubFull = 'buildings standing at ' + GF5.frozenAt.clock;
+    var objSubShort = 'at ' + GF5.frozenAt.clock;
+    var objSubText = h('span', { 'class': 'live-obj-subtext' },
+      Hub.density.isCompact() ? objSubShort : objSubFull);
+    Hub.onUnmount(Hub.density.subscribe(function (mode) {
+      objSubText.textContent = mode === 'compact' ? objSubShort : objSubFull;
+    }));
+
     mount.appendChild(card({
+      cls: 'live-obj-card',
       testid: 'objectives',
       title: 'Objectives',
-      sub: 'buildings standing at ' + GF5.frozenAt.clock
+      sub: h('span', { 'class': 'cluster-sm live-obj-sub' },
+        objSubText,
+        Hub.infoTip(objSubFull + '. Eleven towers a side: three on each of the three lanes, ' +
+          'plus the two tier four towers at the base. Barracks and the ancient are in the tower map.', {
+          id: 'live-obj-rule', label: 'What the objectives count is'
+        }))
     }, [
-      h('div', { 'class': 'live-obj-grid' }, matrix('radiant'), matrix('dire')),
-      legend, rosh
+      h('ul', { 'class': 'live-obj-sum' }, sumLine('radiant'), sumLine('dire'), roshLine),
+      objExp.root
     ]));
   });
 
@@ -559,6 +655,9 @@
 
   Hub.register('m-scoreboard', function (mount, ctx) {
     var GF5 = ctx.GF5, TI = ctx.TI2026;
+
+    /* every table built below, so one control can widen both at once */
+    var tables = [];
 
     /* match highs, for the subtle per column highlight */
     var HIGH = {};
@@ -627,8 +726,8 @@
         h('th', { scope: 'col' }, 'Hero'),
         h('th', { scope: 'col', 'class': 'col-mid' }, 'LVL'),
         h('th', { scope: 'col', 'class': 'col-mid' }, 'K / D / A'),
-        h('th', { scope: 'col', 'class': 'col-mid' }, 'LH / DN'),
-        h('th', { scope: 'col', 'class': 'col-mid' }, 'GPM / XPM'),
+        h('th', { scope: 'col', 'class': 'col-mid live-sb-c-extra' }, 'LH / DN'),
+        h('th', { scope: 'col', 'class': 'col-mid live-sb-c-extra' }, 'GPM / XPM'),
         h('th', { scope: 'col', 'class': 'col-num' }, 'GOLD'),
         h('th', { scope: 'col' }, 'Items')));
 
@@ -661,9 +760,9 @@
             num(p, 'kills'), h('span', { 'class': 'live-slash' }, '/'),
             h('span', null, fmt.num(p.deaths)), h('span', { 'class': 'live-slash' }, '/'),
             num(p, 'assists')),
-          h('td', { 'class': 'col-mid u-nowrap' },
+          h('td', { 'class': 'col-mid u-nowrap live-sb-c-extra' },
             num(p, 'lastHits'), h('span', { 'class': 'live-slash' }, '/'), num(p, 'denies')),
-          h('td', { 'class': 'col-mid u-nowrap' },
+          h('td', { 'class': 'col-mid u-nowrap live-sb-c-extra' },
             num(p, 'gpm'), h('span', { 'class': 'live-slash' }, '/'), num(p, 'xpm')),
           h('td', { 'class': 'col-num' }, num(p, 'gold')),
           h('td', null, h('span', { 'class': 'live-items' },
@@ -673,12 +772,14 @@
               tags.length ? h('span', { 'class': 'live-agh-wrap' }, tags) : null))));
       }));
 
+      var tableEl = h('table', { 'class': 'hub-table live-sb-table' }, thead, tbody);
+      tables.push(tableEl);
+
       return h('div', {
         'class': 'live-sb-team',
         'data-testid': side === 'radiant' ? 'home-team' : 'away-team'
       }, head,
-        h('div', { 'class': 'scroll-x live-sb-scroll' },
-          h('table', { 'class': 'hub-table live-sb-table' }, thead, tbody)),
+        h('div', { 'class': 'scroll-x live-sb-scroll' }, tableEl),
         readout);
     }
 
@@ -691,6 +792,31 @@
       h('p', null, GF5.dataNotes.gold),
       h('p', null, GF5.dataNotes.assists));
 
+    /* COMPACT: PLAYER, HERO, LVL, K / D / A, GOLD and ITEMS. The two derived
+       rate columns open together with the reading notes, because the notes are
+       what those columns mean. Nothing leaves the markup: the cells stay in
+       source order and are read again the moment the panel opens. */
+    var EXTRA_COLS = 2;
+    var colsExp = Hub.expander({
+      id: 'live-sb-columns',
+      count: EXTRA_COLS,
+      label: function (n) { return 'Show ' + n + ' more columns and the reading notes'; },
+      hideLabel: 'Show fewer',
+      className: 'm-expander--footer',
+      content: function () { return notes; }
+    });
+
+    function syncCols() {
+      var on = colsExp.isOpen();
+      for (var i = 0; i < tables.length; i++) { tables[i].classList.toggle('has-extra', on); }
+    }
+    /* the expander's own click handler was attached first, so by the time this
+       one runs isOpen() already reports the new state */
+    colsExp.button.addEventListener('click', syncCols);
+    Hub.onUnmount(Hub.density.subscribe(syncCols));
+    Hub.onUnmount(colsExp.destroy);
+    syncCols();
+
     mount.appendChild(card({
       testid: 'scoreboard',
       title: 'Scoreboard',
@@ -699,7 +825,7 @@
          travel with the numbers and the order never depends on the side. */
       sub: 'game ' + GF5.game + ' at ' + GF5.frozenAt.clock + ', kills ' +
         Hub.killsPairText(GF5.score, GF5.sides.radiant, GF5.sides.dire)
-    }, [teamTable('radiant'), h('hr', { 'class': 'divider live-rule' }), teamTable('dire'), notes]));
+    }, [teamTable('radiant'), h('hr', { 'class': 'divider live-rule' }), teamTable('dire'), colsExp.root]));
   });
 
   /* ======================================================================
@@ -725,11 +851,25 @@
     var rules = GF5.rules || {};
     var key = GF5.keyMoment || null;
 
-    var items = GF5.events.map(function (e) {
+    var keyNote = key
+      ? 'Biggest fight swing: the logged teamfight with the largest gold change inside its own ' +
+        'window, ' + key.clock + ' to ' + key.endClock + ', ' + plusNum(key.goldDelta) + ' to ' +
+        teamOf(GF5, key.side).name + '.'
+      : null;
+
+    var keyIndex = -1;
+    var items = GF5.events.map(function (e, idx) {
       var t = TYPE[e.type] || { icon: ICON.clock, label: e.type };
       var isKey = !!(key && e.type === 'teamfight' && e.seconds === key.endSeconds);
+      if (isKey && keyIndex < 0) { keyIndex = idx; }
       var teamName = e.team ? teamOf(GF5, e.team).name : null;
       var facts = e.facts || (e.detail ? [e.detail] : []);
+      /* The rule behind the one flagged row rides next to the flag instead of
+         sitting under the list forever. */
+      var keyTip = isKey && keyNote ? Hub.infoTip(keyNote, {
+        id: 'live-ev-keyrule',
+        label: 'How the biggest fight swing is picked'
+      }) : null;
       return h('li', {
         'class': 'live-ev live-ev--' + (e.team || 'neutral') + (isKey ? ' live-ev--key' : ''),
         'data-testid': 'event'
@@ -741,31 +881,73 @@
             h('span', { 'class': 'live-ev-time u-tnum' }, e.time),
             h('span', { 'class': 'live-ev-type rdy-subh-6 u-dim' }, t.label),
             teamName ? h('span', { 'class': 'live-ev-team u-dim' }, teamName) : null,
-            isKey ? h('span', { 'class': 'chip chip--gold' }, 'Biggest fight swing') : null),
+            isKey ? h('span', { 'class': 'chip chip--gold' }, 'Biggest fight swing') : null,
+            keyTip),
           h('h3', { 'class': 'live-ev-head rdy-subh-4' }, e.label || ''),
           h('ul', { 'class': 'live-ev-facts' }, facts.map(function (f) {
             return h('li', { 'class': 'live-ev-fact rdy-par-7' }, f);
           }))));
     });
 
-    var keyNote = key
-      ? 'Biggest fight swing: the logged teamfight with the largest gold change inside its own ' +
-        'window, ' + key.clock + ' to ' + key.endClock + ', ' + plusNum(key.goldDelta) + ' to ' +
-        teamOf(GF5, key.side).name + '.'
-      : null;
+    /* COMPACT: six rows, one line each (clock and the templated label).
+       Opening the expander restores the type tag, the team tag and every fact
+       line on all of them. The list markup is identical in both states, so a
+       screen reader walking the list never loses a row it had already read.
+
+       D2, 2026-09-12: the cut used to be purely positional (newest six), which
+       pushed the one row the module flags as the biggest fight swing, and the
+       infoTip carrying its rule, off screen. The kept set is value aware now:
+       the flagged row is always in it, and the oldest of the newest rows makes
+       way for it.
+       T2, 2026-09-12: the cut point lived twice, once as COMPACT_ROWS here and
+       once as an nth-child rule in live.css, so the two could disagree and the
+       hide label could lie. The component marks the hidden rows itself and the
+       stylesheet only reacts to the class. */
+    var COMPACT_ROWS = 6;
+    var list = h('ol', { 'class': 'live-evlist' }, items);
+
+    function compactKept() {
+      var keep = {};
+      var n = Math.min(COMPACT_ROWS, items.length);
+      var budget = (keyIndex >= 0 && keyIndex >= n) ? n - 1 : n;
+      for (var i = 0; i < budget; i++) { keep[i] = true; }
+      if (keyIndex >= 0) { keep[keyIndex] = true; }
+      return keep;
+    }
+
+    var kept = compactKept();
+    items.forEach(function (el, i) {
+      if (!kept[i]) { el.classList.add('is-compact-hidden'); }
+    });
+
+    var evExp = Hub.expander({
+      id: 'live-events-all',
+      count: GF5.events.length,
+      label: function (n) { return 'Show all ' + n + ' events with their details'; },
+      hideLabel: function (n) { return 'Show the newest ' + COMPACT_ROWS + ' of ' + n; },
+      className: 'm-expander--footer',
+      content: function () {
+        return h('p', { 'class': 'live-ev-foot u-dim rdy-par-7' },
+          'The feed stops at the freeze. Nothing after ' + GF5.frozenAt.clock + ' is recorded.');
+      }
+    });
+
+    function syncEvents() { list.classList.toggle('is-all', evExp.isOpen()); }
+    evExp.button.addEventListener('click', syncEvents);
+    Hub.onUnmount(Hub.density.subscribe(syncEvents));
+    Hub.onUnmount(evExp.destroy);
+    syncEvents();
 
     mount.appendChild(card({
       testid: 'events',
       title: 'Live feed',
       sub: 'newest first, every logged event to ' + GF5.frozenAt.clock,
-      action: h('span', { 'class': 'u-dim rdy-par-7 u-tnum' }, GF5.events.length + ' events')
-    }, [
-      h('ol', { 'class': 'live-evlist' }, items),
-      h('p', { 'class': 'live-ev-foot u-dim rdy-par-7' },
-        'The feed stops at the freeze. Nothing after ' + GF5.frozenAt.clock + ' is recorded.'),
-      ruleNote(rules.events),
-      ruleNote(keyNote)
-    ]));
+      action: h('span', { 'class': 'cluster-sm live-ev-action' },
+        h('span', { 'class': 'u-dim rdy-par-7 u-tnum' }, GF5.events.length + ' events'),
+        rules.events ? Hub.infoTip(rules.events, {
+          id: 'live-ev-rule', label: 'How this feed is built'
+        }) : null)
+    }, [list, evExp.root]));
   });
 
   /* ======================================================================
@@ -943,6 +1125,56 @@
       laneHead, body, lineupBlock);
   }
 
+  /* COMPACT board: the outcome of the draft rather than the order of it.
+     Five picks per side with their Captain's Mode turn number and the player
+     who ends up on the hero, then the bans as greyed art carrying the same
+     turn numbers. The phase by phase lanes are the board above, unchanged,
+     inside 'Show draft order'. */
+  function compactBoard(game, opts) {
+    opts = opts || {};
+    var rows = game.draft.map(draftRow);
+    var pickers = pickerIndex(game);
+    var lanes = [
+      { side: 'radiant', key: game.radiantKey },
+      { side: 'dire', key: game.direKey }
+    ];
+
+    return h('div', { 'class': 'live-dfc', 'data-testid': opts.testid || 'draft-board' },
+      lanes.map(function (l) {
+        var mine = rows.filter(function (r) { return r.teamKey === l.key; });
+        var picks = mine.filter(function (r) { return r.type !== 'ban'; });
+        var bans = mine.filter(function (r) { return r.type === 'ban'; });
+        var t = Hub.team(l.key);
+
+        return h('div', { 'class': 'live-dfc-side live-dfc-side--' + l.side },
+          h('div', { 'class': 'live-dfc-head' },
+            Hub.teamCrest(l.key, 'sm'),
+            h('span', { 'class': 'live-dfc-name u-truncate' }, t ? t.name : l.key),
+            sideChip(l.side)),
+          h('ul', { 'class': 'live-dfc-picks' }, picks.map(function (r) {
+            return h('li', { 'class': 'live-dt live-dt--pick live-dt--' + l.side + ' live-dfc-pick' },
+              h('span', { 'class': 'live-dt-art' },
+                Hub.heroImg(r.hero, { side: l.side, alt: r.heroName }),
+                h('span', { 'class': 'live-dt-order u-tnum' }, String(r.order))),
+              h('span', { 'class': 'live-dt-txt' },
+                h('span', { 'class': 'live-dt-hero u-truncate' }, r.heroName),
+                h('span', { 'class': 'live-dt-sub u-truncate u-dim' }, pickers[r.hero] || 'Picked')));
+          })),
+          h('div', { 'class': 'u-label live-dfc-banlab' }, bans.length + ' bans'),
+          h('ul', { 'class': 'live-dfc-bans' }, bans.map(function (r) {
+            var lab = r.heroName + ', banned, turn ' + r.order;
+            return h('li', {
+              'class': 'live-dt live-dt--ban live-dfc-ban',
+              title: lab, 'aria-label': lab, role: 'img'
+            },
+              h('span', { 'class': 'live-dt-art' },
+                Hub.heroImg(r.hero, { alt: '' }),
+                h('span', { 'class': 'live-dt-slash', 'aria-hidden': 'true' }),
+                h('span', { 'class': 'live-dt-order u-tnum' }, String(r.order))));
+          })));
+      }));
+  }
+
   Hub.register('m-draft-live', function (mount, ctx) {
     var GF5 = ctx.GF5;
     var game = {
@@ -951,12 +1183,22 @@
       radiantKey: GF5.sides.radiant,
       direKey: GF5.sides.dire
     };
+    var orderExp = Hub.expander({
+      id: 'live-draft-order',
+      count: GF5.draft.length,
+      label: function (n) { return 'Show draft order, all ' + n + ' turns'; },
+      hideLabel: 'Show fewer',
+      className: 'm-expander--footer',
+      content: function () { return draftBoard(game, { testid: 'draft-board-g5-order' }); }
+    });
+    Hub.onUnmount(orderExp.destroy);
+
     mount.appendChild(card({
       testid: 'draft-live',
       title: 'Game ' + GF5.game + ' draft',
       sub: 'Captain’s Mode, ' + GF5.draftCounts.bans + ' bans and ' + GF5.draftCounts.picks + ' picks',
       action: pageLink('TI2026_Match_Analysis_rdy_gg.html#draft', null, 'Full draft analysis')
-    }, draftBoard(game, { testid: 'draft-board-g5' })));
+    }, [compactBoard(game, { testid: 'draft-board-g5' }), orderExp.root]));
   });
 
   /* ---- Drafts tab: the same board for every grand final game ---- */
@@ -1012,8 +1254,7 @@
     var body = h('div', { 'class': 'live-drafts-body' });
     var chips = h('div', { 'class': 'cluster live-drafts-nav', role: 'group', 'aria-label': 'Grand final game' });
 
-    function render(g) {
-      body.textContent = '';
+    function metaRow(g) {
       var meta = [];
       meta.push(h('span', { 'class': 'chip chip--outline' }, 'Game ' + g.game));
       if (g.status === 'live') {
@@ -1037,13 +1278,25 @@
         meta.push(Hub.extLink(g.status === 'live' ? Hub.link.liveMatch(g.matchId) : Hub.link.match(g.matchId),
           { 'class': 'live-drafts-link' }, 'Match ' + g.matchId));
       }
-      body.appendChild(h('div', { 'class': 'cluster live-drafts-meta' }, meta));
+      return h('div', { 'class': 'cluster live-drafts-meta' }, meta);
+    }
+
+    function render(g) {
+      body.textContent = '';
+      body.appendChild(metaRow(g));
       body.appendChild(draftBoard(g, { testid: 'draft-board-g' + g.game }));
     }
 
-    games.forEach(function (g) {
+    /* COMPACT (2026-09-12, D1): the tab used to open on one full phase by
+       phase board, 1,174px of it. The decider's outcome board leads now, the
+       same compact device the Overview draft card uses, and the other games
+       keep their chip nav and their full boards inside one labelled panel. */
+    var rest = games.filter(function (g) { return g.game !== GF5.game; });
+    var first = rest.length ? rest[0] : (g5 || games[0]);
+
+    rest.forEach(function (g) {
       var btn = h('button', {
-        type: 'button', 'class': 'chip-filter', 'aria-pressed': g.game === GF5.game ? 'true' : 'false',
+        type: 'button', 'class': 'chip-filter', 'aria-pressed': g === first ? 'true' : 'false',
         dataset: { game: String(g.game) }
       }, 'Game ' + g.game);
       btn.addEventListener('click', function () {
@@ -1053,8 +1306,25 @@
         render(g);
       });
       chips.appendChild(btn);
-      if (g.game === GF5.game) render(g);
     });
+    if (first) { render(first); }
+
+    var restExp = rest.length ? Hub.expander({
+      id: 'live-drafts-rest',
+      count: rest.length,
+      label: function (n) { return 'Show the other ' + n + ' drafts'; },
+      hideLabel: function (n) { return 'Hide the other ' + n + ' drafts'; },
+      className: 'm-expander--footer',
+      content: function () { return h('div', { 'class': 'live-drafts-rest' }, chips, body); }
+    }) : null;
+    if (restExp) { Hub.onUnmount(restExp.destroy); }
+
+    var leadKids = [];
+    if (g5) {
+      leadKids.push(metaRow(g5));
+      leadKids.push(compactBoard(g5, { testid: 'draft-board-g' + g5.game }));
+    }
+    if (restExp) { leadKids.push(restExp.root); }
 
     mount.appendChild(card({
       testid: 'drafts',
@@ -1066,7 +1336,7 @@
       sub: gf.seriesLength + ', ' + Hub.teamName(GF5.sides.radiant) + ' against ' +
         Hub.teamName(GF5.sides.dire) + ', ' + fmt.date(gf.date),
       action: pageLink('TI2026_Match_Analysis_rdy_gg.html#draft', null, 'Full draft analysis')
-    }, [chips, body]));
+    }, leadKids));
   });
 
 })();

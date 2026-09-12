@@ -406,8 +406,24 @@
     var rdDewR = readoutItem(TAG.radiant + ' dewards', 'is-radiant');
     var rdDewD = readoutItem(TAG.dire + ' dewards', 'is-dire');
 
-    var readout = h('div', { 'class': 'm-readout mt-wd-readout' },
-      rdAliveR.el, rdAliveD.el, rdPlacedR.el, rdPlacedD.el, rdDewR.el, rdDewD.el);
+    /* COMPACT, 2026-09-12: the headline is what is ALIVE at this minute, one
+       line, both sides. Placed and dewarded keep their items and keep being
+       painted; they move into the details panel with the per player bars. */
+    var readoutMain = h('div', { 'class': 'm-readout mt-wd-readout mt-wd-readout--main' },
+      rdAliveR.el, rdAliveD.el);
+    var readoutMore = h('div', { 'class': 'm-readout mt-wd-readout mt-wd-readout--more' },
+      rdPlacedR.el, rdPlacedD.el, rdDewR.el, rdDewD.el);
+
+    var dewardTip = Hub.infoTip
+      ? Hub.infoTip('A ward counts as alive at a minute when it was placed at or before that ' +
+          'minute and had not left the map by it. A deward is credited to the side of the player ' +
+          'OpenDota names as the killer, at the second the ward left the map.',
+          /* A11Y-2, 2026-09-12: this tip and the map tip below both asked for
+             the id 'mt-wd-rule', so both captions were stamped
+             mt-wd-rule-caption and the second button's aria-controls resolved
+             to the first button's caption. One id each. */
+          { id: 'mt-wd-countrule', label: 'How these counts are worked out' })
+      : null;
 
     var playerRows = [];
     var playersWrap = h('div', { 'class': 'mt-wd-players' });
@@ -464,6 +480,35 @@
         'Enter goes to the minute a ward was placed.'
     }, mapSvg);
 
+    /* COMP-4, 2026-09-12: compact hides the card subtitle, so the one rule it
+       carried gets an info affordance beside the title instead of vanishing. */
+    var WD_RULE = 'Ward positions from the match record on the Dota 2 minimap.';
+    var ruleTip = Hub.infoTip
+      ? Hub.infoTip(WD_RULE, { id: 'mt-wd-maprule', label: 'What this map shows' })
+      : null;
+
+    /* every figure the panel used to print, one click away and still live */
+    var detailsExp = Hub.expander({
+      id: 'mt-wd-details',
+      count: G5.players.length,
+      className: 'mt-wd-exp',
+      /* COMP-5, 2026-09-12: the panel is not only the per player counts, so
+         the label names the whole payload. The events list is a window on the
+         clock, so it is named and not counted. */
+      label: function (n) {
+        return 'Show ward counts for ' + n + ' players, vision events and the key';
+      },
+      hideLabel: 'Hide the ward counts, the events and the key',
+      content: h('div', { 'class': 'mt-wd-more' },
+        readoutMore,
+        h('div', { 'class': 'mt-wd-block' },
+          h('div', { 'class': 'm-sub' }, 'Wards placed up to this minute'), playersWrap),
+        h('div', { 'class': 'mt-wd-block' },
+          h('div', { 'class': 'm-sub' }, 'Vision events'), eventsList, eventsEmpty),
+        legend)
+    });
+    if (Hub.onUnmount) Hub.onUnmount(detailsExp.destroy);
+
     var root = h('section', {
       'class': 'card mt-wd' + (opts.mode === 'all' ? ' is-mode-all' : '') +
         (opts.showCircles ? '' : ' is-nocircles'),
@@ -472,20 +517,16 @@
       h('div', { 'class': 'card-header mt-wd-header' },
         h('div', { 'class': 'titles' },
           h('h2', { 'class': 'title' }, 'Vision'),
-          h('div', { 'class': 'subtitle' },
-            'Ward positions from the match record on the Dota 2 minimap.')),
-        h('div', { 'class': 'action mt-wd-actions' }, clockChip, modeSeg)),
+          h('div', { 'class': 'subtitle' }, WD_RULE)),
+        h('div', { 'class': 'action mt-wd-actions' }, clockChip, ruleTip, modeSeg)),
       h('div', { 'class': 'card-body mt-wd-body' },
         h('div', { 'class': 'mt-wd-bar' }, sideSeg,
           h('span', { 'class': 'mt-wd-chips' }, obsBtn, senBtn, circleBtn)),
         h('div', { 'class': 'mt-wd-grid' },
-          h('div', { 'class': 'mt-wd-mapcol' }, mapBox, caption, legend),
+          h('div', { 'class': 'mt-wd-mapcol' }, mapBox, caption),
           h('div', { 'class': 'mt-wd-panel' },
-            readout,
-            h('div', { 'class': 'mt-wd-block' },
-              h('div', { 'class': 'm-sub' }, 'Wards placed up to this minute'), playersWrap),
-            h('div', { 'class': 'mt-wd-block' },
-              h('div', { 'class': 'm-sub' }, 'Vision events'), eventsList, eventsEmpty))),
+            h('div', { 'class': 'mt-wd-aliveline' }, readoutMain, dewardTip),
+            detailsExp.root)),
         live));
 
     mount.textContent = '';
