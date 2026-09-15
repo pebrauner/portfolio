@@ -75,84 +75,7 @@
   img { max-width: 100%; display: block; }
   ::selection { background: var(--red); color: var(--paper); }
 
-  /* ============ AMBIENT GLYPHS ============ */
-  .ambient {
-    position: fixed; inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    overflow: hidden;
-  }
-  .glyph {
-    position: absolute;
-    font-family: 'IBM Plex Mono', ui-monospace, monospace;
-    color: var(--red);
-    opacity: 0;
-    user-select: none;
-    will-change: transform, opacity;
-    animation: drift linear forwards;
-  }
-  .glyph.serif {
-    font-family: 'IBM Plex Serif', Georgia, serif;
-    font-style: italic;
-    color: var(--ink);
-  }
-  @keyframes drift {
-    0%   { opacity: 0; transform: translate3d(0, 0, 0) rotate(0deg); }
-    10%  { opacity: var(--peak, 0.16); }
-    90%  { opacity: var(--peak, 0.16); }
-    100% { opacity: 0; transform: translate3d(var(--dx, 0px), -120vh, 0) rotate(var(--rot, 0deg)); }
-  }
-
-  /* ============ CURSOR-FOLLOWING ORBS ============ */
-  .orbs {
-    position: fixed; inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    overflow: hidden;
-  }
-  .orb {
-    position: absolute;
-    border-radius: 50%;
-    will-change: transform;
-    transform: translate3d(50vw, 50vh, 0);
-    transition: opacity 0.6s ease;
-  }
-  .orb-1 {
-    width: 480px; height: 480px;
-    background: radial-gradient(circle, var(--red) 0%, transparent 60%);
-    filter: blur(40px);
-    opacity: 0.40;
-  }
-  .orb-2 {
-    width: 700px; height: 700px;
-    background: radial-gradient(circle, #E89A4D 0%, transparent 65%);
-    filter: blur(70px);
-    opacity: 0.32;
-  }
-  .orb-3 {
-    width: 880px; height: 880px;
-    background: radial-gradient(circle, var(--red-deep) 0%, transparent 65%);
-    filter: blur(100px);
-    opacity: 0.22;
-  }
-  [data-theme="dark"] .orb-1 {
-    background: radial-gradient(circle, var(--red) 0%, transparent 60%);
-    opacity: 0.55;
-    filter: blur(50px);
-  }
-  [data-theme="dark"] .orb-2 {
-    background: radial-gradient(circle, #C97A2E 0%, transparent 65%);
-    opacity: 0.42;
-  }
-  [data-theme="dark"] .orb-3 {
-    background: radial-gradient(circle, var(--red-deep) 0%, transparent 65%);
-    opacity: 0.50;
-  }
-  body.cursor-active .orb-1 { opacity: 0.55; }
-  body.cursor-active[data-theme="dark"] .orb-1,
-  [data-theme="dark"] body.cursor-active .orb-1 { opacity: 0.72; }
-
-  /* ============ SIDENAV ============ */
+/* ============ SIDENAV ============ */
   .sidenav {
     position: fixed;
     left: 24px;
@@ -1311,16 +1234,6 @@
 </head>
 <body>
 
-<!-- ============ CURSOR-FOLLOWING ORBS ============ -->
-<div class="orbs" aria-hidden="true">
-  <div class="orb orb-3"></div>
-  <div class="orb orb-2"></div>
-  <div class="orb orb-1"></div>
-</div>
-
-<!-- ============ AMBIENT GLYPH BACKGROUND ============ -->
-<div class="ambient" id="ambient" aria-hidden="true"></div>
-
 <!-- ============ FIXED SIDENAV ============ -->
 <nav class="sidenav" aria-label="Issue contents">
   <div class="sn-mark">
@@ -1811,87 +1724,6 @@
   document.addEventListener('scroll', updateProgress, { passive: true });
   window.addEventListener('resize', updateProgress);
   updateProgress();
-
-  /* ====================== Ambient floating glyphs ====================== */
-  const glyphsMono = ['/', '·', '→', '▌', '●', '§', '★', '+', '↗', '✦', '¶', '†', '‡', '½', '¼', '¾', '※', '◯', '←', '↑', '↓', '%', '#', '01', '02', '24/30'];
-  const glyphsSerif = ['&', 'Q', 'g', 'A', 'R', '?', '!', '“', '”'];
-  const ambient = document.getElementById('ambient');
-  function spawnGlyph() {
-    const g = document.createElement('span');
-    const isSerif = Math.random() < 0.4;
-    g.className = 'glyph' + (isSerif ? ' serif' : '');
-    const set = isSerif ? glyphsSerif : glyphsMono;
-    g.textContent = set[Math.floor(Math.random() * set.length)];
-    const x = Math.random() * 100;
-    const startY = 100 + Math.random() * 10;
-    const dur = 22 + Math.random() * 18;
-    const dx = (Math.random() - 0.5) * 240;
-    const rot = (Math.random() - 0.5) * 60;
-    // 40% chance of being a "big specimen" glyph
-    const big = Math.random() < 0.4;
-    const size = big ? (70 + Math.random() * 80) : (20 + Math.random() * 28);
-    const peak = big ? (0.10 + Math.random() * 0.10) : (0.16 + Math.random() * 0.18);
-    g.style.left = x + 'vw';
-    g.style.top = startY + 'vh';
-    g.style.fontSize = size + 'px';
-    g.style.setProperty('--dx', dx + 'px');
-    g.style.setProperty('--rot', rot + 'deg');
-    g.style.setProperty('--peak', peak);
-    g.style.animationDuration = dur + 's';
-    ambient.appendChild(g);
-    setTimeout(() => g.remove(), dur * 1000 + 200);
-  }
-  // Heavy initial spawn so the page feels populated immediately
-  for (let i = 0; i < 22; i++) setTimeout(spawnGlyph, i * 450);
-  // Continuous spawn at higher density
-  setInterval(spawnGlyph, 850);
-
-  /* ====================== Cursor-following orbs ====================== */
-  (function() {
-    const orbEls = [
-      { el: document.querySelector('.orb-1'), x: window.innerWidth/2, y: window.innerHeight/2, lerp: 0.085 },
-      { el: document.querySelector('.orb-2'), x: window.innerWidth/2, y: window.innerHeight/2, lerp: 0.040 },
-      { el: document.querySelector('.orb-3'), x: window.innerWidth/2, y: window.innerHeight/2, lerp: 0.020 }
-    ];
-    let mouseX = window.innerWidth / 2;
-    let mouseY = window.innerHeight / 2;
-    let activeTimer = null;
-
-    function setCursor(x, y) {
-      mouseX = x; mouseY = y;
-      document.body.classList.add('cursor-active');
-      clearTimeout(activeTimer);
-      activeTimer = setTimeout(() => document.body.classList.remove('cursor-active'), 2200);
-    }
-    document.addEventListener('mousemove', (e) => setCursor(e.clientX, e.clientY), { passive: true });
-    document.addEventListener('touchmove', (e) => {
-      if (e.touches[0]) setCursor(e.touches[0].clientX, e.touches[0].clientY);
-    }, { passive: true });
-
-    function tick() {
-      orbEls.forEach(o => {
-        if (!o.el) return;
-        o.x += (mouseX - o.x) * o.lerp;
-        o.y += (mouseY - o.y) * o.lerp;
-        const w = o.el.offsetWidth;
-        const h = o.el.offsetHeight;
-        o.el.style.transform = `translate3d(${o.x - w/2}px, ${o.y - h/2}px, 0)`;
-      });
-      requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
-
-    // Subtle ambient drift even when cursor is still — gentle figure-eight at low amplitude
-    let t = 0;
-    setInterval(() => {
-      if (document.body.classList.contains('cursor-active')) return;
-      t += 0.012;
-      const driftX = Math.cos(t) * 60;
-      const driftY = Math.sin(t * 1.4) * 40;
-      mouseX = window.innerWidth / 2 + driftX;
-      mouseY = window.innerHeight / 2 + driftY;
-    }, 33);
-  })();
 
   /* ====================== Ticker ====================== */
   const tickerItems = [
