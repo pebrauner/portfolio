@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pedro Brauner · Brand & Creative Strategist, Esports</title>
+<meta name="description" content="Pedro Brauner, brand and creative strategist in esports. Content and creative strategy for rdy.gg, director of La Sopa Podcast, reporting from Rio to Riyadh. Lima, Peru.">
+<meta name="theme-color" content="#121110">
+<link rel="icon" href="data:,">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-B770C9F7FJ"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-B770C9F7FJ');</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=JetBrains+Mono:wght@400&family=Piazzolla:ital,opsz,wght@0,8..30,400..600;1,8..30,400..600&family=Sora:wght@300..800&display=swap" rel="stylesheet">
+<script defer src="https://cdn.jsdelivr.net/npm/@mux/mux-player"></script>
+<style>
+/* ============================================================
+   RUNDOWN / A: THE SHEET
+   The page is the printed running order. Every rule and label
+   encodes something true: item numbers, codes, dates, counts.
+   ============================================================ */
+@font-face{
+  font-family:'Departure Mono';
+  src:url('/assets/fonts/DepartureMono-Regular.woff2') format('woff2');
+  font-weight:400;font-style:normal;font-display:swap;
+}
+:root{
+  --ground:#121110;
+  --panel:#1a1917;
+  --panel-2:#201f1c;
+  --line:rgba(255,250,240,.10);
+  --line-2:rgba(255,250,240,.18);
+  --ink:#f2ede4;
+  --ink-2:#b9b3a8;
+  --muted:#7f7a71;
+  --red:#ff3b30;
+  --green:#34c759;
+  --sans:'Sora',system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;
+  --chrome:'Archivo','Archivo Narrow','Helvetica Neue',Arial,sans-serif;
+  --serif:'Piazzolla',Georgia,'Times New Roman',serif;
+  --mono:'Departure Mono','JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --pad:clamp(20px,4vw,64px);
+  --maxw:1240px;
+  --seg-gap:clamp(72px,9vw,120px);
+  --ease:cubic-bezier(.2,.7,.2,1);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:auto;-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--ground);color:var(--ink);
+  font-family:var(--sans);font-size:15px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  overflow-x:hidden;
+}
+img{max-width:100%;display:block}
+figure{margin:0}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:2px}
+.sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- type voices ---------- */
+.mono{font-family:var(--mono);font-size:11px;line-height:1;letter-spacing:0;font-variant-numeric:tabular-nums}
+.mono-22{font-size:22px}
+.eyebrow{
+  font-family:var(--chrome);font-stretch:118%;font-weight:600;
+  text-transform:uppercase;letter-spacing:.12em;font-size:11px;line-height:1.2;
+  color:var(--ink-2);
+}
+.cond{font-family:var(--chrome);font-stretch:80%;font-weight:500;font-variant-numeric:tabular-nums}
+.prose{font-family:var(--serif);font-size:17.5px;line-height:1.55;color:var(--ink);font-optical-sizing:auto;margin:0}
+.prose.dim{color:var(--ink-2)}
+h1,h2,h3{margin:0;font-family:var(--sans);letter-spacing:-.02em;line-height:1}
+.tag{
+  display:inline-flex;align-items:center;height:18px;padding:0 6px;
+  border:1px solid var(--line-2);border-radius:3px;color:var(--ink-2);
+  font-family:var(--mono);font-size:11px;letter-spacing:.02em;white-space:nowrap;
+}
+.tag.warn{color:var(--ink);border-color:var(--ink-2)}
+.tabnum{font-variant-numeric:tabular-nums}
+
+/* ---------- tally ---------- */
+.tally{display:inline-flex;align-items:center;gap:7px;font-family:var(--chrome);font-stretch:118%;font-weight:700;text-transform:uppercase;letter-spacing:.12em;font-size:11px;color:var(--muted);white-space:nowrap}
+.tally i{width:6px;height:6px;border-radius:50%;background:var(--muted);flex:none}
+.tally.live{color:var(--red)}
+.tally.live i{background:var(--red);animation:pulse 1.6s ease-in-out infinite}
+.tally.pvw{color:var(--green)}
+.tally.pvw i{background:var(--green)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+
+/* ---------- the sheet ---------- */
+.sheet{max-width:var(--maxw);margin:0 auto;padding:0 var(--pad)}
+@media(min-width:1340px){.sheet{border-inline:1px solid var(--line)}}
+.seg{scroll-margin-top:70px;padding-top:var(--seg-gap)}
+.seg.hero{padding-top:36px}
+/* content-visibility:auto was tried on below-fold sections and dropped: the estimated heights shifted anchor jumps */
+
+/* masthead line under the nav */
+.masthead{
+  display:grid;grid-template-columns:auto 1fr auto;gap:16px 28px;align-items:center;
+  padding:12px 0;border-bottom:1px solid var(--line);
+}
+.masthead .cell{display:inline-flex;gap:10px;align-items:baseline;white-space:nowrap}
+.masthead .k{font-family:var(--chrome);font-stretch:80%;font-weight:500;text-transform:uppercase;letter-spacing:.08em;font-size:11px;color:var(--muted)}
+.masthead .v{font-family:var(--mono);font-size:11px;color:var(--ink-2)}
+.masthead .mid{display:flex;gap:28px;justify-content:center;flex-wrap:wrap}
+@media(max-width:760px){
+  .masthead{grid-template-columns:1fr auto}
+  .masthead .mid{display:none}
+}
+
+/* column ruler */
+.ruler{
+  display:grid;grid-template-columns:52px 64px 1fr auto;gap:0 16px;
+  padding:8px 0;border-bottom:1px solid var(--line);
+  font-family:var(--chrome);font-stretch:80%;font-weight:500;text-transform:uppercase;letter-spacing:.08em;font-size:11px;color:var(--muted)
+}
+@media(max-width:640px){.ruler{grid-template-columns:44px 1fr auto}.ruler .c2{display:none}}
+
+/* ---------- top bar ---------- */
+.topbar{position:sticky;top:0;z-index:60;background:var(--ground);border-bottom:1px solid var(--line-2)}
+.topbar .in{max-width:var(--maxw);margin:0 auto;padding:0 var(--pad);display:flex;align-items:center;gap:20px;min-height:52px}
+.brand{display:inline-flex;align-items:center;gap:10px;font-family:var(--chrome);font-stretch:118%;font-weight:700;text-transform:uppercase;letter-spacing:.12em;font-size:11px;color:var(--ink);white-space:nowrap}
+.brand .mono{color:var(--muted)}
+.nav{display:flex;gap:2px;flex:1;min-width:0}
+.nav a{
+  display:inline-flex;align-items:center;gap:8px;padding:8px 10px;
+  font-family:var(--chrome);font-stretch:112%;font-weight:600;text-transform:uppercase;letter-spacing:.1em;font-size:11px;color:var(--ink-2);white-space:nowrap
+}
+.nav a .n{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.nav a .d{width:6px;height:6px;border-radius:50%;background:transparent;flex:none;margin-left:-2px}
+.nav a.is-live{color:var(--ink)}
+.nav a.is-live .d{background:var(--red)}
+.nav a:hover{color:var(--ink)}
+.topbar .right{margin-left:auto;display:inline-flex;align-items:center;gap:14px;white-space:nowrap}
+.topbar .clock{font-family:var(--mono);font-size:11px;color:var(--ink)}
+.topbar .clock b{font-weight:400;color:var(--muted)}
+@media(max-width:900px){
+  .topbar .in{flex-wrap:wrap;row-gap:0;padding-top:6px;padding-bottom:6px}
+  .brand{order:0}
+  .topbar .right{order:1;margin-left:auto}
+  .nav{order:2;flex-basis:100%;justify-content:space-between;gap:0;border-top:1px solid var(--line);margin-top:6px}
+  .nav a{padding:8px 0}
+  .nav a .l{display:none}
+  .nav a.txt .l{display:inline}
+}
+
+/* ---------- segment header (identical in every section) ---------- */
+.seg-head{
+  display:grid;grid-template-columns:auto auto 1fr auto auto;align-items:baseline;gap:18px;
+  padding:16px 0 14px;border-top:1px solid var(--line-2);border-bottom:1px solid var(--line);
+}
+.seg-no{font-family:var(--mono);font-size:22px;color:var(--ink-2);line-height:1}
+.seg-title{font-weight:600;font-size:clamp(28px,4vw,42px);letter-spacing:-.02em;line-height:1;display:inline-flex;flex-wrap:wrap;align-items:baseline;gap:8px 12px;min-width:0}
+.seg-title a:hover{text-decoration:underline;text-underline-offset:6px;text-decoration-thickness:1px}
+.seg-title .ext{font-family:var(--chrome);font-stretch:112%;font-weight:600;font-size:11px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+.seg-rule{height:1px;background:var(--line);align-self:center}
+.seg-meta{font-family:var(--chrome);font-stretch:80%;font-weight:500;text-transform:uppercase;letter-spacing:.08em;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.seg-status{justify-self:end}
+.seg-status .tally{min-width:64px;justify-content:flex-end}
+.seg-status .tally::after{content:'STBY'}
+.seg.is-live .seg-status .tally{color:var(--red)}
+.seg.is-live .seg-status .tally i{background:var(--red);animation:pulse 1.6s ease-in-out infinite}
+.seg.is-live .seg-status .tally::after{content:'ON AIR'}
+.seg.is-next .seg-status .tally{color:var(--ink-2)}
+.seg.is-next .seg-status .tally i{background:var(--ink-2)}
+.seg.is-next .seg-status .tally::after{content:'NEXT'}
+.seg.is-aired .seg-status .tally::after{content:'AIRED'}
+.seg-sub{margin:22px 0 0;max-width:760px}
+@media(max-width:640px){
+  .seg-head{grid-template-columns:auto minmax(0,1fr) auto;gap:12px;row-gap:8px}
+  .seg-rule{display:none}
+  .seg-title .ext{display:none}
+  .seg-meta{grid-column:1 / -1;order:5;white-space:normal}
+  .hero-top .lbl small{display:none}
+}
+
+/* ---------- rows (rundown tables) ---------- */
+.rows{list-style:none;margin:0;padding:0;border-top:1px solid var(--line-2)}
+.row{
+  display:grid;grid-template-columns:52px 64px 1fr auto;gap:0 16px;align-items:baseline;
+  padding:14px 0;border-bottom:1px solid var(--line);
+}
+.row .no{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.row .code{font-family:var(--mono);font-size:11px;color:var(--ink-2);text-transform:uppercase}
+.row .meta{font-family:var(--chrome);font-stretch:80%;font-weight:500;text-transform:uppercase;letter-spacing:.06em;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+.row .name{font-weight:600;font-size:17px;letter-spacing:-.01em}
+.row .sub{display:block;font-family:var(--chrome);font-stretch:85%;font-weight:400;font-size:13.5px;color:var(--ink-2);margin-top:3px;letter-spacing:.01em}
+@media(max-width:640px){
+  .row{grid-template-columns:44px 1fr auto;row-gap:6px}
+  .row .code{display:none}
+  .row .meta{grid-column:2 / -1;text-align:left}
+}
+
+/* key/value block ("card" drawn as a sheet table) */
+.kv{margin:0;border-top:1px solid var(--line-2)}
+.kv div{display:grid;grid-template-columns:64px 1fr;gap:16px;padding:9px 0;border-bottom:1px solid var(--line);align-items:baseline}
+.kv dt{font-family:var(--chrome);font-stretch:80%;font-weight:500;text-transform:uppercase;letter-spacing:.08em;font-size:11px;color:var(--muted)}
+.kv dd{margin:0;font-family:var(--chrome);font-stretch:92%;font-size:14.5px;color:var(--ink);font-variant-numeric:tabular-nums}
+.kv dd b{font-weight:600}
+
+table.sheet-t{width:100%;border-collapse:collapse;border-top:1px solid var(--line-2);font-family:var(--chrome);font-stretch:88%;font-size:14px;font-variant-numeric:tabular-nums}
+table.sheet-t th{text-align:left;font-weight:500;text-transform:uppercase;letter-spacing:.08em;font-size:11px;color:var(--muted);padding:8px 0;border-bottom:1px solid var(--line);font-stretch:80%}
+table.sheet-t td{padding:10px 0;border-bottom:1px solid var(--line);vertical-align:top}
+table.sheet-t td+td,table.sheet-t th+th{padding-left:16px}
+table.sheet-t .r{text-align:right}
+table.sheet-t .st{white-space:nowrap;display:inline-flex;align-items:center;gap:7px;text-transform:uppercase;letter-spacing:.08em;font-size:11px;font-weight:600;font-stretch:112%}
+table.sheet-t .st i{width:6px;height:6px;border-radius:50%;background:var(--ink);flex:none}
+table.sheet-t .st.off{color:var(--muted)}
+table.sheet-t .st.off i{background:transparent;border:1px solid var(--muted)}
+
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 0;padding:0;list-style:none}
+.tags li{font-family:var(--chrome);font-stretch:88%;font-size:12px;letter-spacing:.03em;color:var(--ink-2);border:1px solid var(--line-2);border-radius:3px;padding:4px 8px}
+
+.links{display:flex;flex-wrap:wrap;gap:8px 24px;margin:22px 0 0;padding:0;list-style:none}
+.links a{font-family:var(--chrome);font-stretch:112%;font-weight:600;text-transform:uppercase;letter-spacing:.1em;font-size:11px;color:var(--ink);border-bottom:1px solid var(--line-2);padding-bottom:3px}
+.links a:hover{border-color:var(--ink)}
+
+/* buttons */
+.btn{
+  display:inline-flex;align-items:center;gap:10px;height:42px;padding:0 18px;
+  border:1px solid var(--line-2);border-radius:4px;color:var(--ink);
+  font-family:var(--chrome);font-stretch:112%;font-weight:600;text-transform:uppercase;letter-spacing:.1em;font-size:11px;white-space:nowrap;
+}
+.btn:hover{border-color:var(--ink);background:var(--panel)}
+.btn.solid{background:var(--ink);color:var(--ground);border-color:var(--ink)}
+.btn.solid:hover{background:#fff}
+.btn.mini{height:28px;padding:0 10px}
+.btn[aria-pressed="true"]{border-color:var(--ink)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+
+/* ---------- reveal ---------- */
+html.io .rv{opacity:0;transform:translateY(8px)}
+html.io .rv.in{opacity:1;transform:none;transition:opacity .22s ease-out,transform .22s ease-out;transition-delay:calc(var(--i,0) * 50ms)}
+
+/* ============================================================
+   00 COLD OPEN
+   ============================================================ */
+.hero-top{display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--line)}
+.hero-top .seg-no{font-size:22px}
+.hero-top .lbl{font-family:var(--chrome);font-stretch:118%;font-weight:600;text-transform:uppercase;letter-spacing:.12em;font-size:11px;color:var(--ink-2)}
+.hero-top .lbl small{font-weight:500;color:var(--muted);margin-left:8px;letter-spacing:.08em}
+
+/* split-flap board */
+.board-wrap{padding:34px 0 18px}
+.board{
+  --gap:4px;
+  --tw:min(60px, calc((100vw - 2 * var(--pad) - 12 * var(--gap)) / 13));
+  display:flex;gap:var(--gap);width:max-content;max-width:100%;
+}
+@media(min-width:1340px){.board{--tw:60px}}
+.flap{
+  position:relative;width:var(--tw);height:calc(var(--tw) * 1.4);perspective:calc(var(--tw) * 8);
+  font-family:var(--sans);font-weight:700;font-size:calc(var(--tw) * .74);line-height:calc(var(--tw) * 1.4);
+  text-align:center;color:var(--ink);letter-spacing:-.02em;
+}
+.flap>span{position:absolute;left:0;right:0;height:50%;overflow:hidden;background:var(--panel-2);backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.flap>span>span{display:block;height:calc(var(--tw) * 1.4)}
+.flap .top,.flap .flip-top{top:0;border-radius:8px 8px 0 0;border-bottom:1px solid var(--ground)}
+.flap .bottom,.flap .flip-bottom{bottom:0;border-radius:0 0 8px 8px}
+.flap .bottom>span,.flap .flip-bottom>span{margin-top:calc(var(--tw) * -.7)}
+.flap .top{z-index:3}
+.flap .bottom{z-index:1}
+.flap .flip-top{z-index:5;transform-origin:bottom center}
+.flap .flip-bottom{z-index:4;transform-origin:top center;transform:rotateX(90deg)}
+.flap.flip .flip-top{animation:fold-out .16s ease-in forwards}
+.flap.flip .flip-bottom{animation:fold-in .16s ease-out .16s forwards}
+@keyframes fold-out{from{transform:rotateX(0)}to{transform:rotateX(-90deg)}}
+@keyframes fold-in{from{transform:rotateX(90deg)}to{transform:rotateX(0)}}
+.board-status{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;margin-top:14px}
+.board-status .st{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.board-status .st b{font-weight:400;color:var(--ink-2)}
+.board-status .btn{margin-left:auto}
+
+.hero-grid{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:36px 64px;align-items:start;padding-top:28px;border-top:1px solid var(--line)}
+.role{margin:0}
+.headline{font-weight:600;font-size:clamp(30px,4.2vw,50px);line-height:1;letter-spacing:-.025em;margin:14px 0 0;max-width:14ch}
+.headline .thin{font-weight:300;color:var(--ink-2)}
+.bio{margin-top:26px;max-width:58ch}
+.now{margin-top:26px;max-width:520px}
+.now dd .mono{font-size:11px;color:var(--ink)}
+@media(max-width:900px){.hero-grid{grid-template-columns:1fr;gap:30px}}
+
+/* slate (a still framed inside the sheet) */
+.slate{display:block;width:100%;text-align:left}
+.slate .frame{position:relative;background:#0d0c0b;overflow:hidden;border:1px solid var(--line);aspect-ratio:3/2;max-width:100%}
+.slate .frame img{width:100%;height:100%;object-fit:cover}
+.slate .line{display:flex;justify-content:space-between;gap:12px;padding:8px 0 0;font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase}
+.slate .line b{font-weight:400;color:var(--ink-2)}
+.hero-slate .frame img{object-position:center 30%}
+
+/* ============================================================
+   01 rdy.gg
+   ============================================================ */
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:36px 64px;align-items:start;margin-top:36px}
+@media(max-width:900px){.two{grid-template-columns:1fr;gap:34px}}
+.block-h{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin:0 0 12px}
+.block-h .eyebrow{color:var(--ink-2)}
+.block-h .cnt{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.desc{margin-top:22px}
+
+/* self-playing mock */
+.mock{margin-top:56px;border:1px solid var(--line-2);border-radius:6px;background:var(--panel);overflow:hidden}
+.mock-head{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding:12px 16px;border-bottom:1px solid var(--line-2)}
+.mock-head .t{font-family:var(--chrome);font-stretch:118%;font-weight:700;text-transform:uppercase;letter-spacing:.12em;font-size:11px;color:var(--ink)}
+.mock-head .pos{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.mock-head .ctl{margin-left:auto;display:inline-flex;align-items:center;gap:10px}
+.mock .ruler{padding:8px 16px}
+.mrows{list-style:none;margin:0;padding:0}
+.mrow{border-bottom:1px solid var(--line)}
+.mrow:last-child{border-bottom:0}
+.mrow-line{
+  position:relative;display:grid;grid-template-columns:52px 64px 1fr auto auto;gap:0 16px;align-items:baseline;
+  padding:12px 16px;color:var(--ink-2)
+}
+.mrow-line .no,.mrow-line .code{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.mrow-line .name{font-weight:600;font-size:16px;letter-spacing:-.01em;color:var(--ink-2)}
+.mrow-line .name .sub{font-family:var(--chrome);font-stretch:85%;font-weight:400;font-size:13px;color:var(--muted);margin-left:8px}
+.mrow-line .dur{font-family:var(--chrome);font-stretch:80%;font-weight:500;font-size:12px;letter-spacing:.06em;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.mrow-line .st{justify-self:end;min-width:56px}
+.mrow-line .st .tally::after{content:''}
+.mrow.is-done .mrow-line .st .tally::after{content:'AIRED'}
+.mrow.is-live .mrow-line{background:var(--panel-2);color:var(--ink)}
+.mrow.is-live .mrow-line .name{color:var(--ink)}
+.mrow.is-live .mrow-line .no,.mrow.is-live .mrow-line .code,.mrow.is-live .mrow-line .dur{color:var(--ink-2)}
+.mrow.is-live .mrow-line .st .tally{color:var(--red)}
+.mrow.is-live .mrow-line .st .tally i{background:var(--red)}
+.mrow.is-live .mrow-line .st .tally::after{content:'ON AIR'}
+.prog{position:absolute;left:0;bottom:0;height:1px;width:0;background:var(--red);pointer-events:none}
+.mrow.is-live .prog.run{animation:prog var(--dur,3200ms) linear forwards}
+@keyframes prog{to{width:100%}}
+.insert{padding:6px 16px 18px 16px;background:var(--panel-2);border-top:1px solid var(--line)}
+.insert[hidden]{display:none}
+.insert .in{animation:ins .22s ease-out both}
+@keyframes ins{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.insert .ilbl{display:flex;align-items:center;gap:10px;margin:0 0 10px;padding-left:132px;font-family:var(--chrome);font-stretch:80%;font-weight:500;text-transform:uppercase;letter-spacing:.08em;font-size:11px;color:var(--muted)}
+.insert .gfx{margin-left:132px}
+@media(max-width:640px){
+  .mrow-line{grid-template-columns:44px 1fr auto;row-gap:4px;padding:12px}
+  .mrow-line .code{display:none}
+  .mrow-line .name .sub{display:block;margin:2px 0 0}
+  .mrow-line .dur{grid-column:2;grid-row:2}
+  .mrow-line .st{grid-column:3;grid-row:1}
+  .insert{padding:6px 12px 16px}
+  .insert .ilbl,.insert .gfx{padding-left:0;margin-left:0}
+  .mock .ruler{padding:8px 12px}
+}
+/* components inside the inserts */
+.l3{display:inline-grid;grid-template-columns:3px auto;gap:0 12px;align-items:stretch;background:var(--ground);border:1px solid var(--line);border-radius:3px;padding:10px 14px 10px 0;overflow:hidden}
+.l3 .bar{background:var(--red);margin:-10px 0}
+.l3 .nm{font-weight:700;font-size:18px;letter-spacing:-.02em;line-height:1.1}
+.l3 .rl{font-family:var(--chrome);font-stretch:112%;font-weight:600;text-transform:uppercase;letter-spacing:.12em;font-size:11px;color:var(--ink-2);margin-top:3px}
+.hook{font-family:var(--serif);font-size:16px;color:var(--ink-2);margin:12px 0 0;max-width:60ch}
+.subrows{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.subrows li{display:grid;grid-template-columns:64px 1fr auto;gap:16px;padding:8px 0;border-bottom:1px solid var(--line);font-family:var(--chrome);font-stretch:88%;font-size:14px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.subrows li .c{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.subrows li .d{font-stretch:80%;font-size:12px;letter-spacing:.06em;color:var(--muted)}
+.statcard{display:inline-grid;grid-template-columns:auto;gap:4px;background:var(--ground);border:1px solid var(--line);border-radius:3px;padding:12px 16px;min-width:min(100%,280px)}
+.statcard .lb{font-family:var(--chrome);font-stretch:112%;font-weight:600;text-transform:uppercase;letter-spacing:.12em;font-size:11px;color:var(--ink-2)}
+.statcard .val{font-weight:700;font-size:40px;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums;display:flex;align-items:baseline;gap:6px}
+.statcard .val .u{font-family:var(--chrome);font-stretch:80%;font-weight:500;font-size:14px;letter-spacing:.06em;color:var(--ink-2)}
+.statcard .ft{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;margin-top:4px}
+.tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:640px}
+.tier{border:1px solid var(--line);border-radius:3px;background:var(--ground);padding:10px 12px;min-height:74px}
+.tier .th{font-family:var(--chrome);font-stretch:118%;font-weight:700;text-transform:uppercase;letter-spacing:.12em;font-size:11px;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
+.tier .th .mono{color:var(--muted)}
+.tier.on{border-color:var(--ink-2)}
+.tier.on .th{color:var(--ink)}
+.tier .chip{display:inline-block;margin-top:10px;font-weight:600;font-size:14px;letter-spacing:-.01em;border:1px solid var(--line-2);border-radius:3px;padding:3px 8px}
+.votes{display:flex;flex-wrap:wrap;gap:8px 18px;margin:12px 0 0;padding:0;list-style:none;font-family:var(--chrome);font-stretch:88%;font-size:13px;color:var(--ink-2)}
+.votes b{font-weight:600;color:var(--ink);font-stretch:112%;text-transform:uppercase;letter-spacing:.08em;font-size:11px}
+.verdict{display:grid;grid-template-columns:1fr auto;gap:14px 24px;align-items:center;background:var(--ground);border:1px solid var(--line);border-radius:3px;padding:14px 16px;max-width:640px}
+.verdict .claim{font-family:var(--serif);font-size:18px;line-height:1.3}
+.verdict .res{font-family:var(--chrome);font-stretch:118%;font-weight:700;text-transform:uppercase;letter-spacing:.12em;font-size:11px;color:var(--ink);text-align:right;white-space:nowrap}
+.verdict .res small{display:block;color:var(--muted);font-weight:500;margin-top:4px;letter-spacing:.08em}
+.verdict .votes{grid-column:1 / -1;margin-top:0;padding-top:10px;border-top:1px solid var(--line)}
+.signoff{font-weight:600;font-size:clamp(22px,3vw,30px);letter-spacing:-.02em;line-height:1.1;margin:0}
+.signoff small{display:block;font-family:var(--serif);font-weight:400;font-size:16px;color:var(--ink-2);margin-top:8px;letter-spacing:0}
+@media(max-width:640px){.tiers{grid-template-columns:1fr}.tier{min-height:0}.verdict{grid-template-columns:1fr}.verdict .res{text-align:left}}
+
+/* playlists */
+.plays{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:44px}
+@media(max-width:900px){.plays{grid-template-columns:1fr}}
+.play{margin:0}
+.play .frame{aspect-ratio:16/9;background:#0d0c0b;border:1px solid var(--line);overflow:hidden}
+.play iframe{width:100%;height:100%;border:0;display:block}
+.play figcaption{display:grid;gap:4px;padding:10px 0 0}
+.play .ttl{font-weight:600;font-size:15px;letter-spacing:-.01em}
+.play .credit{font-family:var(--chrome);font-stretch:88%;font-size:12.5px;color:var(--muted)}
+
+/* ============================================================
+   02 LA SOPA
+   ============================================================ */
+.stats{list-style:none;margin:0;padding:0;border-top:1px solid var(--line-2)}
+.stats li{display:grid;grid-template-columns:52px 1fr auto;gap:16px;align-items:baseline;padding:10px 0;border-bottom:1px solid var(--line)}
+.stats .c{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.stats .v{font-weight:600;font-size:22px;letter-spacing:-.02em;font-variant-numeric:tabular-nums;display:flex;align-items:baseline;gap:6px}
+.stats .v .u{font-family:var(--chrome);font-stretch:80%;font-weight:500;font-size:12px;letter-spacing:.06em;color:var(--ink-2);text-transform:uppercase}
+.stats .l{font-family:var(--chrome);font-stretch:80%;font-weight:500;text-transform:uppercase;letter-spacing:.08em;font-size:11px;color:var(--muted);text-align:right;white-space:nowrap}
+.source{font-family:var(--chrome);font-stretch:88%;font-size:12.5px;color:var(--muted);margin:14px 0 0}
+.source a{border-bottom:1px solid var(--line-2)}
+.source a:hover{color:var(--ink);border-color:var(--ink)}
+.plays.one{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+
+/* ============================================================
+   03 ON THE GROUND (film)
+   ============================================================ */
+.film{position:relative;margin-top:36px;padding:28px 0 8px;background:#151311;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.film::before{
+  content:'';position:absolute;inset:0;pointer-events:none;opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:240px 240px;
+}
+.film .safe{position:absolute;inset:5%;border:1px solid rgba(255,250,240,.08);pointer-events:none}
+.film>*{position:relative}
+.monitors{display:grid;grid-template-columns:7fr 5fr;gap:20px;align-items:start}
+.mon{margin:0;min-width:0}
+.mon[data-role="pgm"]{order:0}
+.mon[data-role="pvw"]{order:1}
+.mon .frame{position:relative;background:#0d0c0b;border:1px solid var(--line);aspect-ratio:16/9;overflow:hidden}
+.mon .frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.mon mux-player{position:absolute;inset:0;width:100%;height:100%;background:#0d0c0b;--media-background-color:#0d0c0b;--media-accent-color:#f2ede4;--media-control-background:rgba(18,17,16,.5);--media-control-hover-background:rgba(18,17,16,.8)}
+.mon .band{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;padding:8px 10px;background:#0d0c0b;border:1px solid var(--line);border-top:0}
+.mon .band .ttl{font-family:var(--chrome);font-stretch:88%;font-size:12.5px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.mon .band .tc{font-family:var(--mono);font-size:11px;color:var(--ink);white-space:nowrap}
+.mon[data-role="pgm"] .band .tally{color:var(--red)}
+.mon[data-role="pgm"] .band .tally i{background:var(--red)}
+.mon[data-role="pvw"] .band .tally{color:var(--green)}
+.mon[data-role="pvw"] .band .tally i{background:var(--green)}
+.mon .copy{padding:14px 0 0}
+.mon .copy h3{font-weight:600;font-size:18px;letter-spacing:-.015em;line-height:1.15}
+.mon .copy .prose{margin-top:10px;font-size:16px}
+.mon .credit{font-family:var(--chrome);font-stretch:88%;font-size:12.5px;color:var(--muted);margin:10px 0 0}
+.mon[data-role="pvw"] .copy h3{font-size:16px}
+.take-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+.take-row .hint{font-family:var(--chrome);font-stretch:88%;font-size:12.5px;color:var(--muted)}
+.take-row .legend{display:inline-flex;gap:16px;margin-left:auto}
+@media(max-width:900px){.monitors{grid-template-columns:1fr}}
+
+.interview{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:28px 40px;align-items:start;margin-top:44px;padding-top:26px;border-top:1px solid var(--line)}
+.interview .frame{aspect-ratio:16/9;background:#0d0c0b;border:1px solid var(--line);overflow:hidden;position:relative}
+.interview .frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.interview h3{font-weight:600;font-size:20px;letter-spacing:-.015em;line-height:1.2;margin-top:10px}
+.interview .src{font-family:var(--chrome);font-stretch:80%;font-weight:500;text-transform:uppercase;letter-spacing:.08em;font-size:11px;color:var(--muted)}
+@media(max-width:900px){.interview{grid-template-columns:1fr}}
+
+/* strip */
+.strip-h{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin:44px 0 12px}
+.strip{display:flex;gap:14px;list-style:none;margin:0 calc(-1 * var(--pad));padding:2px var(--pad) 12px;overflow-x:auto;scroll-snap-type:x proximity;scroll-padding-inline:var(--pad);-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:var(--line-2) transparent}
+.strip li{flex:0 0 clamp(240px,30vw,360px);scroll-snap-align:start}
+.strip .slate .frame{transition:box-shadow .2s ease-out}
+.strip .slate:hover .frame,.strip .slate:focus-visible .frame{box-shadow:0 0 0 1px rgba(255,205,160,.22),0 0 26px rgba(255,175,115,.10)}
+.strip .slate .frame img{transition:filter .2s ease-out}
+.strip .slate:hover .frame img{filter:contrast(1.03) brightness(1.03)}
+
+/* lightbox */
+.lb{border:0;padding:0;background:transparent;max-width:min(96vw,1400px);max-height:96vh;width:auto;color:var(--ink)}
+.lb::backdrop{background:rgba(10,9,8,.92)}
+.lb figure{margin:0;display:grid;gap:10px;justify-items:center}
+.lb img{max-width:min(96vw,1400px);max-height:82vh;width:auto;height:auto;object-fit:contain;border:1px solid var(--line)}
+.lb figcaption{display:flex;gap:18px;align-items:center;font-family:var(--mono);font-size:11px;color:var(--ink-2);text-transform:uppercase}
+.lb .ctl{display:flex;justify-content:center;gap:10px;margin-top:6px}
+.lb .btn{background:var(--ground)}
+
+/* cities wall */
+.wall{margin-top:56px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:34px 64px}
+@media(max-width:900px){.wall{grid-template-columns:1fr}}
+.wall .grp{border-top:1px solid var(--line-2);padding-top:14px}
+.wall .grp .block-h{margin-bottom:18px}
+.marks{display:flex;flex-wrap:wrap;align-items:baseline;gap:18px 30px;color:var(--muted)}
+.marks span{white-space:nowrap;line-height:1;transition:color .18s ease-out;cursor:default}
+.marks span:hover{color:var(--ink)}
+.mk-riyadh{font-family:var(--serif);font-style:italic;font-size:34px;font-weight:400}
+.mk-berlin{font-family:var(--chrome);font-stretch:125%;font-weight:800;font-size:22px;text-transform:uppercase;letter-spacing:.06em}
+.mk-seoul{font-family:var(--sans);font-weight:300;font-size:22px;text-transform:uppercase;letter-spacing:.34em}
+.mk-melbourne{font-family:var(--chrome);font-stretch:75%;font-weight:500;font-size:26px;text-transform:uppercase;letter-spacing:.02em}
+.mk-rio{font-family:var(--serif);font-weight:600;font-size:32px;font-variant-caps:small-caps;letter-spacing:.04em}
+.mk-lima{font-family:var(--mono);font-size:22px;text-transform:uppercase}
+.mk-amsterdam{font-family:var(--sans);font-weight:700;font-size:26px;letter-spacing:-.045em}
+.mk-dallas{font-family:var(--chrome);font-stretch:62%;font-weight:900;font-style:italic;font-size:30px;text-transform:uppercase}
+.mk-newyork{font-family:var(--serif);font-weight:400;font-size:30px;letter-spacing:-.01em}
+.mk-doha{font-family:var(--sans);font-weight:800;font-size:24px;text-transform:uppercase;letter-spacing:.1em}
+.mk-prague{font-family:var(--chrome);font-stretch:100%;font-weight:300;font-style:italic;font-size:30px}
+.mk-lisbon{font-family:var(--mono);font-size:22px}
+.mk-madrid{font-family:var(--serif);font-style:italic;font-weight:600;font-size:28px;letter-spacing:.02em}
+.mk-rome{font-family:var(--chrome);font-stretch:112%;font-weight:600;font-size:20px;text-transform:uppercase;letter-spacing:.22em}
+
+/* ============================================================
+   04 WRITING
+   ============================================================ */
+.note{display:flex;gap:10px;align-items:baseline;font-family:var(--chrome);font-stretch:88%;font-size:13px;color:var(--muted);margin:16px 0 0}
+.note .hl{background:rgba(255,214,84,.28);color:var(--ink);padding:0 3px;border-radius:2px}
+.wlist{margin-top:28px}
+.wlist .row{grid-template-columns:52px 96px 1fr auto;align-items:baseline;padding:18px 0}
+.wlist .row .kind{font-family:var(--chrome);font-stretch:80%;font-weight:500;text-transform:uppercase;letter-spacing:.08em;font-size:11px;color:var(--muted)}
+.wlink{display:block}
+.wlink .name{font-weight:600;font-size:clamp(18px,2.2vw,24px);letter-spacing:-.02em;line-height:1.15;display:inline}
+.wlink:hover .name{text-decoration:underline;text-underline-offset:6px;text-decoration-thickness:1px}
+.wlink .sub{margin-top:6px}
+.wlist .row .meta{display:inline-flex;gap:14px;align-items:baseline}
+.wlist .row .meta .arr{font-family:var(--chrome);font-stretch:112%;font-weight:600;letter-spacing:.1em;color:var(--ink-2)}
+@media(max-width:640px){
+  .wlist .row{grid-template-columns:44px minmax(0,1fr)}
+  .wlist .row .no{grid-column:1;grid-row:1}
+  .wlist .row .kind{grid-column:2;grid-row:1}
+  .wlist .row .wlink{grid-column:2;grid-row:2}
+  .wlist .row .meta{grid-column:2;grid-row:3;text-align:left}
+}
+.peek{position:fixed;left:0;top:0;width:min(34vw,340px);aspect-ratio:3/2;object-fit:cover;pointer-events:none;z-index:40;opacity:0;border:1px solid var(--line-2);transform:translate(-9999px,-9999px);transition:opacity .18s ease-out}
+.peek.on{opacity:1}
+
+/* ============================================================
+   05 CAREER
+   ============================================================ */
+.tl{margin-top:28px}
+.tl .row{grid-template-columns:52px 96px minmax(0,1.1fr) minmax(0,1.3fr) auto;align-items:baseline;padding:16px 0}
+.tl .when{font-family:var(--mono);font-size:11px;color:var(--ink-2);text-transform:uppercase;display:inline-flex;align-items:center;gap:8px}
+.tl .org{font-weight:600;font-size:17px;letter-spacing:-.01em}
+.tl .role{font-family:var(--chrome);font-stretch:88%;font-size:14px;color:var(--ink-2)}
+.tl .detail{font-family:var(--chrome);font-stretch:80%;font-weight:500;text-transform:uppercase;letter-spacing:.06em;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.tl .cur .org{color:var(--ink)}
+.tl .cur .when i{width:6px;height:6px;border-radius:50%;background:var(--red);animation:pulse 1.6s ease-in-out infinite;flex:none}
+.tl .cur .detail{color:var(--ink-2)}
+@media(max-width:760px){
+  .tl .row{grid-template-columns:44px 1fr;row-gap:4px}
+  .tl .when{grid-column:2}
+  .tl .org{grid-column:2}
+  .tl .role{grid-column:2}
+  .tl .detail{grid-column:2;text-align:left;white-space:normal}
+  .tl .row .no{grid-row:1 / span 4}
+}
+
+/* ============================================================
+   CONTACT + FOOTER
+   ============================================================ */
+.contact{padding-bottom:0}
+.contact .big{font-weight:600;font-size:clamp(34px,5.5vw,64px);letter-spacing:-.03em;line-height:.98;margin-top:34px}
+.contact .prose{margin-top:20px;max-width:60ch}
+.mail{display:flex;flex-wrap:wrap;align-items:center;gap:14px 18px;margin-top:30px;padding:18px 0;border-top:1px solid var(--line-2);border-bottom:1px solid var(--line)}
+.mail a{font-family:var(--sans);font-weight:600;font-size:clamp(18px,2.6vw,26px);letter-spacing:-.02em}
+.mail a:hover{text-decoration:underline;text-underline-offset:6px;text-decoration-thickness:1px}
+.mail .btn.done{border-color:var(--ink);color:var(--ink)}
+.mail .btn.done::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green)}
+.socials{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;list-style:none;margin:0;padding:0}
+.socials li{border-bottom:1px solid var(--line)}
+.socials a{display:grid;grid-template-columns:1fr auto;gap:8px;padding:16px 16px 16px 0;font-family:var(--chrome);font-stretch:112%;font-weight:600;text-transform:uppercase;letter-spacing:.1em;font-size:11px;color:var(--ink-2)}
+.socials a:hover{color:var(--ink)}
+.socials a .mono{color:var(--muted)}
+@media(max-width:640px){.socials{grid-template-columns:1fr 1fr}}
+footer{margin-top:56px;padding:18px 0 34px;border-top:1px solid var(--line-2);display:flex;flex-wrap:wrap;gap:8px 24px;align-items:baseline;justify-content:space-between;font-family:var(--chrome);font-stretch:88%;font-size:12.5px;color:var(--muted)}
+footer a{border-bottom:1px solid var(--line-2)}
+footer a:hover{color:var(--ink);border-color:var(--ink)}
+footer .end{font-family:var(--mono);font-size:11px;text-transform:uppercase}
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+  .tally.live i,.seg.is-live .seg-status .tally i,.tl .cur .when i{animation:none}
+  .prog{display:none}
+}
+</style>
+</head>
+<body>
+
+<a class="sr" href="#rdy">Skip to the work</a>
+
+<!-- ===== TOP BAR: the running order, always in reach ===== -->
+<header class="topbar">
+  <div class="in">
+    <a class="brand" href="#top"><span class="mono">RDN</span>Pedro Brauner</a>
+    <nav class="nav" aria-label="Rundown">
+      <a href="#rdy" data-seg="01"><i class="d"></i><span class="n">01</span><span class="l">rdy.gg</span></a>
+      <a href="#sopa" data-seg="02"><i class="d"></i><span class="n">02</span><span class="l">La Sopa</span></a>
+      <a href="#ground" data-seg="03"><i class="d"></i><span class="n">03</span><span class="l">On the ground</span></a>
+      <a href="#writing" data-seg="04"><i class="d"></i><span class="n">04</span><span class="l">Writing</span></a>
+      <a href="#career" data-seg="05"><i class="d"></i><span class="n">05</span><span class="l">Career</span></a>
+      <a href="/cv/" class="txt"><span class="l">CV</span></a>
+      <a href="#contact" data-seg="ct" class="txt"><i class="d"></i><span class="l">Contact</span></a>
+    </nav>
+    <div class="right">
+      <span class="clock"><b>LIMA</b> <span data-clock>00:00:00</span></span>
+    </div>
+  </div>
+</header>
+
+<main id="top" class="sheet">
+
+  <!-- masthead line of the sheet -->
+  <div class="masthead" aria-label="Sheet header">
+    <span class="cell"><span class="k">Rundown</span><span class="v">PEDRO BRAUNER · PORTFOLIO</span></span>
+    <span class="mid">
+      <span class="cell"><span class="k">Items</span><span class="v">00 TO 05 + CT</span></span>
+      <span class="cell"><span class="k">Base</span><span class="v">LIMA, PERU · UTC-5</span></span>
+      <span class="cell"><span class="k">Languages</span><span class="v">PT / ES / EN</span></span>
+    </span>
+    <span class="cell"><span class="k">Rev</span><span class="v">2026.09</span></span>
+  </div>
+
+  <!-- ===================================================== -->
+  <!-- 00 COLD OPEN                                           -->
+  <!-- ===================================================== -->
+  <section class="seg hero" data-seg="00" id="cold-open" aria-labelledby="h-name">
+    <div class="hero-top">
+      <span class="seg-no">00</span>
+      <span class="lbl">Cold open <small>Masthead · the board resolves to the name, then reads the cities</small></span>
+      <span class="seg-status"><span class="tally"><i></i></span></span>
+    </div>
+
+    <h1 id="h-name" class="sr">Pedro Brauner</h1>
+    <div class="board-wrap">
+      <div class="board" id="board" aria-hidden="true"></div>
+      <div class="board-status">
+        <span class="st"><span id="boardList">BOARD</span> · <b id="boardCity">PEDRO BRAUNER</b></span>
+        <span class="st" aria-hidden="true">13 TILES · 60 MS STAGGER</span>
+        <button class="btn mini" id="flipBtn" type="button">Flip</button>
+      </div>
+    </div>
+
+    <div class="hero-grid">
+      <div>
+        <p class="role eyebrow rv">Brand &amp; Creative Strategist · Esports</p>
+        <h2 class="headline rv" style="--i:1">Builds the brand first, then the shows that carry it. <span class="thin">Still writes the stories, in three languages.</span></h2>
+        <p class="prose bio rv" style="--i:2">Five years reporting on esports from press rows in Riyadh, Berlin, Seoul and Melbourne taught the eye. Then the job became building the rooms where the stories get told: show formats, brand voices, editorial systems, the occasional data pipeline. He still writes every day.</p>
+        <dl class="kv now rv" style="--i:3">
+          <div><dt>Now</dt><dd><b>Content &amp; Creative Strategist</b>, rdy.gg</dd></div>
+          <div><dt>Also</dt><dd><b>Director</b>, La Sopa Podcast</dd></div>
+          <div><dt>From</dt><dd>Lima, Peru · PT / ES / EN</dd></div>
+          <div><dt>Time</dt><dd><span class="mono" data-clock>00:00:00</span> <span class="cond" style="color:var(--muted);font-size:12px;letter-spacing:.06em">LIMA · 24H · LIVE</span></dd></div>
+        </dl>
+        <div class="actions rv" style="--i:4">
+          <a class="btn solid" href="#rdy">See the work</a>
+          <a class="btn" href="/cv/">Curriculum Vitae <span aria-hidden="true">&#8599;</span></a>
+        </div>
+      </div>
+      <figure class="slate hero-slate rv" style="--i:2">
+        <div class="frame"><img src="/assets/img/portrait.jpg" alt="Pedro Brauner holding a gelato outside Caffè Pedone at night, warm light" width="2560" height="1706" fetchpriority="high" decoding="async"></div>
+        <figcaption class="line"><span>Slate 00 · <b>Portrait</b></span><span>Caffè Pedone · night</span></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <!-- 01 rdy.gg                                              -->
+  <!-- ===================================================== -->
+  <section class="seg" data-seg="01" id="rdy" aria-labelledby="h-rdy">
+    <div class="seg-head">
+      <span class="seg-no">01</span>
+      <h2 class="seg-title" id="h-rdy"><a href="https://rdy.gg" target="_blank" rel="noopener">rdy.gg</a> <span class="ext">rdy.gg &#8599;</span></h2>
+      <span class="seg-rule"></span>
+      <span class="seg-meta">Oct 2025 · Present</span>
+      <span class="seg-status"><span class="tally"><i></i></span></span>
+    </div>
+    <p class="prose dim seg-sub rv">Content and creative strategy for rdy.gg, a CS2, Dota 2 and League of Legends media brand, since October 2025. The shows are the rdy.gg team's. The editorial system, the formats and the rundowns are the part I write.</p>
+
+    <div class="two">
+      <div class="rv">
+        <div class="block-h"><span class="eyebrow">Role card</span><span class="cnt">01.1</span></div>
+        <dl class="kv">
+          <div><dt>Org</dt><dd><b>rdy.gg</b></dd></div>
+          <div><dt>Role</dt><dd>Content &amp; Creative Strategist</dd></div>
+          <div><dt>Dates</dt><dd>Oct 2025 – Present</dd></div>
+          <div><dt>Base</dt><dd>Remote from Lima, Peru</dd></div>
+        </dl>
+        <p class="prose desc">Set up rdy.gg's content strategy from the ground up: editorial standards, content pillars and a house voice the whole team writes in. Designed the show formats and wrote the rundowns for Win Condition CS2 and Win Condition Dota 2, which I also moderate, and for Context Cap. Led on-the-ground production at IEM Rio 2026, with mixed-zone interviews from Vitality, MOUZ, Falcons and Spirit. Built the CS2 data systems with the quantitative analytics team that turn raw match data into editorial, social and broadcast assets. Editorial and SEO strategy across YouTube, TikTok, Instagram, X, Facebook and the site.</p>
+        <ul class="tags" aria-label="Tags">
+          <li>Editorial system</li><li>Show formats</li><li>House voice</li><li>IEM Rio 2026 on the ground</li><li>CS2 data systems</li><li>Built with the rdy.gg team</li>
+        </ul>
+      </div>
+      <div class="rv" style="--i:1">
+        <div class="block-h"><span class="eyebrow">Formats</span><span class="cnt">01.2 · 4 SHOWS</span></div>
+        <table class="sheet-t">
+          <thead><tr><th>Format</th><th>My part</th><th class="r">Status</th></tr></thead>
+          <tbody>
+            <tr><td>Win Condition CS2</td><td>Format, rundowns, moderation</td><td class="r"><span class="st"><i></i>Running</span></td></tr>
+            <tr><td>Win Condition Dota 2</td><td>Format, rundowns, moderation</td><td class="r"><span class="st"><i></i>Running</span></td></tr>
+            <tr><td>Context Cap</td><td>Format, editorial rules</td><td class="r"><span class="st"><i></i>Running</span></td></tr>
+            <tr><td>Ws and Ls</td><td>Format</td><td class="r"><span class="st off"><i></i>Retired</span></td></tr>
+          </tbody>
+        </table>
+        <ul class="links">
+          <li><a href="https://rdy.gg" target="_blank" rel="noopener">Visit rdy.gg &#8599;</a></li>
+          <li><a href="https://www.youtube.com/playlist?list=PLwh1gO2urwoRrTIXKyU61FkWmWDcoL19i" target="_blank" rel="noopener">Win Condition CS2 playlist &#8599;</a></li>
+          <li><a href="https://www.youtube.com/playlist?list=PLwh1gO2urwoSYPGxOtzdCtWKFE3nPEQ1V" target="_blank" rel="noopener">Win Condition Dota 2 playlist &#8599;</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- The self-playing rundown mock: a strip of segment rows that light up in turn -->
+    <div class="mock rv" id="mock" role="group" aria-label="Win Condition rundown, self-playing sample">
+      <div class="mock-head">
+        <span class="t">Win Condition · rundown</span>
+        <span class="pos"><span id="mockPos">01/06</span> · MASTER STRUCTURE</span>
+        <span class="tag warn">SAMPLE</span>
+        <span class="ctl">
+          <span class="pos" aria-hidden="true">3.2 S / ITEM</span>
+          <button class="btn mini" id="mockToggle" type="button" aria-pressed="true">Playing</button>
+        </span>
+      </div>
+      <div class="ruler"><span>No.</span><span class="c2">Code</span><span>Segment</span><span>Dur (min) · Status</span></div>
+      <ol class="mrows">
+        <li class="mrow" data-i="0">
+          <div class="mrow-line">
+            <span class="no">01</span><span class="code">COLD</span>
+            <span class="name">Cold open<span class="sub">The week that was</span></span>
+            <span class="dur">02–04</span>
+            <span class="st"><span class="tally"><i></i></span></span>
+            <i class="prog" aria-hidden="true"></i>
+          </div>
+          <div class="insert" hidden>
+            <div class="in">
+              <p class="ilbl">Lower third <span class="tag">SAMPLE</span></p>
+              <div class="gfx">
+                <div class="l3"><span class="bar"></span><div><div class="nm">Host A</div><div class="rl">The Moderator · Win Condition</div></div></div>
+                <p class="hook">Hook with the week's biggest moment. Quick panel reactions, then tease the deep dive. Sample line, no real result quoted.</p>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="mrow" data-i="1">
+          <div class="mrow-line">
+            <span class="no">02</span><span class="code">RUND</span>
+            <span class="name">Weekly rundown<span class="sub">Results, rosters, scene</span></span>
+            <span class="dur">12–18</span>
+            <span class="st"><span class="tally"><i></i></span></span>
+            <i class="prog" aria-hidden="true"></i>
+          </div>
+          <div class="insert" hidden>
+            <div class="in">
+              <p class="ilbl">Sub-items, each host brings 2 to 3 <span class="tag">SAMPLE</span></p>
+              <div class="gfx">
+                <ul class="subrows">
+                  <li><span class="c">02.1</span><span>Tournament results · major matches, upsets, standout performances</span><span class="d">05–08</span></li>
+                  <li><span class="c">02.2</span><span>Roster news · transfers, benches, coaching changes</span><span class="d">03–05</span></li>
+                  <li><span class="c">02.3</span><span>Scene happenings · drama, controversies, format changes</span><span class="d">02–05</span></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="mrow" data-i="2">
+          <div class="mrow-line">
+            <span class="no">03</span><span class="code">DEEP</span>
+            <span class="name">Deep dive<span class="sub">The discussion that defines the week</span></span>
+            <span class="dur">15–22</span>
+            <span class="st"><span class="tally"><i></i></span></span>
+            <i class="prog" aria-hidden="true"></i>
+          </div>
+          <div class="insert" hidden>
+            <div class="in">
+              <p class="ilbl">Stat card, one host leads with the numbers <span class="tag">SAMPLE</span></p>
+              <div class="gfx">
+                <div class="statcard">
+                  <span class="lb">Opening duel win rate</span>
+                  <span class="val">58.3<span class="u">pct</span></span>
+                  <span class="ft">Team A · last 10 maps · sample value</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="mrow" data-i="3">
+          <div class="mrow-line">
+            <span class="no">04</span><span class="code">SEAT</span>
+            <span class="name">The Hot Seat<span class="sub">Recurring segment rotation</span></span>
+            <span class="dur">08–10</span>
+            <span class="st"><span class="tally"><i></i></span></span>
+            <i class="prog" aria-hidden="true"></i>
+          </div>
+          <div class="insert" hidden>
+            <div class="in">
+              <p class="ilbl">Tier row, each host places the name <span class="tag">SAMPLE</span></p>
+              <div class="gfx">
+                <div class="tiers">
+                  <div class="tier"><div class="th">Safe <span class="mono">T1</span></div></div>
+                  <div class="tier on"><div class="th">Warming up <span class="mono">T2</span></div><span class="chip">Player X</span></div>
+                  <div class="tier"><div class="th">Burning <span class="mono">T3</span></div></div>
+                </div>
+                <ul class="votes"><li><b>Host A</b> Warming up</li><li><b>Host B</b> Burning</li><li><b>Host C</b> Safe</li></ul>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="mrow" data-i="4">
+          <div class="mrow-line">
+            <span class="no">05</span><span class="code">NEXT</span>
+            <span class="name">Looking ahead<span class="sub">Matches, storylines, one bold prediction each</span></span>
+            <span class="dur">05–08</span>
+            <span class="st"><span class="tally"><i></i></span></span>
+            <i class="prog" aria-hidden="true"></i>
+          </div>
+          <div class="insert" hidden>
+            <div class="in">
+              <p class="ilbl">Desk verdict, buy or sell <span class="tag">SAMPLE</span></p>
+              <div class="gfx">
+                <div class="verdict">
+                  <p class="claim">"Team A is the Major favourite."</p>
+                  <div class="res">Desk: Buy<small>2 to 1</small></div>
+                  <ul class="votes"><li><b>Host A</b> Buy</li><li><b>Host B</b> Sell</li><li><b>Host C</b> Buy</li></ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="mrow" data-i="5">
+          <div class="mrow-line">
+            <span class="no">06</span><span class="code">OUTR</span>
+            <span class="name">Outro and plugs<span class="sub">Recap, articles, handles, tease next week</span></span>
+            <span class="dur">02–03</span>
+            <span class="st"><span class="tally"><i></i></span></span>
+            <i class="prog" aria-hidden="true"></i>
+          </div>
+          <div class="insert" hidden>
+            <div class="in">
+              <p class="ilbl">Sign-off</p>
+              <div class="gfx">
+                <p class="signoff">That's your Win Condition.<small>Stay ready, stay informed. See you next week.</small></p>
+              </div>
+            </div>
+          </div>
+        </li>
+      </ol>
+    </div>
+
+    <div class="plays">
+      <figure class="play rv">
+        <div class="frame"><iframe src="https://www.youtube-nocookie.com/embed/videoseries?list=PLwh1gO2urwoRrTIXKyU61FkWmWDcoL19i" title="Win Condition CS2 playlist" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+        <figcaption><span class="ttl">Win Condition CS2 · playlist</span><span class="credit">Show by the rdy.gg team. Format, rundowns and moderation: Pedro Brauner.</span></figcaption>
+      </figure>
+      <figure class="play rv" style="--i:1">
+        <div class="frame"><iframe src="https://www.youtube-nocookie.com/embed/videoseries?list=PLwh1gO2urwoSYPGxOtzdCtWKFE3nPEQ1V" title="Win Condition Dota 2 playlist" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+        <figcaption><span class="ttl">Win Condition Dota 2 · playlist</span><span class="credit">Show by the rdy.gg team. Format, rundowns and moderation: Pedro Brauner.</span></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <!-- 02 LA SOPA PODCAST                                     -->
+  <!-- ===================================================== -->
+  <section class="seg" data-seg="02" id="sopa" aria-labelledby="h-sopa">
+    <div class="seg-head">
+      <span class="seg-no">02</span>
+      <h2 class="seg-title" id="h-sopa"><a href="https://lasopapodcast.com" target="_blank" rel="noopener">La Sopa Podcast</a> <span class="ext">lasopapodcast.com &#8599;</span></h2>
+      <span class="seg-rule"></span>
+      <span class="seg-meta">May 2025 · Present · 42 ep</span>
+      <span class="seg-status"><span class="tally"><i></i></span></span>
+    </div>
+    <p class="prose dim seg-sub rv">A weekly Spanish-language Dota 2 podcast I created in May 2025 and run end to end: format, booking, direction, production and the commercial side.</p>
+
+    <div class="two">
+      <div class="rv">
+        <div class="block-h"><span class="eyebrow">Show card</span><span class="cnt">02.1</span></div>
+        <dl class="kv">
+          <div><dt>Show</dt><dd><b>La Sopa</b></dd></div>
+          <div><dt>Role</dt><dd>Director &amp; Executive Producer</dd></div>
+          <div><dt>Dates</dt><dd>May 2025 – Present</dd></div>
+          <div><dt>Base</dt><dd>Lima, Peru</dd></div>
+        </dl>
+        <p class="prose desc">Created and lead a weekly Spanish-language Dota 2 podcast built on competitive analysis, community and storytelling, live every week with a four-host desk. Pitched, priced and closed the title sponsorship with Stake, then turned the sponsor segment, La Culebra, into a product of its own with a vote page, a leaderboard and a live overlay. I oversee the full pipeline, from concept and booking to edit, publishing and short-form distribution, and I wrote the brand's voice rules on top of a commissioned identity.</p>
+      </div>
+      <div class="rv" style="--i:1">
+        <div class="block-h"><span class="eyebrow">Numbers</span><span class="cnt">02.2 · DATED</span></div>
+        <ul class="stats">
+          <li><span class="c">02.2.1</span><span class="v">42<span class="u">episodes</span></span><span class="l">Sep 2026</span></li>
+          <li><span class="c">02.2.2</span><span class="v">5.8<span class="u">M impressions</span></span><span class="l">Media kit · Aug 2026</span></li>
+          <li><span class="c">02.2.3</span><span class="v">1.8<span class="u">M plays</span></span><span class="l">Media kit · Aug 2026</span></li>
+          <li><span class="c">02.2.4</span><span class="v">Stake<span class="u">title sponsor</span></span><span class="l">La Culebra segment</span></li>
+          <li><span class="c">02.2.5</span><span class="v">ES<span class="u">Spanish</span></span><span class="l">Four-host desk</span></li>
+        </ul>
+        <p class="source">Reach figures from the show's media kit, August 2026 (YouTube Studio, TikTok Analytics, Meta Business). <a href="https://lasopapodcast.com/marcas" target="_blank" rel="noopener">Media kit &#8599;</a></p>
+        <ul class="links">
+          <li><a href="https://lasopapodcast.com" target="_blank" rel="noopener">lasopapodcast.com &#8599;</a></li>
+          <li><a href="https://www.youtube.com/playlist?list=PL9d-Cyw1ir20avD0sPr-6Bc-v0UY-KlFa" target="_blank" rel="noopener">Episodes on YouTube &#8599;</a></li>
+          <li><a href="https://lasopapodcast.com/marcas" target="_blank" rel="noopener">Media kit &#8599;</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="plays one">
+      <figure class="play rv">
+        <div class="frame"><iframe src="https://www.youtube-nocookie.com/embed/videoseries?list=PL9d-Cyw1ir20avD0sPr-6Bc-v0UY-KlFa" title="La Sopa Podcast episodes playlist" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+        <figcaption><span class="ttl">La Sopa Podcast · episodes</span><span class="credit">Created, directed and produced by Pedro Brauner. Weekly since May 2025.</span></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <!-- 03 ON THE GROUND                                       -->
+  <!-- ===================================================== -->
+  <section class="seg" data-seg="03" id="ground" aria-labelledby="h-ground">
+    <div class="seg-head">
+      <span class="seg-no">03</span>
+      <h2 class="seg-title" id="h-ground">On the ground</h2>
+      <span class="seg-rule"></span>
+      <span class="seg-meta">2 films · 1 interview · 8 frames</span>
+      <span class="seg-status"><span class="tally"><i></i></span></span>
+    </div>
+    <p class="prose dim seg-sub rv">Films, interviews and frames from the press floor. Rio, Riyadh, Berlin. Five years of reporting is where the eye comes from.</p>
+
+    <div class="film" id="film">
+      <div class="safe" aria-hidden="true"></div>
+      <div class="monitors" id="monitors">
+        <figure class="mon rv" id="monA" data-role="pgm">
+          <div class="frame">
+            <mux-player playback-id="mqgnsojvjwduflJ1TeS1NaCMETMiw02qNXhhOrQg2h01g" stream-type="on-demand" autoplay="muted" muted playsinline title="IEM Rio 2026, The Fan Experience: A Love Letter to Esports"></mux-player>
+          </div>
+          <figcaption class="band">
+            <span class="tally"><i></i><span class="role-lbl">PGM</span></span>
+            <span class="ttl">IEM Rio 2026 · The Fan Experience</span>
+            <span class="tc" data-tc="mux">TOD 00:00:00:00</span>
+          </figcaption>
+          <div class="copy">
+            <h3>IEM Rio 2026, The Fan Experience: A Love Letter to Esports</h3>
+            <p class="prose">IEM Rio was, without a doubt, the most emotional event I've ever been in. The ambience, the people, the players, everything was superb. This is more than just a video; it is a love letter to an ecosystem that I have been living in for the last 15 years.</p>
+            <p class="credit">A personal piece, shot during rdy.gg's IEM Rio coverage. Song: When It Lands by Rainbow Kitten Surprise.</p>
+          </div>
+        </figure>
+        <figure class="mon rv" id="monB" data-role="pvw" style="--i:1">
+          <div class="frame">
+            <iframe src="https://www.youtube-nocookie.com/embed/1iK9MljfMhQ" title="The tournament that wanted to rule the world | EWC Experience" loading="lazy" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+          </div>
+          <figcaption class="band">
+            <span class="tally"><i></i><span class="role-lbl">PVW</span></span>
+            <span class="ttl">EWC Experience · Riyadh</span>
+            <span class="tc" data-tc="tod">TOD 00:00:00:00</span>
+          </figcaption>
+          <div class="copy">
+            <h3>The tournament that wanted to rule the world | EWC Experience</h3>
+            <p class="prose">A documentary about the Esports World Cup in Riyadh: the most ambitious esports event ever attempted, and what it actually felt like to be there. Reported, produced, and directed on the ground in Saudi Arabia.</p>
+            <p class="credit">Song: Fucked Up by Racoma.</p>
+          </div>
+        </figure>
+      </div>
+      <div class="take-row">
+        <button class="btn" id="take" type="button" aria-pressed="false">Take</button>
+        <span class="hint">Swaps program and preview. Hard cut, no crossfade.</span>
+        <span class="legend"><span class="tally live" style="animation:none"><i style="animation:none"></i>Program</span><span class="tally pvw"><i></i>Preview</span></span>
+      </div>
+
+      <div class="interview">
+        <div class="rv">
+          <div class="frame"><iframe src="https://www.youtube-nocookie.com/embed/iU1riMJ_rSM" title="¿Es el fin de Dota? Jenkins rompe el silencio y habla claro" loading="lazy" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+        </div>
+        <div class="rv" style="--i:1">
+          <span class="src">03.3 · América Esports · Interview, in Spanish</span>
+          <h3>¿Es el fin de Dota? Jenkins rompe el silencio y habla claro</h3>
+          <p class="prose" style="margin-top:12px">A candid interview with Jenkins on the state of Dota 2: declining playerbase, Valve's silence, and the game's future. Reporting works in any language.</p>
+        </div>
+      </div>
+
+      <div class="strip-h rv">
+        <span class="eyebrow">03.4 · Frames from the floor</span>
+        <span class="mono" style="color:var(--muted)">8 SLATES · CLICK TO OPEN</span>
+      </div>
+      <ul class="strip rv" id="strip" aria-label="Photo strip">
+        <li><button type="button" class="slate" data-full="/assets/img/photography/events/Riyadh-36.jpg" data-cap="EWC Riyadh · 2025"><span class="frame"><img src="/assets/img/photography/events/Riyadh-36.jpg" alt="Esports World Cup, Riyadh, 2025" loading="lazy" decoding="async"></span><span class="line"><span>S01 · <b>EWC Riyadh</b></span><span>2025</span></span></button></li>
+        <li><button type="button" class="slate" data-full="/assets/img/photography/events/Berlin%20site-09.jpg" data-cap="ESL One Berlin Major · 2023"><span class="frame"><img src="/assets/img/photography/events/Berlin%20site-09.jpg" alt="ESL One Berlin Major, 2023" loading="lazy" decoding="async"></span><span class="line"><span>S02 · <b>ESL One Berlin Major</b></span><span>2023</span></span></button></li>
+        <li><button type="button" class="slate" data-full="/assets/img/photography/events/Riyadh-40.jpg" data-cap="EWC Riyadh · 2025"><span class="frame"><img src="/assets/img/photography/events/Riyadh-40.jpg" alt="Esports World Cup, Riyadh, 2025" loading="lazy" decoding="async"></span><span class="line"><span>S03 · <b>EWC Riyadh</b></span><span>2025</span></span></button></li>
+        <li><button type="button" class="slate" data-full="/assets/img/photography/events/Berlin%20site-13.jpg" data-cap="Berlin Major · 2023"><span class="frame"><img src="/assets/img/photography/events/Berlin%20site-13.jpg" alt="Berlin Major, 2023" loading="lazy" decoding="async"></span><span class="line"><span>S04 · <b>Berlin Major</b></span><span>2023</span></span></button></li>
+        <li><button type="button" class="slate" data-full="/assets/img/photography/events/Riyadh-54.jpg" data-cap="EWC Riyadh · 2025"><span class="frame"><img src="/assets/img/photography/events/Riyadh-54.jpg" alt="Esports World Cup, Riyadh, 2025" loading="lazy" decoding="async"></span><span class="line"><span>S05 · <b>EWC Riyadh</b></span><span>2025</span></span></button></li>
+        <li><button type="button" class="slate" data-full="/assets/img/photography/events/Berlin%20site-29.jpg" data-cap="Berlin Major · 2023"><span class="frame"><img src="/assets/img/photography/events/Berlin%20site-29.jpg" alt="Berlin Major, 2023" loading="lazy" decoding="async"></span><span class="line"><span>S06 · <b>Berlin Major</b></span><span>2023</span></span></button></li>
+        <li><button type="button" class="slate" data-full="/assets/img/photography/events/Berlin%20site-31.jpg" data-cap="Berlin Major · 2023"><span class="frame"><img src="/assets/img/photography/events/Berlin%20site-31.jpg" alt="Berlin Major, 2023" loading="lazy" decoding="async"></span><span class="line"><span>S07 · <b>Berlin Major</b></span><span>2023</span></span></button></li>
+        <li><button type="button" class="slate" data-full="/assets/img/photography/events/Riyadh-67.jpg" data-cap="EWC Riyadh · 2025"><span class="frame"><img src="/assets/img/photography/events/Riyadh-67.jpg" alt="Esports World Cup, Riyadh, 2025" loading="lazy" decoding="async"></span><span class="line"><span>S08 · <b>EWC Riyadh</b></span><span>2025</span></span></button></li>
+      </ul>
+    </div>
+
+    <!-- the cities, two honest groups -->
+    <div class="wall">
+      <div class="grp rv">
+        <div class="block-h"><span class="eyebrow">Filed from</span><span class="cnt">REPORTED · 6</span></div>
+        <div class="marks" aria-label="Cities reported from">
+          <span class="mk-riyadh">Riyadh</span>
+          <span class="mk-berlin">Berlin</span>
+          <span class="mk-seoul">Seoul</span>
+          <span class="mk-melbourne">Melbourne</span>
+          <span class="mk-rio">Rio</span>
+          <span class="mk-lima">Lima</span>
+        </div>
+      </div>
+      <div class="grp rv" style="--i:1">
+        <div class="block-h"><span class="eyebrow">On the ground in</span><span class="cnt">WORKED OR ATTENDED · 8</span></div>
+        <div class="marks" aria-label="Cities worked in or attended">
+          <span class="mk-amsterdam">Amsterdam</span>
+          <span class="mk-dallas">Dallas</span>
+          <span class="mk-newyork">New York</span>
+          <span class="mk-doha">Doha</span>
+          <span class="mk-prague">Prague</span>
+          <span class="mk-lisbon">Lisbon</span>
+          <span class="mk-madrid">Madrid</span>
+          <span class="mk-rome">Rome</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <!-- 04 WRITING                                             -->
+  <!-- ===================================================== -->
+  <section class="seg" data-seg="04" id="writing" aria-labelledby="h-writing">
+    <div class="seg-head">
+      <span class="seg-no">04</span>
+      <h2 class="seg-title" id="h-writing">Writing</h2>
+      <span class="seg-rule"></span>
+      <span class="seg-meta">2 pieces · 2022 · 2023</span>
+      <span class="seg-status"><span class="tally"><i></i></span></span>
+    </div>
+    <p class="prose dim seg-sub rv">Two pieces from five years of reporting on competitive gaming. The eye behind the systems.</p>
+    <p class="note rv" style="--i:1"><span class="mono">NOTE</span><span><span class="hl">Yellow highlights</span> are annotations: thoughts I have now, looking back at what I wrote then.</span></p>
+
+    <ol class="rows wlist rv" style="--i:2">
+      <li class="row">
+        <span class="no">04.1</span>
+        <span class="kind">Reportage</span>
+        <a class="wlink" href="/writing/berlin-major-2023/" data-img="/assets/img/photography/events/Berlin%20site-13.jpg">
+          <span class="name">Two Conversations at the Major</span>
+          <span class="sub">Berlin, May 2023</span>
+        </a>
+        <span class="meta"><span>2023</span><span class="arr" aria-hidden="true">Read &#8599;</span></span>
+      </li>
+      <li class="row">
+        <span class="no">04.2</span>
+        <span class="kind">Interview</span>
+        <a class="wlink" href="/writing/bzka-interview/">
+          <span class="name">On the Verge: How bzkA Almost Quit Everything and Won the World</span>
+          <span class="sub">Interview</span>
+        </a>
+        <span class="meta"><span>2022</span><span class="arr" aria-hidden="true">Read &#8599;</span></span>
+      </li>
+    </ol>
+  </section>
+
+  <!-- ===================================================== -->
+  <!-- 05 CAREER                                              -->
+  <!-- ===================================================== -->
+  <section class="seg" data-seg="05" id="career" aria-labelledby="h-career">
+    <div class="seg-head">
+      <span class="seg-no">05</span>
+      <h2 class="seg-title" id="h-career">Career</h2>
+      <span class="seg-rule"></span>
+      <span class="seg-meta">2022 · 2026 · 6 stops</span>
+      <span class="seg-status"><span class="tally"><i></i></span></span>
+    </div>
+    <p class="prose dim seg-sub rv">From events and communications, through the press row, to building the rooms where the stories get told. The full record is on the <a href="/cv/" style="color:var(--ink);border-bottom:1px solid var(--line-2)">CV</a>.</p>
+
+    <ol class="rows tl rv" style="--i:1">
+      <li class="row"><span class="no">05.1</span><span class="when">2022 Q1</span><span class="org">Primal Esports</span><span class="role">Communications Manager</span><span class="detail">15+ events across LATAM</span></li>
+      <li class="row"><span class="no">05.2</span><span class="when">2022 Q4</span><span class="org">Esports.net</span><span class="role">Journalist &amp; Interviewer</span><span class="detail">250+ articles · 100+ interviews</span></li>
+      <li class="row"><span class="no">05.3</span><span class="when">2023 Q4</span><span class="org">GROWE</span><span class="role">Content &amp; Social Media Manager</span><span class="detail">Tournament broadcasts · 4M+ minutes</span></li>
+      <li class="row"><span class="no">05.4</span><span class="when">2025 Q1</span><span class="org">EDGE Esports</span><span class="role">Creative &amp; Social Consultant</span><span class="detail">45-day sprint · 27K to 305K impressions</span></li>
+      <li class="row"><span class="no">05.5</span><span class="when">2025 Q2</span><span class="org">La Sopa</span><span class="role">Director &amp; Executive Producer</span><span class="detail">Weekly since May 2025</span></li>
+      <li class="row cur"><span class="no">05.6</span><span class="when"><i aria-hidden="true"></i>2025 Q4</span><span class="org">RDY.gg</span><span class="role">Content &amp; Creative Strategist</span><span class="detail">Current role</span></li>
+    </ol>
+    <ul class="links rv" style="--i:2">
+      <li><a href="/cv/">Curriculum Vitae &#8599;</a></li>
+    </ul>
+  </section>
+
+  <!-- ===================================================== -->
+  <!-- CONTACT                                                -->
+  <!-- ===================================================== -->
+  <section class="seg contact" data-seg="ct" id="contact" aria-labelledby="h-contact">
+    <div class="seg-head">
+      <span class="seg-no">CT</span>
+      <h2 class="seg-title" id="h-contact">Contact</h2>
+      <span class="seg-rule"></span>
+      <span class="seg-meta">End of rundown</span>
+      <span class="seg-status"><span class="tally"><i></i></span></span>
+    </div>
+    <h3 class="big rv">Let's talk.</h3>
+    <p class="prose dim rv" style="--i:1">Collaborations, new projects, or just a good conversation about esports and storytelling. Reach out in English, Spanish, or Portuguese.</p>
+    <div class="mail rv" style="--i:2">
+      <span class="mono" style="color:var(--muted)">MAIL</span>
+      <a href="mailto:hello@pedrobrauner.com">hello@pedrobrauner.com</a>
+      <button class="btn mini" id="copyMail" type="button"><span class="lbl">Copy</span></button>
+      <span class="sr" aria-live="polite" id="copyLive"></span>
+    </div>
+    <ul class="socials rv" style="--i:3">
+      <li><a href="https://x.com/PBraunerGG" target="_blank" rel="noopener"><span>Twitter / X</span><span class="mono">&#8599;</span></a></li>
+      <li><a href="https://www.linkedin.com/in/pbrauner/" target="_blank" rel="noopener"><span>LinkedIn</span><span class="mono">&#8599;</span></a></li>
+      <li><a href="https://www.instagram.com/pedrobrauner/" target="_blank" rel="noopener"><span>Instagram</span><span class="mono">&#8599;</span></a></li>
+      <li><a href="/cv/"><span>Curriculum Vitae</span><span class="mono">&#8599;</span></a></li>
+    </ul>
+    <footer>
+      <span>Pedro Brauner © 2026 · <a href="/cosmic/">Cosmic Hypothetical</a> · <a href="/lab/">Lab</a></span>
+      <span class="end">END OF SHEET · REV 2026.09</span>
+    </footer>
+  </section>
+</main>
+
+<img class="peek" id="peek" alt="" aria-hidden="true">
+
+<dialog class="lb" id="lb" aria-label="Photo viewer">
+  <figure>
+    <img id="lbImg" alt="">
+    <figcaption><span id="lbCap"></span></figcaption>
+  </figure>
+  <div class="ctl">
+    <button class="btn mini" id="lbPrev" type="button">Prev</button>
+    <button class="btn mini" id="lbNext" type="button">Next</button>
+    <button class="btn mini" id="lbClose" type="button">Close (Esc)</button>
+  </div>
+</dialog>
+
+<script>
+(function(){
+  'use strict';
+  var $=function(s,r){return (r||document).querySelector(s);};
+  var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));};
+  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var hasIO='IntersectionObserver' in window;
+  var root=document.documentElement;
+  root.classList.add('js');
+  if(hasIO&&!document.hidden) root.classList.add('io');
+
+  /* ---------- Lima clock, 24h, every second ---------- */
+  var fmt;
+  try{ fmt=new Intl.DateTimeFormat('en-GB',{timeZone:'America/Lima',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}); }
+  catch(e){ fmt={format:function(d){return d.toTimeString().slice(0,8);}}; }
+  var clocks=$$('[data-clock]');
+  function tick(){
+    var t=fmt.format(new Date());
+    for(var i=0;i<clocks.length;i++){ if(clocks[i].textContent!==t) clocks[i].textContent=t; }
+  }
+  tick();
+  setTimeout(function(){ tick(); setInterval(tick,1000); }, 1000-(Date.now()%1000));
+
+  /* ---------- reveal on intersection (resting state is visible without IO) ---------- */
+  var rv=$$('.rv');
+  if(root.classList.contains('io')){
+    var ro=new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); ro.unobserve(e.target); } });
+    },{rootMargin:'0px 0px -6% 0px',threshold:0.02});
+    rv.forEach(function(el){ ro.observe(el); });
+    document.addEventListener('visibilitychange',function(){ if(document.hidden){ rv.forEach(function(el){ el.classList.add('in'); }); } });
+  }
+
+  /* ---------- tally follows the scroll ---------- */
+  var segs=$$('section[data-seg]');
+  var navLinks=$$('.nav a[data-seg]');
+  var liveId='00';
+  function setLive(id){
+    if(id===liveId) return; liveId=id;
+    var navTarget=(id==='00')?'01':id;
+    navLinks.forEach(function(a){ a.classList.toggle('is-live',a.getAttribute('data-seg')===navTarget); });
+    var idx=-1;
+    segs.forEach(function(s,i){ if(s.getAttribute('data-seg')===id) idx=i; });
+    segs.forEach(function(s,i){
+      s.classList.toggle('is-live',i===idx);
+      s.classList.toggle('is-next',i===idx+1);
+      s.classList.toggle('is-aired',i<idx);
+    });
+  }
+  segs[0].classList.add('is-live'); segs[1].classList.add('is-next');
+  navLinks[0].classList.add('is-live');
+  if(hasIO){
+    var to=new IntersectionObserver(function(es){
+      var hit=null;
+      es.forEach(function(e){ if(e.isIntersecting) hit=e.target.getAttribute('data-seg'); });
+      if(hit) setLive(hit);
+    },{rootMargin:'-38% 0px -52% 0px',threshold:0});
+    segs.forEach(function(s){ to.observe(s); });
+  }
+
+  /* ---------- split-flap board ---------- */
+  var COLS=13, CH='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  var NAME='PEDRO BRAUNER';
+  var FILED=['Riyadh','Berlin','Seoul','Melbourne','Rio','Lima'];
+  var GROUND=['Amsterdam','Dallas','New York','Doha','Prague','Lisbon','Madrid','Rome'];
+  var board=$('#board'), tiles=[];
+  var boardList=$('#boardList'), boardCity=$('#boardCity');
+  for(var c=0;c<COLS;c++){
+    var el=document.createElement('span'); el.className='flap';
+    el.innerHTML='<span class="top"><span> </span></span><span class="bottom"><span> </span></span><span class="flip-top"><span> </span></span><span class="flip-bottom"><span> </span></span>';
+    board.appendChild(el);
+    tiles.push({el:el,val:' ',t:el.children[0].firstChild,b:el.children[1].firstChild,ft:el.children[2].firstChild,fb:el.children[3].firstChild});
+  }
+  function padTo(s){ s=s.toUpperCase(); var l=Math.floor((COLS-s.length)/2); var out=''; for(var i=0;i<l;i++) out+=' '; out+=s; while(out.length<COLS) out+=' '; return out.slice(0,COLS); }
+  function sleep(ms){ return new Promise(function(r){ setTimeout(r,ms); }); }
+  function setTile(f,ch){ f.t.textContent=ch; f.b.textContent=ch; f.ft.textContent=ch; f.fb.textContent=ch; f.val=ch; }
+  function flipOne(f,next){
+    return new Promise(function(resolve){
+      if(f.val===next){ resolve(); return; }
+      var prev=f.val;
+      f.t.textContent=next; f.ft.textContent=prev; f.b.textContent=prev; f.fb.textContent=next;
+      f.el.classList.remove('flip'); void f.el.offsetWidth; f.el.classList.add('flip');
+      setTimeout(function(){ setTile(f,next); f.el.classList.remove('flip'); resolve(); },330);
+    });
+  }
+  function scrambleTo(f,target,steps){
+    var p=Promise.resolve();
+    if(f.val===target) return p;
+    for(var i=0;i<steps;i++){
+      p=p.then(function(){ return flipOne(f,CH.charAt(Math.floor(Math.random()*CH.length))); }).then(function(){ return sleep(20+Math.random()*30); });
+    }
+    return p.then(function(){ return flipOne(f,target); });
+  }
+  var busy=false, lastCity='', flips=0, cycleTimer=null;
+  function resolveTo(text){
+    busy=true;
+    var s=padTo(text);
+    return Promise.all(tiles.map(function(f,i){
+      return sleep(i*60).then(function(){ return scrambleTo(f,s.charAt(i),1+Math.floor(Math.random()*2)); });
+    })).then(function(){ busy=false; });
+  }
+  function setStatus(list,city){ boardList.textContent=list; boardCity.textContent=city.toUpperCase(); }
+  function pick(){
+    var useGround=(flips%3===2);
+    var list=useGround?GROUND:FILED, c;
+    do{ c=list[Math.floor(Math.random()*list.length)]; }while(c===lastCity);
+    lastCity=c;
+    return {c:c,label:useGround?'ON THE GROUND IN':'FILED FROM'};
+  }
+  function cycle(){
+    if(busy||document.hidden) return Promise.resolve();
+    flips++;
+    if(flips%5===0){ setStatus('NAME',NAME); return reduce?Promise.resolve(setNow(NAME)):resolveTo(NAME); }
+    var p=pick(); setStatus(p.label,p.c);
+    return reduce?Promise.resolve(setNow(p.c)):resolveTo(p.c);
+  }
+  function setNow(text){ var s=padTo(text); tiles.forEach(function(f,i){ setTile(f,s.charAt(i)); }); }
+  function armCycle(){ clearInterval(cycleTimer); cycleTimer=setInterval(cycle,6000); }
+  if(reduce){
+    setNow(NAME); setStatus('NAME',NAME);
+  }else{
+    setTimeout(function(){ setStatus('NAME',NAME); resolveTo(NAME).then(armCycle); },250);
+  }
+  $('#flipBtn').addEventListener('click',function(){
+    if(busy) return;
+    cycle(); if(!reduce) armCycle();
+  });
+
+  /* ---------- self-playing Win Condition mock ---------- */
+  var mock=$('#mock'), mrows=$$('.mrow',mock), mn=mrows.length, mi=0, mt=null, mplay=false, userPaused=false;
+  var DUR=3200, mockPos=$('#mockPos'), mockToggle=$('#mockToggle');
+  mock.style.setProperty('--dur',DUR+'ms');
+  function mshow(k){
+    mrows.forEach(function(r,j){
+      r.classList.toggle('is-live',j===k);
+      r.classList.toggle('is-done',j<k);
+      var ins=$('.insert',r); ins.hidden=(j!==k);
+      if(j===k){ var inner=$('.in',ins); inner.style.animation='none'; void inner.offsetWidth; inner.style.animation=''; }
+    });
+    var p=$('.prog',mrows[k]); p.classList.remove('run'); void p.offsetWidth; p.classList.add('run');
+    mockPos.textContent=String(k+1).padStart(2,'0')+'/'+String(mn).padStart(2,'0');
+  }
+  function mstep(){ mshow(mi); mt=setTimeout(function(){ mi=(mi+1)%mn; mstep(); },DUR); }
+  function mstart(){ if(mplay) return; mplay=true; clearTimeout(mt); mstep(); mockToggle.textContent='Playing'; mockToggle.setAttribute('aria-pressed','true'); }
+  function mstop(){ mplay=false; clearTimeout(mt); mockToggle.textContent='Paused'; mockToggle.setAttribute('aria-pressed','false'); }
+  if(reduce){
+    mi=mn-1; mshow(mi); mockToggle.textContent='Next'; mockToggle.setAttribute('aria-pressed','false');
+    mockToggle.addEventListener('click',function(){ mi=(mi+1)%mn; mshow(mi); });
+  }else{
+    mshow(0);
+    mockToggle.addEventListener('click',function(){ if(mplay){ userPaused=true; mstop(); } else { userPaused=false; mstart(); } });
+    if(hasIO){
+      var mo=new IntersectionObserver(function(es){
+        es.forEach(function(e){
+          if(e.isIntersecting && e.intersectionRatio>=0.25){ if(!userPaused && !document.hidden) mstart(); }
+          else if(mplay){ mstop(); }
+        });
+      },{threshold:[0,0.25,0.5]});
+      mo.observe(mock);
+    }else{ mstart(); }
+    document.addEventListener('visibilitychange',function(){ if(document.hidden && mplay) mstop(); });
+  }
+
+  /* ---------- monitors: TAKE swaps program and preview, hard cut ---------- */
+  var take=$('#take'), monA=$('#monA'), monB=$('#monB');
+  function roles(){
+    [monA,monB].forEach(function(m){ $('.role-lbl',m).textContent=(m.getAttribute('data-role')==='pgm')?'PGM':'PVW'; });
+  }
+  take.addEventListener('click',function(){
+    var swapped=monA.getAttribute('data-role')==='pvw';
+    monA.setAttribute('data-role',swapped?'pgm':'pvw');
+    monB.setAttribute('data-role',swapped?'pvw':'pgm');
+    take.setAttribute('aria-pressed',String(!swapped));
+    roles();
+  });
+  roles();
+
+  /* timecode burn-in: time of day in Lima at 25 fps; the Mux monitor reads its own playhead when it has one */
+  var tcs=$$('.tc'), tcOn=false, mux=$('mux-player');
+  function two(n){ return (n<10?'0':'')+n; }
+  function hms(t){ t=Math.max(0,Math.floor(t)); return two(Math.floor(t/3600))+':'+two(Math.floor(t/60)%60)+':'+two(t%60); }
+  function tcFrame(){
+    if(!tcOn) return;
+    var now=new Date(), ff=two(Math.floor(now.getMilliseconds()/40));
+    var tod='TOD '+fmt.format(now)+':'+ff;
+    for(var i=0;i<tcs.length;i++){
+      var el=tcs[i], s=tod;
+      if(el.getAttribute('data-tc')==='mux' && mux && typeof mux.currentTime==='number' && mux.currentTime>0){
+        var t=mux.currentTime; s='REC '+hms(t)+':'+two(Math.floor((t%1)*25));
+      }
+      if(el.textContent!==s) el.textContent=s;
+    }
+    requestAnimationFrame(tcFrame);
+  }
+  var film=$('#film');
+  if(hasIO){
+    var fo=new IntersectionObserver(function(es){
+      es.forEach(function(e){ var on=e.isIntersecting; if(on&&!tcOn){ tcOn=true; requestAnimationFrame(tcFrame); } else if(!on){ tcOn=false; } });
+    },{threshold:0});
+    fo.observe(film);
+  }else{ tcOn=true; requestAnimationFrame(tcFrame); }
+
+  /* ---------- photo strip lightbox ---------- */
+  var lb=$('#lb'), lbImg=$('#lbImg'), lbCap=$('#lbCap'), slates=$$('.strip .slate'), li=0;
+  function lbShow(k){
+    li=(k+slates.length)%slates.length;
+    var b=slates[li];
+    lbImg.src=b.getAttribute('data-full');
+    lbImg.alt=$('img',b).alt;
+    lbCap.textContent='SLATE '+two(li+1)+' / '+two(slates.length)+' · '+b.getAttribute('data-cap');
+  }
+  if(lb && typeof lb.showModal==='function'){
+    slates.forEach(function(b,k){ b.addEventListener('click',function(){ lbShow(k); lb.showModal(); }); });
+    $('#lbPrev').addEventListener('click',function(){ lbShow(li-1); });
+    $('#lbNext').addEventListener('click',function(){ lbShow(li+1); });
+    $('#lbClose').addEventListener('click',function(){ lb.close(); });
+    lb.addEventListener('keydown',function(e){
+      if(e.key==='ArrowRight'){ e.preventDefault(); lbShow(li+1); }
+      else if(e.key==='ArrowLeft'){ e.preventDefault(); lbShow(li-1); }
+    });
+    lb.addEventListener('click',function(e){ if(e.target===lb) lb.close(); });
+    lb.addEventListener('close',function(){ lbImg.removeAttribute('src'); });
+  }else{
+    slates.forEach(function(b){ b.addEventListener('click',function(){ window.open(b.getAttribute('data-full'),'_blank','noopener'); }); });
+  }
+
+  /* ---------- hover image links (Writing): a still trails the cursor; degrades to nothing without an image ---------- */
+  var peek=$('#peek');
+  var fine=window.matchMedia&&window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  if(fine && !reduce && peek){
+    var tx=0,ty=0,cx=0,cy=0,raf=null,on=false;
+    function loop(){
+      cx+=(tx-cx)*.2; cy+=(ty-cy)*.2;
+      peek.style.transform='translate('+Math.round(cx)+'px,'+Math.round(cy)+'px) translate(24px,-50%)';
+      if(on||Math.abs(tx-cx)>.5||Math.abs(ty-cy)>.5){ raf=requestAnimationFrame(loop); } else { raf=null; }
+    }
+    $$('.wlink[data-img]').forEach(function(a){
+      a.addEventListener('mouseenter',function(e){
+        peek.src=a.getAttribute('data-img'); on=true;
+        tx=cx=e.clientX; ty=cy=e.clientY;
+        peek.classList.add('on'); if(!raf) loop();
+      });
+      a.addEventListener('mousemove',function(e){ tx=e.clientX; ty=e.clientY; if(!raf) loop(); },{passive:true});
+      a.addEventListener('mouseleave',function(){ on=false; peek.classList.remove('on'); });
+    });
+  }
+
+  /* ---------- copy email: one confirmed micro-state ---------- */
+  var cp=$('#copyMail'), cpLive=$('#copyLive'), cpT=null;
+  cp.addEventListener('click',function(){
+    var t='hello@pedrobrauner.com';
+    var done=function(){
+      cp.classList.add('done'); $('.lbl',cp).textContent='Copied'; cpLive.textContent='Email address copied';
+      clearTimeout(cpT); cpT=setTimeout(function(){ cp.classList.remove('done'); $('.lbl',cp).textContent='Copy'; cpLive.textContent=''; },1800);
+    };
+    if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(t).then(done,function(){ fallback(); }); }
+    else fallback();
+    function fallback(){
+      var ta=document.createElement('textarea'); ta.value=t; ta.setAttribute('readonly',''); ta.style.position='fixed'; ta.style.left='-9999px';
+      document.body.appendChild(ta); ta.select();
+      try{ document.execCommand('copy'); }catch(e){}
+      document.body.removeChild(ta); done();
+    }
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pedro Brauner · Giardino</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="A lab experiment: the portfolio as a summer garden. Painting, paper, and foliage in the foreground.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Caveat:wght@500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   GIARDINO  ·  lab experiment
+   The portfolio as a summer garden. A painting in a paper frame,
+   real foliage out of focus in front of it, notes in the margins.
+   Paintings: Paul Cezanne, The Met open access (public domain).
+   ============================================================ */
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --cream:#f4f1ea;
+  --cream-2:#ece8dd;
+  --cream-3:#e3ded0;
+  --ink:#1b1a17;
+  --ink-2:#403d36;
+  --muted:#7a766c;
+  --line:rgba(27,26,23,.12);
+  --pink:#f6c3d9;
+  --peach:#ffd9bd;
+  --lilac:#d9d6ff;
+  --mat:#cdd4fb;
+  --green:#4e7a3b;
+  --pill:#1b1a17;
+
+  --serif:'Instrument Serif',Georgia,'Times New Roman',serif;
+  --sans:'Instrument Sans','Helvetica Neue',Arial,sans-serif;
+  --hand:'Caveat','Segoe Print','Bradley Hand',cursive;
+
+  --pad:clamp(20px,4.2vw,64px);
+  --r-card:26px;
+  --r-frame:22px;
+}
+
+html{background:var(--mat);-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{
+  font-family:var(--sans);
+  color:var(--ink);
+  font-size:1rem;
+  line-height:1.5;
+  min-height:100vh;
+  padding:12px;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+@media (max-width:720px){ body{padding:6px} }
+
+img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--pink);color:var(--ink)}
+
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* the mounted print --------------------------------------------- */
+.page{
+  position:relative;
+  background:var(--cream);
+  border-radius:28px;
+  overflow:clip;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.55),
+    0 40px 90px -40px rgba(58,66,140,.45),
+    0 2px 0 rgba(255,255,255,.7) inset;
+}
+@media (max-width:720px){ .page{border-radius:18px} }
+
+/* paper grain over everything, very faint */
+.page::after{
+  content:"";
+  position:absolute;inset:0;
+  pointer-events:none;
+  z-index:60;
+  opacity:.16;
+  mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  background-size:220px 220px;
+}
+
+/* the coloured haze that bleeds in from the edges ---------------- */
+.haze{
+  position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(34% 46% at 0% 74%, rgba(246,195,217,.9), rgba(246,195,217,0) 70%),
+    radial-gradient(30% 34% at 100% 4%, rgba(255,217,189,.85), rgba(255,217,189,0) 70%),
+    radial-gradient(26% 30% at 100% 78%, rgba(217,214,255,.6), rgba(217,214,255,0) 70%),
+    radial-gradient(26% 26% at 4% 2%, rgba(255,232,190,.9), rgba(255,232,190,0) 70%);
+}
+.haze-about{
+  inset:-10% 0 -30% 0;
+  background:
+    radial-gradient(30% 50% at 0% 40%, rgba(246,195,217,.7), rgba(246,195,217,0) 70%),
+    radial-gradient(30% 50% at 100% 90%, rgba(255,217,189,.6), rgba(255,217,189,0) 70%);
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.top{
+  position:relative;z-index:5;
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  align-items:center;
+  gap:16px;
+  padding:26px var(--pad) 22px;
+}
+.brand{display:flex;align-items:center;gap:12px;font-family:var(--serif);font-size:1.7rem;letter-spacing:-.01em;line-height:1}
+.brand .spark{width:26px;height:26px;flex:none}
+.brand .spark path{fill:var(--ink)}
+.brand small{font-family:var(--sans);font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-left:6px;font-weight:500}
+
+.navpill{
+  display:flex;gap:2px;
+  padding:6px;
+  border-radius:999px;
+  background:rgba(255,255,255,.55);
+  border:1px solid rgba(27,26,23,.08);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  box-shadow:0 1px 0 rgba(255,255,255,.8) inset, 0 10px 30px -18px rgba(27,26,23,.25);
+}
+.navpill a{
+  padding:9px 16px;border-radius:999px;
+  font-size:.92rem;font-weight:500;color:var(--ink-2);
+  transition:background .25s ease,color .25s ease;
+}
+.navpill a:hover{background:rgba(27,26,23,.06);color:var(--ink)}
+
+.top-right{display:flex;justify-content:flex-end;align-items:center;gap:18px}
+.top-right .quiet{font-size:.92rem;font-weight:500;color:var(--ink-2)}
+.top-right .quiet:hover{color:var(--ink)}
+
+.btn{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:14px 22px;border-radius:999px;
+  font-weight:500;font-size:.98rem;line-height:1;
+  transition:transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s ease, background .25s ease;
+  will-change:transform;
+}
+.btn-ink{background:var(--pill);color:#fff;box-shadow:0 12px 26px -14px rgba(27,26,23,.7)}
+.btn-ink:hover{transform:translateY(-2px);box-shadow:0 18px 30px -14px rgba(27,26,23,.7)}
+.btn-ink .arr{transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.btn-ink:hover .arr{transform:translateX(4px)}
+.btn-paper{background:rgba(255,255,255,.7);color:var(--ink);border:1px solid rgba(27,26,23,.1);box-shadow:0 10px 24px -18px rgba(27,26,23,.35)}
+.btn-paper:hover{transform:translateY(-2px);background:#fff}
+.btn-sm{padding:12px 18px;font-size:.92rem}
+
+@media (max-width:900px){
+  .top{grid-template-columns:1fr auto;padding:18px var(--pad) 14px}
+  .navpill{display:none}
+  .top-right .quiet{display:none}
+  .brand{font-size:1.45rem}
+  .brand small{display:none}
+}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.stage{position:relative;z-index:2}
+.hero{position:relative;z-index:2}
+.stage > .fg{z-index:30}
+
+.frame{
+  position:relative;
+  margin:0 var(--pad);
+  height:clamp(400px,56vh,700px);
+  border-radius:var(--r-frame);
+  overflow:hidden;
+  isolation:isolate;
+  background:#b9c6bf;
+  box-shadow:0 30px 60px -40px rgba(27,26,23,.45);
+}
+.frame .paint{
+  position:absolute;inset:-6% 0 -6% 0;
+  width:100%;height:112%;
+  object-fit:cover;object-position:50% 38%;
+  transform:translate3d(0,var(--py,0px),0) scale(1.02);
+  will-change:transform;
+}
+/* print texture over the painting, like a riso stipple */
+.frame::before{
+  content:"";position:absolute;inset:0;z-index:2;pointer-events:none;
+  opacity:.22;mix-blend-mode:soft-light;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='1' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+/* sun through the trees, top-left, and a light vignette */
+.frame::after{
+  content:"";position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:
+    radial-gradient(42% 60% at 2% 8%, rgba(255,236,190,.85), rgba(255,236,190,0) 70%),
+    radial-gradient(100% 80% at 50% 60%, rgba(0,0,0,0) 60%, rgba(40,30,10,.14) 100%);
+}
+/* the cream swoop that eats the bottom edge */
+.swoop{
+  position:absolute;left:-2px;right:-2px;bottom:-2px;z-index:3;
+  height:clamp(70px,11vw,130px);
+  display:block;
+}
+.swoop path{fill:var(--cream)}
+
+/* margin notes inside the painting */
+.note{
+  position:absolute;z-index:4;
+  font-family:var(--hand);font-weight:500;
+  font-size:clamp(1.15rem,1.6vw,1.5rem);
+  line-height:1.05;color:var(--ink);
+  text-shadow:0 1px 0 rgba(255,255,255,.35);
+  opacity:0;transform:translateY(8px);
+}
+.note .rule{display:block;width:38px;height:2px;background:var(--ink);opacity:.7;margin-top:8px;border-radius:2px}
+.note.n1{left:calc(var(--pad) - 4px + 16%);top:46%}
+.note.n2{right:8%;top:14%}
+@media (max-width:900px){
+  .note.n1{left:auto;right:8%;top:58%}
+  .note.n2{right:6%;top:9%}
+}
+
+/* the hero text block ------------------------------------------- */
+.lede{
+  position:relative;z-index:4;
+  display:grid;
+  grid-template-columns:minmax(0,1.18fr) minmax(0,1fr);
+  gap:clamp(24px,5vw,80px);
+  padding:clamp(8px,1.4vw,22px) var(--pad) clamp(40px,5vw,72px);
+  margin-top:calc(clamp(70px,11vw,130px) * -.55);
+}
+.eyebrow{
+  font-size:.72rem;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--muted);font-weight:600;margin-bottom:18px;
+}
+h1{
+  font-family:var(--serif);font-weight:400;
+  font-size:clamp(2.9rem,6.4vw,6.6rem);
+  line-height:.96;letter-spacing:-.025em;
+  color:var(--ink);
+  text-wrap:balance;
+}
+h1 em{font-style:italic;letter-spacing:-.02em}
+.sub{
+  margin-top:26px;max-width:46ch;
+  font-size:clamp(1.02rem,1.25vw,1.2rem);line-height:1.55;color:var(--ink-2);
+}
+.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px;align-items:center}
+.play{
+  display:inline-flex;align-items:center;gap:14px;font-weight:500;color:var(--ink);
+}
+.play .disc{
+  width:50px;height:50px;border-radius:50%;display:grid;place-items:center;
+  background:rgba(255,255,255,.7);border:1px solid rgba(27,26,23,.12);
+  transition:transform .35s cubic-bezier(.2,.8,.2,1), background .25s ease;
+}
+.play:hover .disc{transform:scale(1.06);background:#fff}
+.play svg{width:14px;height:14px;margin-left:2px}
+
+.stamps{display:flex;align-items:center;gap:14px;margin-top:34px;color:var(--ink-2);font-size:.95rem}
+.stamps .row{display:flex;flex:none}
+.stamps > span{flex:1;min-width:0}
+.stamps img{
+  width:34px;height:34px;border-radius:50%;object-fit:cover;
+  border:2px solid var(--cream);margin-left:-9px;
+  box-shadow:0 2px 6px rgba(27,26,23,.2);
+}
+.stamps img:first-child{margin-left:0}
+
+.aside{
+  position:relative;
+  padding:clamp(20px,3vw,44px) 0 0 clamp(0px,3vw,44px);
+  border-left:1px solid var(--line);
+  align-self:end;
+  min-height:100%;
+}
+.aside .eyebrow{margin-bottom:26px}
+.marks{
+  display:flex;flex-wrap:wrap;align-items:baseline;
+  gap:18px 34px;color:var(--ink);opacity:.78;
+}
+.marks span{white-space:nowrap;line-height:1}
+.mk-1{font-family:var(--serif);font-style:italic;font-size:1.9rem}
+.mk-2{font-family:var(--sans);font-weight:700;font-size:1.25rem;letter-spacing:.08em;text-transform:uppercase}
+.mk-3{font-family:var(--serif);font-size:1.75rem;letter-spacing:.06em;font-variant:small-caps}
+.mk-4{font-family:var(--sans);font-weight:600;font-size:1.3rem;letter-spacing:-.04em}
+.mk-4 i{font-style:normal;color:var(--green)}
+.mk-5{font-family:var(--serif);font-size:1.9rem;letter-spacing:-.02em}
+.mk-6{font-family:var(--sans);font-weight:700;font-size:1.2rem;letter-spacing:.2em;text-transform:uppercase}
+
+.aside .note{position:relative;display:flex;gap:14px;align-items:flex-end;margin-top:34px;opacity:1;transform:none;text-align:left}
+.aside .note .arrow{display:block;width:26px;height:56px;margin:0 0 2px 0;flex:none}
+.aside .note .arrow path{fill:none;stroke:var(--ink);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+
+@media (max-width:720px){
+  .x{display:none}
+  .lede .eyebrow{font-size:.66rem;letter-spacing:.2em}
+}
+@media (max-width:900px){
+  .frame{height:clamp(380px,62vh,560px)}
+  .lede{grid-template-columns:1fr;gap:40px;margin-top:-30px}
+  .aside{border-left:0;border-top:1px solid var(--line);padding:26px 0 0 0;min-height:0}
+}
+
+/* ============================================================
+   FOREGROUND FOLIAGE (generated in JS)
+   ============================================================ */
+.fg{
+  position:absolute;inset:0;z-index:20;pointer-events:none;overflow:visible;
+}
+.fg .clu{
+  position:absolute;left:0;top:0;
+  will-change:transform;
+  transform:translate3d(var(--px,0px),var(--py,0px),0);
+  opacity:0;
+  animation:leafin 1.6s cubic-bezier(.2,.7,.2,1) forwards;
+  animation-delay:var(--d,0s);
+}
+.fg .clu > svg{
+  display:block;overflow:visible;
+  filter:blur(var(--blur,0px));
+  transform-origin:var(--ox,0px) var(--oy,0px);
+  animation:sway var(--sw,9s) ease-in-out infinite alternate;
+  animation-delay:var(--sd,0s);
+}
+@keyframes sway{
+  from{transform:rotate(calc(var(--amp,1deg) * -1)) translateY(0)}
+  to{transform:rotate(var(--amp,1deg)) translateY(3px)}
+}
+@keyframes leafin{
+  from{opacity:0;transform:translate3d(var(--px,0px),calc(var(--py,0px) + 18px),0)}
+  to{opacity:1;transform:translate3d(var(--px,0px),var(--py,0px),0)}
+}
+
+/* ============================================================
+   SECTIONS
+   ============================================================ */
+section{position:relative;z-index:3}
+.wrap{padding:0 var(--pad)}
+.sec-head{
+  display:grid;grid-template-columns:1fr auto;align-items:end;gap:24px;
+  padding-bottom:26px;margin-bottom:34px;border-bottom:1px solid var(--line);
+}
+h2{
+  font-family:var(--serif);font-weight:400;
+  font-size:clamp(2.1rem,4.2vw,3.9rem);line-height:1;letter-spacing:-.02em;
+  text-wrap:balance;
+}
+h2 em{font-style:italic}
+.sec-head p{max-width:40ch;color:var(--ink-2);font-size:1rem}
+@media (max-width:720px){ .sec-head{grid-template-columns:1fr} }
+
+/* chairs (what he does) */
+#work{padding:clamp(40px,6vw,90px) 0 0}
+.chairs{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;
+}
+.chair{
+  position:relative;
+  background:var(--cream-2);
+  border-radius:var(--r-card);
+  padding:16px 16px 28px;
+  border:1px solid rgba(255,255,255,.7);
+  box-shadow:0 1px 0 rgba(255,255,255,.9) inset, 0 30px 50px -40px rgba(27,26,23,.35);
+  transition:transform .5s cubic-bezier(.2,.8,.2,1), box-shadow .5s ease;
+}
+.chair:hover{transform:translateY(-4px);box-shadow:0 1px 0 rgba(255,255,255,.9) inset, 0 40px 60px -38px rgba(27,26,23,.45)}
+.chair .pic{
+  position:relative;aspect-ratio:3/1.9;border-radius:16px;overflow:hidden;background:#c9c2b0;
+}
+.chair .pic img{width:100%;height:100%;object-fit:cover;transform:scale(1.02);transition:transform 1.2s cubic-bezier(.2,.8,.2,1)}
+.chair:hover .pic img{transform:scale(1.07)}
+.chair .pic::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25), inset 0 -30px 40px -30px rgba(40,30,10,.25)}
+.chair .num{
+  position:absolute;top:26px;left:26px;z-index:2;
+  font-family:var(--hand);font-size:1.3rem;color:#fff;
+  background:rgba(27,26,23,.55);padding:2px 10px;border-radius:999px;backdrop-filter:blur(6px);
+}
+.chair h3{font-family:var(--serif);font-weight:400;font-size:2rem;letter-spacing:-.02em;line-height:1;margin:22px 8px 10px}
+.chair h3 em{font-style:italic}
+.chair p{color:var(--ink-2);margin:0 8px;font-size:.98rem}
+.chair .facts{display:flex;flex-wrap:wrap;gap:8px;margin:18px 8px 0}
+.chair .facts span{
+  font-size:.74rem;letter-spacing:.06em;text-transform:uppercase;font-weight:600;
+  padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.65);border:1px solid rgba(27,26,23,.08);color:var(--ink-2);
+}
+.chair .fg{z-index:5;overflow:visible}
+@media (max-width:1000px){ .chairs{grid-template-columns:1fr 1fr} }
+@media (max-width:640px){ .chairs{grid-template-columns:1fr} }
+
+/* the ledger (selected work) */
+#ledger{padding:clamp(60px,8vw,120px) 0 0}
+.ledger{list-style:none}
+.ledger li{border-bottom:1px solid var(--line)}
+.ledger a{
+  display:grid;grid-template-columns:64px minmax(0,1.6fr) minmax(0,1fr) auto;
+  align-items:center;gap:22px;padding:22px 6px;
+  transition:padding .4s cubic-bezier(.2,.8,.2,1);
+}
+.ledger a:hover{padding-left:16px}
+.ledger .yr{font-family:var(--hand);font-size:1.25rem;color:var(--muted)}
+.ledger .ttl{font-family:var(--serif);font-size:clamp(1.6rem,2.6vw,2.4rem);letter-spacing:-.02em;line-height:1.05}
+.ledger .ttl em{font-style:italic;color:var(--ink-2)}
+.ledger .role{color:var(--ink-2);font-size:.98rem}
+.ledger .tag{font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;font-weight:600;color:var(--muted)}
+.ledger .go{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;transition:background .3s ease,transform .4s cubic-bezier(.2,.8,.2,1)}
+.ledger a:hover .go{background:var(--ink);color:#fff;transform:rotate(-45deg)}
+.ledger .go svg{width:14px;height:14px}
+.ledger-note{
+  display:flex;gap:16px;align-items:flex-start;margin-top:26px;
+  font-family:var(--hand);font-size:1.3rem;color:var(--ink-2);
+}
+.ledger-note svg{flex:none;width:44px;height:30px;margin-top:2px}
+.ledger-note path{fill:none;stroke:var(--ink-2);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+@media (max-width:800px){
+  .ledger a{grid-template-columns:1fr auto;gap:8px 16px}
+  .ledger .yr{grid-column:1;font-size:1.05rem}
+  .ledger .role{grid-column:1/-1}
+  .ledger .go{grid-row:1/3;grid-column:2;align-self:center}
+}
+
+/* about */
+#about{padding:clamp(70px,9vw,130px) 0 0}
+.about{
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(30px,5vw,80px);align-items:center;
+}
+.portrait{
+  position:relative;border-radius:var(--r-frame);overflow:visible;
+}
+.portrait .pic{
+  position:relative;aspect-ratio:4/3;border-radius:var(--r-frame);overflow:hidden;background:#3a2c20;
+  box-shadow:0 40px 70px -40px rgba(27,26,23,.6);
+}
+.portrait .pic img{width:100%;height:100%;object-fit:cover;object-position:50% 40%}
+.portrait .pic::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.portrait .cap{
+  position:absolute;right:-6px;bottom:-34px;z-index:6;
+  font-family:var(--hand);font-size:1.35rem;color:var(--ink);line-height:1.05;text-align:right;
+}
+.portrait .cap .rule{display:inline-block;width:34px;height:2px;background:var(--ink);opacity:.7;margin-top:8px;border-radius:2px}
+.about-copy .eyebrow{margin-bottom:18px}
+.about-copy h2{font-size:clamp(2.2rem,4vw,3.8rem);margin-bottom:22px}
+.about-copy p{color:var(--ink-2);font-size:1.05rem;max-width:52ch;margin-bottom:16px}
+.facts{margin-top:26px;border-top:1px solid var(--line)}
+.facts div{display:grid;grid-template-columns:150px 1fr;gap:16px;padding:12px 0;border-bottom:1px solid var(--line);font-size:.95rem}
+.facts dt{font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;font-weight:600;color:var(--muted);padding-top:3px}
+.facts dd{color:var(--ink-2)}
+@media (max-width:900px){ .about{grid-template-columns:1fr} .portrait{margin-bottom:40px} }
+
+/* ============================================================
+   FOOTER, the second painting
+   ============================================================ */
+footer{position:relative;z-index:2;margin-top:clamp(80px,10vw,150px)}
+.band{
+  position:relative;overflow:hidden;isolation:isolate;
+  min-height:clamp(520px,60vh,720px);
+  background:#8ea6b8;
+}
+.band .paint{position:absolute;inset:-8% 0;width:100%;height:116%;object-fit:cover;object-position:50% 40%;transform:translate3d(0,var(--py,0px),0)}
+.band::before{
+  content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  opacity:.2;mix-blend-mode:soft-light;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='1' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+.band .swoop-top{position:absolute;left:-2px;right:-2px;top:-2px;z-index:2;height:clamp(60px,9vw,110px)}
+.band .swoop-top path{fill:var(--cream)}
+.band .glow{position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(60% 50% at 50% 100%, rgba(255,230,200,.35), rgba(255,230,200,0) 70%)}
+
+.card{
+  position:relative;z-index:3;
+  width:min(640px, calc(100% - 2 * var(--pad)));
+  margin:clamp(110px,16vw,190px) auto clamp(90px,12vw,160px);
+  background:rgba(244,241,234,.92);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border-radius:var(--r-card);
+  padding:clamp(28px,4vw,48px);
+  box-shadow:0 40px 80px -40px rgba(20,25,40,.6), 0 1px 0 rgba(255,255,255,.9) inset;
+  text-align:center;
+}
+.card h2{font-size:clamp(2.6rem,5.4vw,4.6rem)}
+.card p{color:var(--ink-2);margin:14px auto 26px;max-width:40ch}
+.card .mail{font-family:var(--serif);font-size:clamp(1.3rem,2.4vw,1.8rem);letter-spacing:-.01em;display:inline-block;border-bottom:1px solid var(--ink);padding-bottom:2px;transition:color .25s ease,border-color .25s ease}
+.card .mail:hover{color:var(--green);border-color:var(--green)}
+.card .links{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:26px}
+.card .note{position:absolute;left:-40px;top:-58px;opacity:1;transform:rotate(-6deg);font-size:1.4rem}
+.card .note .arrow{display:block;width:30px;height:46px;margin:2px 0 0 60px}
+.card .note .arrow path{fill:none;stroke:var(--ink);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+@media (max-width:720px){ .card .note{left:8px;top:-62px} }
+
+.colophon{
+  position:relative;z-index:3;
+  display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px 24px;
+  padding:18px var(--pad) 22px;
+  font-size:.78rem;color:var(--muted);
+  background:var(--cream);
+}
+.colophon a{border-bottom:1px solid var(--line)}
+.colophon a:hover{color:var(--ink)}
+
+/* ============================================================
+   REVEALS
+   ============================================================ */
+.rv{opacity:0;transform:translateY(22px);transition:opacity 1s cubic-bezier(.2,.7,.2,1), transform 1s cubic-bezier(.2,.7,.2,1)}
+.rv.in{opacity:1;transform:none}
+.frame{opacity:0;transform:scale(1.015);transition:opacity 1.4s ease, transform 2.4s cubic-bezier(.2,.7,.2,1)}
+.frame.in{opacity:1;transform:none}
+.note.in{opacity:1;transform:none;transition:opacity 1s ease .9s, transform 1s cubic-bezier(.2,.7,.2,1) .9s}
+</style>
+</head>
+<body>
+<div class="page" id="page">
+  <div class="stage">
+  <div class="haze" aria-hidden="true"></div>
+  <!-- ===== HEADER ===== -->
+  <header class="top">
+    <a class="brand rv" href="/" style="transition-delay:.1s">
+      <svg class="spark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0c.6 6.4 5.6 11.4 12 12-6.4.6-11.4 5.6-12 12C11.4 17.6 6.4 12.6 0 12 6.4 11.4 11.4 6.4 12 0z"/></svg>
+      pedro brauner <small>giardino</small>
+    </a>
+    <nav class="navpill rv" style="transition-delay:.2s" aria-label="Sections">
+      <a href="#work">Work</a>
+      <a href="#ledger">Shows</a>
+      <a href="/writing/">Writing</a>
+      <a href="/#photography">Photography</a>
+      <a href="#about">About</a>
+    </nav>
+    <div class="top-right rv" style="transition-delay:.3s">
+      <a class="quiet" href="/cv/">Curriculum</a>
+      <a class="btn btn-ink btn-sm" href="mailto:hello@pedrobrauner.com">Say hello <span class="arr">&rarr;</span></a>
+    </div>
+  </header>
+
+  <!-- ===== HERO ===== -->
+  <div class="hero" id="hero">
+    <div class="frame" id="frame">
+      <picture>
+        <source media="(max-width: 720px)" srcset="giardino-assets/hero-tall.jpg">
+        <source media="(max-width: 1300px)" srcset="giardino-assets/hero-m.jpg">
+        <img class="paint" id="heroPaint" src="giardino-assets/hero.jpg" alt="Paul Cezanne, Mont Sainte-Victoire and the Viaduct of the Arc River Valley, 1882 to 1885. The Met, public domain." fetchpriority="high">
+      </picture>
+
+      <div class="note n1" id="note1">Lima, Peru.<br>Three languages.<br>One desk.<span class="rule"></span></div>
+      <div class="note n2" id="note2">Less noise.<br>More story.<span class="rule"></span></div>
+
+      <svg class="swoop" viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0 18 C 180 18, 330 62, 540 86 C 720 106, 880 70, 1000 58 L1000 100 L0 100 Z"/>
+      </svg>
+    </div>
+
+    <div class="lede">
+      <div class="lede-main">
+        <div class="eyebrow rv" style="transition-delay:.45s">Creative direction · esports<span class="x"> and entertainment</span></div>
+        <h1 class="rv" style="transition-delay:.55s">Builds the shows.<br>Still <em>writes</em> the stories.</h1>
+        <p class="sub rv" style="transition-delay:.7s">Pedro Brauner is a content and creative strategist working in esports: show formats, brand voice and editorial systems for rdy.gg, and La Sopa, Peru's leading Spanish-language Dota 2 podcast. Journalist by training, in Portuguese, Spanish and English.</p>
+        <div class="actions rv" style="transition-delay:.85s">
+          <a class="btn btn-ink" href="#work">See the work <span class="arr">&rarr;</span></a>
+          <a class="play" href="/#video"><span class="disc"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 1.2v9.6L10.6 6z" fill="currentColor"/></svg></span>Watch the reel</a>
+        </div>
+        <div class="stamps rv" style="transition-delay:1s">
+          <div class="row" aria-hidden="true">
+            <img src="giardino-assets/av-1.jpg" alt="">
+            <img src="giardino-assets/av-2.jpg" alt="">
+            <img src="giardino-assets/av-3.jpg" alt="">
+            <img src="giardino-assets/av-4.jpg" alt="">
+          </div>
+          <span>Reported from Riyadh to Melbourne<span class="x">, five years on the ground</span></span>
+        </div>
+      </div>
+
+      <aside class="aside rv" style="transition-delay:.95s">
+        <div class="eyebrow">Filed from</div>
+        <div class="marks" aria-label="Cities">
+          <span class="mk-1">Riyadh</span>
+          <span class="mk-2">Berlin</span>
+          <span class="mk-3">Seoul</span>
+          <span class="mk-4">melbourne<i>.</i></span>
+          <span class="mk-5">Rio</span>
+          <span class="mk-6">Lima</span>
+        </div>
+        <div class="note">
+          <svg class="arrow" viewBox="0 0 26 56" aria-hidden="true"><path d="M20 2 C 4 14, 4 34, 14 52 M8 44 l6 9 l7 -6"/></svg>
+          A story in<br>every city.<span class="rule"></span>
+        </div>
+      </aside>
+    </div>
+
+  </div>
+  <!-- foliage over header and hero -->
+  <div class="fg" id="fgHero" aria-hidden="true"></div>
+  </div>
+
+  <!-- ===== THREE CHAIRS ===== -->
+  <section id="work">
+    <div class="wrap">
+      <div class="sec-head rv">
+        <h2>Three chairs,<br>one <em>voice</em>.</h2>
+        <p>The job changed from telling the story to building the place where the story gets told. The eye is the same.</p>
+      </div>
+      <div class="chairs">
+        <article class="chair rv" style="transition-delay:.05s">
+          <span class="num">01</span>
+          <div class="pic"><img src="giardino-assets/thumb-valley.jpg" alt="" loading="lazy"></div>
+          <h3>Show <em>formats</em></h3>
+          <p>From concept to release. La Sopa was created, booked, directed and shipped weekly: 41 episodes, 5.1 million people reached, a title sponsor closed and built into the segments.</p>
+          <div class="facts"><span>La Sopa</span><span>41 episodes</span><span>5.1M reached</span></div>
+          <div class="fg" data-clu="card-a"></div>
+        </article>
+        <article class="chair rv" style="transition-delay:.15s">
+          <span class="num">02</span>
+          <div class="pic"><img src="giardino-assets/thumb-roofs.jpg" alt="" loading="lazy"></div>
+          <h3>Brand and <em>voice</em></h3>
+          <p>rdy.gg's content strategy from the ground up: guidelines, editorial standards, content pillars, and four original series with full identities, built with the team. Earlier, EDGE Esports grew impressions by 1,000% in 45 days.</p>
+          <div class="facts"><span>rdy.gg</span><span>EDGE Esports</span><span>4 series</span></div>
+          <div class="fg" data-clu="card-b"></div>
+        </article>
+        <article class="chair rv" style="transition-delay:.25s">
+          <span class="num">03</span>
+          <div class="pic"><img src="giardino-assets/thumb-house.jpg" alt="" loading="lazy"></div>
+          <h3>The <em>words</em></h3>
+          <p>Features, interviews and reportage from five years covering competitive gaming: the Major in Berlin, the World Cup in Riyadh, a champion who almost quit everything. In three languages.</p>
+          <div class="facts"><span>Reportage</span><span>Essays</span><span>PT · ES · EN</span></div>
+          <div class="fg" data-clu="card-c"></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== LEDGER ===== -->
+  <section id="ledger">
+    <div class="wrap">
+      <div class="sec-head rv">
+        <h2>Selected <em>work</em></h2>
+        <p>Shows, formats and pieces. The rdy.gg series belong to the team.</p>
+      </div>
+      <ul class="ledger">
+        <li class="rv"><a href="/#content">
+          <span class="yr">'25 →</span>
+          <span class="ttl">La Sopa <em>Podcast</em></span>
+          <span class="role">Director and executive producer. Peru's leading Spanish-language Dota 2 podcast, weekly.</span>
+          <span class="go"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M1 7h11M7 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </a></li>
+        <li class="rv"><a href="/#video">
+          <span class="yr">'26</span>
+          <span class="ttl">IEM Rio 2026, <em>A Love Letter to Esports</em></span>
+          <span class="role">Film. The fan experience, on the ground in Rio.</span>
+          <span class="go"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M1 7h11M7 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </a></li>
+        <li class="rv"><a href="/cv/">
+          <span class="yr">'25 →</span>
+          <span class="ttl">rdy.gg <em>content engine</em></span>
+          <span class="role">Content and creative strategist. Win Condition, Context Cap, Ws and Ls, with the rdy.gg team.</span>
+          <span class="go"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M1 7h11M7 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </a></li>
+        <li class="rv"><a href="/ti-player-guide/">
+          <span class="yr">'25</span>
+          <span class="ttl">The International <em>Player Guide</em></span>
+          <span class="role">An interactive format for the biggest Dota 2 tournament of the year.</span>
+          <span class="go"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M1 7h11M7 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </a></li>
+        <li class="rv"><a href="/#writing">
+          <span class="yr">'23</span>
+          <span class="ttl">Berlin, May 2023: <em>Two Conversations at the Major</em></span>
+          <span class="role">Reportage.</span>
+          <span class="go"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M1 7h11M7 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </a></li>
+        <li class="rv"><a href="/#writing">
+          <span class="yr">'22</span>
+          <span class="ttl">On the Verge: <em>How bzkA Almost Quit Everything and Won the World</em></span>
+          <span class="role">Interview.</span>
+          <span class="go"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M1 7h11M7 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </a></li>
+      </ul>
+      <div class="ledger-note rv">
+        <svg viewBox="0 0 44 30" aria-hidden="true"><path d="M2 26 C 14 4, 30 4, 42 14 M34 6 l8 8 l-9 4"/></svg>
+        <span>Everything else lives on the main site. This page is a garden, not the house.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== ABOUT ===== -->
+  <section id="about">
+    <div class="haze haze-about" aria-hidden="true"></div>
+    <div class="wrap about">
+      <div class="portrait rv">
+        <div class="pic"><img src="giardino-assets/portrait.jpg" alt="Pedro Brauner holding a gelato outside Caffè Pedone, at night." loading="lazy"></div>
+        <div class="cap">Pedone, since 1959.<br>Also the family name.<span class="rule"></span></div>
+        <div class="fg" data-clu="portrait"></div>
+      </div>
+      <div class="about-copy rv" style="transition-delay:.15s">
+        <div class="eyebrow">About</div>
+        <h2>Brazilian. Based in Lima.<br>Thinks in <em>three</em> languages.</h2>
+        <p>Five years reporting on esports from press rows in Riyadh, Berlin, Seoul and Melbourne taught the eye. Then the job became building the rooms where the stories get told: show formats, brand voices, editorial systems, the occasional data pipeline.</p>
+        <p>He still writes every day. That part never left.</p>
+        <dl class="facts">
+          <div><dt>Now</dt><dd>Content and creative strategist, rdy.gg (remote, Lima). Director of La Sopa Podcast.</dd></div>
+          <div><dt>Languages</dt><dd>Portuguese, Spanish, English.</dd></div>
+          <div><dt>On the ground</dt><dd>IEM Rio 2026, the Esports World Cup, the Berlin Major, and a few more.</dd></div>
+          <div><dt>Not</dt><dd>A caster. Or a Valorant person.</dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer id="contact">
+    <div class="band" id="band">
+      <img class="paint" id="bandPaint" src="giardino-assets/bay-band.jpg" alt="Paul Cezanne, The Gulf of Marseille Seen from L'Estaque, about 1885. The Met, public domain." loading="lazy">
+      <div class="glow"></div>
+      <svg class="swoop-top" viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0 0 L1000 0 L1000 42 C 840 70, 660 20, 480 34 C 300 48, 150 90, 0 70 Z"/>
+      </svg>
+      <div class="card rv">
+        <div class="note">
+          Say it in any<br>of the three.
+          <svg class="arrow" viewBox="0 0 30 46" aria-hidden="true"><path d="M4 2 C 24 10, 28 26, 20 44 M12 36 l8 9 l6 -9"/></svg>
+        </div>
+        <h2>Let's <em>talk</em>.</h2>
+        <p>Shows, brands, formats, or a piece that needs writing properly. Lima time, replies fast.</p>
+        <a class="mail" href="mailto:hello@pedrobrauner.com">hello@pedrobrauner.com</a>
+        <div class="links">
+          <a class="btn btn-paper btn-sm" href="/cv/">Curriculum</a>
+          <a class="btn btn-paper btn-sm" href="/">Main site</a>
+          <a class="btn btn-paper btn-sm" href="/lab/">The lab</a>
+        </div>
+      </div>
+      <div class="fg" id="fgBand" aria-hidden="true"></div>
+    </div>
+    <div class="colophon">
+      <span>© 2026 Pedro Brauner. A lab experiment, not the real site.</span>
+      <span>Paintings by Paul Cézanne, <a href="https://www.metmuseum.org/art/collection/search/435877" rel="noopener">The Met</a> open access, public domain. Foliage drawn in code.</span>
+    </div>
+  </footer>
+</div>
+
+<script>
+/* ============================================================
+   FOLIAGE
+   Every leaf, twig and blossom is generated here, seeded, so the
+   garden is the same one every visit. Blur happens in CSS on the
+   cluster, which is what makes a drawn leaf read as a real one
+   sitting too close to the lens.
+   ============================================================ */
+(function(){
+  const rnd = seed => { let s = (seed * 2654435761) >>> 0 || 7; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); };
+  const NS = 'http://www.w3.org/2000/svg';
+  const el = (n, a) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); return e; };
+  let uid = 0;
+
+  const PAL = {
+    deep:  [['#284d24', 0], ['#4a7a34', .55], ['#87b04a', 1]],
+    sun:   [['#3f6b2e', 0], ['#7ea641', .5],  ['#d2d96a', 1]],
+    olive: [['#5c6f45', 0], ['#8a9a62', .5],  ['#c9cf9a', 1]],
+    warm:  [['#6b6a2a', 0], ['#a9a63b', .5],  ['#e9d76a', 1]],
+  };
+
+  function grad(defs, stops, id){
+    const g = el('linearGradient', { id, x1: 0, y1: 0, x2: 1, y2: 0 });
+    stops.forEach(([c, o]) => g.appendChild(el('stop', { offset: o, 'stop-color': c })));
+    defs.appendChild(g);
+    return `url(#${id})`;
+  }
+
+  function leafPath(L, W, k){
+    return `M0 0 C ${L*0.22} ${-W*(1+k)}, ${L*0.72} ${-W*(1-k*.6)}, ${L} 0 C ${L*0.72} ${W*(1-k*.6)*.9}, ${L*0.22} ${W*(1+k)*.9}, 0 0 Z`;
+  }
+
+  function leaf(g, x, y, ang, L, W, fill, r, o){
+    const k = (r() - .5) * .5;
+    const grp = el('g', { transform: `translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${ang.toFixed(1)})` });
+    grp.appendChild(el('path', { d: leafPath(L, W, k), fill, opacity: o || .95 }));
+    grp.appendChild(el('path', { d: `M${L*0.06} 0 Q ${L*0.5} ${W*0.08} ${L*0.94} 0`, fill: 'none', stroke: 'rgba(255,255,230,.35)', 'stroke-width': Math.max(1, W * .08) }));
+    g.appendChild(grp);
+  }
+
+  function branch(svg, defs, o){
+    const r = rnd(o.seed);
+    const fill = grad(defs, PAL[o.pal || 'deep'], 'g' + (++uid));
+    const pt = t => { const u = 1 - t; return { x: u*u*o.x0 + 2*u*t*o.cx + t*t*o.x1, y: u*u*o.y0 + 2*u*t*o.cy + t*t*o.y1 }; };
+    const tan = t => Math.atan2(2*(1-t)*(o.cy-o.y0) + 2*t*(o.y1-o.cy), 2*(1-t)*(o.cx-o.x0) + 2*t*(o.x1-o.cx)) * 180 / Math.PI;
+    const g = el('g', {});
+    // the stem, drawn twice so it tapers
+    g.appendChild(el('path', { d: `M${o.x0} ${o.y0} Q${o.cx} ${o.cy} ${o.x1} ${o.y1}`, fill: 'none', stroke: '#3d3120', 'stroke-width': o.stem || 6, 'stroke-linecap': 'round', opacity: .9 }));
+    const m = pt(.5);
+    g.appendChild(el('path', { d: `M${m.x} ${m.y} Q${(m.x+o.cx)/2} ${(m.y+o.cy)/2} ${o.x1} ${o.y1}`, fill: 'none', stroke: '#4a3b28', 'stroke-width': (o.stem || 6) * .5, 'stroke-linecap': 'round' }));
+    const n = o.n || 9;
+    const ratio = o.type === 'olive' ? .16 : o.type === 'broad' ? .42 : .3;
+    for (let i = 0; i < n; i++){
+      const t = .1 + .9 * i / (n - 1) + (r() - .5) * .05;
+      const p = pt(Math.min(1, Math.max(0, t)));
+      const a = tan(t);
+      const side = i % 2 ? 1 : -1;
+      const ang = a + side * (30 + r() * 45) + (o.flip ? 180 : 0);
+      const L = o.size * (1.2 - .55 * t) * (.8 + .45 * r());
+      const W = L * ratio * (.85 + .3 * r());
+      leaf(g, p.x, p.y, ang, L, W, fill, r, .92 + r() * .08);
+    }
+    // a tip leaf pointing along the stem
+    const tip = pt(1);
+    leaf(g, tip.x, tip.y, tan(1) + (o.flip ? 180 : 0) + (r() - .5) * 20, o.size * .55, o.size * .55 * ratio, fill, r, 1);
+    svg.appendChild(g);
+  }
+
+  function blossom(svg, defs, o){
+    const r = rnd(o.seed);
+    const pg = el('radialGradient', { id: 'p' + (++uid), cx: .3, cy: .5, r: .8 });
+    pg.appendChild(el('stop', { offset: 0, 'stop-color': o.deep ? '#e8478e' : '#ffd7e8' }));
+    pg.appendChild(el('stop', { offset: 1, 'stop-color': o.deep ? '#b6146a' : '#ee6fae' }));
+    defs.appendChild(pg);
+    const g = el('g', {});
+    const petals = 5;
+    for (let i = 0; i < petals; i++){
+      const a = i * (360 / petals) + (r() - .5) * 18;
+      const s = o.size * (.9 + r() * .2);
+      g.appendChild(el('ellipse', { cx: s * .34, cy: 0, rx: s * .36, ry: s * .24, transform: `rotate(${a})`, fill: `url(#${pg.id})`, opacity: .96 }));
+    }
+    g.appendChild(el('circle', { cx: 0, cy: 0, r: o.size * .1, fill: '#f6dc74' }));
+    g.appendChild(el('circle', { cx: 0, cy: 0, r: o.size * .05, fill: '#b8741a' }));
+    g.setAttribute('transform', `translate(${o.x} ${o.y}) rotate(${r() * 360})`);
+    svg.appendChild(g);
+  }
+
+  function bokeh(svg, defs, o){
+    const r = rnd(o.seed);
+    for (let i = 0; i < o.n; i++){
+      const id = 'b' + (++uid);
+      const g = el('radialGradient', { id });
+      g.appendChild(el('stop', { offset: 0, 'stop-color': o.color, 'stop-opacity': .55 }));
+      g.appendChild(el('stop', { offset: .7, 'stop-color': o.color, 'stop-opacity': .35 }));
+      g.appendChild(el('stop', { offset: 1, 'stop-color': o.color, 'stop-opacity': 0 }));
+      defs.appendChild(g);
+      const R = o.size * (.5 + r());
+      svg.appendChild(el('circle', { cx: o.x + (r() - .5) * o.spread, cy: o.y + (r() - .5) * o.spread, r: R, fill: `url(#${id})` }));
+    }
+  }
+
+  /* one cluster = one absolutely positioned wrapper with one svg inside */
+  function cluster(host, c){
+    const w = document.createElement('div');
+    w.className = 'clu';
+    w.style.setProperty('--blur', c.blur + 'px');
+    w.style.setProperty('--d', (c.delay || 0) + 's');
+    w.style.setProperty('--sw', (7 + (c.seed % 5)) + 's');
+    w.style.setProperty('--sd', -((c.seed * 1.7) % 6) + 's');
+    w.style.setProperty('--amp', (c.amp || 1.2) + 'deg');
+    w.style.setProperty('--ox', c.ox + 'px');
+    w.style.setProperty('--oy', c.oy + 'px');
+    w.dataset.depth = c.depth;
+    w.dataset.px = c.px; w.dataset.py = c.py;
+    w.style.left = c.left != null ? c.left : 'auto'; w.style.top = c.top != null ? c.top : 'auto';
+    if (c.right != null){ w.style.left = 'auto'; w.style.right = c.right; }
+    if (c.bottom != null){ w.style.top = 'auto'; w.style.bottom = c.bottom; }
+    const svg = el('svg', { width: 10, height: 10, style: 'overflow:visible' });
+    const defs = el('defs', {});
+    svg.appendChild(defs);
+    c.draw(svg, defs);
+    w.appendChild(svg);
+    host.appendChild(w);
+    return w;
+  }
+
+  /* ---------- the hero garden ---------- */
+  const hero = document.getElementById('fgHero');
+  const mobile = matchMedia('(max-width: 720px)').matches;
+  const stacked = matchMedia('(max-width: 900px)').matches;   // hero text and aside stack, keep the big leaves off them
+  const S = mobile ? .56 : Math.min(1, Math.max(.7, innerWidth / 1600));   // size factor
+
+  // 1. the canopy: hangs from the top-left, drapes over the painting's own pines, stays off the logo
+  cluster(hero, { seed: 11, blur: mobile ? 1.5 : 2.2, depth: .35, delay: .2, amp: .9, left: '0px', top: mobile ? '70px' : '100px', ox: -20, oy: 40, draw(svg, defs){
+    branch(svg, defs, { seed: 3,  x0: -60*S, y0: 40*S,  cx: 90*S,  cy: 90*S,  x1: 330*S, y1: 170*S, n: 10, size: 112*S, type: 'broad', pal: 'sun',  stem: 9*S });
+    branch(svg, defs, { seed: 5,  x0: -40*S, y0: 160*S, cx: 90*S,  cy: 220*S, x1: 250*S, y1: 350*S, n: 8,  size: 98*S,  type: 'broad', pal: 'deep', stem: 7*S });
+    branch(svg, defs, { seed: 8,  x0: -30*S, y0: 60*S,  cx: 30*S,  cy: 230*S, x1: 10*S,  y1: 440*S, n: 7,  size: 86*S,  type: 'broad', pal: 'sun',  stem: 6*S });
+  }});
+
+  // 2. light through the leaves, top-left
+  cluster(hero, { seed: 21, blur: 26, depth: .2, delay: 0, amp: 0, left: '0px', top: '0px', ox: 0, oy: 0, draw(svg, defs){
+    bokeh(svg, defs, { seed: 4, n: 7, x: 120*S, y: 140*S, spread: 340*S, size: 90*S, color: '#ffe9a8' });
+  }});
+
+  // 3. blossoms on the left edge, deep out of focus, most of the bush is outside the frame
+  cluster(hero, { seed: 33, blur: mobile ? 7 : 11, depth: .95, delay: .5, amp: 1.6, left: '0px', top: mobile ? '18%' : '22%', ox: -120, oy: 120, draw(svg, defs){
+    branch(svg, defs, { seed: 12, x0: -220*S, y0: 200*S, cx: -60*S, cy: 110*S, x1: 120*S, y1: 70*S,  n: 7, size: 130*S, type: 'broad', pal: 'deep', stem: 12*S });
+    branch(svg, defs, { seed: 14, x0: -200*S, y0: 300*S, cx: -40*S, cy: 260*S, x1: 100*S, y1: 240*S, n: 6, size: 110*S, type: 'broad', pal: 'sun',  stem: 10*S });
+    blossom(svg, defs, { seed: 15, x: -40*S, y: 120*S, size: 140*S });
+    blossom(svg, defs, { seed: 16, x: 60*S,  y: 190*S, size: 100*S, deep: true });
+    blossom(svg, defs, { seed: 17, x: -90*S, y: 250*S, size: 160*S });
+    blossom(svg, defs, { seed: 18, x: 30*S,  y: 60*S,  size: 80*S, deep: true });
+  }});
+
+  // 4. big leaves rising out of the bottom-right corner, the closest thing to the lens
+  cluster(hero, { seed: 44, blur: mobile ? 8 : 13, depth: 1.1, delay: .35, amp: 1.4, right: '0px', bottom: stacked ? null : '0px', top: stacked ? '34%' : null, ox: 120, oy: 80, draw(svg, defs){
+    branch(svg, defs, { seed: 22, x0: 140*S, y0: 90*S,  cx: 40*S,  cy: -60*S,  x1: -150*S, y1: -280*S, n: 8, size: 180*S, type: 'broad', pal: 'deep', stem: 14*S });
+    branch(svg, defs, { seed: 24, x0: 160*S, y0: 140*S, cx: -40*S, cy: 60*S,   x1: -300*S, y1: -40*S,  n: 7, size: 160*S, type: 'broad', pal: 'sun',  stem: 12*S });
+    branch(svg, defs, { seed: 26, x0: 120*S, y0: -160*S, cx: 60*S, cy: -300*S, x1: -40*S,  y1: -440*S, n: 6, size: 130*S, type: 'broad', pal: 'deep', stem: 9*S });
+  }});
+
+  // 5. an olive sprig hanging in from the top-right edge, right of the button
+  if (!mobile) cluster(hero, { seed: 55, blur: 6, depth: .6, delay: .6, amp: 2, right: '0px', top: '0px', ox: 60, oy: -40, draw(svg, defs){
+    branch(svg, defs, { seed: 31, x0: 80*S, y0: -60*S, cx: 50*S, cy: 140*S, x1: -60*S, y1: 330*S, n: 11, size: 92*S, type: 'olive', pal: 'olive', stem: 5*S });
+    branch(svg, defs, { seed: 32, x0: 100*S, y0: 60*S, cx: 70*S, cy: 220*S, x1: 10*S,  y1: 400*S, n: 9,  size: 80*S, type: 'olive', pal: 'olive', stem: 4*S });
+  }});
+
+  /* ---------- the cards and the portrait ---------- */
+  const small = {
+    'card-a': h => cluster(h, { seed: 61, blur: 6, depth: .5, delay: .1, amp: 2, right: '0px', top: '0px', ox: 40, oy: -20, draw(svg, defs){
+      branch(svg, defs, { seed: 41, x0: 40, y0: -40, cx: 0, cy: 60, x1: -90, y1: 150, n: 7, size: 70, type: 'olive', pal: 'olive', stem: 4 });
+    }}),
+    'card-b': h => cluster(h, { seed: 62, blur: 7, depth: .5, delay: .2, amp: 1.6, left: '0px', bottom: '0px', ox: -30, oy: 30, draw(svg, defs){
+      branch(svg, defs, { seed: 42, x0: -120, y0: 60, cx: -30, cy: 20, x1: 90, y1: -50, n: 6, size: 84, type: 'broad', pal: 'sun', stem: 6 });
+      blossom(svg, defs, { seed: 43, x: -40, y: 20, size: 70, deep: true });
+    }}),
+    'card-c': h => cluster(h, { seed: 63, blur: 5, depth: .5, delay: .3, amp: 2, right: '0px', bottom: '0px', ox: 40, oy: 30, draw(svg, defs){
+      branch(svg, defs, { seed: 44, x0: 120, y0: 60, cx: 50, cy: -20, x1: -50, y1: -90, n: 7, size: 78, type: 'broad', pal: 'deep', stem: 6 });
+    }}),
+    'portrait': h => cluster(h, { seed: 71, blur: 9, depth: .8, delay: .2, amp: 1.4, left: '0px', bottom: '0px', ox: -60, oy: 80, draw(svg, defs){
+      branch(svg, defs, { seed: 51, x0: -90, y0: 120, cx: 30, cy: 60, x1: 220, y1: -20, n: 7, size: 130, type: 'broad', pal: 'deep', stem: 10 });
+      blossom(svg, defs, { seed: 52, x: 40,  y: 40,  size: 120 });
+      blossom(svg, defs, { seed: 53, x: 160, y: -10, size: 90, deep: true });
+      blossom(svg, defs, { seed: 54, x: -30, y: 150, size: 130 });
+    }}),
+  };
+  document.querySelectorAll('[data-clu]').forEach(h => small[h.dataset.clu] && small[h.dataset.clu](h));
+
+  /* ---------- the footer band ---------- */
+  const band = document.getElementById('fgBand');
+  cluster(band, { seed: 81, blur: mobile ? 7 : 12, depth: 1, delay: .1, amp: 1.4, left: '0px', bottom: '0px', ox: -40, oy: 120, draw(svg, defs){
+    branch(svg, defs, { seed: 61, x0: -120*S, y0: 140*S, cx: 60*S, cy: 40*S,  x1: 300*S, y1: -120*S, n: 8, size: 180*S, type: 'broad', pal: 'deep', stem: 14*S });
+    branch(svg, defs, { seed: 62, x0: -60*S,  y0: 40*S,  cx: 80*S, cy: -80*S, x1: 200*S, y1: -260*S, n: 7, size: 150*S, type: 'broad', pal: 'sun',  stem: 11*S });
+  }});
+  cluster(band, { seed: 82, blur: mobile ? 6 : 10, depth: .9, delay: .3, amp: 1.6, right: '0px', bottom: '0px', ox: 60, oy: 120, draw(svg, defs){
+    branch(svg, defs, { seed: 71, x0: 140*S, y0: 120*S, cx: -20*S, cy: 20*S,  x1: -280*S, y1: -100*S, n: 8, size: 170*S, type: 'broad', pal: 'sun',  stem: 13*S });
+    blossom(svg, defs, { seed: 72, x: -40*S,  y: -20*S, size: 150*S });
+    blossom(svg, defs, { seed: 73, x: -180*S, y: -90*S, size: 110*S, deep: true });
+    blossom(svg, defs, { seed: 74, x: 60*S,   y: -140*S, size: 120*S, deep: true });
+  }});
+  if (!mobile) cluster(band, { seed: 83, blur: 5, depth: .5, delay: .5, amp: 2.2, right: '18%', top: '0px', ox: 0, oy: -60, draw(svg, defs){
+    branch(svg, defs, { seed: 81, x0: 40*S, y0: -80*S, cx: -10*S, cy: 120*S, x1: -60*S, y1: 320*S, n: 12, size: 92*S, type: 'olive', pal: 'olive', stem: 5*S });
+  }});
+
+  /* ---------- parallax: the mouse moves the near things more ---------- */
+  const clus = Array.from(document.querySelectorAll('.clu'));
+  let tx = 0, ty = 0, cx = 0, cy = 0;
+  addEventListener('pointermove', e => {
+    tx = (e.clientX / innerWidth - .5) * 2;
+    ty = (e.clientY / innerHeight - .5) * 2;
+  }, { passive: true });
+  const heroPaint = document.getElementById('heroPaint');
+  const bandEl = document.getElementById('band');
+  const bandPaint = document.getElementById('bandPaint');
+  function tick(){
+    cx += (tx - cx) * .06; cy += (ty - cy) * .06;
+    for (const c of clus){
+      const d = parseFloat(c.dataset.depth) || .5;
+      c.style.setProperty('--px', (-cx * 22 * d).toFixed(2) + 'px');
+      c.style.setProperty('--py', (-cy * 14 * d).toFixed(2) + 'px');
+    }
+    // scroll parallax on the two paintings
+    const y = scrollY;
+    heroPaint.style.setProperty('--py', (y * .14).toFixed(1) + 'px');
+    const br = bandEl.getBoundingClientRect();
+    const t = (br.top - innerHeight) / (innerHeight + br.height);   // -1..0 while visible
+    bandPaint.style.setProperty('--py', (t * 60).toFixed(1) + 'px');
+    document.hidden ? setTimeout(tick, 120) : requestAnimationFrame(tick);
+  }
+  tick();
+
+  /* ---------- reveals ---------- */
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    document.getElementById('frame').classList.add('in');
+    document.getElementById('note1').classList.add('in');
+    document.getElementById('note2').classList.add('in');
+    document.querySelectorAll('.top .rv, .lede .rv').forEach(n => n.classList.add('in'));
+  }));
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -8% 0px', threshold: .08 });
+  document.querySelectorAll('section .rv, footer .rv').forEach(n => io.observe(n));
+  // if the page starts hidden (a preview), reveal everything so nothing looks missing
+  if (document.hidden) document.querySelectorAll('.rv').forEach(n => n.classList.add('in'));
+})();
+</script>
+</body>
+</html>
